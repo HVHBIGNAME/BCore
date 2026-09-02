@@ -1,4 +1,5 @@
 /target
+/target-chat
 **/*.rs.bk
 *.log
 .env

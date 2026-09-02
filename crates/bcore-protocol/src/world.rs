@@ -11,6 +11,7 @@ use std::io::Write;
 use bcore_core::varint::encode_varint;
 
 use crate::chunk::flat_chunk_payload;
+use crate::gameplay::{GameMode, TIME_DAY};
 use crate::packet::{write_packet, PacketError};
 
 /// Serverbound: `position` — x/y/z + movement flags.
@@ -42,9 +43,14 @@ pub const CB_MAP_CHUNK: i32 = 0x2d;
 pub const CB_PING_RESPONSE: i32 = 0x3e;
 /// Clientbound: `update_view_position` — the chunk the client should centre on.
 pub const CB_UPDATE_VIEW_POSITION: i32 = 0x5e;
+/// Clientbound: `position` — an absolute teleport the client must confirm.
+pub const CB_POSITION: i32 = 0x48;
 
 /// View distance in chunks, matching the `viewDistance` announced at join.
-pub const VIEW_DISTANCE: i32 = 2;
+pub const VIEW_DISTANCE: i32 = 10;
+
+/// Day time a fresh world starts at (vanilla's morning).
+pub const DEFAULT_DAY_TIME: i64 = TIME_DAY;
 
 /// The chunk containing a world coordinate (floor division by 16).
 pub fn chunk_coord(world: f64) -> i32 {
@@ -78,9 +84,17 @@ pub struct PlayerView {
     pub yaw: f32,
     pub pitch: f32,
     pub on_ground: bool,
+    /// The player's current gamemode (drives the `abilities` packet).
+    pub game_mode: GameMode,
+    /// The world's day time in ticks, as last sent by `update_time`.
+    pub day_time: i64,
+    /// The position `/spawn` returns to (where the player entered the world).
+    pub spawn: (f64, f64, f64),
     /// Chunks the client has been sent and has not been told to unload.
     loaded: BTreeSet<(i32, i32)>,
     view_distance: i32,
+    /// Next teleport id handed to a clientbound `position` packet.
+    next_teleport_id: i32,
 }
 
 impl PlayerView {
@@ -93,8 +107,13 @@ impl PlayerView {
             yaw: 0.0,
             pitch: 0.0,
             on_ground: true,
+            game_mode: GameMode::Survival,
+            day_time: DEFAULT_DAY_TIME,
+            spawn: (x, y, z),
             loaded: BTreeSet::new(),
             view_distance: VIEW_DISTANCE,
+            // The join replay already used teleport id 1.
+            next_teleport_id: 2,
         }
     }
 
@@ -173,6 +192,34 @@ impl PlayerView {
                 (x - cx).abs() > self.view_distance || (z - cz).abs() > self.view_distance
             })
             .collect()
+    }
+
+    /// Move the player to an absolute position and encode the clientbound
+    /// `position` (0x48) packet that tells the client about it.
+    ///
+    /// Field order (`protocol_26_1.json`, verified against a captured join):
+    /// `teleportId varint | x,y,z f64 | dx,dy,dz f64 | yaw,pitch f32 |
+    /// flags u32` — the deltas are velocity, zero for a plain teleport, and the
+    /// flags bitset is 0 so every field is absolute.
+    pub fn teleport(&mut self, x: f64, y: f64, z: f64) -> Vec<u8> {
+        self.x = x;
+        self.y = y;
+        self.z = z;
+        let teleport_id = self.next_teleport_id;
+        self.next_teleport_id = self.next_teleport_id.wrapping_add(1).max(1);
+
+        let mut data = Vec::with_capacity(61);
+        encode_varint(teleport_id, &mut data);
+        for value in [x, y, z, 0.0, 0.0, 0.0] {
+            data.extend_from_slice(&value.to_be_bytes());
+        }
+        data.extend_from_slice(&self.yaw.to_be_bytes());
+        data.extend_from_slice(&self.pitch.to_be_bytes());
+        data.extend_from_slice(&0u32.to_be_bytes()); // all values absolute
+
+        let mut out = Vec::new();
+        write_packet(&mut out, CB_POSITION, &data);
+        out
     }
 
     /// Stream the chunks that entered the view distance and unload the rest.
@@ -315,7 +362,8 @@ mod tests {
     fn streaming_sends_the_full_view_then_nothing_until_the_player_moves() {
         let mut view = PlayerView::new(10.5, -60.0, -3.5);
         let mut out = Vec::new();
-        assert_eq!(view.stream_chunks(&mut out).expect("stream"), 25);
+        let want = (2 * VIEW_DISTANCE + 1).pow(2) as usize;
+        assert_eq!(view.stream_chunks(&mut out).expect("stream"), want);
         assert!(!out.is_empty());
         // Idempotent while the player stays put.
         let mut again = Vec::new();
@@ -337,13 +385,14 @@ mod tests {
         data.push(0x01);
         view.apply_movement(SB_POSITION, &data);
         assert_eq!(view.chunk(), (1, -1));
-        assert_eq!(view.missing_chunks().len(), 5);
-        assert_eq!(view.stale_chunks().len(), 5);
+        let ring = (2 * VIEW_DISTANCE + 1) as usize;
+        assert_eq!(view.missing_chunks().len(), ring);
+        assert_eq!(view.stale_chunks().len(), ring);
 
         let mut out = Vec::new();
-        assert_eq!(view.stream_chunks(&mut out).expect("stream"), 5);
-        // The view is still exactly 25 chunks after the shift.
-        assert_eq!(view.loaded_chunks().count(), 25);
+        assert_eq!(view.stream_chunks(&mut out).expect("stream"), ring);
+        // The view is still exactly (2*d+1)^2 chunks after the shift.
+        assert_eq!(view.loaded_chunks().count(), ring * ring);
         assert!(view.missing_chunks().is_empty());
         assert!(view.stale_chunks().is_empty());
     }
@@ -369,10 +418,72 @@ mod tests {
         data.extend_from_slice(&1000.0f64.to_be_bytes());
         data.push(0x01);
         view.apply_movement(SB_POSITION, &data);
-        assert_eq!(view.missing_chunks().len(), 25);
-        assert_eq!(view.stale_chunks().len(), 25);
+        let want = (2 * VIEW_DISTANCE + 1).pow(2) as usize;
+        assert_eq!(view.missing_chunks().len(), want);
+        assert_eq!(view.stale_chunks().len(), want);
         let mut out = Vec::new();
-        assert_eq!(view.stream_chunks(&mut out).expect("stream"), 25);
-        assert_eq!(view.loaded_chunks().count(), 25);
+        assert_eq!(view.stream_chunks(&mut out).expect("stream"), want);
+        assert_eq!(view.loaded_chunks().count(), want);
+    }
+
+    #[test]
+    fn teleport_moves_the_player_and_encodes_an_absolute_position_packet() {
+        let mut view = PlayerView::new(10.5, -60.0, -3.5);
+        view.yaw = 90.0;
+        view.pitch = -12.5;
+        let frame = view.teleport(100.5, -60.0, 200.5);
+        assert_eq!((view.x, view.y, view.z), (100.5, -60.0, 200.5));
+        assert_eq!(view.chunk(), (6, 12));
+
+        // Framing: length varint, packet id, then the payload.
+        let (len, n) = bcore_core::varint::decode_varint(&frame).expect("length");
+        assert_eq!(frame.len(), n + len as usize);
+        let (id, m) = bcore_core::varint::decode_varint(&frame[n..]).expect("id");
+        assert_eq!(id, CB_POSITION);
+        let body = &frame[n + m..];
+
+        let mut want = Vec::new();
+        encode_varint(2, &mut want); // first teleport id after the join's 1
+        for value in [100.5f64, -60.0, 200.5, 0.0, 0.0, 0.0] {
+            want.extend_from_slice(&value.to_be_bytes());
+        }
+        want.extend_from_slice(&90.0f32.to_be_bytes());
+        want.extend_from_slice(&(-12.5f32).to_be_bytes());
+        want.extend_from_slice(&0u32.to_be_bytes());
+        assert_eq!(body, &want[..]);
+        // Same length as the 61-byte `position` payload vanilla sends at join.
+        assert_eq!(body.len(), 61);
+    }
+
+    #[test]
+    fn teleport_ids_increase_so_the_client_can_confirm_each_one() {
+        let mut view = PlayerView::new(0.0, 0.0, 0.0);
+        let first = view.teleport(1.0, 2.0, 3.0);
+        let second = view.teleport(4.0, 5.0, 6.0);
+        let id_of = |frame: &[u8]| frame[2]; // len, packet id, teleport id
+        assert_eq!(id_of(&first), 2);
+        assert_eq!(id_of(&second), 3);
+    }
+
+    #[test]
+    fn teleporting_out_of_range_makes_the_whole_view_stale() {
+        let mut view = PlayerView::new(10.5, -60.0, -3.5);
+        view.stream_chunks(&mut Vec::new()).expect("initial");
+        view.teleport(5000.0, -60.0, 5000.0);
+        let want = (2 * VIEW_DISTANCE + 1).pow(2) as usize;
+        assert_eq!(view.missing_chunks().len(), want);
+        assert_eq!(view.stale_chunks().len(), want);
+    }
+
+    #[test]
+    fn a_new_view_starts_in_survival_at_daytime_and_remembers_its_spawn() {
+        let view = PlayerView::new(10.5, -60.0, -3.5);
+        assert_eq!(view.game_mode, GameMode::Survival);
+        assert_eq!(view.day_time, TIME_DAY);
+        assert_eq!(view.spawn, (10.5, -60.0, -3.5));
+        // Moving does not move the spawn point.
+        let mut view = view;
+        view.teleport(500.0, 0.0, 500.0);
+        assert_eq!(view.spawn, (10.5, -60.0, -3.5));
     }
 }

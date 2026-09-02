@@ -18,7 +18,19 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use bcore_core::varint::encode_varint;
 
+use crate::chat::{
+    encode_player_chat, encode_profileless_chat, encode_system_chat, encode_system_message,
+    parse_chat_input, ChatInput, CHAT_TYPE_SAY_COMMAND,
+};
+use crate::command::{self, CommandContext, Destination, Effect};
+use crate::commands::{bcore_command_tree, CB_DECLARE_COMMANDS};
+use crate::gameplay::{
+    encode_abilities_for, encode_full_health, encode_gamemode_change, encode_set_day_time,
+    encode_time_of_day, CB_ABILITIES, CB_UPDATE_HEALTH, CB_UPDATE_TIME,
+};
+use crate::nbt::Component;
 use crate::packet::{read_frame, read_string, write_packet, write_string, PacketError};
+use crate::shared::{PlayerHandle, SharedServer};
 use crate::world::{
     PlayerView, CB_CHUNK_BATCH_FINISHED, CB_CHUNK_BATCH_START, CB_MAP_CHUNK, CB_PING_RESPONSE,
     SB_PING_REQUEST,
@@ -35,6 +47,14 @@ const PLAY_KEEP_ALIVE_ID: i32 = 0x2c;
 const PLAY_TELEPORT_CONFIRM_ID: i32 = 0x00;
 /// Clientbound `kick_disconnect`: present in the capture, never replayed.
 const PLAY_KICK_DISCONNECT_ID: i32 = 0x20;
+
+/// The world seed `/seed` reports (the flat world is seed-independent, but the
+/// client still expects a number).
+pub const WORLD_SEED: i64 = 0;
+/// Player slots announced in the status response and reported by `/list`.
+pub const MAX_PLAYERS: usize = 20;
+/// Ticks per second the world clock advances at.
+const TICKS_PER_SECOND: i64 = 20;
 
 // Embedded vanilla 26.2 captures. Binary format:
 // [u32 count][ (i32 pid, u32 len, bytes)... ]
@@ -116,7 +136,13 @@ fn parse_captured(bytes: &[u8]) -> CapturedPackets {
 }
 
 /// Drive a full offline-mode join for an already-connected stream.
-pub fn run_login_and_join(stream: &mut TcpStream) -> Result<(), PacketError> {
+///
+/// `server` is the shared registry every connection thread uses to see the other
+/// players; chat and `/list` need it.
+pub fn run_login_and_join(
+    stream: &mut TcpStream,
+    server: &SharedServer,
+) -> Result<(), PacketError> {
     let (packet_id, data) = read_frame(stream)?;
     if packet_id != 0x00 {
         return Err(PacketError::UnexpectedPacket(packet_id));
@@ -135,7 +161,75 @@ pub fn run_login_and_join(stream: &mut TcpStream) -> Result<(), PacketError> {
     config_replay(stream)?;
     let mut view = play_replay(stream, &uuid, &name)?;
     stream_initial_chunks(stream, &mut view)?;
-    play_loop(stream, &mut view)
+
+    // Register only once the player is really in the world, so a failed join
+    // never leaves a ghost in `/list`.
+    let handle = server.join(&name, uuid);
+    let result = send_join_state(stream, &view).and_then(|_| {
+        announce_join(server, &handle);
+        play_loop(stream, &mut view, server, &handle)
+    });
+    server.leave(handle.id);
+    announce_leave(server, &handle);
+    println!(
+        "[BCore] {name} disconnected ({} online)",
+        server.player_count()
+    );
+    result
+}
+
+/// Send the chat/command/gameplay state a joining player needs: the command
+/// tree, full health, the time of day and the abilities for its gamemode.
+fn send_join_state(stream: &mut TcpStream, view: &PlayerView) -> Result<(), PacketError> {
+    let mut out = Vec::new();
+    out.extend_from_slice(&bcore_command_tree().encode());
+    out.extend_from_slice(&encode_full_health());
+    let age = world_age_ticks();
+    out.extend_from_slice(&encode_time_of_day(age, view.day_time));
+    out.extend_from_slice(&encode_abilities_for(view.game_mode));
+    stream.write_all(&out)?;
+    Ok(())
+}
+
+/// Tell everyone a player joined, and greet the player itself.
+fn announce_join(server: &SharedServer, handle: &PlayerHandle) {
+    let notice = encode_system_chat(
+        &Component::colored(format!("{} joined the game", handle.name), "yellow"),
+        false,
+    );
+    server.broadcast_except(handle.id, &notice);
+    let online = server.player_count();
+    server.send_to(
+        handle.id,
+        &encode_system_chat(
+            &Component::colored(
+                format!(
+                    "Welcome to BCore, {}! {online} online. Type /help.",
+                    handle.name
+                ),
+                "green",
+            ),
+            false,
+        ),
+    );
+}
+
+/// Tell everyone still connected that a player left.
+fn announce_leave(server: &SharedServer, handle: &PlayerHandle) {
+    let notice = encode_system_chat(
+        &Component::colored(format!("{} left the game", handle.name), "yellow"),
+        false,
+    );
+    server.broadcast_except(handle.id, &notice);
+}
+
+/// The world age in ticks, derived from the wall clock so every connection
+/// agrees without a tick loop.
+fn world_age_ticks() -> i64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs() as i64 * TICKS_PER_SECOND)
+        .unwrap_or(0)
 }
 
 fn config_replay(stream: &mut TcpStream) -> Result<(), PacketError> {
@@ -164,8 +258,9 @@ fn config_replay(stream: &mut TcpStream) -> Result<(), PacketError> {
     Ok(())
 }
 
-/// Replay the captured play packets, skipping the recorded chunk batch and the
-/// capture's trailing kick, and return a view centred on the spawn position.
+/// Replay the captured play packets, skipping the recorded chunk batch, the
+/// packets BCore now generates itself, and the capture's trailing kick; returns
+/// a view centred on the spawn position.
 fn play_replay(
     stream: &mut TcpStream,
     uuid: &[u8; 16],
@@ -178,6 +273,10 @@ fn play_replay(
             // The world is generated natively; drop the captured 3x3 batch so the
             // streamer owns every chunk the client holds.
             CB_MAP_CHUNK | CB_CHUNK_BATCH_START | CB_CHUNK_BATCH_FINISHED => continue,
+            // These are now built natively in `send_join_state`, from BCore's own
+            // state rather than the capture's. Replaying them too would send the
+            // client two command trees and two clocks.
+            CB_DECLARE_COMMANDS | CB_UPDATE_HEALTH | CB_UPDATE_TIME | CB_ABILITIES => continue,
             // The capture ends with vanilla kicking the capture client. Replaying
             // it would disconnect every player the moment they joined.
             PLAY_KICK_DISCONNECT_ID => continue,
@@ -229,8 +328,17 @@ fn stream_initial_chunks(stream: &mut TcpStream, view: &mut PlayerView) -> Resul
     Ok(())
 }
 
-/// Play loop: track movement, stream chunks on chunk change, keep the connection alive.
-fn play_loop(stream: &mut TcpStream, view: &mut PlayerView) -> Result<(), PacketError> {
+/// Play loop: track movement, stream chunks, handle chat/commands, keep alive.
+///
+/// Also drains the player's shared outbox on every pass, which is how messages
+/// other players' threads produced reach this socket. Only this thread ever
+/// writes to `stream`.
+fn play_loop(
+    stream: &mut TcpStream,
+    view: &mut PlayerView,
+    server: &SharedServer,
+    handle: &PlayerHandle,
+) -> Result<(), PacketError> {
     stream
         .set_read_timeout(Some(Duration::from_millis(50)))
         .map_err(PacketError::Io)?;
@@ -239,6 +347,27 @@ fn play_loop(stream: &mut TcpStream, view: &mut PlayerView) -> Result<(), Packet
     let mut last_chunk = view.chunk();
 
     loop {
+        if handle.is_kicked() || server.is_shutting_down() {
+            // Flush whatever was queued (usually the kick notice) and close.
+            let pending = handle.outbox.drain();
+            if !pending.is_empty() {
+                let _ = stream.write_all(&pending);
+            }
+            let reason = if server.is_shutting_down() {
+                "Server closed"
+            } else {
+                "Kicked by an operator"
+            };
+            let mut kick = Vec::new();
+            write_packet(
+                &mut kick,
+                PLAY_KICK_DISCONNECT_ID,
+                &crate::nbt::encode_text(reason),
+            );
+            let _ = stream.write_all(&kick);
+            break;
+        }
+
         match read_frame(stream) {
             Ok((pid, data)) => {
                 if view.apply_movement(pid, &data) {
@@ -256,6 +385,11 @@ fn play_loop(stream: &mut TcpStream, view: &mut PlayerView) -> Result<(), Packet
                             Err(_) => break,
                         }
                     }
+                } else if let Some(input) = parse_chat_input(pid, &data) {
+                    if handle_chat_input(stream, view, server, handle, input).is_err() {
+                        break;
+                    }
+                    last_chunk = view.chunk();
                 } else if pid == SB_PING_REQUEST {
                     // ping_request expects a ping_response echo.
                     let mut out = Vec::new();
@@ -265,7 +399,8 @@ fn play_loop(stream: &mut TcpStream, view: &mut PlayerView) -> Result<(), Packet
                     }
                 }
                 // Client keep-alive (0x1c), pong (0x2d), chunk_batch_received
-                // (0x0b) and player_loaded (0x2c) need no reply.
+                // (0x0b), player_loaded (0x2c), message_acknowledgement (0x06)
+                // and chat_session_update (0x0a) need no reply.
             }
             Err(PacketError::Io(e))
                 if matches!(
@@ -273,6 +408,12 @@ fn play_loop(stream: &mut TcpStream, view: &mut PlayerView) -> Result<(), Packet
                     std::io::ErrorKind::WouldBlock | std::io::ErrorKind::TimedOut
                 ) => {}
             Err(_) => break, // peer closed or sent something unreadable
+        }
+
+        // Deliver anything other players queued for us.
+        let pending = handle.outbox.drain();
+        if !pending.is_empty() && stream.write_all(&pending).is_err() {
+            break;
         }
 
         if last_keepalive.elapsed() >= Duration::from_secs(10) {
@@ -286,6 +427,144 @@ fn play_loop(stream: &mut TcpStream, view: &mut PlayerView) -> Result<(), Packet
         }
     }
     Ok(())
+}
+
+/// Handle one chat message or command from this player.
+fn handle_chat_input(
+    stream: &mut TcpStream,
+    view: &mut PlayerView,
+    server: &SharedServer,
+    handle: &PlayerHandle,
+    input: ChatInput,
+) -> Result<(), PacketError> {
+    match input {
+        ChatInput::Message(message) => {
+            if message.is_empty() {
+                return Ok(());
+            }
+            println!("[BCore] <{}> {message}", handle.name);
+            // Offline mode cannot sign messages, so the unsigned player_chat
+            // form vanilla itself uses without a chat session is sent.
+            let packet = encode_player_chat(
+                server.next_chat_index(),
+                &handle.uuid,
+                &handle.name,
+                &message,
+                millis_now(),
+            );
+            // The sender sees its own message on this thread; everyone else gets
+            // it through their own outbox.
+            stream.write_all(&packet)?;
+            server.broadcast_except(handle.id, &packet);
+            Ok(())
+        }
+        ChatInput::Command(command) => {
+            println!("[BCore] {} ran /{command}", handle.name);
+            run_command(stream, view, server, handle, &command)
+        }
+    }
+}
+
+/// Execute a command and apply its packets and effects.
+fn run_command(
+    stream: &mut TcpStream,
+    view: &mut PlayerView,
+    server: &SharedServer,
+    handle: &PlayerHandle,
+    command: &str,
+) -> Result<(), PacketError> {
+    let online = server.player_names();
+    let ctx = CommandContext {
+        sender_name: &handle.name,
+        online: &online,
+        max_players: MAX_PLAYERS,
+        seed: WORLD_SEED,
+        spawn: view.spawn,
+    };
+    let outcome = command::execute(command, &ctx);
+
+    for packet in &outcome.packets {
+        match packet.destination {
+            Destination::Sender => stream.write_all(&packet.bytes)?,
+            Destination::Everyone => {
+                stream.write_all(&packet.bytes)?;
+                server.broadcast_except(handle.id, &packet.bytes);
+            }
+            Destination::Others => server.broadcast_except(handle.id, &packet.bytes),
+        }
+    }
+
+    for effect in &outcome.effects {
+        apply_effect(stream, view, server, handle, effect)?;
+    }
+    Ok(())
+}
+
+/// Apply one command effect: state change plus the packets it implies.
+fn apply_effect(
+    stream: &mut TcpStream,
+    view: &mut PlayerView,
+    server: &SharedServer,
+    handle: &PlayerHandle,
+    effect: &Effect,
+) -> Result<(), PacketError> {
+    match effect {
+        Effect::SetGameMode(mode) => {
+            view.game_mode = *mode;
+            // Vanilla sends abilities first, then game_state_change (reason 3).
+            stream.write_all(&encode_abilities_for(*mode))?;
+            stream.write_all(&encode_gamemode_change(*mode))?;
+            Ok(())
+        }
+        Effect::Teleport { x, y, z } => {
+            let packet = view.teleport(*x, *y, *z);
+            stream.write_all(&packet)?;
+            // The destination is almost certainly outside the streamed view.
+            view.stream_chunks(stream)?;
+            Ok(())
+        }
+        Effect::SetDayTime(ticks) => {
+            view.day_time = *ticks;
+            let packet = encode_set_day_time(world_age_ticks(), *ticks);
+            stream.write_all(&packet)?;
+            // The world clock is shared, so everyone sees the change.
+            server.broadcast_except(handle.id, &packet);
+            Ok(())
+        }
+        Effect::Kick(name) => {
+            if let Some(target) = server.find_by_name(name) {
+                let notice = encode_system_chat(
+                    &Component::colored(format!("{name} was kicked from the game"), "yellow"),
+                    false,
+                );
+                server.broadcast_except(target.id, &notice);
+                target
+                    .outbox
+                    .push(&encode_system_message("You were kicked."));
+                target.kick();
+            }
+            Ok(())
+        }
+        Effect::Stop => {
+            let notice = encode_profileless_chat(
+                "Server shutting down",
+                CHAT_TYPE_SAY_COMMAND,
+                &handle.name,
+            );
+            server.broadcast(&notice);
+            server.request_shutdown();
+            println!("[BCore] /stop issued by {}", handle.name);
+            Ok(())
+        }
+    }
+}
+
+/// Current Unix time in milliseconds (the `player_chat` timestamp).
+fn millis_now() -> i64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_millis() as i64)
+        .unwrap_or(0)
 }
 
 #[cfg(test)]
@@ -315,14 +594,26 @@ mod tests {
     }
 
     #[test]
-    fn replay_drops_chunks_and_the_capture_kick() {
+    fn replay_drops_chunks_natively_generated_packets_and_the_capture_kick() {
         let packets = parse_captured(PLAY_PACKETS);
-        // The capture really does contain both, otherwise these filters are dead code.
+        // The capture really does contain all of these, otherwise the filters
+        // below are dead code.
         assert!(packets.items.iter().any(|(pid, _)| *pid == CB_MAP_CHUNK));
         assert!(packets
             .items
             .iter()
             .any(|(pid, _)| *pid == PLAY_KICK_DISCONNECT_ID));
+        for pid in [
+            CB_DECLARE_COMMANDS,
+            CB_UPDATE_HEALTH,
+            CB_UPDATE_TIME,
+            CB_ABILITIES,
+        ] {
+            assert!(
+                packets.items.iter().any(|(captured, _)| *captured == pid),
+                "capture should contain 0x{pid:02x}"
+            );
+        }
         let replayed = packets
             .items
             .iter()
@@ -332,12 +623,37 @@ mod tests {
                     CB_MAP_CHUNK
                         | CB_CHUNK_BATCH_START
                         | CB_CHUNK_BATCH_FINISHED
+                        | CB_DECLARE_COMMANDS
+                        | CB_UPDATE_HEALTH
+                        | CB_UPDATE_TIME
+                        | CB_ABILITIES
                         | PLAY_KICK_DISCONNECT_ID
                 )
             })
             .count();
-        // 38 captured packets - 9 chunks - batch start - batch finished - kick.
-        assert_eq!(replayed, packets.items.len() - 12);
+        // 38 captured packets - 9 chunks - batch start - batch finished - kick
+        // - declare_commands - update_health - update_time - abilities.
+        assert_eq!(replayed, packets.items.len() - 16);
+    }
+
+    #[test]
+    fn the_natively_generated_join_packets_are_not_replayed_from_the_capture() {
+        // Each of these is now produced by `send_join_state` instead, so the
+        // client must never receive the captured version.
+        let packets = parse_captured(PLAY_PACKETS);
+        let captured_tree = packets
+            .items
+            .iter()
+            .find(|(pid, _)| *pid == CB_DECLARE_COMMANDS)
+            .map(|(_, data)| data.clone())
+            .expect("capture has a command tree");
+        let ours = bcore_command_tree().encode();
+        assert!(
+            !ours.ends_with(&captured_tree),
+            "BCore must send its own tree, not vanilla's"
+        );
+        // Vanilla's non-op tree has 26 nodes; BCore's has its own count.
+        assert_eq!(captured_tree[0], 26);
     }
 }
 

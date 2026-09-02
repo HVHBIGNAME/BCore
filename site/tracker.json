@@ -1,6 +1,6 @@
 {
   "project": "BCore",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "updated": "2026-09-02",
   "categories": [
     {
@@ -13,7 +13,7 @@
         { "name": "Configuration state (registry sync)", "status": "done" },
         { "name": "Play state (join + spawn)", "status": "done" },
         { "name": "Compression", "status": "planned" },
-        { "name": "Gameplay packets", "status": "planned" }
+        { "name": "Gameplay packets", "status": "done" }
       ]
     },
     {
@@ -59,8 +59,10 @@
       "name": "Gameplay",
       "items": [
         { "name": "Player join & movement", "status": "done" },
+        { "name": "Chat & messaging", "status": "done" },
+        { "name": "Health, hunger & gamemode", "status": "done" },
         { "name": "Inventories", "status": "planned" },
-        { "name": "Commands", "status": "planned" },
+        { "name": "Commands", "status": "done" },
         { "name": "Entities", "status": "planned" },
         { "name": "Combat & redstone", "status": "planned" }
       ]
