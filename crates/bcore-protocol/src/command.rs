@@ -51,6 +51,8 @@ pub enum Effect {
     SetDayTime(i64),
     /// Disconnect the named player.
     Kick(String),
+    /// Promote (`op = true`) or demote (`op = false`) a player to/from operator.
+    SetOp { name: String, op: bool },
     /// Stop the whole server.
     Stop,
 }
@@ -117,6 +119,8 @@ pub struct CommandContext<'a> {
     pub seed: i64,
     /// The spawn position `/spawn` teleports to.
     pub spawn: (f64, f64, f64),
+    /// Whether the sender is a server operator (can use `/op`, `/stop`, ...).
+    pub is_op: bool,
 }
 
 /// The `/help` text, one line per command. Ordered, so output is deterministic.
@@ -131,6 +135,8 @@ pub const HELP_LINES: &[&str] = &[
     "/seed - show the world seed",
     "/time set <day|noon|night|midnight> - set the world time",
     "/kick <player> - disconnect a player",
+    "/op <player> - promote to operator",
+    "/deop <player> - remove operator status",
     "/stop - stop the server",
 ];
 
@@ -158,8 +164,10 @@ pub fn execute(command: &str, ctx: &CommandContext<'_>) -> CommandOutcome {
         "tp" | "teleport" => teleport(rest),
         "seed" => seed(ctx),
         "time" => time(rest),
-        "kick" => kick(rest, ctx),
-        "stop" => stop(),
+        "kick" => require_op(ctx).unwrap_or_else(|| kick(rest, ctx)),
+        "op" => require_op(ctx).unwrap_or_else(|| op(rest, ctx)),
+        "deop" => require_op(ctx).unwrap_or_else(|| deop(rest, ctx)),
+        "stop" => require_op(ctx).unwrap_or_else(stop),
         other => CommandOutcome::error(&format!("Unknown or incomplete command: /{other}")),
     }
 }
@@ -317,6 +325,56 @@ fn kick(argument: &str, ctx: &CommandContext<'_>) -> CommandOutcome {
     }
 }
 
+/// An error unless the sender is an operator, for gated commands.
+fn require_op(ctx: &CommandContext<'_>) -> Option<CommandOutcome> {
+    if ctx.is_op {
+        None
+    } else {
+        Some(CommandOutcome::error(
+            "You do not have permission to use this command",
+        ))
+    }
+}
+
+fn op(argument: &str, ctx: &CommandContext<'_>) -> CommandOutcome {
+    let target = argument.split_whitespace().next().unwrap_or("");
+    if target.is_empty() {
+        return CommandOutcome::error("Usage: /op <player>");
+    }
+    match ctx
+        .online
+        .iter()
+        .find(|name| name.eq_ignore_ascii_case(target))
+    {
+        Some(name) => CommandOutcome::info(&format!("Made {name} a server operator")).with_effect(
+            Effect::SetOp {
+                name: name.clone(),
+                op: true,
+            },
+        ),
+        None => CommandOutcome::error(&format!("No player was found: {target}")),
+    }
+}
+
+fn deop(argument: &str, ctx: &CommandContext<'_>) -> CommandOutcome {
+    let target = argument.split_whitespace().next().unwrap_or("");
+    if target.is_empty() {
+        return CommandOutcome::error("Usage: /deop <player>");
+    }
+    match ctx
+        .online
+        .iter()
+        .find(|name| name.eq_ignore_ascii_case(target))
+    {
+        Some(name) => CommandOutcome::info(&format!("Removed {name} from the operator list"))
+            .with_effect(Effect::SetOp {
+                name: name.clone(),
+                op: false,
+            }),
+        None => CommandOutcome::error(&format!("No player was found: {target}")),
+    }
+}
+
 fn stop() -> CommandOutcome {
     CommandOutcome::info("Stopping the server").with_effect(Effect::Stop)
 }
@@ -336,6 +394,7 @@ mod tests {
             max_players: 20,
             seed: 1027236290406173232,
             spawn: (10.5, -60.0, -3.5),
+            is_op: true,
         }
     }
 

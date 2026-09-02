@@ -101,6 +101,17 @@ impl GameMode {
         }
     }
 
+    /// Build a [`GameMode`] from its protocol id.
+    pub fn from_id(id: i32) -> Option<Self> {
+        match id {
+            0 => Some(GameMode::Survival),
+            1 => Some(GameMode::Creative),
+            2 => Some(GameMode::Adventure),
+            3 => Some(GameMode::Spectator),
+            _ => None,
+        }
+    }
+
     /// The `abilities` flags byte for this gamemode.
     ///
     /// Bits: `0x01` invulnerable, `0x02` flying, `0x04` allow flying,

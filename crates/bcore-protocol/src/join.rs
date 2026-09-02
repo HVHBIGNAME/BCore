@@ -20,7 +20,7 @@ use bcore_core::varint::encode_varint;
 
 use crate::chat::{
     encode_player_chat, encode_profileless_chat, encode_system_chat, encode_system_message,
-    parse_chat_input, ChatInput, CHAT_TYPE_SAY_COMMAND,
+    parse_chat_input, parse_gamemode, ChatInput, CHAT_TYPE_SAY_COMMAND, SB_CHANGE_GAMEMODE,
 };
 use crate::command::{self, CommandContext, Destination, Effect};
 use crate::commands::{bcore_command_tree, CB_DECLARE_COMMANDS};
@@ -48,9 +48,12 @@ const PLAY_TELEPORT_CONFIRM_ID: i32 = 0x00;
 /// Clientbound `kick_disconnect`: present in the capture, never replayed.
 const PLAY_KICK_DISCONNECT_ID: i32 = 0x20;
 
-/// The world seed `/seed` reports (the flat world is seed-independent, but the
-/// client still expects a number).
-pub const WORLD_SEED: i64 = 0;
+/// The world seed `/seed` reports.
+///
+/// This is the seed the terrain generator actually runs with, so `/seed` now
+/// reports something meaningful: two servers with this seed generate identical
+/// worlds.
+pub const WORLD_SEED: i64 = crate::world_state::DEFAULT_SEED;
 /// Player slots announced in the status response and reported by `/list`.
 pub const MAX_PLAYERS: usize = 20;
 /// Ticks per second the world clock advances at.
@@ -321,10 +324,27 @@ fn parse_spawn_position(data: &[u8]) -> Option<(f64, f64, f64)> {
 }
 
 /// Send the first chunk batch so the player lands on solid ground.
+///
+/// The captured `position` packet spawns the player at the superflat surface
+/// (y = -60). Real terrain sits far above that, so the player is teleported to
+/// the generated surface *before* the chunks go out — otherwise they would spawn
+/// buried in stone and suffocate.
 fn stream_initial_chunks(stream: &mut TcpStream, view: &mut PlayerView) -> Result<(), PacketError> {
+    let world = crate::world_state::shared();
+    let (x, y, z) = world.spawn_position(view.x, view.z);
+    if (y - view.y).abs() > 0.5 {
+        let frame = view.teleport(x, y, z);
+        stream.write_all(&frame)?;
+        view.spawn = (x, y, z);
+    }
+
     let sent = view.stream_chunks(stream)?;
     let (cx, cz) = view.chunk();
-    println!("[BCore] streamed {sent} chunks around ({cx}, {cz})");
+    println!(
+        "[BCore] streamed {sent} chunks around ({cx}, {cz}); spawn y={:.1} (seed {})",
+        view.y,
+        world.seed()
+    );
     Ok(())
 }
 
@@ -390,6 +410,13 @@ fn play_loop(
                         break;
                     }
                     last_chunk = view.chunk();
+                } else if pid == SB_CHANGE_GAMEMODE {
+                    // F3+F4 debug screen: the client asks to switch gamemode.
+                    if let Some(mode) = parse_gamemode(&data) {
+                        view.game_mode = mode;
+                        stream.write_all(&encode_abilities_for(mode))?;
+                        stream.write_all(&encode_gamemode_change(mode))?;
+                    }
                 } else if pid == SB_PING_REQUEST {
                     // ping_request expects a ping_response echo.
                     let mut out = Vec::new();
@@ -480,6 +507,7 @@ fn run_command(
         max_players: MAX_PLAYERS,
         seed: WORLD_SEED,
         spawn: view.spawn,
+        is_op: server.is_op(&handle.name),
     };
     let outcome = command::execute(command, &ctx);
 
@@ -519,7 +547,25 @@ fn apply_effect(
         Effect::Teleport { x, y, z } => {
             let packet = view.teleport(*x, *y, *z);
             stream.write_all(&packet)?;
-            // The destination is almost certainly outside the streamed view.
+            // Wait for the client's teleport confirmation before streaming the
+            // new view, so the chunks land after the client has actually moved.
+            // Give up after ~5s (50ms read timeout * 100) rather than hanging.
+            for _ in 0..100 {
+                match read_frame(stream) {
+                    Ok((cpid, cdata)) => {
+                        if cpid == PLAY_TELEPORT_CONFIRM_ID {
+                            break;
+                        }
+                        view.apply_movement(cpid, &cdata);
+                    }
+                    Err(PacketError::Io(e))
+                        if matches!(
+                            e.kind(),
+                            std::io::ErrorKind::WouldBlock | std::io::ErrorKind::TimedOut
+                        ) => {}
+                    Err(_) => return Ok(()), // peer closed; nothing more to do
+                }
+            }
             view.stream_chunks(stream)?;
             Ok(())
         }
@@ -543,6 +589,17 @@ fn apply_effect(
                     .push(&encode_system_message("You were kicked."));
                 target.kick();
             }
+            Ok(())
+        }
+        Effect::SetOp { name, op } => {
+            if *op {
+                server.add_op(name);
+                println!("[BCore] {name} is now a server operator");
+            } else {
+                server.remove_op(name);
+                println!("[BCore] {name} is no longer a server operator");
+            }
+            server.save_ops();
             Ok(())
         }
         Effect::Stop => {

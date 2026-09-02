@@ -29,6 +29,7 @@ use bcore_protocol::gameplay::{
 };
 use bcore_protocol::packet::{read_frame, read_string, read_varint, write_packet, write_string};
 use bcore_protocol::server;
+use bcore_protocol::shared::new_shared_server;
 use bcore_protocol::world::CB_POSITION;
 
 const CB_KICK_DISCONNECT: i32 = 0x20;
@@ -256,6 +257,19 @@ fn start_server() -> SocketAddr {
     let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     std::thread::spawn(move || server::run(listener));
+    addr
+}
+
+/// Like [`start_server`] but pre-promotes the named players to operators, so
+/// operator-gated commands (`/kick`, `/op`, `/stop`) can be exercised.
+fn start_server_with_ops(ops: &[&str]) -> SocketAddr {
+    let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
+    let addr = listener.local_addr().expect("addr");
+    let server = new_shared_server();
+    for op in ops {
+        server.add_op(op);
+    }
+    std::thread::spawn(move || server::run_with_state(listener, server));
     addr
 }
 
@@ -556,7 +570,7 @@ fn seed_and_unknown_commands_answer_the_sender() {
 
 #[test]
 fn kick_disconnects_the_target_and_tells_everyone() {
-    let addr = start_server();
+    let addr = start_server_with_ops(&["AlphaProbe"]);
     let mut alpha = Client::join(addr, "AlphaProbe", 0xA1);
     let mut beta = Client::join(addr, "BetaProbe", 0xB2);
     alpha.drain(Duration::from_millis(800));

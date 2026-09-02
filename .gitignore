@@ -6,3 +6,10 @@
 .idea/
 .vscode/
 *.pdb
+**/__pycache__/
+
+# Generated worlds: chunk saves are large, machine-specific and reproducible from
+# the seed, so they are never committed. `cargo test` creates
+# `crates/bcore-protocol/world/` because tests run with the crate as their cwd.
+world/
+/crates/*/world/

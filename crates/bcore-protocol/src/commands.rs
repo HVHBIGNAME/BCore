@@ -310,6 +310,12 @@ pub fn bcore_command_tree() -> CommandTree {
     let kick = tree.literal("kick", false);
     tree.argument(kick, "player", Parser::Player, true);
 
+    // /op <player> and /deop <player>
+    let op = tree.literal("op", false);
+    tree.argument(op, "player", Parser::Player, true);
+    let deop = tree.literal("deop", false);
+    tree.argument(deop, "player", Parser::Player, true);
+
     // /stop
     tree.literal("stop", true);
 
@@ -539,8 +545,8 @@ mod tests {
         assert_eq!(
             top,
             vec![
-                "gamemode", "help", "kick", "list", "me", "say", "seed", "spawn", "stop", "time",
-                "tp",
+                "deop", "gamemode", "help", "kick", "list", "me", "op", "say", "seed", "spawn",
+                "stop", "time", "tp",
             ]
         );
     }

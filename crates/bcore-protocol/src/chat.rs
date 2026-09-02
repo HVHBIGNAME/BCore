@@ -47,6 +47,7 @@ use std::io::Cursor;
 
 use bcore_core::varint::encode_varint;
 
+use crate::gameplay::GameMode;
 use crate::nbt::{encode_component, encode_text, Component};
 use crate::packet::{read_string, read_varint, write_packet, write_string, PacketError};
 
@@ -67,6 +68,8 @@ pub const SB_CHAT_COMMAND_SIGNED: i32 = 0x08;
 pub const SB_CHAT_MESSAGE: i32 = 0x09;
 /// Serverbound `chat_session_update` (public-key session; ignored offline).
 pub const SB_CHAT_SESSION_UPDATE: i32 = 0x0a;
+/// Serverbound `change_gamemode` (the F3+F4 debug gamemode switch).
+pub const SB_CHANGE_GAMEMODE: i32 = 0x05;
 
 /// `chat_type` registry id for `minecraft:chat` (normal player chat).
 pub const CHAT_TYPE_CHAT: i32 = 0;
@@ -110,6 +113,13 @@ pub fn parse_chat_input(packet_id: i32, data: &[u8]) -> Option<ChatInput> {
         }
         _ => None,
     }
+}
+
+/// Parse a serverbound `change_gamemode` (0x05) payload — the F3+F4 debug
+/// gamemode switch — into the requested [`GameMode`].
+pub fn parse_gamemode(data: &[u8]) -> Option<GameMode> {
+    let mut cur = Cursor::new(data);
+    GameMode::from_id(read_varint(&mut cur).ok()?)
 }
 
 /// Drop control characters (including the section sign used for legacy colour

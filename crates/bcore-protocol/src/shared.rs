@@ -15,7 +15,7 @@
 //! Player ids are handed out by a monotonic counter, and the registry is a
 //! [`BTreeMap`] so `/list` and broadcast order are deterministic.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 
@@ -87,14 +87,21 @@ pub struct ServerState {
     chat_index: AtomicU64,
     /// Set by `/stop`: the accept loop and every play loop should wind down.
     shutdown: AtomicBool,
+    /// Server operator names (from `ops.json`), persisted on change.
+    ops: Mutex<BTreeSet<String>>,
 }
 
 /// Cheap-to-clone handle to the shared server state.
 pub type SharedServer = Arc<ServerState>;
 
-/// Create fresh, empty shared state.
+/// File holding operator names, one per line (BCore's simple `ops.json`).
+const OPS_FILE: &str = "ops.json";
+
+/// Create fresh shared state and load operators from `ops.json`.
 pub fn new_shared_server() -> SharedServer {
-    Arc::new(ServerState::default())
+    let server = ServerState::default();
+    server.load_ops();
+    Arc::new(server)
 }
 
 impl ServerState {
@@ -194,6 +201,52 @@ impl ServerState {
     /// True once a shutdown has been requested.
     pub fn is_shutting_down(&self) -> bool {
         self.shutdown.load(Ordering::Relaxed)
+    }
+
+    /// True if `name` is a server operator.
+    pub fn is_op(&self, name: &str) -> bool {
+        self.ops
+            .lock()
+            .map(|ops| ops.contains(name))
+            .unwrap_or(false)
+    }
+
+    /// Promote `name` to operator (in memory; call [`Self::save_ops`] to persist).
+    pub fn add_op(&self, name: &str) {
+        if let Ok(mut ops) = self.ops.lock() {
+            ops.insert(name.to_string());
+        }
+    }
+
+    /// Remove operator status from `name` (in memory; call [`Self::save_ops`] to persist).
+    pub fn remove_op(&self, name: &str) {
+        if let Ok(mut ops) = self.ops.lock() {
+            ops.remove(name);
+        }
+    }
+
+    /// Load operator names from `ops.json` (a JSON array of strings).
+    fn load_ops(&self) {
+        if let Ok(text) = std::fs::read_to_string(OPS_FILE) {
+            if let Ok(mut ops) = self.ops.lock() {
+                for name in text.split('"').skip(1).step_by(2) {
+                    if !name.is_empty() {
+                        ops.insert(name.to_string());
+                    }
+                }
+            }
+        }
+    }
+
+    /// Write operator names back to `ops.json` as a JSON array of strings.
+    pub fn save_ops(&self) {
+        if let Ok(ops) = self.ops.lock() {
+            let mut names: Vec<&String> = ops.iter().collect();
+            names.sort();
+            let quoted: Vec<String> = names.iter().map(|n| format!("\"{n}\"")).collect();
+            let text = format!("[{}]\n", quoted.join(", "));
+            let _ = std::fs::write(OPS_FILE, text);
+        }
     }
 }
 

@@ -1,7 +1,7 @@
 {
   "project": "BCore",
-  "version": "0.3.0",
-  "updated": "2026-09-02",
+  "version": "0.4.0",
+  "updated": "2026-09-03",
   "categories": [
     {
       "name": "Protocol & Networking",
@@ -17,15 +17,84 @@
       ]
     },
     {
-      "name": "World",
+      "name": "World Generation",
       "items": [
-        { "name": "Chunk data structure", "status": "done" },
-        { "name": "Seed-based generation (prototype)", "status": "done" },
-        { "name": "Chunk sending (flat world)", "status": "done" },
-        { "name": "Chunk streaming on movement", "status": "done" },
-        { "name": "Vanilla-parity generation", "status": "planned" },
-        { "name": "Lighting", "status": "planned" },
-        { "name": "Chunk persistence (save/load)", "status": "planned" }
+        { "name": "Chunk data structure (776)", "status": "done" },
+        { "name": "Native chunk encoder (byte-parity)", "status": "done" },
+        { "name": "Flat (superflat) world", "status": "done" },
+        { "name": "Realistic terrain (noise heightmap)", "status": "done" },
+        { "name": "Biomes (plains/forest/desert/mountains/ocean)", "status": "done" },
+        { "name": "Trees & vegetation", "status": "done" },
+        { "name": "Ores (coal/iron/gold/diamond)", "status": "done" },
+        { "name": "Caves", "status": "done" },
+        { "name": "Water & lakes", "status": "done" },
+        { "name": "Structures (villages/dungeons)", "status": "planned" },
+        { "name": "Lighting (skylight/blocklight)", "status": "partial" }
+      ]
+    },
+    {
+      "name": "Chunk Streaming & Persistence",
+      "items": [
+        { "name": "Chunk sending", "status": "done" },
+        { "name": "View distance (configurable)", "status": "done" },
+        { "name": "Streaming on movement", "status": "done" },
+        { "name": "Chunk unloading", "status": "done" },
+        { "name": "World save/load (persistence)", "status": "done" },
+        { "name": "Region format (.mca) compat", "status": "planned" }
+      ]
+    },
+    {
+      "name": "Blocks",
+      "items": [
+        { "name": "Basic blocks (bedrock/dirt/grass/air)", "status": "done" },
+        { "name": "Stone/sand/gravel/water/ores", "status": "done" },
+        { "name": "Block breaking & placing", "status": "planned" },
+        { "name": "Block physics (sand/gravel gravity)", "status": "planned" },
+        { "name": "Chests & containers", "status": "planned" },
+        { "name": "Furnaces & crafting", "status": "planned" },
+        { "name": "Redstone & pistons", "status": "planned" }
+      ]
+    },
+    {
+      "name": "Items & Inventory",
+      "items": [
+        { "name": "Item registry", "status": "planned" },
+        { "name": "Inventory & hotbar", "status": "planned" },
+        { "name": "Item drops", "status": "planned" },
+        { "name": "Crafting & smelting", "status": "planned" }
+      ]
+    },
+    {
+      "name": "Entities & Mobs",
+      "items": [
+        { "name": "Player join & movement", "status": "done" },
+        { "name": "Player physics (gravity/collision)", "status": "planned" },
+        { "name": "Passive mobs", "status": "planned" },
+        { "name": "Hostile mobs & AI", "status": "planned" },
+        { "name": "Combat & damage", "status": "planned" }
+      ]
+    },
+    {
+      "name": "Chat & Commands",
+      "items": [
+        { "name": "Player chat (broadcast)", "status": "done" },
+        { "name": "System messages", "status": "done" },
+        { "name": "Commands (/help /list /tp /gamemode ...)", "status": "done" },
+        { "name": "Operator system (/op /deop + ops.json)", "status": "done" },
+        { "name": "Tab completion (declare commands)", "status": "done" },
+        { "name": "Permissions (full Vault-like)", "status": "planned" }
+      ]
+    },
+    {
+      "name": "Gameplay Mechanics",
+      "items": [
+        { "name": "Health & hunger", "status": "done" },
+        { "name": "World time (/time set)", "status": "done" },
+        { "name": "Abilities & gamemode", "status": "done" },
+        { "name": "F3+F4 gamemode switch", "status": "done" },
+        { "name": "Day/night cycle (tick loop)", "status": "planned" },
+        { "name": "Weather", "status": "planned" },
+        { "name": "Respawn & death", "status": "planned" }
       ]
     },
     {
@@ -46,25 +115,6 @@
         { "name": "Bukkit API stubs (M2)", "status": "planned" },
         { "name": "Event bridging (M3)", "status": "planned" },
         { "name": "Hot-path JIT/AOT (M4)", "status": "planned" }
-      ]
-    },
-    {
-      "name": "Registry",
-      "items": [
-        { "name": "Bootstrap block registry", "status": "partial" },
-        { "name": "Registry sync (26.2 data)", "status": "done" }
-      ]
-    },
-    {
-      "name": "Gameplay",
-      "items": [
-        { "name": "Player join & movement", "status": "done" },
-        { "name": "Chat & messaging", "status": "done" },
-        { "name": "Health, hunger & gamemode", "status": "done" },
-        { "name": "Inventories", "status": "planned" },
-        { "name": "Commands", "status": "done" },
-        { "name": "Entities", "status": "planned" },
-        { "name": "Combat & redstone", "status": "planned" }
       ]
     }
   ]

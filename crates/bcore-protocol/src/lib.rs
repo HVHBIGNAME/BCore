@@ -2,6 +2,7 @@
 
 pub mod chat;
 pub mod chunk;
+pub mod chunk_store;
 pub mod command;
 pub mod commands;
 pub mod gameplay;
@@ -13,3 +14,4 @@ pub mod server;
 pub mod shared;
 pub mod status;
 pub mod world;
+pub mod world_state;

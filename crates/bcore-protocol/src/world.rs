@@ -10,9 +10,9 @@ use std::io::Write;
 
 use bcore_core::varint::encode_varint;
 
-use crate::chunk::flat_chunk_payload;
 use crate::gameplay::{GameMode, TIME_DAY};
 use crate::packet::{write_packet, PacketError};
+use crate::world_state::{self, World};
 
 /// Serverbound: `position` — x/y/z + movement flags.
 pub const SB_POSITION: i32 = 0x1e;
@@ -227,7 +227,19 @@ impl PlayerView {
     /// Sends `update_view_position`, then a `chunk_batch_start` /
     /// `map_chunk`* / `chunk_batch_finished` batch, then `unload_chunk` for
     /// everything that fell out of range. Returns the number of chunks sent.
+    ///
+    /// Chunk blocks come from the shared [`World`], so terrain is generated once
+    /// and reused for every player.
     pub fn stream_chunks<W: Write>(&mut self, out: &mut W) -> Result<usize, PacketError> {
+        self.stream_chunks_from(out, world_state::shared())
+    }
+
+    /// Stream chunks sourced from a specific world (used by tests).
+    pub fn stream_chunks_from<W: Write>(
+        &mut self,
+        out: &mut W,
+        world: &World,
+    ) -> Result<usize, PacketError> {
         let missing = self.missing_chunks();
         let stale = self.stale_chunks();
         if missing.is_empty() && stale.is_empty() {
@@ -245,7 +257,7 @@ impl PlayerView {
         if !missing.is_empty() {
             write_packet(&mut buf, CB_CHUNK_BATCH_START, &[]);
             for &(x, z) in &missing {
-                write_packet(&mut buf, CB_MAP_CHUNK, &flat_chunk_payload(x, z));
+                write_packet(&mut buf, CB_MAP_CHUNK, &world.chunk_payload(x, z));
                 self.loaded.insert((x, z));
             }
             let mut size = Vec::new();
@@ -278,6 +290,13 @@ fn read_f32(data: &[u8], at: usize) -> f32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Tests must not generate real terrain for 441 chunks (slow) or touch the
+    /// real `world/` directory, so they stream from a throwaway in-memory world.
+    /// What these tests assert is chunk *selection*, not the blocks inside.
+    fn stream(view: &mut PlayerView, out: &mut Vec<u8>) -> Result<usize, PacketError> {
+        view.stream_chunks_from(out, &World::in_memory(0))
+    }
 
     #[test]
     fn chunk_coords_floor_towards_negative_infinity() {
@@ -363,18 +382,18 @@ mod tests {
         let mut view = PlayerView::new(10.5, -60.0, -3.5);
         let mut out = Vec::new();
         let want = (2 * VIEW_DISTANCE + 1).pow(2) as usize;
-        assert_eq!(view.stream_chunks(&mut out).expect("stream"), want);
+        assert_eq!(stream(&mut view, &mut out).expect("stream"), want);
         assert!(!out.is_empty());
         // Idempotent while the player stays put.
         let mut again = Vec::new();
-        assert_eq!(view.stream_chunks(&mut again).expect("stream"), 0);
+        assert_eq!(stream(&mut view, &mut again).expect("stream"), 0);
         assert!(again.is_empty());
     }
 
     #[test]
     fn crossing_a_chunk_border_streams_only_the_new_column() {
         let mut view = PlayerView::new(10.5, -60.0, -3.5);
-        view.stream_chunks(&mut Vec::new()).expect("initial");
+        stream(&mut view, &mut Vec::new()).expect("initial");
         assert_eq!(view.chunk(), (0, -1));
 
         // Step east into chunk (1, -1): one new 5-chunk column, one stale column.
@@ -390,7 +409,7 @@ mod tests {
         assert_eq!(view.stale_chunks().len(), ring);
 
         let mut out = Vec::new();
-        assert_eq!(view.stream_chunks(&mut out).expect("stream"), ring);
+        assert_eq!(stream(&mut view, &mut out).expect("stream"), ring);
         // The view is still exactly (2*d+1)^2 chunks after the shift.
         assert_eq!(view.loaded_chunks().count(), ring * ring);
         assert!(view.missing_chunks().is_empty());
@@ -404,14 +423,14 @@ mod tests {
             view.mark_loaded(x, z);
         }
         let mut out = Vec::new();
-        assert_eq!(view.stream_chunks(&mut out).expect("stream"), 0);
+        assert_eq!(stream(&mut view, &mut out).expect("stream"), 0);
         assert!(out.is_empty());
     }
 
     #[test]
     fn a_long_jump_replaces_the_whole_view() {
         let mut view = PlayerView::new(10.5, -60.0, -3.5);
-        view.stream_chunks(&mut Vec::new()).expect("initial");
+        stream(&mut view, &mut Vec::new()).expect("initial");
         let mut data = Vec::new();
         data.extend_from_slice(&1000.0f64.to_be_bytes());
         data.extend_from_slice(&(-60.0f64).to_be_bytes());
@@ -422,7 +441,7 @@ mod tests {
         assert_eq!(view.missing_chunks().len(), want);
         assert_eq!(view.stale_chunks().len(), want);
         let mut out = Vec::new();
-        assert_eq!(view.stream_chunks(&mut out).expect("stream"), want);
+        assert_eq!(stream(&mut view, &mut out).expect("stream"), want);
         assert_eq!(view.loaded_chunks().count(), want);
     }
 
@@ -468,7 +487,7 @@ mod tests {
     #[test]
     fn teleporting_out_of_range_makes_the_whole_view_stale() {
         let mut view = PlayerView::new(10.5, -60.0, -3.5);
-        view.stream_chunks(&mut Vec::new()).expect("initial");
+        stream(&mut view, &mut Vec::new()).expect("initial");
         view.teleport(5000.0, -60.0, 5000.0);
         let want = (2 * VIEW_DISTANCE + 1).pow(2) as usize;
         assert_eq!(view.missing_chunks().len(), want);

@@ -35,6 +35,7 @@ name = "bcore-protocol"
 version = "0.1.0"
 dependencies = [
  "bcore-core",
+ "bcore-worldgen",
  "serde",
  "serde_json",
 ]

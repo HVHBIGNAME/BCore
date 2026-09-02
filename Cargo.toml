@@ -9,3 +9,14 @@ members = [
     "crates/bcore-worldgen",
     "crates/bcore-registry",
 ]
+
+# World generation is pure floating-point noise math: there is nothing useful to
+# step through in a debugger, and unoptimised it is ~4x slower, which makes every
+# `cargo test` run (and any debug-build server) spend its time in `value_noise_3d`.
+# Optimising just these two crates keeps debug builds of the protocol/server code
+# fully debuggable while making chunk generation usable in dev.
+[profile.dev.package.bcore-worldgen]
+opt-level = 3
+
+[profile.dev.package.bcore-core]
+opt-level = 3
