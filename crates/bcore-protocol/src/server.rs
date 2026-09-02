@@ -5,7 +5,6 @@ use std::net::{TcpListener, TcpStream};
 
 use bcore_core::version::{IMPLEMENTATION_NAME, MC_VERSION, PROTOCOL_VERSION};
 
-use crate::login::encode_login_disconnect;
 use crate::packet::{read_frame, write_packet, PacketError};
 use crate::status::{
     encode_status_response, read_handshake, NextState, StatusDescription, StatusPlayers,
@@ -85,19 +84,5 @@ fn handle_status(stream: &mut TcpStream) -> Result<(), PacketError> {
 }
 
 fn handle_login(stream: &mut TcpStream) -> Result<(), PacketError> {
-    let (packet_id, data) = read_frame(stream)?;
-    if packet_id != 0x00 {
-        return Err(PacketError::UnexpectedPacket(packet_id));
-    }
-    let mut cursor = Cursor::new(data);
-    let name = crate::login::read_login_start_name(&mut cursor)?;
-    println!("[{IMPLEMENTATION_NAME}] login attempt: `{name}` (gameplay not implemented)");
-    let message = format!(
-        "BCore: hi {name}! Login and gameplay are not implemented yet. \
-         This is a proof-of-concept native Rust server (protocol {PROTOCOL_VERSION})."
-    );
-    stream
-        .write_all(&encode_login_disconnect(&message))
-        .map_err(PacketError::Io)?;
-    Ok(())
+    crate::join::run_login_and_join(stream)
 }

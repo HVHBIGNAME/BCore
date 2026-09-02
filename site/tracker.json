@@ -1,6 +1,6 @@
 {
   "project": "BCore",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "updated": "2026-09-02",
   "categories": [
     {
@@ -8,10 +8,12 @@
       "items": [
         { "name": "Handshake", "status": "done" },
         { "name": "Server list ping (status)", "status": "done" },
-        { "name": "Login state (auth + encryption)", "status": "partial" },
+        { "name": "Login (offline mode)", "status": "done" },
+        { "name": "Login (online auth + encryption)", "status": "planned" },
+        { "name": "Configuration state (registry sync)", "status": "done" },
+        { "name": "Play state (join + spawn)", "status": "partial" },
         { "name": "Compression", "status": "planned" },
-        { "name": "Configuration state", "status": "planned" },
-        { "name": "Play state (gameplay packets)", "status": "planned" }
+        { "name": "Gameplay packets", "status": "planned" }
       ]
     },
     {
@@ -19,6 +21,8 @@
       "items": [
         { "name": "Chunk data structure", "status": "done" },
         { "name": "Seed-based generation (prototype)", "status": "done" },
+        { "name": "Chunk sending (flat world)", "status": "done" },
+        { "name": "Chunk streaming on movement", "status": "planned" },
         { "name": "Vanilla-parity generation", "status": "planned" },
         { "name": "Lighting", "status": "planned" },
         { "name": "Chunk persistence (save/load)", "status": "planned" }
@@ -48,7 +52,7 @@
       "name": "Registry",
       "items": [
         { "name": "Bootstrap block registry", "status": "partial" },
-        { "name": "Registry sync (data-driven)", "status": "planned" }
+        { "name": "Registry sync (26.2 data)", "status": "done" }
       ]
     },
     {
