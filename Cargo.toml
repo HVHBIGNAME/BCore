@@ -1,0 +1,11 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/bcore",
+    "crates/bcore-core",
+    "crates/bcore-protocol",
+    "crates/bcore-plugin",
+    "crates/bcore-plugin-java",
+    "crates/bcore-worldgen",
+    "crates/bcore-registry",
+]

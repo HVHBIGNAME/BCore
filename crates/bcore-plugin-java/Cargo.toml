@@ -1,0 +1,10 @@
+[package]
+name = "bcore-plugin-java"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "BCore Bukkit/Spigot/Paper -> native plugin bridge (JVM virtualization prototype)"
+
+[dependencies]
+bcore-core = { path = "../bcore-core" }
+jni = { version = "0.21", features = ["invocation"] }

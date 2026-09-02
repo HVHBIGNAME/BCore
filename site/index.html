@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BCore — Implementation Tracker</title>
+<style>
+  :root {
+    --bg: #0b0e14;
+    --card: #131824;
+    --border: #232a3b;
+    --fg: #e6edf3;
+    --muted: #8b96a5;
+    --accent: #58a6ff;
+    --done: #2ea043;
+    --partial: #d29922;
+    --planned: #6e7681;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 40px 20px 80px; }
+  header { margin-bottom: 28px; }
+  h1 { font-size: 2rem; margin: 0 0 6px; }
+  .sub { color: var(--muted); font-size: 0.95rem; }
+  .sub a { color: var(--accent); text-decoration: none; }
+  .sub a:hover { text-decoration: underline; }
+  .summary {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin-bottom: 28px;
+  }
+  .summary-row { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .summary .pct { font-size: 1.6rem; font-weight: 700; color: var(--accent); }
+  .bar {
+    height: 10px;
+    background: var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-top: 12px;
+  }
+  .bar > span { display: block; height: 100%; background: var(--accent); border-radius: 6px; transition: width .4s ease; }
+  .category {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin-bottom: 18px;
+  }
+  .category h2 { font-size: 1.1rem; margin: 0 0 4px; }
+  .cat-meta { color: var(--muted); font-size: 0.82rem; margin-bottom: 12px; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 0;
+    border-top: 1px solid var(--border);
+  }
+  li:first-child { border-top: 0; }
+  .name { flex: 1; }
+  .badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 2px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .badge.done { color: #0b0e14; background: var(--done); }
+  .badge.partial { color: #0b0e14; background: var(--partial); }
+  .badge.planned { color: #0b0e14; background: var(--planned); }
+  footer { color: var(--muted); font-size: 0.8rem; margin-top: 32px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>BCore</h1>
+    <div class="sub" id="subtitle">Implementation tracker · loading…</div>
+  </header>
+
+  <div class="summary">
+    <div class="summary-row">
+      <span class="pct" id="overall-pct">–</span>
+      <span class="sub" id="overall-count">–</span>
+    </div>
+    <div class="bar"><span id="overall-bar" style="width:0%"></span></div>
+  </div>
+
+  <div id="categories"></div>
+
+  <footer>
+    BCore — a native Rust Minecraft server (26.2 / protocol 776). MIT licensed.
+    This tracker updates automatically from <code>tracker.json</code> in the repository.
+  </footer>
+</div>
+
+<script>
+  const STATUS_WEIGHT = { done: 2, partial: 1, planned: 0 };
+
+  async function main() {
+    let data;
+    try {
+      const res = await fetch('tracker.json', { cache: 'no-store' });
+      data = await res.json();
+    } catch (e) {
+      document.getElementById('subtitle').textContent = 'Failed to load tracker.json';
+      return;
+    }
+
+    document.getElementById('subtitle').innerHTML =
+      `Implementation tracker · <strong>${data.project}</strong> v${data.version} · updated ${data.updated} · ` +
+      `<a href="https://github.com/HVHBIGNAME/BCore">source</a>`;
+
+    const all = data.categories.flatMap(c => c.items);
+    const totalWeight = all.length * STATUS_WEIGHT.done;
+    const weight = all.reduce((s, i) => s + STATUS_WEIGHT[i.status], 0);
+    const pct = Math.round((weight / totalWeight) * 100);
+    const doneCount = all.filter(i => i.status === 'done').length;
+
+    document.getElementById('overall-pct').textContent = pct + '%';
+    document.getElementById('overall-count').textContent =
+      `${doneCount} / ${all.length} items complete`;
+    document.getElementById('overall-bar').style.width = pct + '%';
+
+    const container = document.getElementById('categories');
+    container.innerHTML = '';
+    for (const cat of data.categories) {
+      const done = cat.items.filter(i => i.status === 'done').length;
+      const catPct = Math.round((done / cat.items.length) * 100);
+      const el = document.createElement('section');
+      el.className = 'category';
+      const itemsHtml = cat.items.map(i =>
+        `<li><span class="name">${escapeHtml(i.name)}</span>` +
+        `<span class="badge ${i.status}">${i.status}</span></li>`
+      ).join('');
+      el.innerHTML =
+        `<h2>${escapeHtml(cat.name)}</h2>` +
+        `<div class="cat-meta">${done} / ${cat.items.length} · ${catPct}%</div>` +
+        `<div class="bar"><span style="width:${catPct}%"></span></div>` +
+        `<ul>${itemsHtml}</ul>`;
+      container.appendChild(el);
+    }
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, c => (
+      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+    ));
+  }
+
+  main();
+</script>
+</body>
+</html>

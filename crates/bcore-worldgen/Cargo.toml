@@ -1,0 +1,9 @@
+[package]
+name = "bcore-worldgen"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "BCore deterministic, seed-based world generation"
+
+[dependencies]
+bcore-core = { path = "../bcore-core" }

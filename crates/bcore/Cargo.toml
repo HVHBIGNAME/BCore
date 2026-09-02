@@ -1,0 +1,10 @@
+[package]
+name = "bcore"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "BCore — native Rust Minecraft Java Edition server (target 26.2)"
+
+[dependencies]
+bcore-core = { path = "../bcore-core" }
+bcore-protocol = { path = "../bcore-protocol" }

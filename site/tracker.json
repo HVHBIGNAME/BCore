@@ -1,0 +1,65 @@
+{
+  "project": "BCore",
+  "version": "0.1.0",
+  "updated": "2026-09-02",
+  "categories": [
+    {
+      "name": "Protocol & Networking",
+      "items": [
+        { "name": "Handshake", "status": "done" },
+        { "name": "Server list ping (status)", "status": "done" },
+        { "name": "Login state (auth + encryption)", "status": "partial" },
+        { "name": "Compression", "status": "planned" },
+        { "name": "Configuration state", "status": "planned" },
+        { "name": "Play state (gameplay packets)", "status": "planned" }
+      ]
+    },
+    {
+      "name": "World",
+      "items": [
+        { "name": "Chunk data structure", "status": "done" },
+        { "name": "Seed-based generation (prototype)", "status": "done" },
+        { "name": "Vanilla-parity generation", "status": "planned" },
+        { "name": "Lighting", "status": "planned" },
+        { "name": "Chunk persistence (save/load)", "status": "planned" }
+      ]
+    },
+    {
+      "name": "Native Plugin System",
+      "items": [
+        { "name": "Plugin trait + metadata", "status": "done" },
+        { "name": "PluginManager (thread-safe)", "status": "done" },
+        { "name": "Event system", "status": "done" },
+        { "name": "Dynamic loading (cdylib ABI)", "status": "partial" },
+        { "name": "WASM backend", "status": "planned" }
+      ]
+    },
+    {
+      "name": "Java Plugin Bridge",
+      "items": [
+        { "name": "JVM discovery", "status": "done" },
+        { "name": "Load jar + invoke onEnable (M1)", "status": "done" },
+        { "name": "Bukkit API stubs (M2)", "status": "planned" },
+        { "name": "Event bridging (M3)", "status": "planned" },
+        { "name": "Hot-path JIT/AOT (M4)", "status": "planned" }
+      ]
+    },
+    {
+      "name": "Registry",
+      "items": [
+        { "name": "Bootstrap block registry", "status": "partial" },
+        { "name": "Registry sync (data-driven)", "status": "planned" }
+      ]
+    },
+    {
+      "name": "Gameplay",
+      "items": [
+        { "name": "Player join & movement", "status": "planned" },
+        { "name": "Inventories", "status": "planned" },
+        { "name": "Commands", "status": "planned" },
+        { "name": "Entities", "status": "planned" },
+        { "name": "Combat & redstone", "status": "planned" }
+      ]
+    }
+  ]
+}

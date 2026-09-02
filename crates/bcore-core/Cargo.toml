@@ -1,0 +1,6 @@
+[package]
+name = "bcore-core"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "BCore shared core types: version constants, protocol primitives, positions, identifiers, bootstrap registry"
