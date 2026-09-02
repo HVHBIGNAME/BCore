@@ -5,6 +5,11 @@
 //! the player identity (uuid + name) is substituted at runtime. This is a
 //! bootstrap path to reach a joinable server; the long-term plan is to generate
 //! the registry and chunk data natively (see `bcore-registry`).
+//!
+//! Chunks are **not** replayed: the captured `map_chunk` packets are dropped and
+//! the world is streamed from [`crate::chunk`] / [`crate::world`] instead, so the
+//! player can walk out of the original 3x3 capture. The capture's trailing
+//! `kick_disconnect` (vanilla booting the capture client) is dropped as well.
 
 use std::io::{Cursor, Read, Write};
 use std::net::TcpStream;
@@ -14,6 +19,10 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use bcore_core::varint::encode_varint;
 
 use crate::packet::{read_frame, read_string, write_packet, write_string, PacketError};
+use crate::world::{
+    PlayerView, CB_CHUNK_BATCH_FINISHED, CB_CHUNK_BATCH_START, CB_MAP_CHUNK, CB_PING_RESPONSE,
+    SB_PING_REQUEST,
+};
 
 pub const LOGIN_SUCCESS_ID: i32 = 0x02;
 pub const LOGIN_ACKNOWLEDGED_ID: i32 = 0x03;
@@ -24,6 +33,8 @@ const PLAY_POSITION_ID: i32 = 0x48;
 const PLAY_PLAYER_INFO_ID: i32 = 0x46;
 const PLAY_KEEP_ALIVE_ID: i32 = 0x2c;
 const PLAY_TELEPORT_CONFIRM_ID: i32 = 0x00;
+/// Clientbound `kick_disconnect`: present in the capture, never replayed.
+const PLAY_KICK_DISCONNECT_ID: i32 = 0x20;
 
 // Embedded vanilla 26.2 captures. Binary format:
 // [u32 count][ (i32 pid, u32 len, bytes)... ]
@@ -122,8 +133,9 @@ pub fn run_login_and_join(stream: &mut TcpStream) -> Result<(), PacketError> {
     }
 
     config_replay(stream)?;
-    play_replay(stream, &uuid, &name)?;
-    idle_loop(stream)
+    let mut view = play_replay(stream, &uuid, &name)?;
+    stream_initial_chunks(stream, &mut view)?;
+    play_loop(stream, &mut view)
 }
 
 fn config_replay(stream: &mut TcpStream) -> Result<(), PacketError> {
@@ -152,9 +164,26 @@ fn config_replay(stream: &mut TcpStream) -> Result<(), PacketError> {
     Ok(())
 }
 
-fn play_replay(stream: &mut TcpStream, uuid: &[u8; 16], name: &str) -> Result<(), PacketError> {
+/// Replay the captured play packets, skipping the recorded chunk batch and the
+/// capture's trailing kick, and return a view centred on the spawn position.
+fn play_replay(
+    stream: &mut TcpStream,
+    uuid: &[u8; 16],
+    name: &str,
+) -> Result<PlayerView, PacketError> {
     let packets = parse_captured(PLAY_PACKETS);
+    let mut view = PlayerView::new(0.0, 0.0, 0.0);
     for (pid, data) in &packets.items {
+        match *pid {
+            // The world is generated natively; drop the captured 3x3 batch so the
+            // streamer owns every chunk the client holds.
+            CB_MAP_CHUNK | CB_CHUNK_BATCH_START | CB_CHUNK_BATCH_FINISHED => continue,
+            // The capture ends with vanilla kicking the capture client. Replaying
+            // it would disconnect every player the moment they joined.
+            PLAY_KICK_DISCONNECT_ID => continue,
+            _ => {}
+        }
+
         if *pid == PLAY_PLAYER_INFO_ID && data.len() > 2 {
             let rebuilt = rebuild_player_info(uuid, name);
             let mut out = Vec::new();
@@ -165,17 +194,151 @@ fn play_replay(stream: &mut TcpStream, uuid: &[u8; 16], name: &str) -> Result<()
             write_packet(&mut out, *pid, data);
             stream.write_all(&out)?;
         }
+
         if *pid == PLAY_POSITION_ID {
+            if let Some(spawn) = parse_spawn_position(data) {
+                view = PlayerView::new(spawn.0, spawn.1, spawn.2);
+            }
             // Wait for the client's teleport confirmation before chunks.
             loop {
-                let (cpid, _) = read_frame(stream)?;
+                let (cpid, cdata) = read_frame(stream)?;
                 if cpid == PLAY_TELEPORT_CONFIRM_ID {
                     break;
                 }
+                view.apply_movement(cpid, &cdata);
             }
         }
     }
+    Ok(view)
+}
+
+/// Read the spawn `(x, y, z)` out of a clientbound `position` payload
+/// (`teleportId` varint followed by three big-endian f64s).
+fn parse_spawn_position(data: &[u8]) -> Option<(f64, f64, f64)> {
+    let (_, consumed) = bcore_core::varint::decode_varint(data).ok()?;
+    let body = data.get(consumed..consumed + 24)?;
+    let f = |at: usize| f64::from_be_bytes(body[at..at + 8].try_into().expect("checked length"));
+    Some((f(0), f(8), f(16)))
+}
+
+/// Send the first chunk batch so the player lands on solid ground.
+fn stream_initial_chunks(stream: &mut TcpStream, view: &mut PlayerView) -> Result<(), PacketError> {
+    let sent = view.stream_chunks(stream)?;
+    let (cx, cz) = view.chunk();
+    println!("[BCore] streamed {sent} chunks around ({cx}, {cz})");
     Ok(())
+}
+
+/// Play loop: track movement, stream chunks on chunk change, keep the connection alive.
+fn play_loop(stream: &mut TcpStream, view: &mut PlayerView) -> Result<(), PacketError> {
+    stream
+        .set_read_timeout(Some(Duration::from_millis(50)))
+        .map_err(PacketError::Io)?;
+    let mut last_keepalive = Instant::now();
+    let mut keepalive_id: i64 = 0;
+    let mut last_chunk = view.chunk();
+
+    loop {
+        match read_frame(stream) {
+            Ok((pid, data)) => {
+                if view.apply_movement(pid, &data) {
+                    let current = view.chunk();
+                    if current != last_chunk {
+                        last_chunk = current;
+                        match view.stream_chunks(stream) {
+                            Ok(sent) if sent > 0 => {
+                                println!(
+                                    "[BCore] player entered chunk ({}, {}): streamed {sent} chunks",
+                                    current.0, current.1
+                                );
+                            }
+                            Ok(_) => {}
+                            Err(_) => break,
+                        }
+                    }
+                } else if pid == SB_PING_REQUEST {
+                    // ping_request expects a ping_response echo.
+                    let mut out = Vec::new();
+                    write_packet(&mut out, CB_PING_RESPONSE, &data);
+                    if stream.write_all(&out).is_err() {
+                        break;
+                    }
+                }
+                // Client keep-alive (0x1c), pong (0x2d), chunk_batch_received
+                // (0x0b) and player_loaded (0x2c) need no reply.
+            }
+            Err(PacketError::Io(e))
+                if matches!(
+                    e.kind(),
+                    std::io::ErrorKind::WouldBlock | std::io::ErrorKind::TimedOut
+                ) => {}
+            Err(_) => break, // peer closed or sent something unreadable
+        }
+
+        if last_keepalive.elapsed() >= Duration::from_secs(10) {
+            keepalive_id += 1;
+            let mut out = Vec::new();
+            write_packet(&mut out, PLAY_KEEP_ALIVE_ID, &keepalive_id.to_be_bytes());
+            if stream.write_all(&out).is_err() {
+                break;
+            }
+            last_keepalive = Instant::now();
+        }
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn spawn_position_is_read_from_the_captured_packet() {
+        let packets = parse_captured(PLAY_PACKETS);
+        let position = packets
+            .items
+            .iter()
+            .find(|(pid, _)| *pid == PLAY_POSITION_ID)
+            .map(|(_, data)| data.clone())
+            .expect("capture contains a position packet");
+        let spawn = parse_spawn_position(&position).expect("parses");
+        assert_eq!(spawn, (10.5, -60.0, -3.5));
+        // The spawn chunk must match the centre vanilla itself announced.
+        let view = PlayerView::new(spawn.0, spawn.1, spawn.2);
+        assert_eq!(view.chunk(), (0, -1));
+    }
+
+    #[test]
+    fn short_position_payloads_do_not_panic() {
+        assert!(parse_spawn_position(&[]).is_none());
+        assert!(parse_spawn_position(&[0x01, 0x00]).is_none());
+    }
+
+    #[test]
+    fn replay_drops_chunks_and_the_capture_kick() {
+        let packets = parse_captured(PLAY_PACKETS);
+        // The capture really does contain both, otherwise these filters are dead code.
+        assert!(packets.items.iter().any(|(pid, _)| *pid == CB_MAP_CHUNK));
+        assert!(packets
+            .items
+            .iter()
+            .any(|(pid, _)| *pid == PLAY_KICK_DISCONNECT_ID));
+        let replayed = packets
+            .items
+            .iter()
+            .filter(|(pid, _)| {
+                !matches!(
+                    *pid,
+                    CB_MAP_CHUNK
+                        | CB_CHUNK_BATCH_START
+                        | CB_CHUNK_BATCH_FINISHED
+                        | PLAY_KICK_DISCONNECT_ID
+                )
+            })
+            .count();
+        // 38 captured packets - 9 chunks - batch start - batch finished - kick.
+        assert_eq!(replayed, packets.items.len() - 12);
+    }
 }
 
 /// Rebuild the `player_info` add-player packet with the given identity.
@@ -194,43 +357,4 @@ fn rebuild_player_info(uuid: &[u8; 16], name: &str) -> Vec<u8> {
                                 // displayName=none, listPriority=0, showHat=false
     out.extend_from_slice(&[0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00]);
     out
-}
-
-/// Minimal keep-alive loop: respond to keep-alives and periodically send one
-/// so the client does not time out. Movement packets are ignored for now.
-fn idle_loop(stream: &mut TcpStream) -> Result<(), PacketError> {
-    stream
-        .set_read_timeout(Some(Duration::from_secs(5)))
-        .map_err(PacketError::Io)?;
-    let mut last_keepalive = Instant::now();
-    let mut keepalive_id: i64 = 0;
-    loop {
-        match read_frame(stream) {
-            Ok((pid, data)) => {
-                // Client keep-alive (0x1c) and pong (0x2d) are responses to our
-                // keep-alive/ping and are ignored. A client ping_request (0x26)
-                // expects a ping_response (0x3e) echo.
-                if pid == 0x26 {
-                    let mut out = Vec::new();
-                    write_packet(&mut out, 0x3e, &data);
-                    if stream.write_all(&out).is_err() {
-                        break;
-                    }
-                }
-            }
-            Err(_) => {
-                // timeout (or closed); fall through to keep-alive timer
-            }
-        }
-        if last_keepalive.elapsed() >= Duration::from_secs(10) {
-            keepalive_id += 1;
-            let mut out = Vec::new();
-            write_packet(&mut out, PLAY_KEEP_ALIVE_ID, &keepalive_id.to_be_bytes());
-            if stream.write_all(&out).is_err() {
-                break;
-            }
-            last_keepalive = Instant::now();
-        }
-    }
-    Ok(())
 }

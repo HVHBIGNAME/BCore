@@ -18,7 +18,7 @@ fn main() {
         "[{IMPLEMENTATION_NAME}] Minecraft {MC_VERSION} (protocol {PROTOCOL_VERSION}) listening on {host}:{port}"
     );
     println!(
-        "[{IMPLEMENTATION_NAME}] gameplay is not implemented yet — server-list ping works, login disconnects gracefully."
+        "[{IMPLEMENTATION_NAME}] offline login + flat world + chunk streaming work; movement is tracked; blocks/entities/inventory are not yet implemented."
     );
 
     server::run(listener);

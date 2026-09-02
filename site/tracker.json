@@ -11,7 +11,7 @@
         { "name": "Login (offline mode)", "status": "done" },
         { "name": "Login (online auth + encryption)", "status": "planned" },
         { "name": "Configuration state (registry sync)", "status": "done" },
-        { "name": "Play state (join + spawn)", "status": "partial" },
+        { "name": "Play state (join + spawn)", "status": "done" },
         { "name": "Compression", "status": "planned" },
         { "name": "Gameplay packets", "status": "planned" }
       ]
@@ -22,7 +22,7 @@
         { "name": "Chunk data structure", "status": "done" },
         { "name": "Seed-based generation (prototype)", "status": "done" },
         { "name": "Chunk sending (flat world)", "status": "done" },
-        { "name": "Chunk streaming on movement", "status": "planned" },
+        { "name": "Chunk streaming on movement", "status": "done" },
         { "name": "Vanilla-parity generation", "status": "planned" },
         { "name": "Lighting", "status": "planned" },
         { "name": "Chunk persistence (save/load)", "status": "planned" }
@@ -58,7 +58,7 @@
     {
       "name": "Gameplay",
       "items": [
-        { "name": "Player join & movement", "status": "planned" },
+        { "name": "Player join & movement", "status": "done" },
         { "name": "Inventories", "status": "planned" },
         { "name": "Commands", "status": "planned" },
         { "name": "Entities", "status": "planned" },
