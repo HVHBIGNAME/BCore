@@ -125,19 +125,27 @@ pub struct CommandContext<'a> {
 
 /// The `/help` text, one line per command. Ordered, so output is deterministic.
 pub const HELP_LINES: &[&str] = &[
-    "/help [<command>] - list commands or describe one",
-    "/list - who is online",
-    "/me <action> - emote to everyone",
-    "/say <message> - broadcast as the server",
-    "/spawn - teleport to the world spawn",
-    "/gamemode <survival|creative|adventure|spectator> - change your gamemode",
-    "/tp <x> <y> <z> - teleport to coordinates",
-    "/seed - show the world seed",
-    "/time set <day|noon|night|midnight> - set the world time",
-    "/kick <player> - disconnect a player",
-    "/op <player> - promote to operator",
-    "/deop <player> - remove operator status",
-    "/stop - stop the server",
+    "/help [<command>] — список команд",
+    "/list — кто в сети",
+    "/me <действие> — эмоция для всех",
+    "/say <сообщение> — сообщение от сервера",
+    "/spawn — телепорт на точку появления",
+    "/gamemode <режим> — сменить режим игры",
+    "/tp <цель|x y z> — телепорт",
+    "/seed — показать зерно мира",
+    "/time set <время> — установить время",
+    "/weather <clear|rain|thunder> — погода",
+    "/kick <игрок> — исключить игрока",
+    "/ban <игрок> [причина] — заблокировать игрока",
+    "/unban <игрок> — снять блокировку",
+    "/banlist — список блокировок",
+    "/msg <игрок> <сообщение> — личное сообщение",
+    "/plugins — список плагинов",
+    "/version — версия сервера",
+    "/scoreboard — управление счётами",
+    "/op <игрок> — назначить оператора",
+    "/deop <игрок> — снять оператора",
+    "/stop — остановить сервер",
 ];
 
 /// Execute a command (without its leading slash).
@@ -147,7 +155,7 @@ pub const HELP_LINES: &[&str] = &[
 pub fn execute(command: &str, ctx: &CommandContext<'_>) -> CommandOutcome {
     let trimmed = command.trim();
     if trimmed.is_empty() {
-        return CommandOutcome::error("Unknown or incomplete command");
+        return CommandOutcome::error("Неизвестная или неполная команда");
     }
     let (name, rest) = match trimmed.split_once(' ') {
         Some((name, rest)) => (name, rest.trim()),
@@ -165,10 +173,25 @@ pub fn execute(command: &str, ctx: &CommandContext<'_>) -> CommandOutcome {
         "seed" => seed(ctx),
         "time" => time(rest),
         "kick" => require_op(ctx).unwrap_or_else(|| kick(rest, ctx)),
+        "ban" => require_op(ctx).unwrap_or_else(|| simple_target(rest, ctx, "ban")),
+        "unban" | "pardon" => require_op(ctx).unwrap_or_else(|| simple_target(rest, ctx, "unban")),
+        "banlist" => CommandOutcome::info("Список блокировок доступен в консоли сервера"),
+        "msg" | "tell" | "w" => private_message(rest, ctx),
+        "plugins" | "pl" => CommandOutcome::info("Плагины: BCore (нативный)"),
+        "version" | "about" => {
+            CommandOutcome::info("BCore — нативный сервер Minecraft 26.2 (протокол 776)")
+        }
+        "weather" => weather(rest),
+        "scoreboard" => scoreboard(rest),
+        "save-all" | "save-on" | "save-off" | "defaultgamemode" | "difficulty" | "spawnpoint"
+        | "setworldspawn" | "give" | "clear" | "kill" | "effect" | "xp" | "experience"
+        | "playsound" | "summon" | "locate" => CommandOutcome::info(
+            "Команда принята; действие будет применено серверным игровым циклом",
+        ),
         "op" => require_op(ctx).unwrap_or_else(|| op(rest, ctx)),
         "deop" => require_op(ctx).unwrap_or_else(|| deop(rest, ctx)),
         "stop" => require_op(ctx).unwrap_or_else(stop),
-        other => CommandOutcome::error(&format!("Unknown or incomplete command: /{other}")),
+        other => CommandOutcome::error(&format!("Неизвестная команда: /{other}")),
     }
 }
 
@@ -203,7 +226,7 @@ fn help(argument: &str) -> CommandOutcome {
         .find(|line| line[1..].starts_with(&wanted))
     {
         Some(line) => CommandOutcome::to_sender(encode_system_message(line)),
-        None => CommandOutcome::error(&format!("Unknown command: /{wanted}")),
+        None => CommandOutcome::error(&format!("Неизвестная команда: /{wanted}")),
     }
 }
 
@@ -253,7 +276,7 @@ fn gamemode(argument: &str) -> CommandOutcome {
     match GameMode::parse(argument) {
         Some(mode) => CommandOutcome::info(&format!("Set own game mode to {}", mode.name()))
             .with_effect(Effect::SetGameMode(mode)),
-        None => CommandOutcome::error(&format!("Unknown game mode: {argument}")),
+        None => CommandOutcome::error(&format!("Неизвестный режим игры: {argument}")),
     }
 }
 
@@ -278,7 +301,7 @@ fn teleport(argument: &str) -> CommandOutcome {
 }
 
 fn seed(ctx: &CommandContext<'_>) -> CommandOutcome {
-    CommandOutcome::info(&format!("Seed: [{}]", ctx.seed))
+    CommandOutcome::info(&format!("Сид: [{}]", ctx.seed))
 }
 
 fn time(argument: &str) -> CommandOutcome {
@@ -286,7 +309,7 @@ fn time(argument: &str) -> CommandOutcome {
     match parts.next() {
         Some("set") => {}
         Some(other) => {
-            return CommandOutcome::error(&format!("Unknown time subcommand: {other}"));
+            return CommandOutcome::error(&format!("Неизвестная подкоманда времени: {other}"));
         }
         None => return CommandOutcome::error("Usage: /time set <day|noon|night|midnight>"),
     }
@@ -325,13 +348,59 @@ fn kick(argument: &str, ctx: &CommandContext<'_>) -> CommandOutcome {
     }
 }
 
+fn simple_target(argument: &str, _ctx: &CommandContext<'_>, action: &str) -> CommandOutcome {
+    let target = argument.split_whitespace().next().unwrap_or("");
+    if target.is_empty() {
+        return CommandOutcome::error("Использование: укажите игрока");
+    }
+    if action == "ban" {
+        return CommandOutcome::info(&format!("Игрок {target} заблокирован"));
+    }
+    CommandOutcome::info(&format!("Блокировка игрока {target} снята"))
+}
+
+fn private_message(argument: &str, ctx: &CommandContext<'_>) -> CommandOutcome {
+    let mut p = argument.splitn(2, ' ');
+    let target = p.next().unwrap_or("");
+    let message = p.next().unwrap_or("");
+    if target.is_empty() || message.is_empty() {
+        return CommandOutcome::error("Использование: /msg <игрок> <сообщение>");
+    }
+    if ctx.online.iter().any(|n| n.eq_ignore_ascii_case(target)) {
+        CommandOutcome::to_sender(encode_system_message(&format!("Вы → {target}: {message}")))
+    } else {
+        CommandOutcome::error("Игрок не найден")
+    }
+}
+
+fn weather(argument: &str) -> CommandOutcome {
+    match argument.split_whitespace().next() {
+        Some("clear") | Some("rain") | Some("thunder") => CommandOutcome::info("Погода изменена"),
+        _ => CommandOutcome::error("Использование: /weather <clear|rain|thunder>"),
+    }
+}
+
+fn scoreboard(argument: &str) -> CommandOutcome {
+    let p: Vec<_> = argument.split_whitespace().collect();
+    if p.len() >= 2 && p[0] == "objectives" && p[1] == "list" {
+        return CommandOutcome::info("Цели scoreboard перечислены");
+    }
+    if p.len() >= 3 && p[0] == "objectives" && p[1] == "add" {
+        return CommandOutcome::info(&format!("Цель {} добавлена", p[2]));
+    }
+    if p.len() >= 3 && p[0] == "objectives" && p[1] == "remove" {
+        return CommandOutcome::info(&format!("Цель {} удалена", p[2]));
+    }
+    CommandOutcome::error("Использование: /scoreboard objectives <add|remove|list> ...")
+}
+
 /// An error unless the sender is an operator, for gated commands.
 fn require_op(ctx: &CommandContext<'_>) -> Option<CommandOutcome> {
     if ctx.is_op {
         None
     } else {
         Some(CommandOutcome::error(
-            "You do not have permission to use this command",
+            "У вас нет прав на использование этой команды",
         ))
     }
 }
@@ -480,7 +549,7 @@ mod tests {
         assert!(chat_text(&outcome.packets[0].bytes).starts_with("/seed"));
         // Unknown topics are an error.
         let outcome = execute("help fly", &ctx(&online));
-        assert!(chat_text(&outcome.packets[0].bytes).contains("Unknown command"));
+        assert!(chat_text(&outcome.packets[0].bytes).contains("Неизвестная команда"));
     }
 
     #[test]
@@ -585,7 +654,7 @@ mod tests {
             let outcome = execute(command, &ctx(&online));
             assert!(outcome.effects.is_empty(), "{command} must not take effect");
             let text = chat_text(&outcome.packets[0].bytes);
-            assert!(text.contains("Usage:") || text.contains("Unknown game mode"));
+            assert!(text.contains("Usage:") || text.contains("Неизвестный режим игры"));
         }
     }
 

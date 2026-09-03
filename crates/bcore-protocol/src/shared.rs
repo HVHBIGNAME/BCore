@@ -89,6 +89,8 @@ pub struct ServerState {
     shutdown: AtomicBool,
     /// Server operator names (from `ops.json`), persisted on change.
     ops: Mutex<BTreeSet<String>>,
+    bans: Mutex<BTreeMap<String, String>>,
+    pub scoreboard: Mutex<crate::scoreboard::Scoreboard>,
 }
 
 /// Cheap-to-clone handle to the shared server state.
@@ -101,6 +103,7 @@ const OPS_FILE: &str = "ops.json";
 pub fn new_shared_server() -> SharedServer {
     let server = ServerState::default();
     server.load_ops();
+    server.load_bans();
     Arc::new(server)
 }
 
@@ -246,6 +249,46 @@ impl ServerState {
             let quoted: Vec<String> = names.iter().map(|n| format!("\"{n}\"")).collect();
             let text = format!("[{}]\n", quoted.join(", "));
             let _ = std::fs::write(OPS_FILE, text);
+        }
+    }
+    fn load_bans(&self) {
+        if let Ok(text) = std::fs::read_to_string("banned-players.json") {
+            if let (Ok(map), Ok(mut bans)) = (
+                serde_json::from_str::<BTreeMap<String, String>>(&text),
+                self.bans.lock(),
+            ) {
+                *bans = map;
+            }
+        }
+    }
+    pub fn ban(&self, name: &str, reason: &str) {
+        if let Ok(mut b) = self.bans.lock() {
+            b.insert(name.to_string(), reason.to_string());
+        }
+        self.save_bans();
+    }
+    pub fn pardon(&self, name: &str) {
+        if let Ok(mut b) = self.bans.lock() {
+            b.remove(name);
+        }
+        self.save_bans();
+    }
+    pub fn bans(&self) -> BTreeMap<String, String> {
+        self.bans.lock().map(|b| b.clone()).unwrap_or_default()
+    }
+    pub fn is_banned(&self, name: &str) -> Option<String> {
+        self.bans
+            .lock()
+            .ok()?
+            .iter()
+            .find(|(n, _)| n.eq_ignore_ascii_case(name))
+            .map(|(_, r)| r.clone())
+    }
+    pub fn save_bans(&self) {
+        if let Ok(b) = self.bans.lock() {
+            if let Ok(s) = serde_json::to_string_pretty(&*b) {
+                let _ = std::fs::write("banned-players.json", format!("{s}\n"));
+            }
         }
     }
 }

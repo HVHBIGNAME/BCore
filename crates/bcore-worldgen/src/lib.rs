@@ -77,8 +77,13 @@ pub mod block {
     pub const GOLD_ORE: u32 = 129;
     pub const IRON_ORE: u32 = 131;
     pub const COAL_ORE: u32 = 133;
+    pub const COPPER_ORE: u32 = 27790;
     pub const OAK_LOG: u32 = 137;
     pub const OAK_LEAVES: u32 = 255;
+    pub const BIRCH_LOG: u32 = 143;
+    pub const BIRCH_LEAVES: u32 = 311;
+    pub const SPRUCE_LOG: u32 = 149;
+    pub const SPRUCE_LEAVES: u32 = 367;
     pub const LAPIS_ORE: u32 = 563;
     pub const SANDSTONE: u32 = 578;
     pub const SHORT_GRASS: u32 = 2248;
@@ -94,29 +99,46 @@ pub mod block {
 /// (`scripts/extract_biomes.py`).
 pub mod biome_id {
     pub const BEACH: u32 = 3;
+    pub const BIRCH_FOREST: u32 = 5;
+    pub const DARK_FOREST: u32 = 13;
     pub const DESERT: u32 = 14;
     pub const FOREST: u32 = 21;
+    pub const FROZEN_OCEAN: u32 = 22;
+    pub const JAGGED_PEAKS: u32 = 27;
+    pub const JUNGLE: u32 = 28;
+    pub const MUSHROOM_FIELDS: u32 = 34;
     pub const OCEAN: u32 = 35;
     pub const PLAINS: u32 = 40;
+    pub const RIVER: u32 = 41;
+    pub const SAVANNA: u32 = 42;
+    pub const SNOWY_PLAINS: u32 = 46;
     pub const SNOWY_SLOPES: u32 = 47;
+    pub const STONY_PEAKS: u32 = 51;
+    pub const SWAMP: u32 = 54;
+    pub const TAIGA: u32 = 56;
     pub const WINDSWEPT_HILLS: u32 = 63;
 }
 
 /// The biomes BCore generates.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Biome {
-    /// Below sea level: water over a sand/gravel floor.
     Ocean,
-    /// Sandy shoreline between ocean and land.
+    FrozenOcean,
     Beach,
-    /// Flat grassland, the odd patch of tall grass.
+    River,
     Plains,
-    /// Grassland with oak trees.
     Forest,
-    /// Sand over sandstone, cacti and dead bushes.
+    BirchForest,
+    DarkForest,
+    Taiga,
+    SnowyPlains,
     Desert,
-    /// Tall, stony terrain; snow-capped above [`Biome::SNOW_LINE`].
+    Savanna,
+    Jungle,
+    Swamp,
+    MushroomFields,
     Mountains,
+    SnowyMountains,
 }
 
 impl Biome {
@@ -127,72 +149,89 @@ impl Biome {
     pub fn network_id(self) -> u32 {
         match self {
             Biome::Ocean => biome_id::OCEAN,
+            Biome::FrozenOcean => biome_id::FROZEN_OCEAN,
             Biome::Beach => biome_id::BEACH,
+            Biome::River => biome_id::RIVER,
             Biome::Plains => biome_id::PLAINS,
             Biome::Forest => biome_id::FOREST,
+            Biome::BirchForest => biome_id::BIRCH_FOREST,
+            Biome::DarkForest => biome_id::DARK_FOREST,
+            Biome::Taiga => biome_id::TAIGA,
+            Biome::SnowyPlains => biome_id::SNOWY_PLAINS,
             Biome::Desert => biome_id::DESERT,
+            Biome::Savanna => biome_id::SAVANNA,
+            Biome::Jungle => biome_id::JUNGLE,
+            Biome::Swamp => biome_id::SWAMP,
+            Biome::MushroomFields => biome_id::MUSHROOM_FIELDS,
             Biome::Mountains => biome_id::WINDSWEPT_HILLS,
+            Biome::SnowyMountains => biome_id::SNOWY_SLOPES,
         }
     }
 
-    /// Mid-point of this biome's terrain height, in blocks.
     fn base_height(self) -> f64 {
         match self {
-            Biome::Ocean => 45.0,
-            Biome::Beach => 64.0,
-            Biome::Plains => 68.0,
-            Biome::Forest => 71.0,
-            Biome::Desert => 68.0,
-            Biome::Mountains => 92.0,
+            Biome::Ocean | Biome::FrozenOcean => 43.0,
+            Biome::River | Biome::Swamp => 59.0,
+            Biome::Beach => 63.0,
+            Biome::Plains | Biome::SnowyPlains | Biome::Savanna => 68.0,
+            Biome::Forest | Biome::BirchForest | Biome::DarkForest | Biome::Taiga => 71.0,
+            Biome::Desert => 69.0,
+            Biome::Jungle => 73.0,
+            Biome::MushroomFields => 74.0,
+            Biome::Mountains | Biome::SnowyMountains => 91.0,
         }
     }
 
-    /// How far terrain swings around [`Biome::base_height`].
     fn height_amplitude(self) -> f64 {
         match self {
-            Biome::Ocean => 9.0,
+            Biome::Ocean | Biome::FrozenOcean => 11.0,
+            Biome::River | Biome::Swamp => 2.0,
             Biome::Beach => 2.0,
-            Biome::Plains => 4.0,
-            Biome::Forest => 7.0,
+            Biome::Plains | Biome::SnowyPlains | Biome::Savanna => 5.0,
+            Biome::Forest | Biome::BirchForest | Biome::DarkForest | Biome::Taiga => 8.0,
             Biome::Desert => 6.0,
-            Biome::Mountains => 40.0,
+            Biome::Jungle | Biome::MushroomFields => 10.0,
+            Biome::Mountains | Biome::SnowyMountains => 38.0,
         }
     }
 
-    /// Blocks of soil between the surface block and stone.
     fn soil_depth(self) -> i32 {
         match self {
-            Biome::Mountains => 1,
+            Biome::Mountains | Biome::SnowyMountains => 1,
             Biome::Desert | Biome::Beach => 4,
+            Biome::Ocean | Biome::FrozenOcean | Biome::River => 3,
             _ => 3,
         }
     }
 
-    /// The block placed on top of the column (dry land only).
     fn surface_block(self, y: i32) -> u32 {
         match self {
-            Biome::Ocean | Biome::Beach => block::SAND,
-            Biome::Plains | Biome::Forest => block::GRASS_BLOCK,
+            Biome::Ocean | Biome::FrozenOcean | Biome::Beach | Biome::River => block::SAND,
+            Biome::Taiga | Biome::DarkForest => block::PODZOL,
+            Biome::MushroomFields => block::PODZOL,
             Biome::Desert => block::SAND,
             Biome::Mountains => {
                 if y >= Self::SNOW_LINE {
                     block::SNOW_BLOCK
-                } else if y >= Self::SNOW_LINE - 12 {
+                } else if y >= 93 {
                     block::STONE
                 } else {
                     block::GRASS_BLOCK
                 }
             }
+            Biome::SnowyMountains | Biome::SnowyPlains => block::SNOW_BLOCK,
+            _ => block::GRASS_BLOCK,
         }
     }
 
-    /// The block filling [`Biome::soil_depth`] below the surface.
     fn soil_block(self) -> u32 {
         match self {
-            Biome::Ocean | Biome::Beach => block::SAND,
+            Biome::Ocean | Biome::FrozenOcean | Biome::Beach | Biome::River => block::SAND,
             Biome::Desert => block::SANDSTONE,
-            Biome::Mountains => block::STONE,
-            Biome::Plains | Biome::Forest => block::DIRT,
+            Biome::Mountains | Biome::SnowyMountains => block::STONE,
+            Biome::Savanna => block::COARSE_DIRT,
+            Biome::Swamp => block::DIRT,
+            _ => block::DIRT,
         }
     }
 }
@@ -319,7 +358,7 @@ const ORE_BANDS: [(u32, i32, i32, f64, f64); 6] = [
 ];
 
 /// Highest Y any ore can generate at (the top of the coal band).
-const MAX_ORE_Y: i32 = 128;
+const MAX_ORE_Y: i32 = 136;
 
 impl WorldGenerator {
     /// A generator for the given world seed.
@@ -384,103 +423,113 @@ impl WorldGenerator {
         fbm2(self.channel(4), x as f64, z as f64, 210.0, 2, 0.5)
     }
 
-    /// The biome at an absolute block column.
-    ///
-    /// [`Biome::Beach`] is only chosen for land that sits within a few blocks of
-    /// [`SEA_LEVEL`], which is why this needs the already-computed height.
-    pub fn biome_at(self, x: i32, z: i32, height: i32) -> Biome {
-        if height < SEA_LEVEL {
-            return Biome::Ocean;
-        }
-        let erosion = self.erosion(x, z);
-        if erosion > 0.42 || height > 88 {
-            return Biome::Mountains;
-        }
-        if height <= SEA_LEVEL + 2 {
-            return Biome::Beach;
-        }
-        let temperature = self.temperature(x, z);
-        let humidity = self.humidity(x, z);
-        if temperature > 0.34 && humidity < 0.06 {
-            return Biome::Desert;
-        }
-        if humidity > 0.08 {
-            return Biome::Forest;
-        }
-        Biome::Plains
+    /// River valley signal. Values near zero trace long, narrow channels.
+    pub fn river(self, x: i32, z: i32) -> f64 {
+        fbm2(self.channel(5), x as f64, z as f64, 190.0, 3, 0.5).abs()
     }
 
-    /// Height *and* biome for a column, sampling each noise field exactly once.
-    ///
-    /// [`Self::height_at`] and [`Self::biome_at`] are convenient but together
-    /// they evaluate the four climate fields twice (and `height_at` a second
-    /// time inside `biome_at`'s caller). The chunk filler needs both values for
-    /// all 256 columns, so it uses this instead — the shared work is why chunk
-    /// generation is not dominated by duplicate noise.
+    fn climate_choice(
+        self,
+        continent: f64,
+        erosion: f64,
+        temperature: f64,
+        humidity: f64,
+        river: f64,
+    ) -> Biome {
+        if continent < -0.16 {
+            if temperature < -0.38 {
+                Biome::FrozenOcean
+            } else if humidity > 0.58 && continent < -0.48 {
+                Biome::MushroomFields
+            } else {
+                Biome::Ocean
+            }
+        } else if river < 0.035 && continent > -0.08 {
+            Biome::River
+        } else if continent < -0.06 {
+            Biome::Plains
+        } else if erosion > 0.38 {
+            if temperature < -0.18 {
+                Biome::SnowyMountains
+            } else {
+                Biome::Mountains
+            }
+        } else if temperature < -0.42 {
+            Biome::SnowyPlains
+        } else if temperature < -0.18 {
+            Biome::Taiga
+        } else if temperature > 0.42 && humidity < -0.02 {
+            Biome::Desert
+        } else if temperature > 0.28 && humidity < 0.16 {
+            Biome::Savanna
+        } else if temperature > 0.24 && humidity > 0.38 {
+            Biome::Jungle
+        } else if humidity > 0.48 && erosion < -0.20 {
+            Biome::Swamp
+        } else if humidity > 0.34 {
+            Biome::DarkForest
+        } else if humidity > 0.16 {
+            if temperature < 0.02 {
+                Biome::BirchForest
+            } else {
+                Biome::Forest
+            }
+        } else {
+            Biome::Plains
+        }
+    }
+
+    /// The biome at an absolute block column.
+    pub fn biome_at(self, x: i32, z: i32, height: i32) -> Biome {
+        let c = self.continent(x, z);
+        let e = self.erosion(x, z);
+        let t = self.temperature(x, z);
+        let h = self.humidity(x, z);
+        let r = self.river(x, z);
+        if height < SEA_LEVEL {
+            return if t < -0.38 {
+                Biome::FrozenOcean
+            } else {
+                Biome::Ocean
+            };
+        }
+        if height <= SEA_LEVEL + 2 && c < 0.04 {
+            return Biome::Beach;
+        }
+        self.climate_choice(c, e, t, h, r)
+    }
+
+    /// Height and biome for a column, sharing all climate samples.
     pub fn column(self, x: i32, z: i32) -> ColumnInfo {
         let continent = self.continent(x, z);
         let erosion = self.erosion(x, z);
         let temperature = self.temperature(x, z);
         let humidity = self.humidity(x, z);
-
-        let desert = temperature > 0.34 && humidity < 0.06;
-        let wet = humidity > 0.08;
-
-        // Climate biome decides how the terrain is *shaped*.
-        let climate = if continent < -0.10 {
-            Biome::Ocean
-        } else if erosion > 0.42 {
-            Biome::Mountains
-        } else if desert {
-            Biome::Desert
-        } else if wet {
-            Biome::Forest
-        } else {
-            Biome::Plains
-        };
-
+        let river = self.river(x, z);
+        let climate = self.climate_choice(continent, erosion, temperature, humidity, river);
         let height = self.shape_height(x, z, climate, continent);
-
-        // Surface biome: with the height known, ocean/beach become exact.
         let biome = if height < SEA_LEVEL {
-            Biome::Ocean
-        } else if erosion > 0.42 || height > 88 {
-            Biome::Mountains
-        } else if height <= SEA_LEVEL + 2 {
+            if temperature < -0.38 {
+                Biome::FrozenOcean
+            } else {
+                Biome::Ocean
+            }
+        } else if height <= SEA_LEVEL + 2 && continent < 0.04 {
             Biome::Beach
-        } else if desert {
-            Biome::Desert
-        } else if wet {
-            Biome::Forest
         } else {
-            Biome::Plains
+            climate
         };
-
         ColumnInfo { height, biome }
     }
 
-    /// The biome used for climate decisions before the height is known.
-    ///
-    /// Ocean/mountain classification only needs the climate fields, so this is
-    /// enough to pick the height shaping parameters.
     fn climate_biome(self, x: i32, z: i32) -> Biome {
-        let continent = self.continent(x, z);
-        if continent < -0.10 {
-            return Biome::Ocean;
-        }
-        let erosion = self.erosion(x, z);
-        if erosion > 0.42 {
-            return Biome::Mountains;
-        }
-        let temperature = self.temperature(x, z);
-        let humidity = self.humidity(x, z);
-        if temperature > 0.34 && humidity < 0.06 {
-            return Biome::Desert;
-        }
-        if humidity > 0.08 {
-            return Biome::Forest;
-        }
-        Biome::Plains
+        self.climate_choice(
+            self.continent(x, z),
+            self.erosion(x, z),
+            self.temperature(x, z),
+            self.humidity(x, z),
+            self.river(x, z),
+        )
     }
 
     // ---- height ----------------------------------------------------------
@@ -507,8 +556,13 @@ impl WorldGenerator {
             height += continent * 46.0;
         }
 
+        // Rivers cut a shallow channel through otherwise dry land.
+        if climate == Biome::River {
+            height = height.min(SEA_LEVEL as f64 - 3.0);
+        }
+
         // Mountains get a ridged boost so peaks are sharp, not domed.
-        if climate == Biome::Mountains {
+        if matches!(climate, Biome::Mountains | Biome::SnowyMountains) {
             let ridge = 1.0 - fbm2(self.channel(12), x as f64, z as f64, 140.0, 2, 0.5).abs();
             height += ridge * ridge * 26.0;
         }
@@ -575,13 +629,18 @@ impl WorldGenerator {
             if y > max_y || y < min_y {
                 continue;
             }
+            let mut chance = threshold;
+            // Mountains have the vanilla emerald-like iron enrichment effect.
+            if state == block::IRON_ORE && self.erosion(x, z) > 0.35 {
+                chance -= 0.08;
+            }
             let n = value_noise_3d(
                 ch.ore[i],
                 x as f64 / scale,
                 y as f64 / scale,
                 z as f64 / scale,
             );
-            if n > threshold {
+            if n > chance {
                 return Some(state);
             }
         }
@@ -781,10 +840,10 @@ impl WorldGenerator {
         if height < SEA_LEVEL + 1 {
             return None;
         }
-        // Trees clump into groves: forest is dense, plains only has stragglers.
         let density = match biome {
-            Biome::Forest => 0.945,
-            Biome::Plains => 0.995,
+            Biome::Forest | Biome::DarkForest | Biome::Jungle => 0.945,
+            Biome::BirchForest | Biome::Taiga => 0.95,
+            Biome::Plains | Biome::Savanna => 0.995,
             _ => return None,
         };
         if roll < density {
@@ -804,11 +863,16 @@ impl WorldGenerator {
         local_x: i32,
         ground_y: i32,
         local_z: i32,
-        _biome: Biome,
+        biome: Biome,
         wx: i32,
         wz: i32,
     ) {
         let roll = hash_2d(self.channel(52), wx as i64, wz as i64);
+        let (log, leaves) = match biome {
+            Biome::BirchForest => (block::BIRCH_LOG, block::BIRCH_LEAVES),
+            Biome::Taiga => (block::SPRUCE_LOG, block::SPRUCE_LEAVES),
+            _ => (block::OAK_LOG, block::OAK_LEAVES),
+        };
         let trunk = 4 + (roll * 3.0) as i32; // 4..=6
         let top = ground_y + trunk;
         if top + 2 > MAX_Y {
@@ -831,7 +895,7 @@ impl WorldGenerator {
                             continue;
                         }
                     }
-                    self.leaf(chunk, local_x + lx, y, local_z + lz);
+                    self.leaf_with(chunk, local_x + lx, y, local_z + lz, leaves);
                 }
             }
         }
@@ -847,15 +911,19 @@ impl WorldGenerator {
             {
                 break;
             }
-            chunk.set(local_x as usize, y, local_z as usize, block::OAK_LOG);
+            chunk.set(local_x as usize, y, local_z as usize, log);
         }
     }
 
-    fn leaf(self, chunk: &mut GeneratedChunk, x: i32, y: i32, z: i32) {
+    fn leaf_with(self, chunk: &mut GeneratedChunk, x: i32, y: i32, z: i32, state: u32) {
         if x < 0 || x >= CHUNK_SIZE as i32 || z < 0 || z >= CHUNK_SIZE as i32 {
             return;
         }
-        chunk.set_if_air(x as usize, y, z as usize, block::OAK_LEAVES);
+        chunk.set_if_air(x as usize, y, z as usize, state);
+    }
+
+    fn leaf(self, chunk: &mut GeneratedChunk, x: i32, y: i32, z: i32) {
+        self.leaf_with(chunk, x, y, z, block::OAK_LEAVES);
     }
 
     /// A safe Y to spawn a player at in the given column: one block above the

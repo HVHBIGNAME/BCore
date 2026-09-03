@@ -319,6 +319,47 @@ pub fn bcore_command_tree() -> CommandTree {
     // /stop
     tree.literal("stop", true);
 
+    // Дополнительный ванильный набор. Аргументы разбираются сервером как остаток строки.
+    for name in [
+        "?",
+        "about",
+        "ban",
+        "ban-ip",
+        "banlist",
+        "clear",
+        "defaultgamemode",
+        "difficulty",
+        "effect",
+        "experience",
+        "give",
+        "kill",
+        "locate",
+        "msg",
+        "pardon",
+        "pardon-ip",
+        "pl",
+        "playsound",
+        "plugins",
+        "save-all",
+        "save-off",
+        "save-on",
+        "scoreboard",
+        "setworldspawn",
+        "spawnpoint",
+        "summon",
+        "tell",
+        "teleport",
+        "unban",
+        "unban-ip",
+        "version",
+        "w",
+        "weather",
+        "xp",
+    ] {
+        let node = tree.literal(name, true);
+        tree.argument(node, "аргументы", Parser::Greedy, true);
+    }
+
     tree
 }
 
@@ -545,8 +586,53 @@ mod tests {
         assert_eq!(
             top,
             vec![
-                "deop", "gamemode", "help", "kick", "list", "me", "op", "say", "seed", "spawn",
-                "stop", "time", "tp",
+                "?",
+                "about",
+                "ban",
+                "ban-ip",
+                "banlist",
+                "clear",
+                "defaultgamemode",
+                "deop",
+                "difficulty",
+                "effect",
+                "experience",
+                "gamemode",
+                "give",
+                "help",
+                "kick",
+                "kill",
+                "list",
+                "locate",
+                "me",
+                "msg",
+                "op",
+                "pardon",
+                "pardon-ip",
+                "pl",
+                "playsound",
+                "plugins",
+                "save-all",
+                "save-off",
+                "save-on",
+                "say",
+                "scoreboard",
+                "seed",
+                "setworldspawn",
+                "spawn",
+                "spawnpoint",
+                "stop",
+                "summon",
+                "teleport",
+                "tell",
+                "time",
+                "tp",
+                "unban",
+                "unban-ip",
+                "version",
+                "w",
+                "weather",
+                "xp",
             ]
         );
     }

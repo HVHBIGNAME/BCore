@@ -33,7 +33,7 @@ use crate::packet::{read_frame, read_string, write_packet, write_string, PacketE
 use crate::shared::{PlayerHandle, SharedServer};
 use crate::world::{
     PlayerView, CB_CHUNK_BATCH_FINISHED, CB_CHUNK_BATCH_START, CB_MAP_CHUNK, CB_PING_RESPONSE,
-    SB_PING_REQUEST,
+    SB_CHUNK_BATCH_RECEIVED, SB_PING_REQUEST,
 };
 
 pub const LOGIN_SUCCESS_ID: i32 = 0x02;
@@ -338,6 +338,9 @@ fn stream_initial_chunks(stream: &mut TcpStream, view: &mut PlayerView) -> Resul
         view.spawn = (x, y, z);
     }
 
+    // Bound the very first batch too, so a fresh join does not burst the whole
+    // 41x41 view at once (the play loop streams the rest 64 chunks per tick).
+    view.set_chunk_batch_size(64);
     let sent = view.stream_chunks(stream)?;
     let (cx, cz) = view.chunk();
     println!(
@@ -365,6 +368,7 @@ fn play_loop(
     let mut last_keepalive = Instant::now();
     let mut keepalive_id: i64 = 0;
     let mut last_chunk = view.chunk();
+    view.set_chunk_batch_size(64);
 
     loop {
         if handle.is_kicked() || server.is_shutting_down() {
@@ -424,10 +428,16 @@ fn play_loop(
                     if stream.write_all(&out).is_err() {
                         break;
                     }
+                } else if pid == SB_CHUNK_BATCH_RECEIVED && data.len() >= 4 {
+                    // Vanilla sends the desired chunks/tick as an f32.
+                    let desired = f32::from_be_bytes(data[..4].try_into().expect("checked length"));
+                    if desired.is_finite() && desired >= 1.0 {
+                        view.set_chunk_batch_size(desired.floor() as usize);
+                    }
                 }
-                // Client keep-alive (0x1c), pong (0x2d), chunk_batch_received
-                // (0x0b), player_loaded (0x2c), message_acknowledgement (0x06)
-                // and chat_session_update (0x0a) need no reply.
+                // Client keep-alive (0x1c), pong (0x2d), player_loaded (0x2c),
+                // message_acknowledgement (0x06) and chat_session_update (0x0a)
+                // need no reply.
             }
             Err(PacketError::Io(e))
                 if matches!(
@@ -435,6 +445,15 @@ fn play_loop(
                     std::io::ErrorKind::WouldBlock | std::io::ErrorKind::TimedOut
                 ) => {}
             Err(_) => break, // peer closed or sent something unreadable
+        }
+
+        // Continue a large teleport/movement stream on each tick. The first
+        // batch is deliberately small; this prevents a 1681-chunk burst.
+        if view.has_pending_chunks() {
+            match view.stream_chunks(stream) {
+                Ok(_) => {}
+                Err(_) => break,
+            }
         }
 
         // Deliver anything other players queued for us.

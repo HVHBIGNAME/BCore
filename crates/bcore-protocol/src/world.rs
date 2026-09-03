@@ -7,6 +7,7 @@
 
 use std::collections::BTreeSet;
 use std::io::Write;
+use std::sync::atomic::{AtomicI32, Ordering};
 
 use bcore_core::varint::encode_varint;
 
@@ -47,7 +48,26 @@ pub const CB_UPDATE_VIEW_POSITION: i32 = 0x5e;
 pub const CB_POSITION: i32 = 0x48;
 
 /// View distance in chunks, matching the `viewDistance` announced at join.
-pub const VIEW_DISTANCE: i32 = 10;
+pub const VIEW_DISTANCE: i32 = 20;
+
+/// A test-only override for [`default_view_distance`]; 0 means "use the default".
+static VIEW_DISTANCE_OVERRIDE: AtomicI32 = AtomicI32::new(0);
+
+/// Lower the view distance for a whole test process (integration tests use this
+/// so a 41x41 chunk grid does not swamp a parallel run).
+pub fn set_view_distance_for_tests(distance: i32) {
+    VIEW_DISTANCE_OVERRIDE.store(distance, Ordering::Relaxed);
+}
+
+/// The effective view distance for a new [`PlayerView`].
+pub fn default_view_distance() -> i32 {
+    let overridden = VIEW_DISTANCE_OVERRIDE.load(Ordering::Relaxed);
+    if (1..=32).contains(&overridden) {
+        overridden
+    } else {
+        VIEW_DISTANCE
+    }
+}
 
 /// Day time a fresh world starts at (vanilla's morning).
 pub const DEFAULT_DAY_TIME: i64 = TIME_DAY;
@@ -60,16 +80,18 @@ pub fn chunk_coord(world: f64) -> i32 {
 /// Chunk positions within `radius` of `(cx, cz)`, ordered by distance from the
 /// centre then by coordinate. Deterministic: no hash iteration.
 pub fn chunks_in_view(cx: i32, cz: i32, radius: i32) -> Vec<(i32, i32)> {
+    let radius = radius.max(0) as i64;
     let mut out = Vec::with_capacity(((2 * radius + 1) * (2 * radius + 1)) as usize);
     for dz in -radius..=radius {
         for dx in -radius..=radius {
-            out.push((cx + dx, cz + dz));
+            let x = (cx as i64 + dx).clamp(i32::MIN as i64, i32::MAX as i64) as i32;
+            let z = (cz as i64 + dz).clamp(i32::MIN as i64, i32::MAX as i64) as i32;
+            out.push((x, z));
         }
     }
-    // Closest-first (vanilla streams outwards); ties broken by coordinate so the
-    // ordering is fully determined.
     out.sort_by_key(|&(x, z)| {
-        let (dx, dz) = ((x - cx).abs(), (z - cz).abs());
+        let dx = (x as i64 - cx as i64).abs();
+        let dz = (z as i64 - cz as i64).abs();
         (dx.max(dz), dx + dz, x, z)
     });
     out
@@ -93,6 +115,8 @@ pub struct PlayerView {
     /// Chunks the client has been sent and has not been told to unload.
     loaded: BTreeSet<(i32, i32)>,
     view_distance: i32,
+    /// Maximum number of map_chunk packets emitted in one batch.
+    chunk_batch_size: usize,
     /// Next teleport id handed to a clientbound `position` packet.
     next_teleport_id: i32,
 }
@@ -111,7 +135,8 @@ impl PlayerView {
             day_time: DEFAULT_DAY_TIME,
             spawn: (x, y, z),
             loaded: BTreeSet::new(),
-            view_distance: VIEW_DISTANCE,
+            view_distance: default_view_distance(),
+            chunk_batch_size: usize::MAX,
             // The join replay already used teleport id 1.
             next_teleport_id: 2,
         }
@@ -121,6 +146,22 @@ impl PlayerView {
     pub fn with_view_distance(mut self, view_distance: i32) -> Self {
         self.view_distance = view_distance;
         self
+    }
+
+    /// Override the number of chunks emitted per streaming batch.
+    pub fn with_chunk_batch_size(mut self, chunk_batch_size: usize) -> Self {
+        self.chunk_batch_size = chunk_batch_size.max(1);
+        self
+    }
+
+    /// Set the client's requested chunks-per-tick flow-control value.
+    pub fn set_chunk_batch_size(&mut self, chunk_batch_size: usize) {
+        self.chunk_batch_size = chunk_batch_size.max(1);
+    }
+
+    /// Whether a subsequent tick still has chunk work to send.
+    pub fn has_pending_chunks(&self) -> bool {
+        !self.missing_chunks().is_empty() || !self.stale_chunks().is_empty()
     }
 
     /// The chunk the player currently occupies.
@@ -189,7 +230,8 @@ impl PlayerView {
             .iter()
             .copied()
             .filter(|&(x, z)| {
-                (x - cx).abs() > self.view_distance || (z - cz).abs() > self.view_distance
+                (x as i64 - cx as i64).abs() > self.view_distance as i64
+                    || (z as i64 - cz as i64).abs() > self.view_distance as i64
             })
             .collect()
     }
@@ -248,6 +290,7 @@ impl PlayerView {
 
         let (cx, cz) = self.chunk();
         let mut buf = Vec::new();
+        let mut sent_count = 0usize;
 
         let mut center = Vec::new();
         encode_varint(cx, &mut center);
@@ -255,13 +298,17 @@ impl PlayerView {
         write_packet(&mut buf, CB_UPDATE_VIEW_POSITION, &center);
 
         if !missing.is_empty() {
+            let batch = missing.iter().take(self.chunk_batch_size);
             write_packet(&mut buf, CB_CHUNK_BATCH_START, &[]);
-            for &(x, z) in &missing {
+            let mut sent = 0usize;
+            for &(x, z) in batch {
                 write_packet(&mut buf, CB_MAP_CHUNK, &world.chunk_payload(x, z));
                 self.loaded.insert((x, z));
+                sent += 1;
             }
+            sent_count = sent;
             let mut size = Vec::new();
-            encode_varint(missing.len() as i32, &mut size);
+            encode_varint(sent as i32, &mut size);
             write_packet(&mut buf, CB_CHUNK_BATCH_FINISHED, &size);
         }
 
@@ -275,7 +322,7 @@ impl PlayerView {
         }
 
         out.write_all(&buf)?;
-        Ok(missing.len())
+        Ok(sent_count)
     }
 }
 
@@ -414,6 +461,32 @@ mod tests {
         assert_eq!(view.loaded_chunks().count(), ring * ring);
         assert!(view.missing_chunks().is_empty());
         assert!(view.stale_chunks().is_empty());
+    }
+
+    #[test]
+    fn long_jump_can_be_streamed_in_bounded_batches() {
+        let mut view = PlayerView::new(0.0, 0.0, 0.0).with_chunk_batch_size(64);
+        let world = World::in_memory(0);
+        let mut out = Vec::new();
+        assert_eq!(
+            view.stream_chunks_from(&mut out, &world).expect("initial"),
+            64
+        );
+        assert!(view.has_pending_chunks());
+        let mut total = 64;
+        while view.has_pending_chunks() {
+            out.clear();
+            let sent = view
+                .stream_chunks_from(&mut out, &world)
+                .expect("next batch");
+            assert!(sent <= 64);
+            total += sent;
+        }
+        assert_eq!(
+            total,
+            ((2 * VIEW_DISTANCE + 1) * (2 * VIEW_DISTANCE + 1)) as usize
+        );
+        assert_eq!(view.loaded_chunks().count(), total);
     }
 
     #[test]

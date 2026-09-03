@@ -147,6 +147,7 @@ fn join(addr: SocketAddr, name: &str, uuid_byte: u8) -> Joined {
 
 /// Start a BCore server on an ephemeral port; returns its address.
 fn start_server() -> SocketAddr {
+    bcore_protocol::world::set_view_distance_for_tests(4);
     let listener = TcpListener::bind("127.0.0.1:0").expect("bind ephemeral port");
     let addr = listener.local_addr().expect("addr");
     let shared = new_shared_server();

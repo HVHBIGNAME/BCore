@@ -38,6 +38,7 @@
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use crate::chunk::{ChunkColumn, MIN_Y, SECTION_BIOMES, SECTION_COUNT, WORLD_HEIGHT};
 
@@ -131,6 +132,9 @@ fn fnv1a(bytes: &[u8]) -> u32 {
     hash
 }
 
+/// Monotonic counter for unique temp-file names in [`ChunkStore::save`].
+static TMP_COUNTER: AtomicU64 = AtomicU64::new(0);
+
 /// A directory of saved chunks.
 ///
 /// Chunks live in `<root>/chunks/`; the directory is created on demand by
@@ -183,7 +187,13 @@ impl ChunkStore {
         fs::create_dir_all(&dir)?;
         let encoded = encode_chunk(x, z, column);
         let final_path = self.chunk_path(x, z);
-        let tmp_path = final_path.with_extension("bcc.tmp");
+        // A unique temp name so two threads saving the same chunk (parallel
+        // tests, or two players streaming the same chunk) never race on rename.
+        let tmp_path = final_path.with_extension(format!(
+            "bcc.{}.{}.tmp",
+            std::process::id(),
+            TMP_COUNTER.fetch_add(1, Ordering::Relaxed)
+        ));
         fs::write(&tmp_path, &encoded)?;
         // Windows rename fails if the destination exists, so clear it first.
         if final_path.exists() {

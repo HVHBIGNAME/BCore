@@ -10,6 +10,8 @@ pub mod join;
 pub mod login;
 pub mod nbt;
 pub mod packet;
+pub mod scoreboard;
+pub mod selector;
 pub mod server;
 pub mod shared;
 pub mod status;

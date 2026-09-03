@@ -34,7 +34,7 @@ CB_POSITION = 0x48
 CB_UPDATE_VIEW_POSITION = 0x5e
 CB_SPAWN_POSITION = 0x61
 
-VIEW_DISTANCE = 10
+VIEW_DISTANCE = 20
 
 
 def wv(v):
@@ -249,7 +249,7 @@ def walk_to(x, y, z, label):
 
     new_chunks, gone, sizes, centers = {}, [], [], []
     kicked = None
-    quiet_until = time.time() + 2.0
+    quiet_until = time.time() + 5.0
     while time.time() < quiet_until:
         try:
             pid, data = rp(s)
@@ -315,7 +315,7 @@ if alive:
 # Diagonal step: 9 new chunks.
 if alive:
     alive = walk_to(spawn[0] + 32.0, y, spawn[2] + 32.0, 'diagonal step')
-# Long teleport: the whole view is replaced.
+# Long teleport: the whole view is replaced in bounded batches.
 if alive:
     alive = walk_to(2000.5, y, -3000.5, 'long jump')
 # Movement inside the same chunk must not resend anything.

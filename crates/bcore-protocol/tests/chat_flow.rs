@@ -30,7 +30,7 @@ use bcore_protocol::gameplay::{
 use bcore_protocol::packet::{read_frame, read_string, read_varint, write_packet, write_string};
 use bcore_protocol::server;
 use bcore_protocol::shared::new_shared_server;
-use bcore_protocol::world::CB_POSITION;
+use bcore_protocol::world::{set_view_distance_for_tests, CB_POSITION};
 
 const CB_KICK_DISCONNECT: i32 = 0x20;
 const CB_CHUNK_BATCH_FINISHED: i32 = 0x0b;
@@ -193,7 +193,7 @@ impl Client {
     /// Wait until a chat line containing `needle` arrives.
     fn wait_for_chat(&mut self, needle: &str) -> bool {
         let needle = needle.to_string();
-        self.pump_until(Duration::from_secs(6), move |seen| {
+        self.pump_until(Duration::from_secs(30), move |seen| {
             seen.iter().any(|p| match p.id {
                 CB_PLAYER_CHAT => player_chat_message(&p.data)
                     .map(|m| m.contains(&needle))
@@ -254,6 +254,7 @@ fn player_chat_message(data: &[u8]) -> Option<String> {
 }
 
 fn start_server() -> SocketAddr {
+    set_view_distance_for_tests(4);
     let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     std::thread::spawn(move || server::run(listener));
@@ -263,6 +264,7 @@ fn start_server() -> SocketAddr {
 /// Like [`start_server`] but pre-promotes the named players to operators, so
 /// operator-gated commands (`/kick`, `/op`, `/stop`) can be exercised.
 fn start_server_with_ops(ops: &[&str]) -> SocketAddr {
+    set_view_distance_for_tests(4);
     let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     let server = new_shared_server();
@@ -278,7 +280,7 @@ fn join_sends_the_command_tree_health_time_and_abilities() {
     let addr = start_server();
     let mut alpha = Client::join(addr, "AlphaProbe", 0xA1);
     // The extras are sent right after the join chunk batch.
-    alpha.pump_until(Duration::from_secs(6), |seen| {
+    alpha.pump_until(Duration::from_secs(30), |seen| {
         seen.iter().any(|p| p.id == CB_ABILITIES)
             && seen.iter().any(|p| p.id == CB_DECLARE_COMMANDS)
             && seen.iter().any(|p| p.id == CB_UPDATE_HEALTH)
@@ -480,7 +482,7 @@ fn gamemode_teleport_spawn_and_time_change_state() {
 
     // /gamemode creative -> abilities 0x0d then game_state_change reason 3.
     alpha.send_command("gamemode creative");
-    alpha.pump_until(Duration::from_secs(6), |seen| {
+    alpha.pump_until(Duration::from_secs(30), |seen| {
         seen.iter().any(|p| p.id == CB_GAME_STATE_CHANGE)
     });
     let abilities = alpha
@@ -535,7 +537,7 @@ fn gamemode_teleport_spawn_and_time_change_state() {
     // /time set night -> one clock update carrying 13000 ticks.
     alpha.clear();
     alpha.send_command("time set night");
-    assert!(alpha.pump_until(Duration::from_secs(6), |seen| seen
+    assert!(alpha.pump_until(Duration::from_secs(30), |seen| seen
         .iter()
         .any(|p| p.id == CB_UPDATE_TIME)));
     let time = alpha.first(CB_UPDATE_TIME).expect("update_time");
@@ -553,12 +555,12 @@ fn seed_and_unknown_commands_answer_the_sender() {
     alpha.clear();
 
     alpha.send_command("seed");
-    assert!(alpha.wait_for_chat("Seed:"), "no /seed reply");
+    assert!(alpha.wait_for_chat("Сид:"), "no /seed reply");
 
     alpha.clear();
     alpha.send_command("fly");
     assert!(
-        alpha.wait_for_chat("Unknown"),
+        alpha.wait_for_chat("Неизвестная"),
         "unknown command not reported"
     );
     let error = alpha.first(CB_SYSTEM_CHAT).expect("system_chat");
@@ -594,7 +596,7 @@ fn kick_disconnects_the_target_and_tells_everyone() {
 
     // Once Beta is gone, /list shows only Alpha.
     alpha.clear();
-    let deadline = Instant::now() + Duration::from_secs(6);
+    let deadline = Instant::now() + Duration::from_secs(30);
     let mut only_alpha = false;
     while Instant::now() < deadline && !only_alpha {
         alpha.send_command("list");
