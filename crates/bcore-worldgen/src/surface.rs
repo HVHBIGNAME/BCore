@@ -55,7 +55,7 @@ pub fn surface_block(
     top_y: i32,
     sea_level: i32,
 ) -> BlockState {
-    if y <= MIN_Y {
+    if y <= MIN_Y + 4 {
         return block::BEDROCK;
     }
     let depth = top_y - y;
@@ -63,6 +63,12 @@ pub fn surface_block(
         top_y
     } else {
         height.max(top_y)
+    };
+    // 1.18+ deepslate replaces stone below Y=0.
+    let stone = if y < 0 {
+        block::DEEPSLATE
+    } else {
+        block::STONE
     };
     if is_water_biome(biome) && y >= effective_top && y < sea_level {
         return block::WATER;
@@ -83,7 +89,7 @@ pub fn surface_block(
         } else if depth <= 4 {
             block::DIRT
         } else {
-            block::STONE
+            stone
         }
     } else if is_badlands(biome) {
         if depth < 3 {
@@ -97,7 +103,7 @@ pub fn surface_block(
         } else if depth <= 4 {
             block::DIRT
         } else {
-            block::STONE
+            stone
         }
     } else if is_water_biome(biome) {
         if depth < 2 {
@@ -110,7 +116,7 @@ pub fn surface_block(
     } else if depth <= 4 {
         block::DIRT
     } else {
-        block::STONE
+        stone
     }
 }
 

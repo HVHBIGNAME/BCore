@@ -691,15 +691,17 @@ impl WorldGenerator {
                 let wx = base_x + x as i32;
                 let wz = base_z + z as i32;
                 let mut top = MIN_Y;
+                let mut densities = vec![0.0f64; WORLD_HEIGHT as usize];
                 for y in MIN_Y..=MAX_Y {
-                    if density::evaluate(
+                    let d = density::evaluate(
                         &graph.final_density,
                         wx as f64,
                         y as f64,
                         wz as f64,
                         &graph.ctx,
-                    ) > 0.0
-                    {
+                    );
+                    densities[(y - MIN_Y) as usize] = d;
+                    if d > 0.0 {
                         top = y;
                     }
                 }
@@ -720,7 +722,7 @@ impl WorldGenerator {
                 let biome = biome_from_id(biome_id);
                 let mut states = vec![block::AIR; WORLD_HEIGHT as usize];
                 for y in MIN_Y..=MAX_Y {
-                    let solid = y <= top && top > MIN_Y;
+                    let solid = densities[(y - MIN_Y) as usize] > 0.0;
                     states[(y - MIN_Y) as usize] = if solid {
                         surface::surface_block(biome_id, y, top, top, SEA_LEVEL)
                     } else if y < SEA_LEVEL && biome_is_water(biome_id) {
