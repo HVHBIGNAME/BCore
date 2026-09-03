@@ -101,7 +101,7 @@ impl SimplexNoise {
         let i = (x + s).floor() as i32;
         let j = (y + s).floor() as i32;
         let k = (z + s).floor() as i32;
-        let t = (i + j + k) as f64 * G3;
+        let t = i.wrapping_add(j).wrapping_add(k) as f64 * G3;
         let x0 = x - (i as f64 - t);
         let y0 = y - (j as f64 - t);
         let z0 = z - (k as f64 - t);
@@ -206,23 +206,20 @@ impl NoiseRegistry {
             return 0.;
         };
         let mut v = 0.;
-        let mut norm = 0.;
-        for (n, a) in d.amplitudes.iter().enumerate() {
+        let n = d.amplitudes.len();
+        for (i, a) in d.amplitudes.iter().enumerate() {
             if *a != 0. {
-                let scale = 2f64.powi(d.first_octave + n as i32);
-                v += cached_simplex(seed.wrapping_add(n as i64)).get_value(
-                    x / scale,
-                    y / scale,
-                    z / scale,
-                ) * a;
-                norm += a.abs();
+                let scale = 2f64.powi(d.first_octave + i as i32);
+                let weight = 2f64.powi((n - 1 - i) as i32) / (2f64.powi(n as i32) - 1.0);
+                v += cached_simplex(seed.wrapping_add(i as i64)).get_value(
+                    x * scale,
+                    y * scale,
+                    z * scale,
+                ) * a
+                    * weight;
             }
         }
-        if norm == 0. {
-            0.
-        } else {
-            v / norm
-        }
+        v
     }
 }
 fn extract_num(s: &str, k: &str) -> Option<f64> {
