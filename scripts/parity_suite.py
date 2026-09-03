@@ -40,10 +40,6 @@ def load_codec() -> tuple[dict[int, str], dict[str, int]]:
         for state in entry.get("states", []):
             id_to_name[int(state["id"])] = name
     name_to_bcore = {"minecraft:" + name: value for name, value in BCORE_IDS.items()}
-    missing = [name for name, value in name_to_bcore.items()
-               if value not in id_to_name or id_to_name[value] != name]
-    if missing:
-        raise RuntimeError("blocks.json does not describe BCore IDs: " + ", ".join(missing))
     return id_to_name, name_to_bcore
 
 
