@@ -178,6 +178,62 @@ fn next_range(state: &mut JavaRandom, min: i32, max: i32) -> i32 {
     min + state.next_int((max - min + 1) as usize) as i32
 }
 
+/// Place the overworld stone blobs and ore veins for one chunk.
+///
+/// Each configured feature gets its own vanilla `FeatureUtils.simpleRandom`
+/// stream.  The callback owns the world lookup/replacement policy: callers
+/// should only replace stone or deepslate, as `OreFeature` does not replace
+/// air, water, or other blocks.
+///
+/// The y ranges are the inclusive bounds of the corresponding vanilla
+/// height-ranges.  Vanilla's trapezoid distribution is represented here by a
+/// uniform draw because this callback API has no distribution object; x/z are
+/// always uniformly selected from the 16-block chunk footprint.
+pub fn place_ore_veins(
+    seed: i64,
+    chunk_x: i32,
+    chunk_z: i32,
+    world_write: &mut dyn FnMut(i32, i32, i32, BlockState),
+) {
+    // (salt, kind, size, minimum y, maximum y).  Keep this order aligned with
+    // plains.features[6] and do not share RNG state between configured features.
+    const FEATURES: &[(i64, OreKind, usize, i32, i32)] = &[
+        (3, OreKind::Granite, 64, 0, 60),
+        (4, OreKind::Granite, 64, 0, 60),
+        (5, OreKind::Diorite, 64, 0, 60),
+        (6, OreKind::Diorite, 64, 0, 60),
+        (7, OreKind::Andesite, 64, 0, 60),
+        (8, OreKind::Andesite, 64, 0, 60),
+        (9, OreKind::Tuff, 64, 0, 60),
+        (10, OreKind::Coal, 17, 0, 128),
+        (11, OreKind::Coal, 17, 0, 128),
+        (12, OreKind::Iron, 9, 0, 64),
+        (13, OreKind::Iron, 9, 0, 64),
+        (14, OreKind::Iron, 4, 0, 64),
+        (15, OreKind::Gold, 9, -64, 32),
+        (16, OreKind::Gold, 9, -64, 32),
+        (17, OreKind::Redstone, 8, -64, 16),
+        (18, OreKind::Redstone, 8, -64, 16),
+        (19, OreKind::Diamond, 4, -64, 16),
+        (20, OreKind::Diamond, 8, -64, 16),
+        (21, OreKind::Diamond, 12, -64, 16),
+        (22, OreKind::Diamond, 8, -64, 16),
+        (23, OreKind::Lapis, 7, -64, 32),
+        (24, OreKind::Lapis, 7, -64, 32),
+        (25, OreKind::Copper, 10, -16, 48),
+    ];
+
+    let base_x = chunk_x.wrapping_mul(16);
+    let base_z = chunk_z.wrapping_mul(16);
+    for &(salt, kind, size, min_y, max_y) in FEATURES {
+        let mut rng = JavaRandom::new(feature_seed(seed, chunk_x, chunk_z, salt));
+        let x = base_x.wrapping_add(next_range(&mut rng, 0, 15));
+        let y = next_range(&mut rng, min_y, max_y);
+        let z = base_z.wrapping_add(next_range(&mut rng, 0, 15));
+        place_ore(&mut rng, world_write, x, y, z, kind, size);
+    }
+}
+
 /// Vanilla FeatureUtils.simpleRandom seed for a placed feature.
 #[inline]
 pub fn feature_seed(world_seed: i64, chunk_x: i32, chunk_z: i32, salt: i64) -> i64 {
@@ -240,6 +296,22 @@ mod tests {
     #[test]
     fn feature_seed_uses_vanilla_chunk_multipliers_and_salt() {
         assert_eq!(feature_seed(1234, -34, 3, 3), -11224992412348);
+    }
+
+    #[test]
+    fn ore_veins_are_deterministic_and_stay_in_chunk_and_ranges() {
+        let collect = || {
+            let mut out = Vec::new();
+            place_ore_veins(1234, -34, 3, &mut |x, y, z, state| {
+                out.push((x, y, z, state));
+            });
+            out
+        };
+        let a = collect();
+        let b = collect();
+        assert_eq!(a, b);
+        assert!(!a.is_empty());
+        assert!(a.iter().all(|(_, y, _, _)| (-64..=128).contains(y)));
     }
 
     #[test]

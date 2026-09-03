@@ -206,20 +206,24 @@ impl NoiseRegistry {
             return 0.;
         };
         let mut v = 0.;
-        let n = d.amplitudes.len();
+        // NormalNoise sums the configured octave amplitudes directly and
+        // normalizes by their absolute total.  Geometric weights are not part
+        // of vanilla's noise sampler and distort cave thresholds.
+        let amplitude_sum: f64 = d.amplitudes.iter().map(|a| a.abs()).sum();
+        if amplitude_sum == 0.0 {
+            return 0.0;
+        }
         for (i, a) in d.amplitudes.iter().enumerate() {
             if *a != 0. {
                 let scale = 2f64.powi(d.first_octave + i as i32);
-                let weight = 2f64.powi((n - 1 - i) as i32) / (2f64.powi(n as i32) - 1.0);
                 v += cached_simplex(seed.wrapping_add(i as i64)).get_value(
                     x * scale,
                     y * scale,
                     z * scale,
-                ) * a
-                    * weight;
+                ) * a;
             }
         }
-        v
+        v / amplitude_sum
     }
 }
 fn extract_num(s: &str, k: &str) -> Option<f64> {

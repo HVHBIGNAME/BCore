@@ -146,7 +146,9 @@ impl DensityFunction {
                 when_out,
             } => {
                 let v = input.evaluate(x, y, z, ctx);
-                if v >= *min && v <= *max {
+                // `range_choice` uses an inclusive lower bound and an
+                // exclusive upper bound (`max_exclusive` in the datapack).
+                if v >= *min && v < *max {
                     when_in.evaluate(x, y, z, ctx)
                 } else {
                     when_out.evaluate(x, y, z, ctx)
@@ -675,6 +677,18 @@ mod tests {
         .unwrap();
         assert_eq!(f.evaluate(0., 0., 0., &Default::default()), 11.);
     }
+    #[test]
+    fn range_choice_upper_bound_is_exclusive() {
+        let f = DensityFunction::Range {
+            input: Box::new(DensityFunction::Constant(1.0)),
+            min: 0.0,
+            max: 1.0,
+            when_in: Box::new(DensityFunction::Constant(7.0)),
+            when_out: Box::new(DensityFunction::Constant(-3.0)),
+        };
+        assert_eq!(f.evaluate(0., 0., 0., &Default::default()), -3.0);
+    }
+
     #[test]
     fn gradient() {
         let f = DensityFunction::YGradient {
