@@ -47,6 +47,15 @@ impl JavaRandom {
             }
         }
     }
+    /// Java `Random.nextLong` — combines two 32-bit draws, as vanilla's
+    /// `WorldgenRandom` does for `fork()`.
+    pub fn next_long(&mut self) -> i64 {
+        ((self.next(32) as u64) << 32 | self.next(32) as u64) as i64
+    }
+    /// Vanilla `RandomSource.fork()`: a fresh random seeded from this one.
+    pub fn fork(&mut self) -> Self {
+        Self::new(self.next_long())
+    }
 }
 
 /// The exact 3D `net.minecraft.world.level.levelgen.synth.SimplexNoise`.
