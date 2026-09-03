@@ -29,7 +29,10 @@
 
 use bcore_core::ChunkPos;
 
+pub mod biome;
+pub mod density;
 pub mod noise;
+pub mod surface;
 
 pub use noise::{fbm2, fbm3, hash_2d, splitmix64, value_noise_2d, value_noise_3d};
 
