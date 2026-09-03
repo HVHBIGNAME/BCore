@@ -7,3 +7,4 @@ description = "BCore deterministic, seed-based world generation"
 
 [dependencies]
 bcore-core = { path = "../bcore-core" }
+rayon = "1.12.0"

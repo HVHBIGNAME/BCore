@@ -28,6 +28,7 @@
 //! chunk borders never cut a canopy in half.
 
 use bcore_core::ChunkPos;
+use rayon::prelude::*;
 use std::fs;
 use std::path::PathBuf;
 
@@ -665,11 +666,28 @@ impl WorldGenerator {
         let Some(graph) = VanillaGraph::load(self.seed) else {
             return self.generate_chunk(pos);
         };
-        let mut chunk = GeneratedChunk::new(pos);
+
+        // Chunk-pyramid scheduler. Dependency radii are deliberately explicit:
+        // future structure/light implementations can request these neighborhoods
+        // without changing the deterministic terrain stages below.
+        let pyramid = ChunkPyramid::VANILLA;
+        let _ready_dependency_radii = pyramid.stages();
+        // structure_starts (23x23), biomes (7x7), noise (5x5), surface (3x3),
+        // caves/features/light (chunk-local for this implementation) are no-op
+        // scheduling barriers until their vanilla data is implemented.
+
         let base_x = pos.x * CHUNK_SIZE as i32;
         let base_z = pos.z * CHUNK_SIZE as i32;
-        for z in 0..CHUNK_SIZE {
-            for x in 0..CHUNK_SIZE {
+        let column_count = CHUNK_SIZE * CHUNK_SIZE;
+
+        // The biome result is stored in the chunk-local column cache together with
+        // terrain. Rayon may execute columns in any order, but indexed collection
+        // restores a fixed (z * 16 + x) layout and never shares mutable state.
+        let columns: Vec<VanillaColumn> = (0..column_count)
+            .into_par_iter()
+            .map(|column_index| {
+                let x = column_index % CHUNK_SIZE;
+                let z = column_index / CHUNK_SIZE;
                 let wx = base_x + x as i32;
                 let wz = base_z + z as i32;
                 let mut top = MIN_Y;
@@ -699,19 +717,28 @@ impl WorldGenerator {
                     climate(&graph.weirdness),
                     climate(&graph.depth),
                 );
-                chunk.heights[z * CHUNK_SIZE + x] = top;
-                chunk.biomes[z * CHUNK_SIZE + x] = biome_from_id(biome_id);
+                let biome = biome_from_id(biome_id);
+                let mut states = vec![block::AIR; WORLD_HEIGHT as usize];
                 for y in MIN_Y..=MAX_Y {
                     let solid = y <= top && top > MIN_Y;
-                    let state = if solid {
+                    states[(y - MIN_Y) as usize] = if solid {
                         surface::surface_block(biome_id, y, top, top, SEA_LEVEL)
                     } else if y < SEA_LEVEL && biome_is_water(biome_id) {
                         block::WATER
                     } else {
                         block::AIR
                     };
-                    chunk.set(x, y, z, state);
                 }
+                VanillaColumn { top, biome, states }
+            })
+            .collect();
+
+        let mut chunk = GeneratedChunk::new(pos);
+        for (column_index, column) in columns.into_iter().enumerate() {
+            chunk.heights[column_index] = column.top;
+            chunk.biomes[column_index] = column.biome;
+            for (y_offset, state) in column.states.into_iter().enumerate() {
+                chunk.states[y_offset * column_count + column_index] = state;
             }
         }
         chunk
@@ -1022,6 +1049,53 @@ fn biome_is_water(id: biome::BiomeId) -> bool {
         id,
         biome::ids::OCEAN | biome::ids::FROZEN_OCEAN | biome::ids::RIVER
     )
+}
+
+/// Radius (in chunks) of the dependency neighborhood for each generation stage.
+///
+/// The current data-driven generator has no structure or light placement yet, but
+/// keeping this schedule explicit makes those stages composable without changing
+/// the order-independent terrain result.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct ChunkPyramid {
+    structure_starts: u8,
+    biomes: u8,
+    noise: u8,
+    surface: u8,
+    caves: u8,
+    features: u8,
+    light: u8,
+}
+
+impl ChunkPyramid {
+    const VANILLA: Self = Self {
+        structure_starts: 11, // 23 x 23
+        biomes: 3,            // 7 x 7
+        noise: 2,             // 5 x 5
+        surface: 1,           // 3 x 3
+        caves: 0,
+        features: 0,
+        light: 0,
+    };
+
+    #[inline]
+    fn stages(self) -> [u8; 7] {
+        [
+            self.structure_starts,
+            self.biomes,
+            self.noise,
+            self.surface,
+            self.caves,
+            self.features,
+            self.light,
+        ]
+    }
+}
+
+struct VanillaColumn {
+    top: i32,
+    biome: Biome,
+    states: Vec<u32>,
 }
 
 struct VanillaGraph {
