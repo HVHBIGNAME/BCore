@@ -1,301 +1,294 @@
-//! Vanilla-compatible Minecraft simplex noise and small legacy helpers.
-use std::fs;
-use std::path::Path;
+//! Deterministic value noise used by the world generator.
+//!
+//! Everything here is a pure function of `(seed, coordinates)`:
+//!
+//! * [`splitmix64`] — the mixing function that turns a lattice coordinate into
+//!   pseudo-random bits.
+//! * [`value_noise_2d`] / [`value_noise_3d`] — smoothstep-interpolated value
+//!   noise on the integer lattice, in `-1.0..=1.0`.
+//! * [`fbm2`] / [`fbm3`] — fractal (multi-octave) sums, normalised so the result
+//!   stays in `-1.0..=1.0` regardless of octave count.
+//!
+//! No floating-point state, no tables, no `rand`, no time: identical inputs give
+//! bit-identical outputs on every run and every platform that uses IEEE-754
+//! doubles.
 
-const GRAD3: [[f64; 3]; 12] = [
-    [1., 1., 0.],
-    [-1., 1., 0.],
-    [1., -1., 0.],
-    [-1., -1., 0.],
-    [1., 0., 1.],
-    [-1., 0., 1.],
-    [1., 0., -1.],
-    [-1., 0., -1.],
-    [0., 1., 1.],
-    [0., -1., 1.],
-    [0., 1., -1.],
-    [0., -1., -1.],
-];
-const F3: f64 = 1.0 / 3.0;
-const G3: f64 = 1.0 / 6.0;
-const TRIG_MULTIPLIER: f64 = std::f64::consts::PI;
-
-/// Java's 48-bit Random, required because Minecraft seeds noise with Java Random.
-#[derive(Clone)]
-struct JavaRandom(u64);
-impl JavaRandom {
-    fn new(seed: i64) -> Self {
-        Self((((seed as u64) ^ 0x5deece66d) & ((1u64 << 48) - 1)))
-    }
-    fn next(&mut self, bits: u32) -> u32 {
-        self.0 = (self.0.wrapping_mul(0x5deece66d).wrapping_add(0xb)) & ((1u64 << 48) - 1);
-        (self.0 >> (48 - bits)) as u32
-    }
-    fn next_double(&mut self) -> f64 {
-        (((self.next(26) as u64) << 27 | self.next(27) as u64) as f64) / 9007199254740992.0
-    }
-    fn next_int(&mut self, bound: usize) -> usize {
-        let b = bound as u32;
-        if b.is_power_of_two() {
-            return ((b as u64 * self.next(31) as u64) >> 31) as usize;
-        }
-        loop {
-            let r = self.next(31);
-            let m = r % b;
-            if r.wrapping_sub(m).wrapping_add(b - 1) < (1u32 << 31) {
-                return m as usize;
-            }
-        }
-    }
+/// SplitMix64 finaliser — a strong 64-bit avalanche mix.
+#[inline]
+pub fn splitmix64(mut value: u64) -> u64 {
+    value = value.wrapping_add(0x9e37_79b9_7f4a_7c15);
+    let mut result = value;
+    result = (result ^ (result >> 30)).wrapping_mul(0xbf58_476d_1ce4_e5b9);
+    result = (result ^ (result >> 27)).wrapping_mul(0x94d0_49bb_1331_11eb);
+    result ^ (result >> 31)
 }
 
-/// The exact 3D `net.minecraft.world.level.levelgen.synth.SimplexNoise`.
-#[derive(Clone)]
-pub struct SimplexNoise {
-    pub xo: f64,
-    pub yo: f64,
-    pub zo: f64,
-    pub p: [u8; 256],
-}
-impl SimplexNoise {
-    pub fn new(seed: i64) -> Self {
-        let mut r = JavaRandom::new(seed);
-        let xo = r.next_double() * 256.;
-        let yo = r.next_double() * 256.;
-        let zo = r.next_double() * 256.;
-        let mut p = [0u8; 256];
-        for (i, v) in p.iter_mut().enumerate() {
-            *v = i as u8;
-        }
-        for i in 0..256 {
-            let j = i + r.next_int(256 - i);
-            p.swap(i, j);
-        }
-        Self { xo, yo, zo, p }
-    }
-    #[inline]
-    fn grad(&self, x: i32, y: i32, z: i32) -> [f64; 3] {
-        let h = self.p[((self.p[((self.p[(x & 255) as usize] as i32 + (y & 255)) & 255) as usize]
-            as i32
-            + (z & 255))
-            & 255) as usize] as usize
-            % 12;
-        GRAD3[h]
-    }
-    #[inline]
-    fn corner(&self, x: f64, y: f64, z: f64, ix: i32, iy: i32, iz: i32) -> f64 {
-        let q = 0.6 - x * x - y * y - z * z;
-        if q < 0. {
-            0.
-        } else {
-            let q2 = q * q;
-            let g = self.grad(ix, iy, iz);
-            q2 * q2 * (g[0] * x + g[1] * y + g[2] * z)
-        }
-    }
-    pub fn get_value(&self, x: f64, y: f64, z: f64) -> f64 {
-        let x = x + self.xo;
-        let y = y + self.yo;
-        let z = z + self.zo;
-        let s = (x + y + z) * F3;
-        let i = (x + s).floor() as i32;
-        let j = (y + s).floor() as i32;
-        let k = (z + s).floor() as i32;
-        let t = (i + j + k) as f64 * G3;
-        let x0 = x - (i as f64 - t);
-        let y0 = y - (j as f64 - t);
-        let z0 = z - (k as f64 - t);
-        let (i1, j1, k1, i2, j2, k2) = if x0 >= y0 {
-            if y0 >= z0 {
-                (1, 0, 0, 1, 1, 0)
-            } else if x0 >= z0 {
-                (1, 0, 0, 1, 0, 1)
-            } else {
-                (0, 0, 1, 1, 0, 1)
-            }
-        } else if y0 < z0 {
-            (0, 0, 1, 0, 1, 1)
-        } else if x0 < z0 {
-            (0, 1, 0, 0, 1, 1)
-        } else {
-            (0, 1, 0, 1, 1, 0)
-        };
-        let n0 = self.corner(x0, y0, z0, i, j, k);
-        let n1 = self.corner(
-            x0 - i1 as f64 + G3,
-            y0 - j1 as f64 + G3,
-            z0 - k1 as f64 + G3,
-            i + i1,
-            j + j1,
-            k + k1,
-        );
-        let n2 = self.corner(
-            x0 - i2 as f64 + 2. * G3,
-            y0 - j2 as f64 + 2. * G3,
-            z0 - k2 as f64 + 2. * G3,
-            i + i2,
-            j + j2,
-            k + k2,
-        );
-        let n3 = self.corner(
-            x0 - 1. + 3. * G3,
-            y0 - 1. + 3. * G3,
-            z0 - 1. + 3. * G3,
-            i + 1,
-            j + 1,
-            k + 1,
-        );
-        32. * (n0 + n1 + n2 + n3)
-    }
+/// A lattice value in `-1.0..=1.0` for the 2D integer point `(x, z)`.
+#[inline]
+fn lattice_2d(seed: i64, x: i64, z: i64) -> f64 {
+    let mixed = (seed as u64)
+        ^ (x as u64).wrapping_mul(0x9e37_79b9_85eb_ca87)
+        ^ (z as u64).wrapping_mul(0xc2b2_ae3d_27d4_eb4f);
+    to_unit(splitmix64(mixed))
 }
 
-/// Per-thread cache of `SimplexNoise` instances keyed by seed.
+/// A lattice value in `-1.0..=1.0` for the 3D integer point `(x, y, z)`.
+#[inline]
+fn lattice_3d(seed: i64, x: i64, y: i64, z: i64) -> f64 {
+    let mixed = (seed as u64)
+        ^ (x as u64).wrapping_mul(0x9e37_79b9_85eb_ca87)
+        ^ (y as u64).wrapping_mul(0xff51_afd7_ed55_8ccd)
+        ^ (z as u64).wrapping_mul(0xc2b2_ae3d_27d4_eb4f);
+    to_unit(splitmix64(mixed))
+}
+
+/// Map 64 random bits onto `-1.0..=1.0`.
+#[inline]
+fn to_unit(bits: u64) -> f64 {
+    // Use the top 53 bits so the value is exactly representable as an f64.
+    let unit = (bits >> 11) as f64 / (1u64 << 53) as f64; // 0.0..1.0
+    unit * 2.0 - 1.0
+}
+
+/// A hash of an integer 2D position in `0.0..1.0`, for probabilistic placement.
 ///
-/// `SimplexNoise::new` shuffles a 256-entry permutation table, which is far too
-/// expensive to repeat for every sampled block. Worldgen reuses a handful of
-/// seeds per octave, so caching collapses that cost to a hash lookup + a 256-byte
-/// clone.
-thread_local! {
-    static NOISE_CACHE: std::cell::RefCell<std::collections::HashMap<i64, SimplexNoise>> =
-        std::cell::RefCell::new(std::collections::HashMap::new());
-}
-
-fn cached_simplex(seed: i64) -> SimplexNoise {
-    NOISE_CACHE.with(|c| {
-        let mut m = c.borrow_mut();
-        m.entry(seed)
-            .or_insert_with(|| SimplexNoise::new(seed))
-            .clone()
-    })
-}
-
-#[derive(Clone, Debug)]
-pub struct NoiseDefinition {
-    pub first_octave: i32,
-    pub amplitudes: Vec<f64>,
-}
-#[derive(Clone, Default)]
-pub struct NoiseRegistry {
-    pub defs: std::collections::HashMap<String, NoiseDefinition>,
-}
-impl NoiseRegistry {
-    pub fn load_dir<P: AsRef<Path>>(path: P) -> std::io::Result<Self> {
-        let mut out = Self::default();
-        for e in fs::read_dir(path)? {
-            let e = e?;
-            if e.path().extension().and_then(|x| x.to_str()) != Some("json") {
-                continue;
-            }
-            let s = fs::read_to_string(e.path())?;
-            let first = extract_num(&s, "firstOctave").unwrap_or(0.) as i32;
-            let amplitudes = extract_array(&s, "amplitudes");
-            if let Some(n) = e.path().file_stem().and_then(|x| x.to_str()) {
-                out.defs.insert(
-                    n.to_string(),
-                    NoiseDefinition {
-                        first_octave: first,
-                        amplitudes,
-                    },
-                );
-            }
-        }
-        Ok(out)
-    }
-    pub fn sample(&self, name: &str, seed: i64, x: f64, y: f64, z: f64) -> f64 {
-        let Some(d) = self.defs.get(name.rsplit(':').next().unwrap_or(name)) else {
-            return 0.;
-        };
-        let mut v = 0.;
-        let mut norm = 0.;
-        for (n, a) in d.amplitudes.iter().enumerate() {
-            if *a != 0. {
-                let scale = 2f64.powi(d.first_octave + n as i32);
-                v += cached_simplex(seed.wrapping_add(n as i64)).get_value(
-                    x / scale,
-                    y / scale,
-                    z / scale,
-                ) * a;
-                norm += a.abs();
-            }
-        }
-        if norm == 0. {
-            0.
-        } else {
-            v / norm
-        }
-    }
-}
-fn extract_num(s: &str, k: &str) -> Option<f64> {
-    let p = s.find(&format!("\"{k}\""))?;
-    s[p..]
-        .split(':')
-        .nth(1)?
-        .split(|c: char| !c.is_ascii_digit() && c != '.' && c != '-')
-        .next()?
-        .parse()
-        .ok()
-}
-fn extract_array(s: &str, k: &str) -> Vec<f64> {
-    let Some(p) = s.find(&format!("\"{k}\"")) else {
-        return vec![];
-    };
-    let Some(a) = s[p..].find('[') else {
-        return vec![];
-    };
-    let Some(b) = s[p + a..].find(']') else {
-        return vec![];
-    };
-    s[p + a + 1..p + a + b]
-        .split(',')
-        .filter_map(|x| x.trim().parse().ok())
-        .collect()
-}
-
-pub fn splitmix64(mut v: u64) -> u64 {
-    v = v.wrapping_add(0x9e3779b97f4a7c15);
-    let mut r = v;
-    r = (r ^ (r >> 30)).wrapping_mul(0xbf58476d1ce4e5b9);
-    r = (r ^ (r >> 27)).wrapping_mul(0x94d049bb133111eb);
-    r ^ (r >> 31)
-}
+/// Unlike [`value_noise_2d`] this is *not* interpolated: neighbouring positions
+/// are uncorrelated, which is what feature scattering (trees, plants) wants.
+#[inline]
 pub fn hash_2d(seed: i64, x: i64, z: i64) -> f64 {
-    ((splitmix64(splitmix64(
-        seed as u64
-            ^ (x as u64).wrapping_mul(0x9e3779b985ebca87)
-            ^ (z as u64).wrapping_mul(0xc2b2ae3d27d4eb4f),
-    )) >> 11) as f64)
-        / 9007199254740992.
+    let mixed = (seed as u64)
+        ^ (x as u64).wrapping_mul(0x9e37_79b9_85eb_ca87)
+        ^ (z as u64).wrapping_mul(0xc2b2_ae3d_27d4_eb4f);
+    let bits = splitmix64(splitmix64(mixed));
+    (bits >> 11) as f64 / (1u64 << 53) as f64
 }
+
+/// Smoothstep, so interpolated noise has continuous first derivatives.
+#[inline]
+fn smooth(t: f64) -> f64 {
+    t * t * (3.0 - 2.0 * t)
+}
+
+/// Smoothstep-interpolated 2D value noise in `-1.0..=1.0`.
 pub fn value_noise_2d(seed: i64, x: f64, z: f64) -> f64 {
-    cached_simplex(seed).get_value(x, 0., z)
+    let x0 = x.floor();
+    let z0 = z.floor();
+    let xi = x0 as i64;
+    let zi = z0 as i64;
+    let tx = smooth(x - x0);
+    let tz = smooth(z - z0);
+
+    let a = lattice_2d(seed, xi, zi);
+    let b = lattice_2d(seed, xi + 1, zi);
+    let c = lattice_2d(seed, xi, zi + 1);
+    let d = lattice_2d(seed, xi + 1, zi + 1);
+
+    let ab = a + (b - a) * tx;
+    let cd = c + (d - c) * tx;
+    ab + (cd - ab) * tz
 }
+
+/// Smoothstep-interpolated 3D value noise in `-1.0..=1.0`.
 pub fn value_noise_3d(seed: i64, x: f64, y: f64, z: f64) -> f64 {
-    cached_simplex(seed).get_value(x, y, z)
+    let x0 = x.floor();
+    let y0 = y.floor();
+    let z0 = z.floor();
+    let xi = x0 as i64;
+    let yi = y0 as i64;
+    let zi = z0 as i64;
+    let tx = smooth(x - x0);
+    let ty = smooth(y - y0);
+    let tz = smooth(z - z0);
+
+    let c000 = lattice_3d(seed, xi, yi, zi);
+    let c100 = lattice_3d(seed, xi + 1, yi, zi);
+    let c010 = lattice_3d(seed, xi, yi + 1, zi);
+    let c110 = lattice_3d(seed, xi + 1, yi + 1, zi);
+    let c001 = lattice_3d(seed, xi, yi, zi + 1);
+    let c101 = lattice_3d(seed, xi + 1, yi, zi + 1);
+    let c011 = lattice_3d(seed, xi, yi + 1, zi + 1);
+    let c111 = lattice_3d(seed, xi + 1, yi + 1, zi + 1);
+
+    let x00 = c000 + (c100 - c000) * tx;
+    let x10 = c010 + (c110 - c010) * tx;
+    let x01 = c001 + (c101 - c001) * tx;
+    let x11 = c011 + (c111 - c011) * tx;
+
+    let y0v = x00 + (x10 - x00) * ty;
+    let y1v = x01 + (x11 - x01) * ty;
+
+    y0v + (y1v - y0v) * tz
 }
+
+/// Fractal 2D noise: `octaves` octaves at halving wavelength, in `-1.0..=1.0`.
+///
+/// `scale` is the wavelength of the first octave in blocks; `persistence` is the
+/// amplitude ratio between successive octaves.
 pub fn fbm2(seed: i64, x: f64, z: f64, scale: f64, octaves: u32, persistence: f64) -> f64 {
-    fbm3(seed, x, 0., z, scale, octaves, persistence)
+    let mut total = 0.0;
+    let mut amplitude = 1.0;
+    let mut normaliser = 0.0;
+    let mut frequency = 1.0 / scale;
+    for octave in 0..octaves {
+        // Salting the seed per octave keeps the octaves independent.
+        let octave_seed =
+            splitmix64((seed as u64) ^ (octave as u64 + 1).wrapping_mul(0x2545_f491_4f6c_dd1d))
+                as i64;
+        total += value_noise_2d(octave_seed, x * frequency, z * frequency) * amplitude;
+        normaliser += amplitude;
+        amplitude *= persistence;
+        frequency *= 2.0;
+    }
+    if normaliser == 0.0 {
+        return 0.0;
+    }
+    total / normaliser
 }
+
+/// Fractal 3D noise: `octaves` octaves at halving wavelength, in `-1.0..=1.0`.
 pub fn fbm3(seed: i64, x: f64, y: f64, z: f64, scale: f64, octaves: u32, persistence: f64) -> f64 {
-    let mut t = 0.;
-    let mut a = 1.;
-    let mut n = 0.;
-    for i in 0..octaves {
-        t += value_noise_3d(seed + i as i64, x / scale, y / scale, z / scale) * a;
-        n += a;
-        a *= persistence;
+    let mut total = 0.0;
+    let mut amplitude = 1.0;
+    let mut normaliser = 0.0;
+    let mut frequency = 1.0 / scale;
+    for octave in 0..octaves {
+        let octave_seed =
+            splitmix64((seed as u64) ^ (octave as u64 + 1).wrapping_mul(0x2545_f491_4f6c_dd1d))
+                as i64;
+        total +=
+            value_noise_3d(octave_seed, x * frequency, y * frequency, z * frequency) * amplitude;
+        normaliser += amplitude;
+        amplitude *= persistence;
+        frequency *= 2.0;
     }
-    if n == 0. {
-        0.
-    } else {
-        t / n
+    if normaliser == 0.0 {
+        return 0.0;
     }
+    total / normaliser
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
-    fn simplex_deterministic() {
-        let a = SimplexNoise::new(1);
-        assert_eq!(a.get_value(1.2, 3.4, 5.6), a.get_value(1.2, 3.4, 5.6));
+    fn splitmix_is_stable_and_avalanches() {
+        // Regression pins: these exact values must never drift, or every saved
+        // chunk in the world directory would decode to different terrain.
+        assert_eq!(splitmix64(0), 0xe220_a839_7b1d_cdaf);
+        assert_eq!(splitmix64(1), 0x910a_2dec_89025cc1);
+        // One input bit flips roughly half the output bits.
+        let flipped = (splitmix64(12345) ^ splitmix64(12345 ^ 1)).count_ones();
+        assert!(
+            (16..=48).contains(&flipped),
+            "weak avalanche: {flipped} bits"
+        );
+    }
+
+    #[test]
+    fn value_noise_is_bounded_and_deterministic() {
+        for i in 0..2000 {
+            let x = i as f64 * 0.37;
+            let z = i as f64 * -0.11;
+            let n = value_noise_2d(42, x, z);
+            assert!((-1.0..=1.0).contains(&n), "2d noise out of range: {n}");
+            assert_eq!(n, value_noise_2d(42, x, z), "2d noise not deterministic");
+
+            let m = value_noise_3d(42, x, z * 0.5, z);
+            assert!((-1.0..=1.0).contains(&m), "3d noise out of range: {m}");
+            assert_eq!(m, value_noise_3d(42, x, z * 0.5, z));
+        }
+    }
+
+    #[test]
+    fn value_noise_hits_lattice_values_exactly() {
+        // At integer coordinates the interpolation weights are 0, so the noise
+        // must equal the raw lattice value.
+        for x in -5..5i64 {
+            for z in -5..5i64 {
+                let expect = lattice_2d(7, x, z);
+                assert_eq!(value_noise_2d(7, x as f64, z as f64), expect);
+            }
+        }
+    }
+
+    #[test]
+    fn value_noise_is_continuous() {
+        // Neighbouring samples must not jump: max slope over a 0.01 step is small.
+        let mut max_jump = 0.0f64;
+        let mut previous = value_noise_2d(9, 0.0, 3.3);
+        for i in 1..1000 {
+            let n = value_noise_2d(9, i as f64 * 0.01, 3.3);
+            max_jump = max_jump.max((n - previous).abs());
+            previous = n;
+        }
+        assert!(
+            max_jump < 0.1,
+            "noise is discontinuous, max jump {max_jump}"
+        );
+    }
+
+    #[test]
+    fn different_seeds_decorrelate() {
+        let a: Vec<f64> = (0..200)
+            .map(|i| value_noise_2d(1, i as f64 * 0.3, 0.7))
+            .collect();
+        let b: Vec<f64> = (0..200)
+            .map(|i| value_noise_2d(2, i as f64 * 0.3, 0.7))
+            .collect();
+        assert_ne!(a, b);
+        let same = a.iter().zip(&b).filter(|(x, y)| x == y).count();
+        assert!(same < 5, "seeds are correlated: {same}/200 identical");
+    }
+
+    #[test]
+    fn fbm_stays_in_range_and_is_deterministic() {
+        for i in 0..500 {
+            let x = i as f64 * 1.7;
+            let z = i as f64 * -2.3;
+            let n = fbm2(5, x, z, 64.0, 4, 0.5);
+            assert!((-1.0..=1.0).contains(&n), "fbm2 out of range: {n}");
+            assert_eq!(n, fbm2(5, x, z, 64.0, 4, 0.5));
+
+            let m = fbm3(5, x, 30.0, z, 64.0, 3, 0.5);
+            assert!((-1.0..=1.0).contains(&m), "fbm3 out of range: {m}");
+            assert_eq!(m, fbm3(5, x, 30.0, z, 64.0, 3, 0.5));
+        }
+    }
+
+    #[test]
+    fn fbm_adds_detail_over_a_single_octave() {
+        // More octaves must change the field (detail is actually being added).
+        let one = fbm2(11, 100.0, 200.0, 64.0, 1, 0.5);
+        let four = fbm2(11, 100.0, 200.0, 64.0, 4, 0.5);
+        assert_ne!(one, four);
+        // Zero octaves is defined as flat.
+        assert_eq!(fbm2(11, 100.0, 200.0, 64.0, 0, 0.5), 0.0);
+    }
+
+    #[test]
+    fn hash_is_uniform_ish_and_uncorrelated() {
+        let mut buckets = [0usize; 10];
+        for x in 0..100i64 {
+            for z in 0..100i64 {
+                let h = hash_2d(3, x, z);
+                assert!((0.0..1.0).contains(&h), "hash out of range: {h}");
+                buckets[(h * 10.0) as usize % 10] += 1;
+            }
+        }
+        // 10000 samples over 10 buckets: expect ~1000 each, allow generous slack.
+        for (i, &count) in buckets.iter().enumerate() {
+            assert!(
+                (700..=1300).contains(&count),
+                "bucket {i} has {count} samples, distribution is skewed"
+            );
+        }
+    }
+
+    #[test]
+    fn hash_is_deterministic() {
+        assert_eq!(hash_2d(1, 5, -9), hash_2d(1, 5, -9));
+        assert_ne!(hash_2d(1, 5, -9), hash_2d(2, 5, -9));
+        assert_ne!(hash_2d(1, 5, -9), hash_2d(1, -9, 5));
     }
 }

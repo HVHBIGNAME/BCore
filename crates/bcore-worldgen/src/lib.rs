@@ -35,6 +35,7 @@ pub mod biome;
 pub mod density;
 pub mod features;
 pub mod noise;
+pub mod simplex;
 pub mod surface;
 
 pub use noise::{fbm2, fbm3, hash_2d, splitmix64, value_noise_2d, value_noise_3d};
