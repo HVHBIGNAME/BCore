@@ -1,43 +1,36 @@
-//! Histogram of terrain heights in one chunk.
-use bcore_core::ChunkPos;
-use bcore_worldgen::WorldGenerator;
+//! final_density + sloped_cheese by Y, to find the vertical offset.
+use bcore_worldgen::density::{self, EvalContext};
 
 fn main() {
-    let gen = WorldGenerator::new(1234);
-    let c = gen.generate_chunk_vanilla(ChunkPos::new(0, 0));
-    let mut buckets = [0i32; 8];
-    let labels = [
-        "<-64", "-64..0", "0..32", "32..64", "64..96", "96..128", "128..192", ">192",
-    ];
-    for x in 0..16 {
-        for z in 0..16 {
-            let h = c.height_at(x, z);
-            let i = if h < -64 {
-                0
-            } else if h < 0 {
-                1
-            } else if h < 32 {
-                2
-            } else if h < 64 {
-                3
-            } else if h < 96 {
-                4
-            } else if h < 128 {
-                5
-            } else if h < 192 {
-                6
-            } else {
-                7
-            };
-            buckets[i] += 1;
-        }
+    let ctx = EvalContext::default();
+    let load = |name: &str| {
+        let p = format!(
+            "target/datapack/data/minecraft/worldgen/density_function/overworld/{name}.json"
+        );
+        density::parse_json(&std::fs::read_to_string(p).unwrap()).unwrap()
+    };
+    let sc = load("sloped_cheese");
+    let settings = std::fs::read_to_string(
+        "target/datapack/data/minecraft/worldgen/noise_settings/overworld.json",
+    )
+    .unwrap();
+    let fd = density::parse_json(
+        settings
+            .split("\"final_density\":")
+            .nth(1)
+            .unwrap()
+            .split("\"vein_toggle\"")
+            .next()
+            .unwrap(),
+    )
+    .unwrap();
+    let (x, z) = (16.0, 16.0);
+    println!("y | sloped_cheese | final_density");
+    for y in [-64.0, -32.0, 0.0, 32.0, 63.0, 64.0, 80.0, 100.0, 128.0] {
+        println!(
+            "{y:5} | {:.3} | {:.3}",
+            density::evaluate(&sc, x, y, z, &ctx),
+            density::evaluate(&fd, x, y, z, &ctx),
+        );
     }
-    for i in 0..8 {
-        println!("{:>8}: {}", labels[i], "#".repeat(buckets[i] as usize));
-    }
-    println!("sample heights (x=8,z):");
-    for z in 0..16 {
-        print!("{:4} ", c.height_at(8, z));
-    }
-    println!();
 }

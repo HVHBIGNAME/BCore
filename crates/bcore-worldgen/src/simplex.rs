@@ -125,25 +125,25 @@ impl SimplexNoise {
             x0 - i1 as f64 + G3,
             y0 - j1 as f64 + G3,
             z0 - k1 as f64 + G3,
-            i + i1,
-            j + j1,
-            k + k1,
+            i.wrapping_add(i1),
+            j.wrapping_add(j1),
+            k.wrapping_add(k1),
         );
         let n2 = self.corner(
             x0 - i2 as f64 + 2. * G3,
             y0 - j2 as f64 + 2. * G3,
             z0 - k2 as f64 + 2. * G3,
-            i + i2,
-            j + j2,
-            k + k2,
+            i.wrapping_add(i2),
+            j.wrapping_add(j2),
+            k.wrapping_add(k2),
         );
         let n3 = self.corner(
             x0 - 1. + 3. * G3,
             y0 - 1. + 3. * G3,
             z0 - 1. + 3. * G3,
-            i + 1,
-            j + 1,
-            k + 1,
+            i.wrapping_add(1),
+            j.wrapping_add(1),
+            k.wrapping_add(1),
         );
         32. * (n0 + n1 + n2 + n3)
     }

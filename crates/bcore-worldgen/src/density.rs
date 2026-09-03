@@ -216,7 +216,7 @@ impl DensityFunction {
                 let sx = shift_x.evaluate(x, y, z, ctx);
                 let sy = shift_y.evaluate(x, y, z, ctx);
                 let sz = shift_z.evaluate(x, y, z, ctx);
-                noise_registry().sample(name, ctx.seed, (x + sx) * xz, (y + sy) * ys, (z + sz) * xz)
+                noise_registry().sample(name, ctx.seed, x * xz + sx, y * ys + sy, z * xz + sz)
             }
             // A fresh world has no old terrain to blend with: blend_alpha is 0,
             // but blend_offset is 1 (the identity offset, so depth keeps its
@@ -249,9 +249,9 @@ fn old_blended_noise(x: f64, y: f64, z: f64, xz_scale: f64, y_scale: f64, seed: 
     for n in 0..8 {
         let scale = 2f64.powi(-7 + n as i32);
         v += SimplexNoise::new(seed.wrapping_add(n as i64)).get_value(
-            x * xz_scale / scale,
-            y * y_scale / scale,
-            z * xz_scale / scale,
+            x * xz_scale * scale,
+            y * y_scale * scale,
+            z * xz_scale * scale,
         );
     }
     v / 8.0
