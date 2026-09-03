@@ -66,9 +66,10 @@ pub struct Xoroshiro128 {
 }
 
 impl Xoroshiro128 {
+    /// `upgradeSeedTo128bit(seed).mixed()` — exactly as `RandomSupport`.
     pub fn new(seed: i64) -> Self {
-        let lo = (seed as u64) ^ 7640891576956012809u64;
-        let hi = lo.wrapping_add(0x9e3779b97f4a7c15);
+        let lo = (seed as u64) ^ 0x6a09e667f3bcc909u64; // SILVER_RATIO_64
+        let hi = lo.wrapping_add(0x9e3779b97f4a7c15); // GOLDEN_RATIO_64
         Self {
             lo: mix_stafford13(lo),
             hi: mix_stafford13(hi),
@@ -79,42 +80,18 @@ impl Xoroshiro128 {
         Self { lo, hi }
     }
 
-    pub fn next_long(&mut self) -> i64 {
-        let result = self
-            .lo
-            .wrapping_add(self.hi)
-            .rotate_left(17)
-            .wrapping_add(self.lo);
-        let t = self.hi << 17;
-        self.hi ^= self.lo;
-        self.lo = self.lo.rotate_left(49) ^ self.hi ^ t;
-        self.hi = self.hi.rotate_left(21);
-        result as i64
+    pub fn next_long(&mut self) -> u64 {
+        let s0 = self.lo;
+        let s1 = self.hi;
+        let result = s0.wrapping_add(s1).rotate_left(17).wrapping_add(s0);
+        let s1 = s1 ^ s0;
+        self.lo = s0.rotate_left(49) ^ s1 ^ (s1 << 21);
+        self.hi = s1.rotate_left(28);
+        result
     }
 
     pub fn next_bits(&mut self, bits: u32) -> u64 {
-        (self.next_long() as u64) >> (64 - bits)
-    }
-    pub fn next_float(&mut self) -> f32 {
-        self.next_bits(24) as f32 * 5.9604645e-8_f32
-    }
-    pub fn next_double(&mut self) -> f64 {
-        self.next_bits(53) as f64 * 1.1102230246251565e-16_f64
-    }
-    pub fn next_int(&mut self, bound: usize) -> usize {
-        assert!(bound > 0, "bound must be positive");
-        let bound = bound as u32;
-        loop {
-            let product = (self.next_long() as u32 as u64) * bound as u64;
-            let low = product as u32;
-            if low >= bound {
-                return (product >> 32) as usize;
-            }
-            let threshold = bound.wrapping_neg() % bound;
-            if low >= threshold {
-                return (product >> 32) as usize;
-            }
-        }
+        self.next_long() >> (64 - bits)
     }
 }
 
@@ -125,7 +102,7 @@ fn mix_stafford13(mut z: u64) -> u64 {
     z ^ (z >> 31)
 }
 
-/// Worldgen seed stream wrapper matching Minecraft's `WorldgenRandom`.
+/// `WorldgenRandom` — a `BitRandomSource` wrapper, exactly as vanilla.
 pub struct WorldgenRandom {
     pub source: Xoroshiro128,
     count: u32,
@@ -140,21 +117,34 @@ impl WorldgenRandom {
     pub fn set_seed(&mut self, seed: i64) {
         self.source = Xoroshiro128::new(seed);
     }
-    pub fn next_long(&mut self) -> i64 {
-        self.count += 2;
-        self.source.next_long()
-    }
-    pub fn next_int(&mut self, bound: usize) -> usize {
+    fn next_bits(&mut self, bits: u32) -> u64 {
         self.count += 1;
-        self.source.next_int(bound)
+        self.source.next_bits(bits)
+    }
+    /// `BitRandomSource.nextLong` = `((next(32) << 32) | next(32))`.
+    pub fn next_long(&mut self) -> i64 {
+        ((self.next_bits(32) << 32) | self.next_bits(32)) as i64
+    }
+    /// `BitRandomSource.nextInt(bound)` — `next(31)` rejection.
+    pub fn next_int(&mut self, bound: usize) -> usize {
+        let b = bound as u32;
+        if b.is_power_of_two() {
+            return ((b as u64 * self.next_bits(31)) >> 31) as usize;
+        }
+        loop {
+            let r = self.next_bits(31) as u32;
+            let m = r % b;
+            if r.wrapping_sub(m).wrapping_add(b - 1) < (1u32 << 31) {
+                return m as usize;
+            }
+        }
     }
     pub fn next_float(&mut self) -> f32 {
-        self.count += 1;
-        self.source.next_float()
+        self.next_bits(24) as f32 * 5.9604645e-8_f32
     }
+    /// `BitRandomSource.nextDouble` = `((next(26) << 27) | next(27)) * DOUBLE_UNIT`.
     pub fn next_double(&mut self) -> f64 {
-        self.count += 2;
-        self.source.next_double()
+        ((self.next_bits(26) << 27) | self.next_bits(27)) as f64 * 1.1102230246251565e-16
     }
     pub fn set_decoration_seed(&mut self, seed: i64, chunk_x: i32, chunk_z: i32) -> i64 {
         self.set_seed(seed);

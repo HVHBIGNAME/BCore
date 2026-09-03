@@ -37,6 +37,8 @@ pub enum OreKind {
     Diorite,
     Granite,
     Tuff,
+    Dirt,
+    Gravel,
 }
 
 /// Place a simple tree at `(x, y, z)`, where `y` is the ground block.
@@ -130,53 +132,129 @@ pub fn place_tree(
     }
 }
 
-/// Place a blob-shaped ore vein centered at `(x, y, z)`.
+/// Place an ore vein as vanilla `OreFeature` does: a line of spheres along a
+/// random axis, with sinusoidal radius and overlap pruning.
 ///
-/// `size` is the configured-feature cluster size (vanilla examples are 4--17).
-/// The callback receives exactly `size` writes, with duplicates removed.  The
-/// growth is constrained to an ellipsoid, like vanilla's `OreFeature`, rather
-/// than being an unbounded random walk.
+/// `size` is the configured-feature cluster size. Returns whether any block was
+/// placed (vanilla returns `placed > 0`).
 pub fn place_ore(
-    rng: &mut JavaRandom,
+    rng: &mut WorldgenRandom,
     world_write: &mut dyn FnMut(i32, i32, i32, BlockState),
     x: i32,
     y: i32,
     z: i32,
     kind: OreKind,
     size: usize,
-) {
+) -> bool {
     if size == 0 {
-        return;
+        return false;
     }
     let state = ore_state(kind);
-    let mut points: Vec<(i32, i32, i32)> = Vec::with_capacity(size);
-    points.push((x, y, z));
-    // Vanilla OreFeature grows the vein from a random existing block by one
-    // axis-aligned step, exactly like the original implementation (no ellipsoid).
-    while points.len() < size {
-        let anchor = points[rng.next_int(points.len())];
-        let axis = rng.next_int(3) as i32;
-        let step = if rng.next_int(2) == 0 { -1 } else { 1 };
-        let mut p = anchor;
-        match axis {
-            0 => p.0 += step,
-            1 => p.1 += step,
-            _ => p.2 += step,
-        }
-        if !points.contains(&p) {
-            points.push(p);
+    let dir = rng.next_float() as f64 * std::f64::consts::PI;
+    let spread_xy = size as f64 / 8.0;
+    let max_radius = ((size as f64 / 16.0 * 2.0 + 1.0) / 2.0).ceil() as i32;
+    let x0 = x as f64 + dir.sin() * spread_xy;
+    let x1 = x as f64 - dir.sin() * spread_xy;
+    let z0 = z as f64 + dir.cos() * spread_xy;
+    let z1 = z as f64 - dir.cos() * spread_xy;
+    let y0 = y as f64 + rng.next_int(3) as i32 as f64 - 2.0;
+    let y1 = y as f64 + rng.next_int(3) as i32 as f64 - 2.0;
+    let x_start = x - (spread_xy.ceil() as i32) - max_radius;
+    let y_start = y - 2 - max_radius;
+    let z_start = z - (spread_xy.ceil() as i32) - max_radius;
+    let size_xz = 2 * (spread_xy.ceil() as i32 + max_radius);
+    let size_y = 2 * (2 + max_radius);
+
+    // doPlace: generate the sphere centers and radii.
+    let mut data = vec![0.0f64; size * 4];
+    for i in 0..size {
+        let step = i as f64 / size as f64;
+        let xx = lerp(step, x0, x1);
+        let yy = lerp(step, y0, y1);
+        let zz = lerp(step, z0, z1);
+        let ss = rng.next_double() * size as f64 / 16.0;
+        let r = ((step * std::f64::consts::PI).sin() + 1.0) * ss + 1.0 / 2.0;
+        data[i * 4] = xx;
+        data[i * 4 + 1] = yy;
+        data[i * 4 + 2] = zz;
+        data[i * 4 + 3] = r;
+    }
+    // Prune spheres fully contained in a larger one.
+    for i1 in 0..size.saturating_sub(1) {
+        if data[i1 * 4 + 3] > 0.0 {
+            for i2 in i1 + 1..size {
+                if data[i2 * 4 + 3] > 0.0 {
+                    let dx = data[i1 * 4] - data[i2 * 4];
+                    let dy = data[i1 * 4 + 1] - data[i2 * 4 + 1];
+                    let dz = data[i1 * 4 + 2] - data[i2 * 4 + 2];
+                    let dr = data[i1 * 4 + 3] - data[i2 * 4 + 3];
+                    if dr * dr > dx * dx + dy * dy + dz * dz {
+                        if dr > 0.0 {
+                            data[i2 * 4 + 3] = -1.0;
+                        } else {
+                            data[i1 * 4 + 3] = -1.0;
+                        }
+                    }
+                }
+            }
         }
     }
-    for (px, py, pz) in points {
-        world_write(px, py, pz, state);
+    // Fill each surviving sphere.
+    let mut placed = 0;
+    let mut tested = vec![false; size_xz as usize * size_y as usize * size_xz as usize];
+    for i in 0..size {
+        let r = data[i * 4 + 3];
+        if r < 0.0 {
+            continue;
+        }
+        let xx = data[i * 4];
+        let yy = data[i * 4 + 1];
+        let zz = data[i * 4 + 2];
+        let x_min = ((xx - r).floor() as i32).max(x_start);
+        let y_min = ((yy - r).floor() as i32).max(y_start);
+        let z_min = ((zz - r).floor() as i32).max(z_start);
+        let x_max = ((xx + r).floor() as i32).max(x_min);
+        let y_max = ((yy + r).floor() as i32).max(y_min);
+        let z_max = ((zz + r).floor() as i32).max(z_min);
+        for bx in x_min..=x_max {
+            let xd = (bx as f64 + 0.5 - xx) / r;
+            if xd * xd >= 1.0 {
+                continue;
+            }
+            for by in y_min..=y_max {
+                let yd = (by as f64 + 0.5 - yy) / r;
+                if xd * xd + yd * yd >= 1.0 {
+                    continue;
+                }
+                for bz in z_min..=z_max {
+                    let zd = (bz as f64 + 0.5 - zz) / r;
+                    if xd * xd + yd * yd + zd * zd < 1.0 {
+                        let bit = (bx - x_start) as usize
+                            + (by - y_start) as usize * size_xz as usize
+                            + (bz - z_start) as usize * size_xz as usize * size_y as usize;
+                        if !tested[bit] {
+                            tested[bit] = true;
+                            world_write(bx, by, bz, state);
+                            placed += 1;
+                        }
+                    }
+                }
+            }
+        }
     }
+    placed > 0
+}
+
+#[inline]
+fn lerp(t: f64, a: f64, b: f64) -> f64 {
+    a + t * (b - a)
 }
 
 fn next_range_u64(state: &mut u64, min: i32, max: i32) -> i32 {
     min + (splitmix64(*state) % (max - min + 1) as u64) as i32
 }
 
-fn next_range(state: &mut JavaRandom, min: i32, max: i32) -> i32 {
+fn next_range(state: &mut WorldgenRandom, min: i32, max: i32) -> i32 {
     min + state.next_int((max - min + 1) as usize) as i32
 }
 
@@ -199,15 +277,17 @@ struct OrePlacement {
 }
 
 impl OrePlacement {
-    fn height(self, rng: &mut JavaRandom) -> i32 {
+    fn height(self, rng: &mut WorldgenRandom) -> i32 {
         match self.distribution {
             HeightDistribution::Uniform => next_range(rng, self.min_y, self.max_y),
-            // HeightRange.trapezoid is a triangular distribution with a flat
-            // plateau in the middle: two independent draws from half-range.
+            // Vanilla TrapezoidHeight (plateau=0): two independent draws.
             HeightDistribution::Trapezoid => {
-                let span = (self.max_y - self.min_y) as usize;
-                let half = span / 2;
-                self.min_y + rng.next_int(half + 1) as i32 + rng.next_int(half + 1) as i32
+                let range = self.max_y - self.min_y;
+                let plateau_start = range / 2;
+                let plateau_end = range - plateau_start;
+                self.min_y
+                    + rng.next_int(plateau_end as usize + 1) as i32
+                    + rng.next_int(plateau_start as usize + 1) as i32
             }
         }
     }
@@ -465,27 +545,24 @@ pub fn place_ore_veins(
 
     let base_x = chunk_x.wrapping_mul(16);
     let base_z = chunk_z.wrapping_mul(16);
-    for &feature in FEATURES {
-        let mut rng = JavaRandom::new(feature_seed(seed, chunk_x, chunk_z, feature.salt));
+    // Vanilla ChunkGenerator.applyBiomeDecoration: per feature,
+    // `setDecorationSeed(worldSeed, chunkX*16, chunkZ*16)` then
+    // `setFeatureSeed(decorationSeed, index, GenerationStep.Decoration.UNDERGROUND_ORES.ordinal())`.
+    const STEP_UNDERGROUND_ORES: i32 = 6;
+    for (index, &feature) in FEATURES.iter().enumerate() {
+        let mut rng = WorldgenRandom::new(seed);
+        let decoration_seed = rng.set_decoration_seed(seed, base_x, base_z);
+        rng.set_feature_seed(decoration_seed, index as i32, STEP_UNDERGROUND_ORES);
         if let Some(chance) = feature.rarity {
-            if rng.next_int(chance) != 0 {
+            if rng.next_float() >= 1.0 / chance as f32 {
                 continue;
             }
         }
         for _ in 0..feature.count {
-            let x = base_x.wrapping_add(next_range(&mut rng, 0, 15));
-            let z = base_z.wrapping_add(next_range(&mut rng, 0, 15));
+            let x = base_x.wrapping_add(rng.next_int(16) as i32);
+            let z = base_z.wrapping_add(rng.next_int(16) as i32);
             let y = feature.height(&mut rng);
-            let mut ore_rng = rng.fork();
-            place_ore(
-                &mut ore_rng,
-                world_write,
-                x,
-                y,
-                z,
-                feature.kind,
-                feature.size,
-            );
+            place_ore(&mut rng, world_write, x, y, z, feature.kind, feature.size);
         }
     }
 }
@@ -515,6 +592,8 @@ fn ore_state(kind: OreKind) -> BlockState {
         OreKind::Diorite => block::DIORITE,
         OreKind::Granite => block::GRANITE,
         OreKind::Tuff => block::TUFF,
+        OreKind::Dirt => block::DIRT,
+        OreKind::Gravel => block::GRAVEL,
     }
 }
 
@@ -574,8 +653,8 @@ mod tests {
     #[test]
     fn ore_size_and_state_are_deterministic() {
         let mut vein = Vec::new();
-        let mut rng = JavaRandom::new(7);
-        place_ore(
+        let mut rng = WorldgenRandom::new(7);
+        let placed = place_ore(
             &mut rng,
             &mut |x, y, z, state| vein.push((x, y, z, state)),
             0,
@@ -584,8 +663,21 @@ mod tests {
             OreKind::Emerald,
             8,
         );
-        assert_eq!(vein.len(), 8);
+        assert!(placed);
+        assert!(!vein.is_empty());
         assert!(vein.iter().all(|p| p.3 == 9573));
-        assert_eq!(vein[0], (0, 0, 0, 9573));
+        // Deterministic for the same seed.
+        let mut vein2 = Vec::new();
+        let mut rng2 = WorldgenRandom::new(7);
+        place_ore(
+            &mut rng2,
+            &mut |x, y, z, state| vein2.push((x, y, z, state)),
+            0,
+            0,
+            0,
+            OreKind::Emerald,
+            8,
+        );
+        assert_eq!(vein, vein2);
     }
 }
