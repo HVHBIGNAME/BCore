@@ -22,9 +22,9 @@ const TRIG_MULTIPLIER: f64 = std::f64::consts::PI;
 
 /// Java's 48-bit Random, required because Minecraft seeds noise with Java Random.
 #[derive(Clone)]
-struct JavaRandom(u64);
+pub struct JavaRandom(u64);
 impl JavaRandom {
-    fn new(seed: i64) -> Self {
+    pub fn new(seed: i64) -> Self {
         Self((((seed as u64) ^ 0x5deece66d) & ((1u64 << 48) - 1)))
     }
     fn next(&mut self, bits: u32) -> u32 {
@@ -34,7 +34,7 @@ impl JavaRandom {
     fn next_double(&mut self) -> f64 {
         (((self.next(26) as u64) << 27 | self.next(27) as u64) as f64) / 9007199254740992.0
     }
-    fn next_int(&mut self, bound: usize) -> usize {
+    pub fn next_int(&mut self, bound: usize) -> usize {
         let b = bound as u32;
         if b.is_power_of_two() {
             return ((b as u64 * self.next(31) as u64) >> 31) as usize;
