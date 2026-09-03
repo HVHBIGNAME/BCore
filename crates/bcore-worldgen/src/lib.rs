@@ -673,21 +673,15 @@ impl WorldGenerator {
                 let wx = base_x + x as i32;
                 let wz = base_z + z as i32;
                 let mut top = MIN_Y;
-                let mut was_solid = false;
                 for y in MIN_Y..=MAX_Y {
-                    let solid = density::evaluate(
+                    if density::evaluate(
                         &graph.final_density,
                         wx as f64,
                         y as f64,
                         wz as f64,
                         &graph.ctx,
-                    ) > 0.0;
-                    if was_solid && !solid {
-                        top = y - 1;
-                        break;
-                    }
-                    was_solid = solid;
-                    if solid {
+                    ) > 0.0
+                    {
                         top = y;
                     }
                 }
