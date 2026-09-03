@@ -50,7 +50,7 @@ pub enum DensityFunction {
     },
     Spline {
         coordinate: Box<Self>,
-        points: Vec<(f64, f64, f64)>,
+        points: Vec<(f64, Box<Self>, f64)>,
     },
     Squeeze(Box<Self>),
     Interpolated(Box<Self>),
@@ -162,7 +162,8 @@ impl DensityFunction {
                 from_value + (to_value - from_value) * t
             }
             Self::Spline { coordinate, points } => {
-                spline(points, coordinate.evaluate(x, y, z, ctx))
+                let cx = coordinate.evaluate(x, y, z, ctx);
+                spline(points, cx, x, y, z, ctx)
             }
             Self::Squeeze(a) => {
                 let v = a.evaluate(x, y, z, ctx).clamp(-1., 1.);
@@ -292,26 +293,36 @@ fn hash_name(s: &str) -> i64 {
     }
     h as i64
 }
-fn spline(p: &[(f64, f64, f64)], x: f64) -> f64 {
+fn spline(
+    p: &[(f64, Box<DensityFunction>, f64)],
+    cx: f64,
+    x: f64,
+    y: f64,
+    z: f64,
+    ctx: &EvalContext,
+) -> f64 {
     if p.is_empty() {
         return 0.;
     }
-    if x <= p[0].0 {
-        return p[0].1 + (x - p[0].0) * p[0].2;
+    let at = |i: usize| -> f64 { p[i].1.evaluate(x, y, z, ctx) };
+    if cx <= p[0].0 {
+        return at(0) + (cx - p[0].0) * p[0].2;
     }
     for w in p.windows(2) {
-        if x <= w[1].0 {
-            let (x0, y0, d0) = w[0];
-            let (x1, y1, d1) = w[1];
-            let t = (x - x0) / (x1 - x0);
+        if cx <= w[1].0 {
+            let (x0, d0) = (w[0].0, w[0].2);
+            let (x1, d1) = (w[1].0, w[1].2);
+            let y0 = w[0].1.evaluate(x, y, z, ctx);
+            let y1 = w[1].1.evaluate(x, y, z, ctx);
+            let t = (cx - x0) / (x1 - x0);
             return (2. * t * t * t - 3. * t * t + 1.) * y0
                 + (t * t * t - 2. * t * t + t) * d0 * (x1 - x0)
                 + (-2. * t * t * t + 3. * t * t) * y1
                 + (t * t * t - t * t) * d1 * (x1 - x0);
         }
     }
-    let q = p[p.len() - 1];
-    q.1 + (x - q.0) * q.2
+    let q = p.len() - 1;
+    p[q].1.evaluate(x, y, z, ctx) + (cx - p[q].0) * p[q].2
 }
 
 #[derive(Debug, Clone)]
@@ -465,6 +476,7 @@ fn parse_value(v: &J) -> DensityFunction {
         J::O(o) => {
             let typ = match o.get("type") {
                 Some(J::S(s)) => s.as_str(),
+                _ if o.contains_key("coordinate") && o.contains_key("points") => "minecraft:spline",
                 _ => "",
             };
             match typ {
@@ -519,12 +531,16 @@ fn parse_value(v: &J) -> DensityFunction {
                             if let J::O(pt) = q {
                                 p.push((
                                     num(pt, "location", 0.),
-                                    num(pt, "value", 0.),
+                                    Box::new(boxed(pt.get("value"))),
                                     num(pt, "derivative", 0.),
                                 ));
                             } else if let J::A(v) = q {
                                 if v.len() >= 3 {
-                                    p.push((asnum(&v[0]), asnum(&v[1]), asnum(&v[2])))
+                                    p.push((
+                                        asnum(&v[0]),
+                                        Box::new(boxed(Some(&v[1]))),
+                                        asnum(&v[2]),
+                                    ))
                                 }
                             }
                         }
