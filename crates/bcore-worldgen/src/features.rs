@@ -7,6 +7,7 @@
 
 use crate::block;
 use crate::noise::splitmix64;
+use crate::simplex::JavaRandom;
 
 /// Network block-state type used by the world generator.
 pub type BlockState = u32;
@@ -30,6 +31,7 @@ pub enum OreKind {
     Diamond,
     Emerald,
     Lapis,
+    Redstone,
     Andesite,
     Diorite,
     Granite,
@@ -55,28 +57,28 @@ pub fn place_tree(
         TreeKind::Oak => (
             block::OAK_LOG,
             block::OAK_LEAVES,
-            4 + next_range(rng, 0, 2),
-            2 + next_range(rng, 0, 1),
+            4 + next_range_u64(rng, 0, 2),
+            2 + next_range_u64(rng, 0, 1),
         ),
         // straight_trunk_placer: base_height 5, height_rand_a 2.
         TreeKind::Birch => (
             block::BIRCH_LOG,
             block::BIRCH_LEAVES,
-            5 + next_range(rng, 0, 2),
+            5 + next_range_u64(rng, 0, 2),
             2,
         ),
         // Spruce: base 5 + [0,2] + [0,1]; spruce foliage radius [2,3].
         TreeKind::Spruce => (
             block::SPRUCE_LOG,
             block::SPRUCE_LEAVES,
-            5 + next_range(rng, 0, 2) + next_range(rng, 0, 1),
-            2 + next_range(rng, 0, 1),
+            5 + next_range_u64(rng, 0, 2) + next_range_u64(rng, 0, 1),
+            2 + next_range_u64(rng, 0, 1),
         ),
         // Pine: base_height 6, height_rand_a 4.
         TreeKind::Pine => (
             block::SPRUCE_LOG,
             block::SPRUCE_LEAVES,
-            6 + next_range(rng, 0, 4),
+            6 + next_range_u64(rng, 0, 4),
             1,
         ),
     };
@@ -135,7 +137,7 @@ pub fn place_tree(
 /// state IDs from `crate::block`; emerald is from the same `blocks.json` report
 /// because the current block module does not expose that constant.
 pub fn place_ore(
-    rng: &mut u64,
+    rng: &mut JavaRandom,
     world_write: &mut dyn FnMut(i32, i32, i32, BlockState),
     x: i32,
     y: i32,
@@ -150,9 +152,9 @@ pub fn place_ore(
     let mut points: Vec<(i32, i32, i32)> = Vec::with_capacity(size);
     points.push((x, y, z));
     while points.len() < size {
-        let anchor = points[(next_u64(rng) as usize) % points.len()];
-        let axis = (next_u64(rng) % 3) as i32;
-        let step = if next_u64(rng) & 1 == 0 { -1 } else { 1 };
+        let anchor = points[rng.next_int(points.len())];
+        let axis = rng.next_int(3) as i32;
+        let step = if rng.next_int(2) == 0 { -1 } else { 1 };
         let mut p = anchor;
         match axis {
             0 => p.0 += step,
@@ -168,14 +170,21 @@ pub fn place_ore(
     }
 }
 
-#[inline]
-fn next_u64(state: &mut u64) -> u64 {
-    *state = splitmix64(*state);
-    *state
+fn next_range_u64(state: &mut u64, min: i32, max: i32) -> i32 {
+    min + (splitmix64(*state) % (max - min + 1) as u64) as i32
 }
 
-fn next_range(state: &mut u64, min: i32, max: i32) -> i32 {
-    min + (next_u64(state) % (max - min + 1) as u64) as i32
+fn next_range(state: &mut JavaRandom, min: i32, max: i32) -> i32 {
+    min + state.next_int((max - min + 1) as usize) as i32
+}
+
+/// Vanilla FeatureUtils.simpleRandom seed for a placed feature.
+#[inline]
+pub fn feature_seed(world_seed: i64, chunk_x: i32, chunk_z: i32, salt: i64) -> i64 {
+    world_seed
+        .wrapping_add((chunk_x as i64).wrapping_mul(341_873_128_712))
+        .wrapping_add((chunk_z as i64).wrapping_mul(132_897_987_541))
+        .wrapping_add(salt)
 }
 
 #[inline]
@@ -189,6 +198,7 @@ fn ore_state(kind: OreKind) -> BlockState {
         // blocks.json: minecraft:emerald_ore default state id 9573.
         OreKind::Emerald => 9573,
         OreKind::Lapis => block::LAPIS_ORE,
+        OreKind::Redstone => block::REDSTONE_ORE,
         OreKind::Andesite => block::ANDESITE,
         OreKind::Diorite => block::DIORITE,
         OreKind::Granite => block::GRANITE,
@@ -228,11 +238,16 @@ mod tests {
     }
 
     #[test]
+    fn feature_seed_uses_vanilla_chunk_multipliers_and_salt() {
+        assert_eq!(feature_seed(1234, -34, 3, 3), -11224992412348);
+    }
+
+    #[test]
     fn ore_size_and_state_are_deterministic() {
         let mut vein = Vec::new();
-        let mut seed = 7;
+        let mut rng = JavaRandom::new(7);
         place_ore(
-            &mut seed,
+            &mut rng,
             &mut |x, y, z, state| vein.push((x, y, z, state)),
             0,
             0,
