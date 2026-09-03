@@ -223,11 +223,11 @@ impl DensityFunction {
                 let sz = shift_z.evaluate(x, y, z, ctx);
                 noise_registry().sample(name, ctx.seed, x * xz + sx, y * ys + sy, z * xz + sz)
             }
-            // A fresh world has no old terrain to blend with: blend_alpha is 0,
-            // but blend_offset is 1 (the identity offset, so depth keeps its
-            // spline variation rather than collapsing to zero).
-            Self::BlendOffset(_) => 1.,
-            Self::BlendAlpha(_) => 0.,
+            // Vanilla's empty Blender reports alpha=1 and offset=0.  The
+            // offset graph then selects the normal terrain spline (the second
+            // lerp input), rather than the legacy-chunk blend offset.
+            Self::BlendOffset(_) => 0.,
+            Self::BlendAlpha(_) => 1.,
             Self::ShiftA(name) | Self::ShiftB(name) => {
                 // Vanilla shift noises are 2-D and use the world seed. The
                 // coordinate transforms are applied by the graph around this
