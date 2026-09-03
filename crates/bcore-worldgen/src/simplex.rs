@@ -227,6 +227,7 @@ fn extract_num(s: &str, k: &str) -> Option<f64> {
     s[p..]
         .split(':')
         .nth(1)?
+        .trim_start()
         .split(|c: char| !c.is_ascii_digit() && c != '.' && c != '-')
         .next()?
         .parse()

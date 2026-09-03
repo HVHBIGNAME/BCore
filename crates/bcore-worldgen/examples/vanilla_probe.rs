@@ -1,4 +1,4 @@
-//! final_density + sloped_cheese by Y, to find the vertical offset.
+//! final_density + sloped_cheese by Y after firstOctave fix.
 use bcore_worldgen::density::{self, EvalContext};
 
 fn main() {
@@ -26,7 +26,7 @@ fn main() {
     .unwrap();
     let (x, z) = (16.0, 16.0);
     println!("y | sloped_cheese | final_density");
-    for y in [-64.0, -32.0, 0.0, 32.0, 63.0, 64.0, 80.0, 100.0, 128.0] {
+    for y in [-64.0, -32.0, 0.0, 32.0, 63.0, 80.0, 100.0, 128.0, 160.0] {
         println!(
             "{y:5} | {:.3} | {:.3}",
             density::evaluate(&sc, x, y, z, &ctx),
