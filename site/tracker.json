@@ -81,6 +81,10 @@
         { "name": "System messages", "status": "done" },
         { "name": "Commands (/help /list /tp /gamemode ...)", "status": "done" },
         { "name": "Operator system (/op /deop + ops.json)", "status": "done" },
+        { "name": "Ban system (/ban /unban /ban-ip)", "status": "done" },
+        { "name": "Target selectors (@a @p @r @s + flags)", "status": "done" },
+        { "name": "Scoreboards (/scoreboard)", "status": "done" },
+        { "name": "Russian localization", "status": "done" },
         { "name": "Tab completion (declare commands)", "status": "done" },
         { "name": "Permissions (full Vault-like)", "status": "planned" }
       ]

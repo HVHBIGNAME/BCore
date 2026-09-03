@@ -18,7 +18,7 @@ fn main() {
         "[{IMPLEMENTATION_NAME}] Minecraft {MC_VERSION} (protocol {PROTOCOL_VERSION}) listening on {host}:{port}"
     );
     println!(
-        "[{IMPLEMENTATION_NAME}] offline login + flat world + chunk streaming work; movement is tracked; blocks/entities/inventory are not yet implemented."
+        "[{IMPLEMENTATION_NAME}] реалистичный террейн + чат + команды + сохранение мира; блоки/инвентарь/сущности — в работе."
     );
 
     server::run(listener);
