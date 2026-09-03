@@ -26,7 +26,26 @@ pub fn run(listener: TcpListener) {
 /// Exposed so tests (and future embedders) can inspect the player registry the
 /// connections share.
 pub fn run_with_state(listener: TcpListener, server: SharedServer) {
-    for incoming in listener.incoming() {
+    let _tick_state = crate::tick::start(SharedServer::clone(&server));
+    crate::console::start(SharedServer::clone(&server));
+    listener
+        .set_nonblocking(true)
+        .expect("configure listener as nonblocking");
+    while !server.is_shutting_down() {
+        let incoming = match listener.accept() {
+            Ok((stream, _)) => {
+                if let Err(e) = stream.set_nonblocking(false) {
+                    eprintln!("accept stream configuration error: {e}");
+                    continue;
+                }
+                Ok(stream)
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                std::thread::sleep(std::time::Duration::from_millis(20));
+                continue;
+            }
+            Err(e) => Err(e),
+        };
         if server.is_shutting_down() {
             println!("[{IMPLEMENTATION_NAME}] shutting down: no longer accepting connections");
             break;

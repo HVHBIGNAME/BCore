@@ -25,8 +25,8 @@ use crate::chat::{
 use crate::command::{self, CommandContext, Destination, Effect};
 use crate::commands::{bcore_command_tree, CB_DECLARE_COMMANDS};
 use crate::gameplay::{
-    encode_abilities_for, encode_full_health, encode_gamemode_change, encode_set_day_time,
-    encode_time_of_day, CB_ABILITIES, CB_UPDATE_HEALTH, CB_UPDATE_TIME,
+    encode_abilities_for, encode_full_health, encode_gamemode_change, encode_player_info_gamemode,
+    encode_set_day_time, encode_time_of_day, CB_ABILITIES, CB_UPDATE_HEALTH, CB_UPDATE_TIME,
 };
 use crate::nbt::Component;
 use crate::packet::{read_frame, read_string, write_packet, write_string, PacketError};
@@ -418,6 +418,12 @@ fn play_loop(
                     // F3+F4 debug screen: the client asks to switch gamemode.
                     if let Some(mode) = parse_gamemode(&data) {
                         view.game_mode = mode;
+                        // Vanilla updates player-info for every client so a
+                        // spectator is removed from other clients' renderers.
+                        let player_info = encode_player_info_gamemode(&handle.uuid, mode);
+                        stream.write_all(&player_info)?;
+                        server.broadcast_except(handle.id, &player_info);
+                        // The local client's movement/ability state follows.
                         stream.write_all(&encode_abilities_for(mode))?;
                         stream.write_all(&encode_gamemode_change(mode))?;
                     }
@@ -558,7 +564,11 @@ fn apply_effect(
     match effect {
         Effect::SetGameMode(mode) => {
             view.game_mode = *mode;
-            // Vanilla sends abilities first, then game_state_change (reason 3).
+            // Vanilla updates player-info for every client, not only the
+            // player who ran the command.
+            let player_info = encode_player_info_gamemode(&handle.uuid, *mode);
+            stream.write_all(&player_info)?;
+            server.broadcast_except(handle.id, &player_info);
             stream.write_all(&encode_abilities_for(*mode))?;
             stream.write_all(&encode_gamemode_change(*mode))?;
             Ok(())

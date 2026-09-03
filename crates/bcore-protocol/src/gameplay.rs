@@ -248,6 +248,23 @@ pub fn encode_gamemode_change(mode: GameMode) -> Vec<u8> {
     encode_game_state_change(GAME_STATE_CHANGE_GAMEMODE, mode.id() as f32)
 }
 
+/// Encode `player_info_update` with only the update-gamemode action.
+///
+/// The action is a bit mask: `0x04` is `update_game_mode`.  The packet is
+/// needed in addition to abilities and game-state-change: it updates the
+/// client's player-info state used by the spectator renderer and tab list.
+pub fn encode_player_info_gamemode(uuid: &[u8; 16], mode: GameMode) -> Vec<u8> {
+    const CB_PLAYER_INFO_UPDATE: i32 = 0x46;
+    let mut data = Vec::with_capacity(24);
+    encode_varint(0x04, &mut data);
+    encode_varint(1, &mut data);
+    data.extend_from_slice(uuid);
+    encode_varint(mode.id(), &mut data);
+    let mut out = Vec::new();
+    write_packet(&mut out, CB_PLAYER_INFO_UPDATE, &data);
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -265,6 +282,16 @@ mod tests {
         assert_eq!(frame.len(), n + len as usize, "frame length must be exact");
         let (id, m) = decode_varint(&frame[n..]).expect("id");
         (id, frame[n + m..].to_vec())
+    }
+
+    #[test]
+    fn player_info_gamemode_update_has_vanilla_action_and_fields() {
+        let uuid = [0xabu8; 16];
+        let (id, body) = payload(&encode_player_info_gamemode(&uuid, GameMode::Spectator));
+        assert_eq!(id, 0x46);
+        assert_eq!(&body[..2], &[0x04, 0x01]);
+        assert_eq!(&body[2..18], &uuid);
+        assert_eq!(body[18], 0x03);
     }
 
     #[test]
