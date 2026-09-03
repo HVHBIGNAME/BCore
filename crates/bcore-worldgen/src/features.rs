@@ -7,7 +7,7 @@
 
 use crate::block;
 use crate::noise::splitmix64;
-use crate::simplex::JavaRandom;
+use crate::simplex::{JavaRandom, WorldgenRandom, Xoroshiro128};
 use crate::MAX_Y;
 
 /// Network block-state type used by the world generator.

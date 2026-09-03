@@ -31,7 +31,7 @@ impl JavaRandom {
         self.0 = (self.0.wrapping_mul(0x5deece66d).wrapping_add(0xb)) & ((1u64 << 48) - 1);
         (self.0 >> (48 - bits)) as u32
     }
-    fn next_double(&mut self) -> f64 {
+    pub fn next_double(&mut self) -> f64 {
         (((self.next(26) as u64) << 27 | self.next(27) as u64) as f64) / 9007199254740992.0
     }
     pub fn next_int(&mut self, bound: usize) -> usize {
@@ -55,6 +55,123 @@ impl JavaRandom {
     /// Vanilla `RandomSource.fork()`: a fresh random seeded from this one.
     pub fn fork(&mut self) -> Self {
         Self::new(self.next_long())
+    }
+}
+
+/// Xoroshiro128++ random source used by modern world generation.
+#[derive(Clone)]
+pub struct Xoroshiro128 {
+    lo: u64,
+    hi: u64,
+}
+
+impl Xoroshiro128 {
+    pub fn new(seed: i64) -> Self {
+        let lo = (seed as u64) ^ 7640891576956012809u64;
+        let hi = lo.wrapping_add(0x9e3779b97f4a7c15);
+        Self {
+            lo: mix_stafford13(lo),
+            hi: mix_stafford13(hi),
+        }
+    }
+
+    pub fn from_state(lo: u64, hi: u64) -> Self {
+        Self { lo, hi }
+    }
+
+    pub fn next_long(&mut self) -> i64 {
+        let result = self
+            .lo
+            .wrapping_add(self.hi)
+            .rotate_left(17)
+            .wrapping_add(self.lo);
+        let t = self.hi << 17;
+        self.hi ^= self.lo;
+        self.lo = self.lo.rotate_left(49) ^ self.hi ^ t;
+        self.hi = self.hi.rotate_left(21);
+        result as i64
+    }
+
+    pub fn next_bits(&mut self, bits: u32) -> u64 {
+        (self.next_long() as u64) >> (64 - bits)
+    }
+    pub fn next_float(&mut self) -> f32 {
+        self.next_bits(24) as f32 * 5.9604645e-8_f32
+    }
+    pub fn next_double(&mut self) -> f64 {
+        self.next_bits(53) as f64 * 1.1102230246251565e-16_f64
+    }
+    pub fn next_int(&mut self, bound: usize) -> usize {
+        assert!(bound > 0, "bound must be positive");
+        let bound = bound as u32;
+        loop {
+            let product = (self.next_long() as u32 as u64) * bound as u64;
+            let low = product as u32;
+            if low >= bound {
+                return (product >> 32) as usize;
+            }
+            let threshold = bound.wrapping_neg() % bound;
+            if low >= threshold {
+                return (product >> 32) as usize;
+            }
+        }
+    }
+}
+
+#[inline]
+fn mix_stafford13(mut z: u64) -> u64 {
+    z = (z ^ (z >> 30)).wrapping_mul(0xbf58476d1ce4e5b9);
+    z = (z ^ (z >> 27)).wrapping_mul(0x94d049bb133111eb);
+    z ^ (z >> 31)
+}
+
+/// Worldgen seed stream wrapper matching Minecraft's `WorldgenRandom`.
+pub struct WorldgenRandom {
+    pub source: Xoroshiro128,
+    count: u32,
+}
+impl WorldgenRandom {
+    pub fn new(seed: i64) -> Self {
+        Self {
+            source: Xoroshiro128::new(seed),
+            count: 0,
+        }
+    }
+    pub fn set_seed(&mut self, seed: i64) {
+        self.source = Xoroshiro128::new(seed);
+    }
+    pub fn next_long(&mut self) -> i64 {
+        self.count += 2;
+        self.source.next_long()
+    }
+    pub fn next_int(&mut self, bound: usize) -> usize {
+        self.count += 1;
+        self.source.next_int(bound)
+    }
+    pub fn next_float(&mut self) -> f32 {
+        self.count += 1;
+        self.source.next_float()
+    }
+    pub fn next_double(&mut self) -> f64 {
+        self.count += 2;
+        self.source.next_double()
+    }
+    pub fn set_decoration_seed(&mut self, seed: i64, chunk_x: i32, chunk_z: i32) -> i64 {
+        self.set_seed(seed);
+        let x_scale = self.next_long() | 1;
+        let z_scale = self.next_long() | 1;
+        let result = (chunk_x as i64)
+            .wrapping_mul(x_scale)
+            .wrapping_add((chunk_z as i64).wrapping_mul(z_scale))
+            ^ seed;
+        self.set_seed(result);
+        result
+    }
+    pub fn set_feature_seed(&mut self, seed: i64, index: i32, step: i32) {
+        self.set_seed(
+            seed.wrapping_add(index as i64)
+                .wrapping_add(10000i64.wrapping_mul(step as i64)),
+        );
     }
 }
 
@@ -165,17 +282,20 @@ impl SimplexNoise {
 /// seeds per octave, so caching collapses that cost to a hash lookup + a 256-byte
 /// clone.
 thread_local! {
-    static NOISE_CACHE: std::cell::RefCell<std::collections::HashMap<i64, SimplexNoise>> =
+    static NORMAL_CACHE: std::cell::RefCell<std::collections::HashMap<i64, crate::noise_perlin::NormalNoise>> =
         std::cell::RefCell::new(std::collections::HashMap::new());
+}
+fn cached_normal(seed: i64, first: i32, amplitudes: &[f64]) -> crate::noise_perlin::NormalNoise {
+    NORMAL_CACHE.with(|c| {
+        let mut m = c.borrow_mut();
+        m.entry(seed)
+            .or_insert_with(|| crate::noise_perlin::NormalNoise::new(seed, first, amplitudes))
+            .clone()
+    })
 }
 
 fn cached_simplex(seed: i64) -> SimplexNoise {
-    NOISE_CACHE.with(|c| {
-        let mut m = c.borrow_mut();
-        m.entry(seed)
-            .or_insert_with(|| SimplexNoise::new(seed))
-            .clone()
-    })
+    SimplexNoise::new(seed)
 }
 
 #[derive(Clone, Debug)]
@@ -211,29 +331,31 @@ impl NoiseRegistry {
         Ok(out)
     }
     pub fn sample(&self, name: &str, seed: i64, x: f64, y: f64, z: f64) -> f64 {
-        let Some(d) = self.defs.get(name.rsplit(':').next().unwrap_or(name)) else {
+        let key = name.rsplit(':').next().unwrap_or(name);
+        let Some(d) = self.defs.get(key) else {
             return 0.;
         };
-        let mut v = 0.;
-        // NormalNoise sums the configured octave amplitudes directly and
-        // normalizes by their absolute total.  Geometric weights are not part
-        // of vanilla's noise sampler and distort cave thresholds.
-        let amplitude_sum: f64 = d.amplitudes.iter().map(|a| a.abs()).sum();
-        if amplitude_sum == 0.0 {
-            return 0.0;
-        }
-        for (i, a) in d.amplitudes.iter().enumerate() {
-            if *a != 0. {
-                let scale = 2f64.powi(d.first_octave + i as i32);
-                v += cached_simplex(seed.wrapping_add(i as i64)).get_value(
-                    x * scale,
-                    y * scale,
-                    z * scale,
-                ) * a;
-            }
-        }
-        v / amplitude_sum
+        // Vanilla RandomState: `random = WorldgenRandom(LegacyRandomSource(seed)).forkPositional()`,
+        // then each noise is `NormalNoise.create(random.fromHashOf("minecraft:<key>"), ...)`.
+        // fromHashOf(name) = LegacyRandomSource(name.hashCode() ^ forkSeed).
+        let fork_seed = fork_seed_for(seed);
+        let noise_seed =
+            crate::noise_perlin::java_string_hash(&format!("minecraft:{key}")) as i64 ^ fork_seed;
+        let n = cached_normal(noise_seed, d.first_octave, &d.amplitudes);
+        n.get_value(x, y, z)
     }
+}
+
+thread_local! {
+    static FORK_SEED_CACHE: std::cell::RefCell<std::collections::HashMap<i64, i64>> =
+        std::cell::RefCell::new(std::collections::HashMap::new());
+}
+fn fork_seed_for(seed: i64) -> i64 {
+    FORK_SEED_CACHE.with(|c| {
+        let mut m = c.borrow_mut();
+        *m.entry(seed)
+            .or_insert_with(|| JavaRandom::new(seed).next_long())
+    })
 }
 fn extract_num(s: &str, k: &str) -> Option<f64> {
     let p = s.find(&format!("\"{k}\""))?;

@@ -37,6 +37,7 @@ pub mod biome;
 pub mod density;
 pub mod features;
 pub mod noise;
+pub mod noise_perlin;
 pub mod simplex;
 pub mod surface;
 
