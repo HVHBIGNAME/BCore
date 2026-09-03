@@ -149,6 +149,26 @@ impl SimplexNoise {
     }
 }
 
+/// Per-thread cache of `SimplexNoise` instances keyed by seed.
+///
+/// `SimplexNoise::new` shuffles a 256-entry permutation table, which is far too
+/// expensive to repeat for every sampled block. Worldgen reuses a handful of
+/// seeds per octave, so caching collapses that cost to a hash lookup + a 256-byte
+/// clone.
+thread_local! {
+    static NOISE_CACHE: std::cell::RefCell<std::collections::HashMap<i64, SimplexNoise>> =
+        std::cell::RefCell::new(std::collections::HashMap::new());
+}
+
+fn cached_simplex(seed: i64) -> SimplexNoise {
+    NOISE_CACHE.with(|c| {
+        let mut m = c.borrow_mut();
+        m.entry(seed)
+            .or_insert_with(|| SimplexNoise::new(seed))
+            .clone()
+    })
+}
+
 #[derive(Clone, Debug)]
 pub struct NoiseDefinition {
     pub first_octave: i32,
@@ -190,7 +210,7 @@ impl NoiseRegistry {
         for (n, a) in d.amplitudes.iter().enumerate() {
             if *a != 0. {
                 let scale = 2f64.powi(d.first_octave + n as i32);
-                v += SimplexNoise::new(seed.wrapping_add(n as i64)).get_value(
+                v += cached_simplex(seed.wrapping_add(n as i64)).get_value(
                     x / scale,
                     y / scale,
                     z / scale,
@@ -247,10 +267,10 @@ pub fn hash_2d(seed: i64, x: i64, z: i64) -> f64 {
         / 9007199254740992.
 }
 pub fn value_noise_2d(seed: i64, x: f64, z: f64) -> f64 {
-    SimplexNoise::new(seed).get_value(x, 0., z)
+    cached_simplex(seed).get_value(x, 0., z)
 }
 pub fn value_noise_3d(seed: i64, x: f64, y: f64, z: f64) -> f64 {
-    SimplexNoise::new(seed).get_value(x, y, z)
+    cached_simplex(seed).get_value(x, y, z)
 }
 pub fn fbm2(seed: i64, x: f64, z: f64, scale: f64, octaves: u32, persistence: f64) -> f64 {
     fbm3(seed, x, 0., z, scale, octaves, persistence)
