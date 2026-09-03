@@ -662,7 +662,7 @@ impl WorldGenerator {
     /// deterministic generator; this keeps callers working while density support
     /// grows (interpolated/blend/cache are represented as zero by density.rs).
     pub fn generate_chunk_vanilla(self, pos: ChunkPos) -> GeneratedChunk {
-        let Some(graph) = VanillaGraph::load() else {
+        let Some(graph) = VanillaGraph::load(self.seed) else {
             return self.generate_chunk(pos);
         };
         let mut chunk = GeneratedChunk::new(pos);
@@ -673,15 +673,21 @@ impl WorldGenerator {
                 let wx = base_x + x as i32;
                 let wz = base_z + z as i32;
                 let mut top = MIN_Y;
+                let mut was_solid = false;
                 for y in MIN_Y..=MAX_Y {
-                    if density::evaluate(
+                    let solid = density::evaluate(
                         &graph.final_density,
                         wx as f64,
                         y as f64,
                         wz as f64,
                         &graph.ctx,
-                    ) > 0.0
-                    {
+                    ) > 0.0;
+                    if was_solid && !solid {
+                        top = y - 1;
+                        break;
+                    }
+                    was_solid = solid;
+                    if solid {
                         top = y;
                     }
                 }
@@ -1036,7 +1042,7 @@ struct VanillaGraph {
     ctx: density::EvalContext,
 }
 impl VanillaGraph {
-    fn load() -> Option<Self> {
+    fn load(seed: i64) -> Option<Self> {
         let root = std::env::var_os("BCORE_DATAPACK")
             .map(PathBuf::from)
             .unwrap_or_else(|| PathBuf::from("target/datapack"));
@@ -1068,7 +1074,7 @@ impl VanillaGraph {
             weirdness: load("ridges"),
             depth: load("depth"),
             ctx: density::EvalContext {
-                seed: 0,
+                seed,
                 ..Default::default()
             },
         })
