@@ -151,19 +151,9 @@ pub fn place_ore(
     let state = ore_state(kind);
     let mut points: Vec<(i32, i32, i32)> = Vec::with_capacity(size);
     points.push((x, y, z));
-
-    // OreFeature grows from random anchors, but rejects positions outside the
-    // ellipsoid around the vein origin.  The radii scale with the configured
-    // size; this keeps small veins compact while allowing large blobs to fill
-    // their intended volume.  A bounded retry fallback guarantees progress
-    // even when the ellipsoid is saturated.
-    let radius = ((size as f64).sqrt() * 0.72).ceil().max(1.0) as i32;
-    let ry = (radius / 2).max(1);
-    let rxz = radius.max(1);
-    let max_attempts = size.saturating_mul(32).max(64);
-    let mut attempts = 0;
+    // Vanilla OreFeature grows the vein from a random existing block by one
+    // axis-aligned step, exactly like the original implementation (no ellipsoid).
     while points.len() < size {
-        attempts += 1;
         let anchor = points[rng.next_int(points.len())];
         let axis = rng.next_int(3) as i32;
         let step = if rng.next_int(2) == 0 { -1 } else { 1 };
@@ -173,28 +163,8 @@ pub fn place_ore(
             1 => p.1 += step,
             _ => p.2 += step,
         }
-        let dx = (p.0 - x) as f64 / rxz as f64;
-        let dy = (p.1 - y) as f64 / ry as f64;
-        let dz = (p.2 - z) as f64 / rxz as f64;
-        if dx * dx + dy * dy + dz * dz <= 1.0 && !points.contains(&p) {
+        if !points.contains(&p) {
             points.push(p);
-        } else if attempts >= max_attempts {
-            // This path is rare and only prevents an oversized request from
-            // looping forever; select an unoccupied neighboring shell point.
-            attempts = 0;
-            for candidate in [
-                (p.0 + 1, p.1, p.2),
-                (p.0 - 1, p.1, p.2),
-                (p.0, p.1 + 1, p.2),
-                (p.0, p.1 - 1, p.2),
-                (p.0, p.1, p.2 + 1),
-                (p.0, p.1, p.2 - 1),
-            ] {
-                if !points.contains(&candidate) {
-                    points.push(candidate);
-                    break;
-                }
-            }
         }
     }
     for (px, py, pz) in points {
