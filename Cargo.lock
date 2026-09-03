@@ -54,6 +54,7 @@ dependencies = [
  "bcore-core",
  "md5",
  "rayon",
+ "serde_json",
 ]
 
 [[package]]

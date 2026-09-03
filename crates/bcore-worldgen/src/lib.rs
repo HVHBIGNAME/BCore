@@ -33,6 +33,7 @@ use std::fs;
 use std::path::PathBuf;
 use std::sync::OnceLock;
 
+pub mod aquifer;
 pub mod biome;
 pub mod density;
 pub mod features;
@@ -40,6 +41,7 @@ pub mod noise;
 pub mod noise_perlin;
 pub mod simplex;
 pub mod surface;
+pub mod surface_rules;
 
 pub use noise::{fbm2, fbm3, hash_2d, splitmix64, value_noise_2d, value_noise_3d};
 
@@ -86,6 +88,7 @@ pub mod block {
     pub const PODZOL: u32 = 13;
     pub const BEDROCK: u32 = 85;
     pub const WATER: u32 = 86;
+    pub const LAVA: u32 = 87;
     pub const SAND: u32 = 118;
     pub const GRAVEL: u32 = 124;
     pub const GOLD_ORE: u32 = 129;
@@ -732,12 +735,19 @@ impl WorldGenerator {
                 );
                 let biome = biome_from_id(biome_id);
                 let mut states = vec![block::AIR; WORLD_HEIGHT as usize];
+                let mut aquifer = aquifer::Aquifer::new(
+                    self.seed,
+                    top,
+                    biome_is_water(biome_id),
+                    density::noise_registry(),
+                );
                 for y in MIN_Y..=MAX_Y {
-                    let solid = densities[(y - MIN_Y) as usize] > 0.0;
-                    states[(y - MIN_Y) as usize] = if solid {
+                    let density_value = densities[(y - MIN_Y) as usize];
+                    let substance = aquifer.substance(wx, y, wz, density_value);
+                    states[(y - MIN_Y) as usize] = if density_value > 0.0 {
                         surface::surface_block(biome_id, y, top, top, SEA_LEVEL, wx, wz, self.seed)
-                    } else if y < SEA_LEVEL && biome_is_water(biome_id) {
-                        block::WATER
+                    } else if substance == block::WATER || substance == block::LAVA {
+                        substance
                     } else {
                         block::AIR
                     };

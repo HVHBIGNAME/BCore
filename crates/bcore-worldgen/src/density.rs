@@ -4,7 +4,7 @@ use crate::simplex::{NoiseRegistry, SimplexNoise};
 use std::collections::HashMap;
 use std::sync::OnceLock;
 
-fn noise_registry() -> &'static NoiseRegistry {
+pub fn noise_registry() -> &'static NoiseRegistry {
     static REGISTRY: OnceLock<NoiseRegistry> = OnceLock::new();
     REGISTRY.get_or_init(|| {
         let root = std::env::var_os("BCORE_DATAPACK")

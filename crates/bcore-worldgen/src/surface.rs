@@ -142,7 +142,7 @@ fn deepslate_gradient(x: i32, y: i32, z: i32, seed: i64) -> bool {
 /// `SurfaceRules.VerticalGradientConditionSource`: true below `true_at_and_below`,
 /// false at/above `false_at_and_above`, and a linearly-falling random chance in
 /// between, sampled from a positional random derived from `random_name`.
-fn vertical_gradient(
+pub(crate) fn vertical_gradient(
     random_name: &str,
     x: i32,
     y: i32,
