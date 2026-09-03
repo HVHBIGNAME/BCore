@@ -48,14 +48,18 @@ fn is_water_biome(biome: BiomeId) -> bool {
 /// Returns the block placed at `y` for a column whose terrain top is `top_y`.
 /// `height` is retained in the public API because surface rules can use the
 /// sampled terrain height; it is currently equivalent to `top_y` for rules.
+/// `wx`/`wz`/`seed` are required for the bedrock-floor vertical gradient.
 pub fn surface_block(
     biome: BiomeId,
     y: i32,
     height: i32,
     top_y: i32,
     sea_level: i32,
+    wx: i32,
+    wz: i32,
+    seed: i64,
 ) -> BlockState {
-    if y <= MIN_Y + 4 {
+    if bedrock_floor(wx, y, wz, seed) {
         return block::BEDROCK;
     }
     let depth = top_y - y;
@@ -120,41 +124,82 @@ pub fn surface_block(
     }
 }
 
+/// Vanilla bedrock floor: a `vertical_gradient` surface rule.
+///
+/// `y <= -64` is always bedrock; `y >= -59` never; in between the chance falls
+/// linearly (`probability = (-59 - y) / 5`) against a positional random derived
+/// from `randomName = "minecraft:bedrock_floor"`.
+fn bedrock_floor(x: i32, y: i32, z: i32, seed: i64) -> bool {
+    if y <= MIN_Y {
+        return true;
+    }
+    if y >= MIN_Y + 5 {
+        return false;
+    }
+    let probability = (MIN_Y + 5 - y) as f64 / 5.0;
+    // randomFactory = fromHashOf("minecraft:bedrock_floor").forkPositional()
+    let fork_seed = crate::simplex::fork_seed_for(seed);
+    let bedrock_seed =
+        crate::noise_perlin::java_string_hash("minecraft:bedrock_floor") as i64 ^ fork_seed;
+    let mut r = crate::simplex::JavaRandom::new(bedrock_seed);
+    let positional_seed = r.next_long();
+    // at(x, y, z) = LegacyRandomSource(Mth.getSeed(x, y, z) ^ positionalSeed)
+    let at_seed = mth_get_seed(x, y, z) ^ positional_seed;
+    let mut at_rng = crate::simplex::JavaRandom::new(at_seed);
+    (at_rng.next_float() as f64) < probability
+}
+
+/// Vanilla `Mth.getSeed`.
+fn mth_get_seed(x: i32, y: i32, z: i32) -> i64 {
+    let mut i = ((x as i64) * 3129871) ^ ((z as i64) * 116129781) ^ (y as i64);
+    i = i
+        .wrapping_mul(i)
+        .wrapping_mul(42317861)
+        .wrapping_add(i.wrapping_mul(11));
+    i >> 16
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     #[test]
     fn bedrock_is_floor() {
-        assert_eq!(surface_block(0, -64, 70, 70, 63), block::BEDROCK);
+        assert_eq!(
+            surface_block(0, -64, 70, 70, 63, 0, 0, 1234),
+            block::BEDROCK
+        );
     }
     #[test]
     fn desert_has_sandstone_under_three_sand() {
         assert_eq!(
-            surface_block(biome_ids::DESERT, 71, 73, 73, 63),
+            surface_block(biome_ids::DESERT, 71, 73, 73, 63, 0, 0, 1234),
             block::SAND
         );
         assert_eq!(
-            surface_block(biome_ids::DESERT, 70, 73, 73, 63),
+            surface_block(biome_ids::DESERT, 70, 73, 73, 63, 0, 0, 1234),
             block::SANDSTONE
         );
     }
     #[test]
     fn snowy_and_mushroom_tops() {
         assert_eq!(
-            surface_block(biome_ids::SNOWY_PLAINS, 70, 70, 70, 63),
+            surface_block(biome_ids::SNOWY_PLAINS, 70, 70, 70, 63, 0, 0, 1234),
             block::SNOW_BLOCK
         );
         assert_eq!(
-            surface_block(biome_ids::MUSHROOM_FIELDS, 70, 70, 70, 63),
+            surface_block(biome_ids::MUSHROOM_FIELDS, 70, 70, 70, 63, 0, 0, 1234),
             MYCELIUM
         );
     }
     #[test]
     fn ocean_fills_to_sea_and_has_bottom() {
         assert_eq!(
-            surface_block(biome_ids::OCEAN, 62, 50, 50, 63),
+            surface_block(biome_ids::OCEAN, 62, 50, 50, 63, 0, 0, 1234),
             block::WATER
         );
-        assert_eq!(surface_block(biome_ids::OCEAN, 49, 50, 50, 63), block::SAND);
+        assert_eq!(
+            surface_block(biome_ids::OCEAN, 49, 50, 50, 63, 0, 0, 1234),
+            block::SAND
+        );
     }
 }

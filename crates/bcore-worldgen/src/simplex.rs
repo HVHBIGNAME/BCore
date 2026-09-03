@@ -34,6 +34,9 @@ impl JavaRandom {
     pub fn next_double(&mut self) -> f64 {
         (((self.next(26) as u64) << 27 | self.next(27) as u64) as f64) / 9007199254740992.0
     }
+    pub fn next_float(&mut self) -> f32 {
+        self.next(24) as f32 * 5.9604645e-8_f32
+    }
     pub fn next_int(&mut self, bound: usize) -> usize {
         let b = bound as u32;
         if b.is_power_of_two() {
@@ -340,7 +343,7 @@ thread_local! {
     static FORK_SEED_CACHE: std::cell::RefCell<std::collections::HashMap<i64, i64>> =
         std::cell::RefCell::new(std::collections::HashMap::new());
 }
-fn fork_seed_for(seed: i64) -> i64 {
+pub fn fork_seed_for(seed: i64) -> i64 {
     FORK_SEED_CACHE.with(|c| {
         let mut m = c.borrow_mut();
         *m.entry(seed)

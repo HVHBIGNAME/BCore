@@ -735,7 +735,7 @@ impl WorldGenerator {
                 for y in MIN_Y..=MAX_Y {
                     let solid = densities[(y - MIN_Y) as usize] > 0.0;
                     states[(y - MIN_Y) as usize] = if solid {
-                        surface::surface_block(biome_id, y, top, top, SEA_LEVEL)
+                        surface::surface_block(biome_id, y, top, top, SEA_LEVEL, wx, wz, self.seed)
                     } else if y < SEA_LEVEL && biome_is_water(biome_id) {
                         block::WATER
                     } else {
