@@ -68,8 +68,8 @@ pub fn surface_block(
     } else {
         height.max(top_y)
     };
-    // 1.18+ deepslate replaces stone below Y=0.
-    let stone = if y < 0 {
+    // 1.18+ deepslate replaces stone via a vertical_gradient between Y=0 and Y=8.
+    let stone = if deepslate_gradient(wx, y, wz, seed) {
         block::DEEPSLATE
     } else {
         block::STONE
@@ -130,23 +130,47 @@ pub fn surface_block(
 /// linearly (`probability = (-59 - y) / 5`) against a positional random derived
 /// from `randomName = "minecraft:bedrock_floor"`.
 fn bedrock_floor(x: i32, y: i32, z: i32, seed: i64) -> bool {
-    if y <= MIN_Y {
+    vertical_gradient("minecraft:bedrock_floor", x, y, z, seed, MIN_Y, MIN_Y + 5)
+}
+
+/// Vanilla deepslate: `vertical_gradient` with `true_at_and_below = 0`,
+/// `false_at_and_above = 8`, `randomName = "minecraft:deepslate"`.
+fn deepslate_gradient(x: i32, y: i32, z: i32, seed: i64) -> bool {
+    vertical_gradient("minecraft:deepslate", x, y, z, seed, 0, 8)
+}
+
+/// `SurfaceRules.VerticalGradientConditionSource`: true below `true_at_and_below`,
+/// false at/above `false_at_and_above`, and a linearly-falling random chance in
+/// between, sampled from a positional random derived from `random_name`.
+fn vertical_gradient(
+    random_name: &str,
+    x: i32,
+    y: i32,
+    z: i32,
+    seed: i64,
+    true_at_and_below: i32,
+    false_at_and_above: i32,
+) -> bool {
+    if y <= true_at_and_below {
         return true;
     }
-    if y >= MIN_Y + 5 {
+    if y >= false_at_and_above {
         return false;
     }
-    let probability = (MIN_Y + 5 - y) as f64 / 5.0;
-    // randomFactory = fromHashOf("minecraft:bedrock_floor").forkPositional()
-    let fork_seed = crate::simplex::fork_seed_for(seed);
-    let bedrock_seed =
-        crate::noise_perlin::java_string_hash("minecraft:bedrock_floor") as i64 ^ fork_seed;
-    let mut r = crate::simplex::JavaRandom::new(bedrock_seed);
-    let positional_seed = r.next_long();
-    // at(x, y, z) = LegacyRandomSource(Mth.getSeed(x, y, z) ^ positionalSeed)
-    let at_seed = mth_get_seed(x, y, z) ^ positional_seed;
-    let mut at_rng = crate::simplex::JavaRandom::new(at_seed);
+    // Mth.map(y, trueAtAndBelow, falseAtAndAbove, 1.0, 0.0)
+    let probability =
+        1.0 - (y - true_at_and_below) as f64 / (false_at_and_above - true_at_and_below) as f64;
+    let mut at_rng = crate::simplex::JavaRandom::new(positional_seed(random_name, x, y, z, seed));
     (at_rng.next_float() as f64) < probability
+}
+
+/// `randomState.getOrCreateRandomFactory(name)` = `random.fromHashOf(name).forkPositional()`,
+/// then `.at(x, y, z)` = `LegacyRandomSource(Mth.getSeed(x,y,z) ^ factorySeed)`.
+fn positional_seed(random_name: &str, x: i32, y: i32, z: i32, seed: i64) -> i64 {
+    let fork_seed = crate::simplex::fork_seed_for(seed);
+    let named_seed = crate::noise_perlin::java_string_hash(random_name) as i64 ^ fork_seed;
+    let factory_seed = crate::simplex::JavaRandom::new(named_seed).next_long();
+    mth_get_seed(x, y, z) ^ factory_seed
 }
 
 /// Vanilla `Mth.getSeed`.
