@@ -30,6 +30,10 @@ pub enum OreKind {
     Diamond,
     Emerald,
     Lapis,
+    Andesite,
+    Diorite,
+    Granite,
+    Tuff,
 }
 
 /// Place a simple tree at `(x, y, z)`, where `y` is the ground block.
@@ -185,6 +189,10 @@ fn ore_state(kind: OreKind) -> BlockState {
         // blocks.json: minecraft:emerald_ore default state id 9573.
         OreKind::Emerald => 9573,
         OreKind::Lapis => block::LAPIS_ORE,
+        OreKind::Andesite => block::ANDESITE,
+        OreKind::Diorite => block::DIORITE,
+        OreKind::Granite => block::GRANITE,
+        OreKind::Tuff => block::TUFF,
     }
 }
 

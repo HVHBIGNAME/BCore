@@ -74,6 +74,10 @@ pub const DEEPSLATE_Y: i32 = 0;
 pub mod block {
     pub const AIR: u32 = 0;
     pub const STONE: u32 = 1;
+    pub const GRANITE: u32 = 2;
+    pub const DIORITE: u32 = 4;
+    pub const ANDESITE: u32 = 6;
+    pub const TUFF: u32 = 23452;
     pub const GRASS_BLOCK: u32 = 9;
     pub const DIRT: u32 = 10;
     pub const COARSE_DIRT: u32 = 11;
