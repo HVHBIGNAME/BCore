@@ -28,9 +28,12 @@
 //! chunk borders never cut a canopy in half.
 
 use bcore_core::ChunkPos;
+use std::fs;
+use std::path::PathBuf;
 
 pub mod biome;
 pub mod density;
+pub mod features;
 pub mod noise;
 pub mod surface;
 
@@ -652,6 +655,66 @@ impl WorldGenerator {
 
     // ---- generation ------------------------------------------------------
 
+    /// Generate a chunk using the staged vanilla data-driven pipeline.
+    ///
+    /// Missing/incomplete datapack functions intentionally degrade to the existing
+    /// deterministic generator; this keeps callers working while density support
+    /// grows (interpolated/blend/cache are represented as zero by density.rs).
+    pub fn generate_chunk_vanilla(self, pos: ChunkPos) -> GeneratedChunk {
+        let Some(graph) = VanillaGraph::load() else {
+            return self.generate_chunk(pos);
+        };
+        let mut chunk = GeneratedChunk::new(pos);
+        let base_x = pos.x * CHUNK_SIZE as i32;
+        let base_z = pos.z * CHUNK_SIZE as i32;
+        for z in 0..CHUNK_SIZE {
+            for x in 0..CHUNK_SIZE {
+                let wx = base_x + x as i32;
+                let wz = base_z + z as i32;
+                let mut top = MIN_Y;
+                for y in MIN_Y..=MAX_Y {
+                    if density::evaluate(
+                        &graph.final_density,
+                        wx as f64,
+                        y as f64,
+                        wz as f64,
+                        &graph.ctx,
+                    ) > 0.0
+                    {
+                        top = y;
+                    }
+                }
+                let climate = |f: &Option<density::DensityFunction>| {
+                    f.as_ref()
+                        .map(|v| density::evaluate(v, wx as f64, top as f64, wz as f64, &graph.ctx))
+                        .unwrap_or(0.0)
+                };
+                let biome_id = biome::biome_at(
+                    &graph.parameters,
+                    climate(&graph.temperature),
+                    climate(&graph.humidity),
+                    climate(&graph.continentalness),
+                    climate(&graph.erosion),
+                    climate(&graph.weirdness),
+                    climate(&graph.depth),
+                );
+                chunk.heights[z * CHUNK_SIZE + x] = top;
+                chunk.biomes[z * CHUNK_SIZE + x] = biome_from_id(biome_id);
+                for y in MIN_Y..=MAX_Y {
+                    let solid = y <= top && top > MIN_Y;
+                    let state = if solid {
+                        surface::surface_block(biome_id, y, top, top, SEA_LEVEL)
+                    } else if y < SEA_LEVEL && biome_is_water(biome_id) {
+                        block::WATER
+                    } else {
+                        block::AIR
+                    };
+                    chunk.set(x, y, z, state);
+                }
+            }
+        }
+        chunk
+    }
     /// Generate one complete chunk deterministically from its position and seed.
     pub fn generate_chunk(self, pos: ChunkPos) -> GeneratedChunk {
         let mut chunk = GeneratedChunk::new(pos);
@@ -941,6 +1004,75 @@ impl WorldGenerator {
     }
 }
 
+fn biome_from_id(id: biome::BiomeId) -> Biome {
+    match id {
+        biome::ids::OCEAN => Biome::Ocean,
+        biome::ids::FROZEN_OCEAN => Biome::FrozenOcean,
+        biome::ids::RIVER => Biome::River,
+        biome::ids::DESERT => Biome::Desert,
+        biome::ids::SNOWY_PLAINS => Biome::SnowyPlains,
+        biome::ids::SNOWY_SLOPES => Biome::SnowyMountains,
+        biome::ids::MUSHROOM_FIELDS => Biome::MushroomFields,
+        _ => Biome::Plains,
+    }
+}
+fn biome_is_water(id: biome::BiomeId) -> bool {
+    matches!(
+        id,
+        biome::ids::OCEAN | biome::ids::FROZEN_OCEAN | biome::ids::RIVER
+    )
+}
+
+struct VanillaGraph {
+    final_density: density::DensityFunction,
+    parameters: Vec<(biome::BiomeId, biome::BiomeParameters)>,
+    temperature: Option<density::DensityFunction>,
+    humidity: Option<density::DensityFunction>,
+    continentalness: Option<density::DensityFunction>,
+    erosion: Option<density::DensityFunction>,
+    weirdness: Option<density::DensityFunction>,
+    depth: Option<density::DensityFunction>,
+    ctx: density::EvalContext,
+}
+impl VanillaGraph {
+    fn load() -> Option<Self> {
+        let root = std::env::var_os("BCORE_DATAPACK")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("target/datapack"));
+        let settings = root.join("data/minecraft/worldgen/noise_settings/overworld.json");
+        let text = fs::read_to_string(settings).ok()?;
+        let final_json = text
+            .split("\"final_density\":")
+            .nth(1)?
+            .split("\"vein_toggle\"")
+            .next()?;
+        let final_density = density::parse_json(final_json).ok()?;
+        let dir = root.join("data/minecraft/worldgen/density_function/overworld");
+        let load = |name: &str| {
+            fs::read_to_string(dir.join(format!("{name}.json")))
+                .ok()
+                .and_then(|s| density::parse_json(&s).ok())
+        };
+        let parameters = biome::load_overworld_parameters(
+            root.join("../datagen/reports/biome_parameters/minecraft/overworld.json"),
+        )
+        .unwrap_or_default();
+        Some(Self {
+            final_density,
+            parameters,
+            temperature: load("temperature"),
+            humidity: load("humidity"),
+            continentalness: load("continents"),
+            erosion: load("erosion"),
+            weirdness: load("ridges"),
+            depth: load("depth"),
+            ctx: density::EvalContext {
+                seed: 0,
+                ..Default::default()
+            },
+        })
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::*;

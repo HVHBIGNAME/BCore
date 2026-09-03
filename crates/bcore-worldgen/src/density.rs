@@ -38,6 +38,22 @@ pub enum DensityFunction {
         to_value: f64,
     },
     Spline(Vec<(f64, f64, f64)>),
+    Interpolated(Box<Self>),
+    ShiftA(String),
+    ShiftB(String),
+    Cache2d(Box<Self>),
+    CacheAllInCell(Box<Self>),
+    FlatCache(Box<Self>),
+    BlendOffset(Box<Self>),
+    BlendAlpha(Box<Self>),
+    WeirdScaledSampler {
+        input: Box<Self>,
+        noise: String,
+        rarity: f64,
+    },
+    EndIslands,
+    OldBlendedNoise,
+    NoOp(Box<Self>),
     Unknown,
 }
 
@@ -109,6 +125,18 @@ impl DensityFunction {
                 from_value + (to_value - from_value) * t
             }
             Self::Spline(p) => spline(p, y),
+            Self::Interpolated(a)
+            | Self::Cache2d(a)
+            | Self::CacheAllInCell(a)
+            | Self::FlatCache(a)
+            | Self::BlendOffset(a)
+            | Self::BlendAlpha(a)
+            | Self::NoOp(a) => a.evaluate(x, y, z, ctx),
+            Self::ShiftA(_) | Self::ShiftB(_) => 0.,
+            Self::WeirdScaledSampler { input, rarity, .. } => {
+                input.evaluate(x, y, z, ctx) * *rarity
+            }
+            Self::EndIslands | Self::OldBlendedNoise => 0.,
             Self::Unknown => 0.,
         }
     }
@@ -336,6 +364,43 @@ fn parse_value(v: &J) -> DensityFunction {
                     xz: num(o, "xz_scale", 1.),
                     y: num(o, "y_scale", 1.),
                 },
+                "minecraft:interpolated" => {
+                    DensityFunction::Interpolated(Box::new(boxed(o.get("argument"))))
+                }
+                "minecraft:shift_a" => DensityFunction::ShiftA(match o.get("argument") {
+                    Some(J::S(s)) => s.clone(),
+                    _ => String::new(),
+                }),
+                "minecraft:shift_b" => DensityFunction::ShiftB(match o.get("argument") {
+                    Some(J::S(s)) => s.clone(),
+                    _ => String::new(),
+                }),
+                "minecraft:cache_2d" => {
+                    DensityFunction::Cache2d(Box::new(boxed(o.get("argument"))))
+                }
+                "minecraft:cache_all_in_cell" => {
+                    DensityFunction::CacheAllInCell(Box::new(boxed(o.get("argument"))))
+                }
+                "minecraft:flat_cache" => {
+                    DensityFunction::FlatCache(Box::new(boxed(o.get("argument"))))
+                }
+                "minecraft:blend_offset" => {
+                    DensityFunction::BlendOffset(Box::new(boxed(o.get("argument"))))
+                }
+                "minecraft:blend_alpha" => {
+                    DensityFunction::BlendAlpha(Box::new(boxed(o.get("argument"))))
+                }
+                "minecraft:weird_scaled_sampler" => DensityFunction::WeirdScaledSampler {
+                    input: Box::new(boxed(o.get("input"))),
+                    noise: match o.get("noise") {
+                        Some(J::S(s)) => s.clone(),
+                        _ => String::new(),
+                    },
+                    rarity: num(o, "rarity_value", 1.),
+                },
+                "minecraft:end_islands" => DensityFunction::EndIslands,
+                "minecraft:old_blended_noise" => DensityFunction::OldBlendedNoise,
+                "minecraft:no_op" => DensityFunction::NoOp(Box::new(boxed(o.get("argument")))),
                 _ => DensityFunction::Unknown,
             }
         }
