@@ -175,8 +175,22 @@ impl DensityFunction {
             | Self::FlatCache(a)
             | Self::CacheOnce(a)
             | Self::NoOp(a) => a.evaluate(x, y, z, ctx),
-            Self::QuarterNegative(a) => -a.evaluate(x, y, z, ctx) * 0.25,
-            Self::HalfNegative(a) => -a.evaluate(x, y, z, ctx) * 0.5,
+            Self::QuarterNegative(a) => {
+                let v = a.evaluate(x, y, z, ctx);
+                if v < 0.0 {
+                    v * 0.25
+                } else {
+                    v
+                }
+            }
+            Self::HalfNegative(a) => {
+                let v = a.evaluate(x, y, z, ctx);
+                if v < 0.0 {
+                    v * 0.5
+                } else {
+                    v
+                }
+            }
             Self::IntervalSelect {
                 input,
                 min,
@@ -569,6 +583,13 @@ fn parse_value(v: &J) -> DensityFunction {
                 "minecraft:half_negative" => {
                     DensityFunction::HalfNegative(Box::new(boxed(o.get("argument"))))
                 }
+                "minecraft:range_choice" => DensityFunction::Range {
+                    input: Box::new(boxed(o.get("input"))),
+                    min: num(o, "min_inclusive", 0.),
+                    max: num(o, "max_exclusive", 0.),
+                    when_in: Box::new(boxed(o.get("when_in_range"))),
+                    when_out: Box::new(boxed(o.get("when_out_of_range"))),
+                },
                 "minecraft:interval_select" => DensityFunction::IntervalSelect {
                     input: Box::new(boxed(o.get("input"))),
                     min: num(o, "min_inclusive", 0.),
