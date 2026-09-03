@@ -756,6 +756,28 @@ impl WorldGenerator {
         }
         chunk
     }
+    pub fn cave_density_probe(
+        seed: i64,
+        x: f64,
+        y: f64,
+        z: f64,
+    ) -> Option<(f64, Option<f64>, Option<f64>, Option<f64>)> {
+        let graph = VanillaGraph::load()?;
+        let ctx = density::EvalContext {
+            seed,
+            ..Default::default()
+        };
+        let eval = |f: &Option<density::DensityFunction>| {
+            f.as_ref().map(|v| density::evaluate(v, x, y, z, &ctx))
+        };
+        Some((
+            density::evaluate(&graph.final_density, x, y, z, &ctx),
+            eval(&graph.noodle),
+            eval(&graph.cave_cheese),
+            eval(&graph.entrances),
+        ))
+    }
+
     /// Generate one complete chunk deterministically from its position and seed.
     pub fn generate_chunk(self, pos: ChunkPos) -> GeneratedChunk {
         let mut chunk = GeneratedChunk::new(pos);
@@ -1113,6 +1135,11 @@ struct VanillaColumn {
 
 struct VanillaGraph {
     final_density: density::DensityFunction,
+    // Exposed in the graph for cave probes and parity diagnostics.  These are
+    // the same parsed functions referenced by NoiseRouterData's cave branch.
+    noodle: Option<density::DensityFunction>,
+    cave_cheese: Option<density::DensityFunction>,
+    entrances: Option<density::DensityFunction>,
     parameters: Vec<(biome::BiomeId, biome::BiomeParameters)>,
     temperature: Option<density::DensityFunction>,
     humidity: Option<density::DensityFunction>,
@@ -1145,12 +1172,21 @@ impl VanillaGraph {
                 .ok()
                 .and_then(|s| density::parse_json(&s).ok())
         };
+        let cave_dir = dir.join("caves");
+        let load_cave = |name: &str| {
+            fs::read_to_string(cave_dir.join(format!("{name}.json")))
+                .ok()
+                .and_then(|s| density::parse_json(&s).ok())
+        };
         let parameters = biome::load_overworld_parameters(
             root.join("../datagen/reports/biome_parameters/minecraft/overworld.json"),
         )
         .unwrap_or_default();
         Some(Self {
             final_density,
+            noodle: load_cave("noodle"),
+            cave_cheese: load("sloped_cheese"),
+            entrances: load_cave("entrances"),
             parameters,
             temperature: load("temperature"),
             humidity: load("humidity"),

@@ -274,9 +274,9 @@ fn interpolate(inner: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContex
     let tx = ((x - x0) / cw).clamp(0., 1.);
     let ty = ((y - y0) / ch).clamp(0., 1.);
     let tz = ((z - z0) / cw).clamp(0., 1.);
-    let sx = tx * tx * (3. - 2. * tx);
-    let sy = ty * ty * (3. - 2. * ty);
-    let sz = tz * tz * (3. - 2. * tz);
+    let sx = tx;
+    let sy = ty;
+    let sz = tz;
     let c =
         |dx: f64, dy: f64, dz: f64| inner.evaluate(x0 + dx * cw, y0 + dy * ch, z0 + dz * cw, ctx);
     let x00 = c(0., 0., 0.) + (c(1., 0., 0.) - c(0., 0., 0.)) * sx;
