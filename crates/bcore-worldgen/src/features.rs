@@ -474,8 +474,8 @@ pub fn place_ore_veins(
         }
         for _ in 0..feature.count {
             let x = base_x.wrapping_add(next_range(&mut rng, 0, 15));
-            let y = feature.height(&mut rng);
             let z = base_z.wrapping_add(next_range(&mut rng, 0, 15));
+            let y = feature.height(&mut rng);
             place_ore(&mut rng, world_write, x, y, z, feature.kind, feature.size);
         }
     }
