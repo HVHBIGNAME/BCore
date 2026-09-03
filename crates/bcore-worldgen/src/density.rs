@@ -1,7 +1,18 @@
 //! Vanilla-style density-function evaluation primitives.
 //! The JSON reader intentionally has no dependency on serde, keeping worldgen usable standalone.
-use crate::noise::value_noise_3d;
+use crate::simplex::{NoiseRegistry, SimplexNoise};
 use std::collections::HashMap;
+use std::sync::OnceLock;
+
+fn noise_registry() -> &'static NoiseRegistry {
+    static REGISTRY: OnceLock<NoiseRegistry> = OnceLock::new();
+    REGISTRY.get_or_init(|| {
+        let root = std::env::var_os("BCORE_DATAPACK")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| std::path::PathBuf::from("target/datapack"));
+        NoiseRegistry::load_dir(root.join("data/minecraft/worldgen/noise")).unwrap_or_default()
+    })
+}
 
 #[derive(Debug, Clone)]
 pub enum DensityFunction {
@@ -37,13 +48,19 @@ pub enum DensityFunction {
         from_value: f64,
         to_value: f64,
     },
-    Spline(Vec<(f64, f64, f64)>),
+    Spline {
+        coordinate: Box<Self>,
+        points: Vec<(f64, f64, f64)>,
+    },
+    Squeeze(Box<Self>),
     Interpolated(Box<Self>),
+    BlendDensity(Box<Self>),
     ShiftA(String),
     ShiftB(String),
     Cache2d(Box<Self>),
     CacheAllInCell(Box<Self>),
     FlatCache(Box<Self>),
+    CacheOnce(Box<Self>),
     BlendOffset(Box<Self>),
     BlendAlpha(Box<Self>),
     WeirdScaledSampler {
@@ -52,8 +69,28 @@ pub enum DensityFunction {
         rarity: f64,
     },
     EndIslands,
-    OldBlendedNoise,
+    OldBlendedNoise {
+        xz_scale: f64,
+        y_scale: f64,
+    },
     NoOp(Box<Self>),
+    QuarterNegative(Box<Self>),
+    HalfNegative(Box<Self>),
+    IntervalSelect {
+        input: Box<Self>,
+        min: f64,
+        max: f64,
+        when_in: Box<Self>,
+        when_out: Box<Self>,
+    },
+    ShiftedNoise {
+        shift_x: Box<Self>,
+        shift_y: Box<Self>,
+        shift_z: Box<Self>,
+        xz: f64,
+        y: f64,
+        name: String,
+    },
     Unknown,
 }
 
@@ -80,7 +117,7 @@ impl DensityFunction {
         match self {
             Self::Constant(v) => *v,
             Self::Noise { name, xz, y: ys } => {
-                value_noise_3d(ctx.seed ^ hash_name(name), x * xz, y * ys, z * xz)
+                noise_registry().sample(name, ctx.seed, x * xz, y * ys, z * xz)
             }
             Self::Add(a, b) => a.evaluate(x, y, z, ctx) + b.evaluate(x, y, z, ctx),
             Self::Mul(a, b) => a.evaluate(x, y, z, ctx) * b.evaluate(x, y, z, ctx),
@@ -124,23 +161,111 @@ impl DensityFunction {
                 let t = ((y - *from as f64) / (*to as f64 - *from as f64)).clamp(0., 1.);
                 from_value + (to_value - from_value) * t
             }
-            Self::Spline(p) => spline(p, y),
-            Self::Interpolated(a)
-            | Self::Cache2d(a)
+            Self::Spline { coordinate, points } => {
+                spline(points, coordinate.evaluate(x, y, z, ctx))
+            }
+            Self::Squeeze(a) => {
+                let v = a.evaluate(x, y, z, ctx).clamp(-1., 1.);
+                v / 2. - v * v * v / 24.
+            }
+            Self::Interpolated(a) => interpolate(a, x, y, z, ctx),
+            Self::BlendDensity(a) => a.evaluate(x, y, z, ctx),
+            Self::Cache2d(a)
             | Self::CacheAllInCell(a)
             | Self::FlatCache(a)
-            | Self::BlendOffset(a)
-            | Self::BlendAlpha(a)
+            | Self::CacheOnce(a)
             | Self::NoOp(a) => a.evaluate(x, y, z, ctx),
-            Self::ShiftA(_) | Self::ShiftB(_) => 0.,
+            Self::QuarterNegative(a) => -a.evaluate(x, y, z, ctx) * 0.25,
+            Self::HalfNegative(a) => -a.evaluate(x, y, z, ctx) * 0.5,
+            Self::IntervalSelect {
+                input,
+                min,
+                max,
+                when_in,
+                when_out,
+            } => {
+                let v = input.evaluate(x, y, z, ctx);
+                if v >= *min && v < *max {
+                    when_in.evaluate(x, y, z, ctx)
+                } else {
+                    when_out.evaluate(x, y, z, ctx)
+                }
+            }
+            Self::ShiftedNoise {
+                shift_x,
+                shift_y,
+                shift_z,
+                xz,
+                y: ys,
+                name,
+            } => {
+                let sx = shift_x.evaluate(x, y, z, ctx);
+                let sy = shift_y.evaluate(x, y, z, ctx);
+                let sz = shift_z.evaluate(x, y, z, ctx);
+                noise_registry().sample(name, ctx.seed, (x + sx) * xz, (y + sy) * ys, (z + sz) * xz)
+            }
+            // A fresh world has no old terrain to blend with: blend_alpha is 0,
+            // but blend_offset is 1 (the identity offset, so depth keeps its
+            // spline variation rather than collapsing to zero).
+            Self::BlendOffset(_) => 1.,
+            Self::BlendAlpha(_) => 0.,
+            Self::ShiftA(name) | Self::ShiftB(name) => {
+                // Vanilla shift noises are 2-D and use the world seed. The
+                // coordinate transforms are applied by the graph around this
+                // scalar function; this is the offset value itself.
+                noise_registry().sample(name, ctx.seed, x * 0.25, 0., z * 0.25) * 4.0
+            }
             Self::WeirdScaledSampler { input, rarity, .. } => {
                 input.evaluate(x, y, z, ctx) * *rarity
             }
-            Self::EndIslands | Self::OldBlendedNoise => 0.,
+            Self::EndIslands => 0.,
+            Self::OldBlendedNoise { xz_scale, y_scale } => {
+                old_blended_noise(x, y, z, *xz_scale, *y_scale, ctx.seed)
+            }
             Self::Unknown => 0.,
         }
     }
 }
+/// Vanilla `old_blended_noise`: for a fresh world this is the legacy 3-D
+/// simplex noise (first octave -7, eight unit amplitudes) — there is no old
+/// terrain to blend with, so the blend factor is zero and only the base noise
+/// remains.
+fn old_blended_noise(x: f64, y: f64, z: f64, xz_scale: f64, y_scale: f64, seed: i64) -> f64 {
+    let mut v = 0.0;
+    for n in 0..8 {
+        let scale = 2f64.powi(-7 + n as i32);
+        v += SimplexNoise::new(seed.wrapping_add(n as i64)).get_value(
+            x * xz_scale / scale,
+            y * y_scale / scale,
+            z * xz_scale / scale,
+        );
+    }
+    v / 8.0
+}
+
+fn interpolate(inner: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContext) -> f64 {
+    let cw = ctx.cell_width.max(1) as f64;
+    let ch = ctx.cell_height.max(1) as f64;
+    let x0 = (x / cw).floor() * cw;
+    let y0 = (y / ch).floor() * ch;
+    let z0 = (z / cw).floor() * cw;
+    let tx = ((x - x0) / cw).clamp(0., 1.);
+    let ty = ((y - y0) / ch).clamp(0., 1.);
+    let tz = ((z - z0) / cw).clamp(0., 1.);
+    let sx = tx * tx * (3. - 2. * tx);
+    let sy = ty * ty * (3. - 2. * ty);
+    let sz = tz * tz * (3. - 2. * tz);
+    let c =
+        |dx: f64, dy: f64, dz: f64| inner.evaluate(x0 + dx * cw, y0 + dy * ch, z0 + dz * cw, ctx);
+    let x00 = c(0., 0., 0.) + (c(1., 0., 0.) - c(0., 0., 0.)) * sx;
+    let x10 = c(0., 1., 0.) + (c(1., 1., 0.) - c(0., 1., 0.)) * sx;
+    let x01 = c(0., 0., 1.) + (c(1., 0., 1.) - c(0., 0., 1.)) * sx;
+    let x11 = c(0., 1., 1.) + (c(1., 1., 1.) - c(0., 1., 1.)) * sx;
+    let y0v = x00 + (x10 - x00) * sy;
+    let y1v = x01 + (x11 - x01) * sy;
+    y0v + (y1v - y0v) * sz
+}
+
 fn hash_name(s: &str) -> i64 {
     let mut h = 0xcbf29ce484222325u64;
     for b in s.bytes() {
@@ -305,7 +430,19 @@ fn boxed(v: Option<&J>) -> DensityFunction {
 fn parse_value(v: &J) -> DensityFunction {
     match v {
         J::N(n) => DensityFunction::Constant(*n),
-        J::S(_s) => DensityFunction::Unknown,
+        J::S(s) => {
+            let root = std::env::var_os("BCORE_DATAPACK")
+                .map(std::path::PathBuf::from)
+                .unwrap_or_else(|| std::path::PathBuf::from("target/datapack"));
+            let path = s.strip_prefix("minecraft:").unwrap_or(s);
+            let file = root
+                .join("data/minecraft/worldgen/density_function")
+                .join(format!("{path}.json"));
+            std::fs::read_to_string(file)
+                .ok()
+                .and_then(|text| parse_json(&text).ok())
+                .unwrap_or(DensityFunction::Unknown)
+        }
         J::O(o) => {
             let typ = match o.get("type") {
                 Some(J::S(s)) => s.as_str(),
@@ -314,8 +451,8 @@ fn parse_value(v: &J) -> DensityFunction {
             match typ {
                 "minecraft:constant" => DensityFunction::Constant(num(o, "value", 0.)),
                 "minecraft:add" => DensityFunction::Add(
-                    Box::new(boxed(o.get("argument_a").or_else(|| o.get("a")))),
-                    Box::new(boxed(o.get("argument_b").or_else(|| o.get("b")))),
+                    Box::new(boxed(o.get("argument1"))),
+                    Box::new(boxed(o.get("argument2"))),
                 ),
                 "minecraft:mul" => DensityFunction::Mul(
                     Box::new(boxed(o.get("argument1").or_else(|| o.get("a")))),
@@ -343,18 +480,40 @@ fn parse_value(v: &J) -> DensityFunction {
                     from_value: num(o, "from_value", 0.),
                     to_value: num(o, "to_value", 0.),
                 },
+                "minecraft:cache_once" => {
+                    DensityFunction::CacheOnce(Box::new(boxed(o.get("argument"))))
+                }
+                "minecraft:squeeze" => DensityFunction::Squeeze(Box::new(boxed(o.get("argument")))),
+                "minecraft:blend_density" => {
+                    DensityFunction::BlendDensity(Box::new(boxed(o.get("argument"))))
+                }
                 "minecraft:spline" => {
+                    // Vanilla nests the spline under "spline": {coordinate, points}.
+                    let spline_obj = match o.get("spline") {
+                        Some(J::O(so)) => so,
+                        _ => o,
+                    };
+                    let coordinate = boxed(spline_obj.get("coordinate"));
                     let mut p = Vec::new();
-                    if let Some(J::A(a)) = o.get("points") {
+                    if let Some(J::A(a)) = spline_obj.get("points") {
                         for q in a {
-                            if let J::A(v) = q {
+                            if let J::O(pt) = q {
+                                p.push((
+                                    num(pt, "location", 0.),
+                                    num(pt, "value", 0.),
+                                    num(pt, "derivative", 0.),
+                                ));
+                            } else if let J::A(v) = q {
                                 if v.len() >= 3 {
                                     p.push((asnum(&v[0]), asnum(&v[1]), asnum(&v[2])))
                                 }
                             }
                         }
                     }
-                    DensityFunction::Spline(p)
+                    DensityFunction::Spline {
+                        coordinate: Box::new(coordinate),
+                        points: p,
+                    }
                 }
                 "minecraft:noise" => DensityFunction::Noise {
                     name: match o.get("noise") {
@@ -399,8 +558,35 @@ fn parse_value(v: &J) -> DensityFunction {
                     rarity: num(o, "rarity_value", 1.),
                 },
                 "minecraft:end_islands" => DensityFunction::EndIslands,
-                "minecraft:old_blended_noise" => DensityFunction::OldBlendedNoise,
+                "minecraft:old_blended_noise" => DensityFunction::OldBlendedNoise {
+                    xz_scale: num(o, "xz_scale", 0.25),
+                    y_scale: num(o, "y_scale", 0.125),
+                },
                 "minecraft:no_op" => DensityFunction::NoOp(Box::new(boxed(o.get("argument")))),
+                "minecraft:quarter_negative" => {
+                    DensityFunction::QuarterNegative(Box::new(boxed(o.get("argument"))))
+                }
+                "minecraft:half_negative" => {
+                    DensityFunction::HalfNegative(Box::new(boxed(o.get("argument"))))
+                }
+                "minecraft:interval_select" => DensityFunction::IntervalSelect {
+                    input: Box::new(boxed(o.get("input"))),
+                    min: num(o, "min_inclusive", 0.),
+                    max: num(o, "max_exclusive", 1.),
+                    when_in: Box::new(boxed(o.get("when_in_range"))),
+                    when_out: Box::new(boxed(o.get("when_out_of_range"))),
+                },
+                "minecraft:shifted_noise" => DensityFunction::ShiftedNoise {
+                    shift_x: Box::new(boxed(o.get("shift_x"))),
+                    shift_y: Box::new(boxed(o.get("shift_y"))),
+                    shift_z: Box::new(boxed(o.get("shift_z"))),
+                    xz: num(o, "xz_scale", 1.),
+                    y: num(o, "y_scale", 1.),
+                    name: match o.get("noise") {
+                        Some(J::S(s)) => s.clone(),
+                        _ => String::new(),
+                    },
+                },
                 _ => DensityFunction::Unknown,
             }
         }
@@ -432,7 +618,10 @@ mod tests {
     use super::*;
     #[test]
     fn constants_and_arithmetic() {
-        let f=parse_json(r#"{"type":"minecraft:add","argument_a":{"type":"minecraft:constant","value":2},"argument_b":{"type":"minecraft:square","argument":{"type":"minecraft:constant","value":3}}}"#).unwrap();
+        let f = parse_json(
+            r#"{"type":"minecraft:add","argument1":{"type":"minecraft:constant","value":2},"argument2":{"type":"minecraft:square","argument":{"type":"minecraft:constant","value":3}}}"#,
+        )
+        .unwrap();
         assert_eq!(f.evaluate(0., 0., 0., &Default::default()), 11.);
     }
     #[test]
