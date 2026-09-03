@@ -76,12 +76,12 @@ pub enum DensityFunction {
     NoOp(Box<Self>),
     QuarterNegative(Box<Self>),
     HalfNegative(Box<Self>),
+    /// Select one of N+1 functions using N ascending thresholds.
+    /// Vanilla chooses the first function whose threshold is greater than input.
     IntervalSelect {
         input: Box<Self>,
-        min: f64,
-        max: f64,
-        when_in: Box<Self>,
-        when_out: Box<Self>,
+        thresholds: Vec<f64>,
+        functions: Vec<Box<Self>>,
     },
     ShiftedNoise {
         shift_x: Box<Self>,
@@ -193,17 +193,22 @@ impl DensityFunction {
             }
             Self::IntervalSelect {
                 input,
-                min,
-                max,
-                when_in,
-                when_out,
+                thresholds,
+                functions,
             } => {
                 let v = input.evaluate(x, y, z, ctx);
-                if v >= *min && v < *max {
-                    when_in.evaluate(x, y, z, ctx)
-                } else {
-                    when_out.evaluate(x, y, z, ctx)
-                }
+                // The thresholds partition the input into N+1 intervals:
+                // choose index 0 for v < t[0], index i for t[i-1] <= v < t[i],
+                // and the final function above the last threshold.
+                let index = thresholds
+                    .iter()
+                    .position(|threshold| v < *threshold)
+                    .unwrap_or(functions.len().saturating_sub(1));
+                functions
+                    .get(index)
+                    .or_else(|| functions.last())
+                    .map(|f| f.evaluate(x, y, z, ctx))
+                    .unwrap_or(0.)
             }
             Self::ShiftedNoise {
                 shift_x,
@@ -590,13 +595,22 @@ fn parse_value(v: &J) -> DensityFunction {
                     when_in: Box::new(boxed(o.get("when_in_range"))),
                     when_out: Box::new(boxed(o.get("when_out_of_range"))),
                 },
-                "minecraft:interval_select" => DensityFunction::IntervalSelect {
-                    input: Box::new(boxed(o.get("input"))),
-                    min: num(o, "min_inclusive", 0.),
-                    max: num(o, "max_exclusive", 1.),
-                    when_in: Box::new(boxed(o.get("when_in_range"))),
-                    when_out: Box::new(boxed(o.get("when_out_of_range"))),
-                },
+                "minecraft:interval_select" => {
+                    let input = boxed(o.get("input"));
+                    let thresholds = match o.get("thresholds") {
+                        Some(J::A(a)) => a.iter().map(asnum).collect(),
+                        _ => Vec::new(),
+                    };
+                    let functions = match o.get("functions") {
+                        Some(J::A(a)) => a.iter().map(|v| Box::new(parse_value(v))).collect(),
+                        _ => Vec::new(),
+                    };
+                    DensityFunction::IntervalSelect {
+                        input: Box::new(input),
+                        thresholds,
+                        functions,
+                    }
+                }
                 "minecraft:shifted_noise" => DensityFunction::ShiftedNoise {
                     shift_x: Box::new(boxed(o.get("shift_x"))),
                     shift_y: Box::new(boxed(o.get("shift_y"))),
