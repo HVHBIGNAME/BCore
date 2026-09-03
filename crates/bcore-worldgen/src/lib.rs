@@ -31,6 +31,7 @@ use bcore_core::ChunkPos;
 use rayon::prelude::*;
 use std::fs;
 use std::path::PathBuf;
+use std::sync::OnceLock;
 
 pub mod biome;
 pub mod density;
@@ -667,8 +668,13 @@ impl WorldGenerator {
     /// deterministic generator; this keeps callers working while density support
     /// grows (interpolated/blend/cache are represented as zero by density.rs).
     pub fn generate_chunk_vanilla(self, pos: ChunkPos) -> GeneratedChunk {
-        let Some(graph) = VanillaGraph::load(self.seed) else {
+        let Some(graph) = VanillaGraph::load() else {
             return self.generate_chunk(pos);
+        };
+        // The graph is seed-independent; only evaluation state varies per world.
+        let ctx = density::EvalContext {
+            seed: self.seed,
+            ..Default::default()
         };
 
         // Chunk-pyramid scheduler. Dependency radii are deliberately explicit:
@@ -702,7 +708,7 @@ impl WorldGenerator {
                         wx as f64,
                         y as f64,
                         wz as f64,
-                        &graph.ctx,
+                        &ctx,
                     );
                     densities[(y - MIN_Y) as usize] = d;
                     if d > 0.0 {
@@ -711,7 +717,7 @@ impl WorldGenerator {
                 }
                 let climate = |f: &Option<density::DensityFunction>| {
                     f.as_ref()
-                        .map(|v| density::evaluate(v, wx as f64, top as f64, wz as f64, &graph.ctx))
+                        .map(|v| density::evaluate(v, wx as f64, top as f64, wz as f64, &ctx))
                         .unwrap_or(0.0)
                 };
                 let biome_id = biome::biome_at(
@@ -1113,10 +1119,14 @@ struct VanillaGraph {
     erosion: Option<density::DensityFunction>,
     weirdness: Option<density::DensityFunction>,
     depth: Option<density::DensityFunction>,
-    ctx: density::EvalContext,
 }
 impl VanillaGraph {
-    fn load(seed: i64) -> Option<Self> {
+    fn load() -> Option<&'static Self> {
+        static GRAPH: OnceLock<Option<VanillaGraph>> = OnceLock::new();
+        GRAPH.get_or_init(Self::load_uncached).as_ref()
+    }
+
+    fn load_uncached() -> Option<Self> {
         let root = std::env::var_os("BCORE_DATAPACK")
             .map(PathBuf::from)
             .unwrap_or_else(|| PathBuf::from("target/datapack"));
@@ -1147,10 +1157,6 @@ impl VanillaGraph {
             erosion: load("erosion"),
             weirdness: load("ridges"),
             depth: load("depth"),
-            ctx: density::EvalContext {
-                seed,
-                ..Default::default()
-            },
         })
     }
 }
@@ -1160,6 +1166,20 @@ mod tests {
 
     const SEED: i64 = 1234;
 
+    #[test]
+    #[ignore]
+    fn benchmark_vanilla_graph_cache() {
+        use std::time::Instant;
+        let pos = ChunkPos::new(-34, 3);
+        let cold = Instant::now();
+        let first = WorldGenerator::new(1234).generate_chunk_vanilla(pos);
+        let cold_elapsed = cold.elapsed();
+        let warm = Instant::now();
+        let second = WorldGenerator::new(1234).generate_chunk_vanilla(pos);
+        let warm_elapsed = warm.elapsed();
+        assert_eq!(first, second);
+        println!("vanilla graph cache: cold={cold_elapsed:?}, warm={warm_elapsed:?}");
+    }
     #[test]
     fn generation_is_deterministic_for_the_same_seed_and_position() {
         let gen = WorldGenerator::new(SEED);
