@@ -174,8 +174,12 @@ fn positional_seed(random_name: &str, x: i32, y: i32, z: i32, seed: i64) -> i64 
 }
 
 /// Vanilla `Mth.getSeed`.
+///
+/// Note `x * 3129871` is *int* arithmetic in Java (32-bit wrapping) before being
+/// widened by the `long` xor — the width matters for large coordinates.
 fn mth_get_seed(x: i32, y: i32, z: i32) -> i64 {
-    let mut i = ((x as i64) * 3129871) ^ ((z as i64) * 116129781) ^ (y as i64);
+    let mut i =
+        (x.wrapping_mul(3129871) as i64) ^ ((z as i64).wrapping_mul(116129781)) ^ (y as i64);
     i = i
         .wrapping_mul(i)
         .wrapping_mul(42317861)
