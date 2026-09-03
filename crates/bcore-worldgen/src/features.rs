@@ -36,8 +36,8 @@ pub enum OreKind {
 ///
 /// `rng` is a mutable SplitMix64 state. It is intentionally a plain integer:
 /// bcore-worldgen has no random dependency and callers can seed features from
-/// the world seed and absolute position. Oak is 4--5 blocks tall, birch 5--6,
-/// while spruce and pine use a tapered vanilla-like conical canopy.
+/// the world seed and absolute position. Heights and foliage dimensions mirror
+/// the vanilla `configured_feature` tree placers.
 pub fn place_tree(
     rng: &mut u64,
     world_write: &mut dyn FnMut(i32, i32, i32, BlockState),
@@ -46,18 +46,34 @@ pub fn place_tree(
     z: i32,
     kind: TreeKind,
 ) {
-    let roll = next_f64(rng);
-    let (log, leaves, height) = match kind {
-        TreeKind::Oak => (block::OAK_LOG, block::OAK_LEAVES, 4 + (roll * 2.0) as i32),
+    let (log, leaves, height, foliage_radius) = match kind {
+        // straight_trunk_placer: base_height 4, height_rand_a 2.
+        TreeKind::Oak => (
+            block::OAK_LOG,
+            block::OAK_LEAVES,
+            4 + next_range(rng, 0, 2),
+            2 + next_range(rng, 0, 1),
+        ),
+        // straight_trunk_placer: base_height 5, height_rand_a 2.
         TreeKind::Birch => (
             block::BIRCH_LOG,
             block::BIRCH_LEAVES,
-            5 + (roll * 2.0) as i32,
+            5 + next_range(rng, 0, 2),
+            2,
         ),
-        TreeKind::Spruce | TreeKind::Pine => (
+        // Spruce: base 5 + [0,2] + [0,1]; spruce foliage radius [2,3].
+        TreeKind::Spruce => (
             block::SPRUCE_LOG,
             block::SPRUCE_LEAVES,
-            6 + (roll * 3.0) as i32,
+            5 + next_range(rng, 0, 2) + next_range(rng, 0, 1),
+            2 + next_range(rng, 0, 1),
+        ),
+        // Pine: base_height 6, height_rand_a 4.
+        TreeKind::Pine => (
+            block::SPRUCE_LOG,
+            block::SPRUCE_LEAVES,
+            6 + next_range(rng, 0, 4),
+            1,
         ),
     };
 
@@ -69,7 +85,9 @@ pub fn place_tree(
         TreeKind::Spruce | TreeKind::Pine => {
             // Wider toward the bottom, narrowing to a one-block tip.
             for dy in 0..height {
-                let radius = if dy < 2 {
+                let radius = if foliage_radius != 0 {
+                    foliage_radius.min(2)
+                } else if dy < 2 {
                     2
                 } else {
                     ((height - dy + 1) / 3).max(0)
@@ -86,7 +104,11 @@ pub fn place_tree(
         }
         TreeKind::Oak | TreeKind::Birch => {
             // Blob foliage placer: two broad layers and a smaller upper layer.
-            for (dy, radius) in [(height - 1, 2i32), (height, 2i32), (height + 1, 1i32)] {
+            for (dy, radius) in [
+                (height - 1, foliage_radius),
+                (height, foliage_radius),
+                (height + 1, (foliage_radius - 1).max(1)),
+            ] {
                 for dz in -radius..=radius {
                     for dx in -radius..=radius {
                         if radius == 2 && dx.abs() == 2 && dz.abs() == 2 {
@@ -148,9 +170,8 @@ fn next_u64(state: &mut u64) -> u64 {
     *state
 }
 
-#[inline]
-fn next_f64(state: &mut u64) -> f64 {
-    (next_u64(state) >> 11) as f64 / (1u64 << 53) as f64
+fn next_range(state: &mut u64, min: i32, max: i32) -> i32 {
+    min + (next_u64(state) % (max - min + 1) as u64) as i32
 }
 
 #[inline]
