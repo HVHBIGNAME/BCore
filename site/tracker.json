@@ -96,7 +96,11 @@
         { "name": "World time (/time set)", "status": "done" },
         { "name": "Abilities & gamemode", "status": "done" },
         { "name": "F3+F4 gamemode switch", "status": "done" },
-        { "name": "Day/night cycle (tick loop)", "status": "planned" },
+        { "name": "Spectator (fly + invisible)", "status": "done" },
+        { "name": "Day/night cycle (tick loop)", "status": "done" },
+        { "name": "TPS 20 (fixed-rate tick)", "status": "done" },
+        { "name": "Server console (stdin)", "status": "done" },
+        { "name": "Entities (item + mob base)", "status": "in progress" },
         { "name": "Weather", "status": "planned" },
         { "name": "Respawn & death", "status": "planned" }
       ]
