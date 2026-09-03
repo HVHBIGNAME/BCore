@@ -25,8 +25,8 @@ use crate::chat::{
 use crate::command::{self, CommandContext, Destination, Effect};
 use crate::commands::{bcore_command_tree, CB_DECLARE_COMMANDS};
 use crate::gameplay::{
-    encode_abilities_for, encode_full_health, encode_gamemode_change, encode_player_info_gamemode,
-    encode_set_day_time, encode_time_of_day, CB_ABILITIES, CB_UPDATE_HEALTH, CB_UPDATE_TIME,
+    encode_abilities_for, encode_full_health, encode_gamemode_switch, encode_set_day_time,
+    encode_time_of_day, CB_ABILITIES, CB_UPDATE_HEALTH, CB_UPDATE_TIME,
 };
 use crate::nbt::Component;
 use crate::packet::{read_frame, read_string, write_packet, write_string, PacketError};
@@ -417,15 +417,15 @@ fn play_loop(
                 } else if pid == SB_CHANGE_GAMEMODE {
                     // F3+F4 debug screen: the client asks to switch gamemode.
                     if let Some(mode) = parse_gamemode(&data) {
+                        println!("[BCore] change_gamemode (F3+F4) -> {mode:?}");
                         view.game_mode = mode;
-                        // Vanilla updates player-info for every client so a
-                        // spectator is removed from other clients' renderers.
-                        let player_info = encode_player_info_gamemode(&handle.uuid, mode);
-                        stream.write_all(&player_info)?;
-                        server.broadcast_except(handle.id, &player_info);
-                        // The local client's movement/ability state follows.
-                        stream.write_all(&encode_abilities_for(mode))?;
-                        stream.write_all(&encode_gamemode_change(mode))?;
+                        // Vanilla order: abilities, player_info, game_state_change, abilities.
+                        let packets = encode_gamemode_switch(&handle.uuid, mode);
+                        let player_info = &packets[1];
+                        for packet in &packets {
+                            stream.write_all(packet)?;
+                        }
+                        server.broadcast_except(handle.id, player_info);
                     }
                 } else if pid == SB_PING_REQUEST {
                     // ping_request expects a ping_response echo.
@@ -564,13 +564,12 @@ fn apply_effect(
     match effect {
         Effect::SetGameMode(mode) => {
             view.game_mode = *mode;
-            // Vanilla updates player-info for every client, not only the
-            // player who ran the command.
-            let player_info = encode_player_info_gamemode(&handle.uuid, *mode);
-            stream.write_all(&player_info)?;
-            server.broadcast_except(handle.id, &player_info);
-            stream.write_all(&encode_abilities_for(*mode))?;
-            stream.write_all(&encode_gamemode_change(*mode))?;
+            let packets = encode_gamemode_switch(&handle.uuid, *mode);
+            let player_info = &packets[1];
+            for packet in &packets {
+                stream.write_all(packet)?;
+            }
+            server.broadcast_except(handle.id, player_info);
             Ok(())
         }
         Effect::Teleport { x, y, z } => {

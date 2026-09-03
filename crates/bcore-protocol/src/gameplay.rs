@@ -265,6 +265,22 @@ pub fn encode_player_info_gamemode(uuid: &[u8; 16], mode: GameMode) -> Vec<u8> {
     out
 }
 
+/// The full gamemode-switch packet sequence in vanilla order.
+///
+/// Vanilla replies to `change_gamemode` (F3+F4) and `/gamemode` with
+/// `abilities` → `player_info` (update game mode) → `game_state_change` →
+/// `abilities` again. The first abilities sets the flags, the second re-asserts
+/// them after the game-state change resets them; `player_info` (the 2nd entry)
+/// is what other clients key off to hide a spectator.
+pub fn encode_gamemode_switch(uuid: &[u8; 16], mode: GameMode) -> Vec<Vec<u8>> {
+    vec![
+        encode_abilities_for(mode),
+        encode_player_info_gamemode(uuid, mode),
+        encode_gamemode_change(mode),
+        encode_abilities_for(mode),
+    ]
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
