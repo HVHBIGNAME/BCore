@@ -106,17 +106,9 @@ impl<'a> Aquifer<'a> {
                 level: -54,
                 lava: true,
             }
-        } else if self.water_column {
+        } else {
             FluidStatus {
                 level: crate::SEA_LEVEL,
-                lava: false,
-            }
-        } else {
-            // The overworld global picker supplies sea water only for water
-            // biomes.  Land columns use air as their global fluid; their
-            // local aquifers are still resolved below this point.
-            FluidStatus {
-                level: 0,
                 lava: false,
             }
         }
