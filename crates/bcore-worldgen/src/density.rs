@@ -181,6 +181,17 @@ thread_local! {
     static INTERPOLATED_CORNERS: RefCell<HashMap<(usize, i64, u64, u64, u64), [f64; 8]>> = RefCell::new(HashMap::new());
 }
 
+/// Drop every per-thread density cache. The worldgen calls this once per chunk
+/// so the caches stay bounded to a single chunk's worth of samples instead of
+/// growing without bound across the whole world (which leaked gigabytes of RAM).
+pub fn clear_density_caches() {
+    CACHE_ALL_IN_CELL.with(|c| c.borrow_mut().clear());
+    CACHE_2D.with(|c| c.borrow_mut().clear());
+    FLAT_CACHE.with(|c| c.borrow_mut().clear());
+    CACHE_ONCE.with(|c| c.borrow_mut().clear());
+    INTERPOLATED_CORNERS.with(|c| c.borrow_mut().clear());
+}
+
 fn cache_all_in_cell(a: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContext) -> f64 {
     let width = ctx.cell_width.max(1);
     let height = ctx.cell_height.max(1);

@@ -700,6 +700,9 @@ impl WorldGenerator {
         let Some(graph) = VanillaGraph::load() else {
             return self.generate_chunk(pos);
         };
+        // Density caches are per-chunk: reset them so memory stays bounded to a
+        // single chunk rather than growing across the whole world.
+        density::clear_density_caches();
         // The graph is seed-independent; only evaluation state varies per world.
         let ctx = density::EvalContext {
             seed: self.seed,
@@ -950,20 +953,37 @@ impl WorldGenerator {
                 }
             }
         }
-        for z in -2..(CHUNK_SIZE as i32 + 2) {
-            for x in -2..(CHUNK_SIZE as i32 + 2) {
+        // Tree origins are selected from the vanilla column table above, not
+        // `self.column()`: that method belongs to the fallback generator and its
+        // height/biome can disagree with the vanilla density graph (at spawn it
+        // reports a low frozen-ocean column while this chunk is plains at Y 125).
+        // A 6% per-column attempt rate is close to vanilla's scattered-tree
+        // placement and keeps neighbouring canopies deterministic.
+        for z in 0..CHUNK_SIZE as i32 {
+            for x in 0..CHUNK_SIZE as i32 {
                 let wx = base_x + x;
                 let wz = base_z + z;
-                if hash_2d(self.channel(50), wx as i64, wz as i64) < 0.90 {
+                if hash_2d(self.channel(50), wx as i64, wz as i64) < 0.94 {
                     continue;
                 }
-                let info = self.column(wx, wz);
-                if info.height < SEA_LEVEL || info.biome == Biome::Desert {
+                let lx = x as usize;
+                let lz = z as usize;
+                let height = chunk.height_at(lx, lz);
+                let biome = chunk.biome_at(lx, lz);
+                if height < SEA_LEVEL
+                    || !matches!(chunk.get(lx, height, lz), Some(block::GRASS_BLOCK))
+                    || biome == Biome::Desert
+                {
                     continue;
                 }
                 let mut rng = splitmix64((self.seed as u64)
                     ^ (wx as i64 as u64).wrapping_mul(0x9e37_79b9_7f4a_7c15)
                     ^ (wz as i64 as u64).wrapping_mul(0xc2b2_ae3d_27d4_eb4f));
+                let kind = if biome == Biome::BirchForest {
+                    features::TreeKind::Birch
+                } else {
+                    features::TreeKind::Oak
+                };
                 features::place_tree(&mut rng, &mut |tx, ty, tz, state| {
                     let lx = tx - base_x;
                     let lz = tz - base_z;
@@ -972,7 +992,7 @@ impl WorldGenerator {
                     {
                         chunk.set_if_air(lx as usize, ty, lz as usize, state);
                     }
-                }, wx, info.height, wz, features::TreeKind::Oak);
+                }, wx, height, wz, kind);
             }
         }
     }
