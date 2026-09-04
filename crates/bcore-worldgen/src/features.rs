@@ -575,7 +575,9 @@ pub fn place_ore_veins(
             distribution: HeightDistribution::Uniform,
         },
         OrePlacement {
-            index: 24,
+            // `ore_copper_large` occupies global index 24 (it exists in dripstone
+            // caves, which shares the step-6 list), so plain `ore_copper` is 25.
+            index: 25,
             kind: OreKind::Copper,
             size: 10,
             count: 16,
