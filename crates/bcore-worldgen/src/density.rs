@@ -214,15 +214,7 @@ fn flat_cache(a: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContext) ->
 }
 
 fn cache_once(a: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContext) -> f64 {
-    let key = a as *const DensityFunction as usize;
-    if let Some(value) = CACHE_ONCE.with(|cache| cache.borrow().get(&key).copied()) {
-        return value;
-    }
-    let value = a.evaluate(x, y, z, ctx);
-    CACHE_ONCE.with(|cache| {
-        cache.borrow_mut().insert(key, value);
-    });
-    value
+    a.evaluate(x, y, z, ctx)
 }
 
 impl DensityFunction {
