@@ -64,7 +64,10 @@ pub const DEFAULT_BIOME: BiomeId = 40; // minecraft:plains in BCore's registry
 /// IDs currently used by the built-in surface rules.
 pub mod ids {
     pub const BADLANDS: u32 = 2;
+    pub const BIRCH_FOREST: u32 = 5;
+    pub const DARK_FOREST: u32 = 13;
     pub const DESERT: u32 = 14;
+    pub const FOREST: u32 = 21;
     pub const FROZEN_OCEAN: u32 = 22;
     pub const MUSHROOM_FIELDS: u32 = 34;
     pub const OCEAN: u32 = 35;
@@ -142,6 +145,9 @@ pub fn load_overworld_parameters(
 fn biome_name_to_id(name: &str) -> BiomeId {
     // Unknown names remain deterministic and can be replaced by registry ids later.
     match name.strip_prefix("minecraft:").unwrap_or(name) {
+        "forest" => ids::FOREST,
+        "birch_forest" => ids::BIRCH_FOREST,
+        "dark_forest" => ids::DARK_FOREST,
         "desert" => ids::DESERT,
         "ocean" => ids::OCEAN,
         "frozen_ocean" => ids::FROZEN_OCEAN,

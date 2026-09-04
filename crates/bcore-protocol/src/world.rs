@@ -247,6 +247,11 @@ impl PlayerView {
         self.x = x;
         self.y = y;
         self.z = z;
+        // A teleport can cross an arbitrary distance. Treat the client's view as
+        // empty immediately: the next stream must send the complete target view,
+        // rather than relying on the old loaded set to describe client state while
+        // the client is still processing the absolute position packet.
+        self.loaded.clear();
         let teleport_id = self.next_teleport_id;
         self.next_teleport_id = self.next_teleport_id.wrapping_add(1).max(1);
 
@@ -558,13 +563,13 @@ mod tests {
     }
 
     #[test]
-    fn teleporting_out_of_range_makes_the_whole_view_stale() {
+    fn teleporting_out_of_range_resets_the_loaded_view() {
         let mut view = PlayerView::new(10.5, -60.0, -3.5);
         stream(&mut view, &mut Vec::new()).expect("initial");
         view.teleport(5000.0, -60.0, 5000.0);
         let want = (2 * VIEW_DISTANCE + 1).pow(2) as usize;
         assert_eq!(view.missing_chunks().len(), want);
-        assert_eq!(view.stale_chunks().len(), want);
+        assert!(view.stale_chunks().is_empty());
     }
 
     #[test]

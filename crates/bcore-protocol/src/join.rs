@@ -16,6 +16,8 @@ use std::net::TcpStream;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
+use sha2::Digest;
+
 use bcore_core::varint::encode_varint;
 
 use crate::chat::{
@@ -43,7 +45,16 @@ const PLAY_LOGIN_ID: i32 = 0x31;
 const PLAY_LOGIN_ENTITY_ID: i32 = 392;
 const PLAY_VIEW_DISTANCE: i32 = 8;
 const PLAY_SEA_LEVEL: i32 = 63;
-const WORLD_HASHED_SEED: i64 = -1328540181389140506;
+
+/// Minecraft's `hashedSeed`: SHA-256 of the seed's little-endian bytes,
+/// truncated to eight bytes and interpreted as a signed little-endian i64.
+/// This matches the value the vanilla 26.1 (protocol 775) server sends for the
+/// numeric seed (verified against a live capture: `846692123413862008` ->
+/// `-1328540181389140506`).
+pub fn hashed_seed(seed: i64) -> i64 {
+    let digest = sha2::Sha256::digest(seed.to_le_bytes());
+    i64::from_le_bytes(digest[..8].try_into().expect("SHA-256 digest is 32 bytes"))
+}
 const CONFIG_SELECT_KNOWN_PACKS_ID: i32 = 0x0e;
 const CONFIG_KNOWN_PACKS_RESPONSE_ID: i32 = 0x07;
 const CONFIG_FINISH_ID: i32 = 0x03;
@@ -107,7 +118,7 @@ fn encode_play_login(view: &PlayerView) -> Vec<u8> {
     data.extend_from_slice(&[0, 1, 0]); // reducedDebugInfo, respawnScreen, limitedCrafting
     encode_varint(0, &mut data); // overworld dimension
     write_string("minecraft:overworld", &mut data);
-    data.extend_from_slice(&WORLD_HASHED_SEED.to_be_bytes());
+    data.extend_from_slice(&hashed_seed(WORLD_SEED).to_be_bytes());
     data.push(view.game_mode.id() as u8);
     data.push(0xff); // previous gamemode
     data.extend_from_slice(&[0, 0]); // debug, flat
@@ -717,6 +728,11 @@ fn millis_now() -> i64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn hashed_seed_matches_protocol_value() {
+        assert_eq!(hashed_seed(846692123413862008), -1328540181389140506);
+    }
 
     #[test]
     fn spawn_position_is_read_from_the_captured_packet() {

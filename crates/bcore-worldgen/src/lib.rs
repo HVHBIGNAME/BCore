@@ -43,6 +43,7 @@ pub mod noise_perlin;
 pub mod simplex;
 pub mod surface;
 pub mod surface_rules;
+pub mod structure;
 
 pub use noise::{fbm2, fbm3, hash_2d, splitmix64, value_noise_2d, value_noise_3d};
 
@@ -111,6 +112,7 @@ pub mod block {
     pub const COAL_ORE: u32 = 133;
     pub const COPPER_ORE: u32 = 27790;
     pub const OAK_LOG: u32 = 137;
+    pub const OAK_PLANKS: u32 = 138;
     pub const OAK_LEAVES: u32 = 255;
     pub const BIRCH_LOG: u32 = 143;
     pub const BIRCH_LEAVES: u32 = 311;
@@ -979,10 +981,24 @@ impl WorldGenerator {
                 let mut rng = splitmix64((self.seed as u64)
                     ^ (wx as i64 as u64).wrapping_mul(0x9e37_79b9_7f4a_7c15)
                     ^ (wz as i64 as u64).wrapping_mul(0xc2b2_ae3d_27d4_eb4f));
-                let kind = if biome == Biome::BirchForest {
-                    features::TreeKind::Birch
-                } else {
-                    features::TreeKind::Oak
+                let kind = match biome {
+                    Biome::BirchForest => {
+                        // Birch forest is not perfectly uniform in vanilla: retain an
+                        // occasional oak so the forest edge reads as mixed.
+                        if hash_2d(self.channel(54), wx as i64, wz as i64) < 0.28 {
+                            features::TreeKind::Oak
+                        } else {
+                            features::TreeKind::Birch
+                        }
+                    }
+                    Biome::Forest => {
+                        if hash_2d(self.channel(54), wx as i64, wz as i64) < 0.30 {
+                            features::TreeKind::Birch
+                        } else {
+                            features::TreeKind::Oak
+                        }
+                    }
+                    _ => features::TreeKind::Oak,
                 };
                 features::place_tree(&mut rng, &mut |tx, ty, tz, state| {
                     let lx = tx - base_x;
@@ -1210,9 +1226,11 @@ impl WorldGenerator {
         if height < SEA_LEVEL + 1 {
             return None;
         }
+        // Forest vegetation is substantially denser than scattered plains trees.
+        // The hash remains position-keyed; only the biome-specific placement rate differs.
         let density = match biome {
-            Biome::Forest | Biome::DarkForest | Biome::Jungle => 0.945,
-            Biome::BirchForest | Biome::Taiga => 0.95,
+            Biome::Forest | Biome::DarkForest | Biome::Jungle => 0.84,
+            Biome::BirchForest | Biome::Taiga => 0.86,
             Biome::Plains | Biome::Savanna => 0.995,
             _ => return None,
         };
@@ -1317,6 +1335,9 @@ fn biome_from_id(id: biome::BiomeId) -> Biome {
         biome::ids::SNOWY_PLAINS => Biome::SnowyPlains,
         biome::ids::SNOWY_SLOPES => Biome::SnowyMountains,
         biome::ids::MUSHROOM_FIELDS => Biome::MushroomFields,
+        biome::ids::BIRCH_FOREST => Biome::BirchForest,
+        biome::ids::DARK_FOREST => Biome::DarkForest,
+        biome::ids::FOREST => Biome::Forest,
         _ => Biome::Plains,
     }
 }
