@@ -226,7 +226,7 @@ impl<'a> Aquifer<'a> {
     }
     fn preliminary_level(&self, x: i32, z: i32) -> i32 {
         self.preliminary
-            .map(|f| density::evaluate(f, x as f64, 0., z as f64, &self.ctx).round() as i32)
+            .map(|f| density::evaluate(f, x as f64, 0., z as f64, &self.ctx).floor() as i32)
             .unwrap_or(self.fallback_surface)
     }
     fn random_level(&self, x: i32, y: i32, z: i32, lowest: i32) -> i32 {

@@ -756,7 +756,14 @@ impl WorldGenerator {
                 let mut stone_depth_above = 0i32;
                 let mut water_height = i32::MIN;
                 let surface_depth = surface_depth(self.seed, wx, wz);
-                let preliminary_surface_level = top;
+                // Vanilla `NoiseChunk.preliminarySurfaceLevel(x, z)` = floor of the
+                // `find_top_surface` density function at (x, 0, z); the surface rule
+                // and aquifer both rely on this, not the raw terrain top.
+                let preliminary_surface_level = graph
+                    .preliminary_surface_level
+                    .as_ref()
+                    .map(|f| density::evaluate(f, wx as f64, 0., wz as f64, &ctx).floor() as i32)
+                    .unwrap_or(top);
                 for y in (MIN_Y..=MAX_Y).rev() {
                     let density_value = densities[(y - MIN_Y) as usize];
                     // Vanilla `NoiseChunk.getInterpolatedState()`: the aquifer returns
@@ -807,6 +814,26 @@ impl WorldGenerator {
                 chunk.states[y_offset * column_count + column_index] = state;
             }
         }
+
+        // Vanilla UNDERGROUND_ORES step: stone blobs and ore veins replace only the
+        // default block (stone/deepslate), exactly as `OreFeature`'s target test does.
+        let ore_chunk = &mut chunk;
+        features::place_ore_veins(self.seed, pos.x, pos.z, &mut |wx, y, wz, state| {
+            let lx = wx - base_x;
+            let lz = wz - base_z;
+            if !(0..CHUNK_SIZE as i32).contains(&lx)
+                || !(0..CHUNK_SIZE as i32).contains(&lz)
+                || y < MIN_Y
+                || y > MAX_Y
+            {
+                return;
+            }
+            let idx = (y - MIN_Y) as usize * column_count + lz as usize * CHUNK_SIZE + lx as usize;
+            let cur = ore_chunk.states[idx];
+            if cur == block::STONE || cur == block::DEEPSLATE {
+                ore_chunk.states[idx] = state;
+            }
+        });
         chunk
     }
     pub fn cave_density_probe(

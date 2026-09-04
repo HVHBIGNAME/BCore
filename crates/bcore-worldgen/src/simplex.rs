@@ -124,9 +124,14 @@ impl WorldgenRandom {
         self.count += 1;
         self.source.next_bits(bits)
     }
-    /// `BitRandomSource.nextLong` = `((next(32) << 32) | next(32))`.
+    /// `BitRandomSource.nextLong` — `((long)next(32) << 32) + next(32)`, with
+    /// `next(32)` a *signed* int: the low word is added (not ORed), so a negative
+    /// low word borrows from the high word. `nextDouble`/`nextFloat` always use
+    /// `next(26)`/`next(27)`/`next(24)` which are never negative.
     pub fn next_long(&mut self) -> i64 {
-        ((self.next_bits(32) << 32) | self.next_bits(32)) as i64
+        let upper = self.next_bits(32) as i32;
+        let lower = self.next_bits(32) as i32;
+        ((upper as i64) << 32).wrapping_add(lower as i64)
     }
     /// `BitRandomSource.nextInt(bound)` — `next(31)` rejection.
     pub fn next_int(&mut self, bound: usize) -> usize {
@@ -145,9 +150,14 @@ impl WorldgenRandom {
     pub fn next_float(&mut self) -> f32 {
         self.next_bits(24) as f32 * 5.9604645e-8_f32
     }
-    /// `BitRandomSource.nextDouble` = `((next(26) << 27) | next(27)) * DOUBLE_UNIT`.
+    /// `BitRandomSource.nextDouble` — `combined * 1.110223E-16F`: the long is
+    /// promoted to *float* (lossy) and multiplied by the *float* literal, then
+    /// widened back to double on return.
     pub fn next_double(&mut self) -> f64 {
-        ((self.next_bits(26) << 27) | self.next_bits(27)) as f64 * 1.1102230246251565e-16
+        let upper = self.next_bits(26) as i64;
+        let lower = self.next_bits(27) as i64;
+        let combined = (upper << 27) + lower;
+        (combined as f32 * 1.110223e-16_f32) as f64
     }
     pub fn set_decoration_seed(&mut self, seed: i64, chunk_x: i32, chunk_z: i32) -> i64 {
         self.set_seed(seed);

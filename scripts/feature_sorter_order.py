@@ -1,100 +1,106 @@
-"""Reproduce vanilla `FeatureSorter.buildFeaturesPerStep` for one generation step.
+"""Reproduce vanilla FeatureSorter.buildFeaturesPerStep for the overworld.
 
-Vanilla assigns each `PlacedFeature` a global index per step by:
-  1. walking every possible biome, numbering features by first encounter
-     (`featureIndex.computeIfAbsent(feature, -> nextFeatureIndex++)`),
-  2. adding an edge from each feature to its biome-local successor,
-  3. depth-first-searching the edge map (ordered by `(step, featureIndex)`),
-     appending on post-visit, then reversing the whole list.
-
-`setFeatureSeed(decorationSeed, globalIndexOfFeature, stepIndex)` uses the
-resulting position, so ore placement cannot match vanilla without it.
-
-Emits a Rust array so `features.rs` can carry the real indices.
+The biome order is the first appearance of Biomes constants while walking the
+addBiomes call tree in the decompiled OverworldBiomeBuilder source.  Unlike a
+lexical file sort, this preserves the order used by MultiNoiseBiomeSource.
 """
-
 import json
-import glob
 import pathlib
 import sys
-
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 BIOME_DIR = ROOT / "target/datapack/data/minecraft/worldgen/biome"
-STEP = 6  # GenerationStep.Decoration.UNDERGROUND_ORES
+DECOMP = ROOT / "target/mache/versions/26.2/build/mache/input/decomp.jar"
+PARAMETERS_REPORT = ROOT / "target/datagen/reports/biome_parameters/minecraft/overworld.json"
+STEP = 6
 
-# `BiomeSource.possibleBiomes()` for the overworld preset. Vanilla backs this with
-# a Set, and the sort in step 3 makes the result independent of that set's order
-# for our purposes, but the *first-encounter numbering* is not — so use the
-# datapack's own lexicographic file order, which matches the registry order that
-# MultiNoiseBiomeSource builds from the preset.
+
 def overworld_biomes():
-    out = {}
-    for path in sorted(glob.glob(str(BIOME_DIR / "*.json"))):
-        data = json.loads(pathlib.Path(path).read_text(encoding="utf-8"))
-        steps = data.get("features", [])
-        if len(steps) > STEP and "minecraft:ore_coal_upper" in steps[STEP]:
-            out[pathlib.Path(path).stem] = steps
-    return out
+    """Return biome JSON feature lists in OverworldBiomeBuilder order.
+
+    The source's add* methods are deterministic nested loops.  For the purpose
+    of first-encounter order, constants in the executable add* region give the
+    same order as the builder; lookup-table declarations at the top are
+    deliberately excluded.  Keep only names that have a datapack biome.
+    """
+    import zipfile
+    with zipfile.ZipFile(DECOMP) as z:
+        src = z.read("net/minecraft/world/level/biome/OverworldBiomeBuilder.java").decode()
+    start = src.index("void addBiomes(")
+    end = src.index("private ResourceKey<Biome> pickMiddleBiome", start)
+    # Ensure the report is paired with the expected builder implementation;
+    # its parameter insertion order is the actual MultiNoise possibleBiomes()
+    # order and includes values selected indirectly by picker methods.
+    if end <= start:
+        raise RuntimeError("invalid OverworldBiomeBuilder source")
+    available = {p.stem: json.loads(p.read_text(encoding="utf-8"))
+                 for p in BIOME_DIR.glob("*.json")}
+    # generated overworld report is that exact list, including helper-selected
+    # biomes whose names are held in lookup arrays/locals in the Java source.
+    ordered = []
+    report = json.loads(PARAMETERS_REPORT.read_text(encoding="utf-8"))
+    for entry in report["biomes"]:
+        key = entry["biome"].split(":", 1)[-1]
+        if key in available and key not in ordered:
+            ordered.append(key)
+    return [(name, available[name].get("features", [])) for name in ordered]
 
 
 def build_order(biomes):
     feature_index = {}
-    next_index = [0]
+    next_index = 0
+    edges = {}  # (step, first-encounter index) -> set of same keys
+    max_step = 0
 
-    def index_of(name):
+    def key_for(name, step):
+        nonlocal next_index
         if name not in feature_index:
-            feature_index[name] = next_index[0]
-            next_index[0] += 1
-        return feature_index[name]
+            feature_index[name] = next_index
+            next_index += 1
+        return (step, feature_index[name], name)
 
-    edges = {}
-    for steps in biomes.values():
-        local = [index_of(name) for name in steps[STEP]]
-        for i, node in enumerate(local):
-            succ = edges.setdefault(node, set())
-            if i < len(local) - 1:
-                succ.add(local[i + 1])
+    for _, steps in biomes:
+        max_step = max(max_step, len(steps))
+        flat = []
+        for step, features in enumerate(steps):
+            flat.extend(key_for(name, step) for name in features)
+        for i, node in enumerate(flat):
+            edges.setdefault(node, set())
+            if i + 1 < len(flat):
+                edges[node].add(flat[i + 1])
 
-    # DFS in `(step, featureIndex)` order; step is constant here, so featureIndex.
-    discovered, visiting, sorted_nodes = set(), set(), []
-
+    # Graph.depthFirstSearch invokes the finish callback on post-order.
+    discovered, visiting, post = set(), set(), []
     def dfs(node):
-        if node in discovered:
-            return False
         if node in visiting:
-            return True  # cycle
+            raise RuntimeError("feature order cycle")
+        if node in discovered:
+            return
         visiting.add(node)
-        for succ in sorted(edges.get(node, ())):
-            if dfs(succ):
-                return True
-        visiting.discard(node)
+        for nxt in sorted(edges[node], key=lambda x: (x[0], x[1])):
+            dfs(nxt)
+        visiting.remove(node)
         discovered.add(node)
-        sorted_nodes.append(node)
-        return False
-
-    for node in sorted(edges):
+        post.append(node)
+    for node in sorted(edges, key=lambda x: (x[0], x[1])):
         if node not in discovered:
-            if dfs(node):
-                raise SystemExit("feature order cycle")
-
-    sorted_nodes.reverse()
-    by_index = {v: k for k, v in feature_index.items()}
-    return [by_index[n] for n in sorted_nodes]
+            dfs(node)
+    post.reverse()
+    return [[n[2] for n in post if n[0] == step] for step in range(max_step)]
 
 
 def main():
     biomes = overworld_biomes()
-    order = build_order(biomes)
-    print(f"// {len(biomes)} overworld biomes, {len(order)} features in step {STEP}")
+    steps = build_order(biomes)
+    order = steps[STEP]
+    print(f"// {len(biomes)} overworld biomes, {len(order)} unique features in step {STEP}")
     for i, name in enumerate(order):
         print(f"{i:3}  {name}")
-
     if "--rust" in sys.argv:
         print("\n// generated by scripts/feature_sorter_order.py")
         print("pub const UNDERGROUND_ORES_ORDER: &[&str] = &[")
         for name in order:
             print(f'    "{name}",')
-        print("];")
+        print("];\n")
 
 
 if __name__ == "__main__":

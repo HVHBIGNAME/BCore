@@ -91,6 +91,16 @@ pub enum DensityFunction {
         y: f64,
         name: String,
     },
+    Invert(Box<Self>),
+    /// `minecraft:find_top_surface` — returns the highest quantized Y where the
+    /// inner `density` is positive, walking down from `upper_bound` in steps of
+    /// `cell_height`, clamped at `lower_bound`. Returns a *height*, not a density.
+    FindTopSurface {
+        density: Box<Self>,
+        upper_bound: Box<Self>,
+        lower_bound: i32,
+        cell_height: i32,
+    },
     Unknown,
 }
 
@@ -243,6 +253,29 @@ impl DensityFunction {
             Self::EndIslands => 0.,
             Self::OldBlendedNoise { xz_scale, y_scale } => {
                 old_blended_noise(x, y, z, *xz_scale, *y_scale, ctx.seed)
+            }
+            Self::Invert(a) => -a.evaluate(x, y, z, ctx),
+            Self::FindTopSurface {
+                density,
+                upper_bound,
+                lower_bound,
+                cell_height,
+            } => {
+                // Vanilla `FindTopSurface.compute`: quantize the upper bound down
+                // to a `cell_height` multiple, then walk down testing `density`.
+                let ub = upper_bound.evaluate(x, y, z, ctx);
+                let top_y = (ub / *cell_height as f64).floor() * *cell_height as f64;
+                if top_y <= *lower_bound as f64 {
+                    return *lower_bound as f64;
+                }
+                let mut block_y = top_y as i32;
+                while block_y >= *lower_bound {
+                    if density.evaluate(x, block_y as f64, z, ctx) > 0.0 {
+                        return block_y as f64;
+                    }
+                    block_y -= *cell_height;
+                }
+                *lower_bound as f64
             }
             Self::Unknown => 0.,
         }
@@ -639,6 +672,13 @@ fn parse_value(v: &J) -> DensityFunction {
                         Some(J::S(s)) => s.clone(),
                         _ => String::new(),
                     },
+                },
+                "minecraft:invert" => DensityFunction::Invert(Box::new(boxed(o.get("argument")))),
+                "minecraft:find_top_surface" => DensityFunction::FindTopSurface {
+                    density: Box::new(boxed(o.get("density"))),
+                    upper_bound: Box::new(boxed(o.get("upper_bound"))),
+                    lower_bound: num(o, "lower_bound", 0.) as i32,
+                    cell_height: num(o, "cell_height", 8.) as i32,
                 },
                 _ => DensityFunction::Unknown,
             }
