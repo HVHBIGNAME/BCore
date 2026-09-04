@@ -1,5 +1,5 @@
-use bcore_worldgen::WorldGenerator;
-use std::env;
+use bcore_worldgen::{density, WorldGenerator};
+use std::{env, fs};
 fn main() {
     let a: Vec<String> = env::args().collect();
     if a.len() != 5 {
@@ -10,13 +10,25 @@ fn main() {
     let x: f64 = a[2].parse().unwrap();
     let y: f64 = a[3].parse().unwrap();
     let z: f64 = a[4].parse().unwrap();
-    match WorldGenerator::cave_density_probe(seed, x, y, z) {
-        Some((f, n, c, e)) => println!(
-            "x={x} y={y} z={z} final={f:.17e} noodle={n:?} cave_cheese={c:?} entrances={e:?}"
-        ),
-        None => {
-            eprintln!("datapack graph unavailable");
-            std::process::exit(1);
-        }
+    let ctx = density::EvalContext {
+        seed,
+        ..Default::default()
+    };
+    let e = |s: &str| -> f64 { density::parse_json(s).unwrap().evaluate(x, y, z, &ctx) };
+    let path =
+        |s: &str| format!("target/datapack/data/minecraft/worldgen/density_function/{s}.json");
+    let p = |s: &str| e(&fs::read_to_string(path(s)).unwrap());
+    let noise = |name: &str, xz: f64, ys: f64| {
+        e(&format!(
+            r#"{{"type":"minecraft:noise","noise":"minecraft:{name}","xz_scale":{xz},"y_scale":{ys}}}"#
+        ))
+    };
+    println!("layer={} cheese_noise={} cheese_clamp={} slope_term={} cheese={} entrances={} spaghetti={} pillars={} noodle={}",
+        noise("cave_layer",1.,8.), noise("cave_cheese",1.,2./3.), (0.27+noise("cave_cheese",1.,2./3.)).clamp(-1.,1.), (1.5-0.64*p("overworld/sloped_cheese")).clamp(0., 0.5),
+        p("overworld/sloped_cheese"), p("overworld/caves/entrances"), p("overworld/caves/spaghetti_2d"), p("overworld/caves/pillars"), p("overworld/caves/noodle"));
+    if let Some((f, n, c, en)) = WorldGenerator::cave_density_probe(seed, x, y, z) {
+        println!(
+            "x={x} y={y} z={z} final={f:.17e} noodle={n:?} cave_cheese={c:?} entrances={en:?}"
+        );
     }
 }

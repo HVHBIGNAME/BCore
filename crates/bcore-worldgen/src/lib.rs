@@ -785,10 +785,10 @@ impl WorldGenerator {
                     // other result as the final block.
                     let substance = aquifer.substance(wx, y, wz, density_value);
                     let idx = (y - MIN_Y) as usize;
-                    if substance == block::WATER || substance == block::LAVA {
-                        water_height = water_height.max(y);
-                    }
                     if substance == block::STONE {
+                        // Vanilla increments `stoneAboveDepth` *before* applying the
+                        // rule, so the topmost solid block is depth 1 (not 0).
+                        stone_depth_above += 1;
                         let default_state = block::STONE;
                         let ctx = surface_rules::SurfaceContext {
                             biome: biome_id,
@@ -809,10 +809,18 @@ impl WorldGenerator {
                             .as_ref()
                             .and_then(|r| r.evaluate(&ctx))
                             .unwrap_or(default_state);
-                        stone_depth_above += 1;
+                    } else if substance == block::WATER || substance == block::LAVA {
+                        // Vanilla records `waterHeight = y + 1` on the first fluid
+                        // block (top of the water) and does *not* reset stone depth.
+                        if water_height == i32::MIN {
+                            water_height = y + 1;
+                        }
+                        states[idx] = substance;
                     } else {
+                        // Air resets both stone depth and water height.
                         states[idx] = substance;
                         stone_depth_above = 0;
+                        water_height = i32::MIN;
                     }
                 }
                 VanillaColumn { top, biome, states }
