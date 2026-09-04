@@ -79,7 +79,6 @@ pub fn encode_login_success(uuid: &[u8; 16], name: &str) -> Vec<u8> {
     data.extend_from_slice(uuid);
     write_string(name, &mut data);
     encode_varint(0, &mut data); // properties count
-    data.extend_from_slice(&random_uuid_v4()); // profile id (added in 1.21.2+)
     let mut out = Vec::new();
     write_packet(&mut out, LOGIN_SUCCESS_ID, &data);
     out

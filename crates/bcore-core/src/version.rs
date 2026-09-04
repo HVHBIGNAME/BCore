@@ -1,7 +1,7 @@
 //! Minecraft 26.2 version constants.
 
 /// Protocol version for Minecraft Java Edition 26.2.
-pub const PROTOCOL_VERSION: i32 = 776;
+pub const PROTOCOL_VERSION: i32 = 775;
 
 /// Human-readable Minecraft version string reported to clients.
 pub const MC_VERSION: &str = "26.2";
