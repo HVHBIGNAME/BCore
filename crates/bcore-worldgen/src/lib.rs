@@ -103,7 +103,7 @@ pub mod block {
     pub const PODZOL: u32 = 13;
     pub const BEDROCK: u32 = 85;
     pub const WATER: u32 = 86;
-    pub const LAVA: u32 = 87;
+    pub const LAVA: u32 = 102;
     pub const SAND: u32 = 118;
     pub const GRAVEL: u32 = 124;
     pub const GOLD_ORE: u32 = 129;
