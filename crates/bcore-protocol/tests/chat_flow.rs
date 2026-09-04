@@ -532,7 +532,10 @@ fn gamemode_teleport_spawn_and_time_change_state() {
     let position = alpha.first(CB_POSITION).expect("position");
     let (_, n) = decode_varint(&position.data).expect("teleport id");
     let spawn_x = f64::from_be_bytes(position.data[n..n + 8].try_into().expect("8 bytes"));
-    assert_eq!(spawn_x, 10.5, "vanilla flat spawn x");
+    assert_eq!(
+        spawn_x, 42.0,
+        "land spawn x (nearest solid land to the join point)"
+    );
 
     // /time set night -> one clock update carrying 13000 ticks.
     alpha.clear();

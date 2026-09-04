@@ -20,7 +20,7 @@
 
 use bcore_core::varint::{encode_varint, encode_varlong};
 
-use crate::packet::write_packet;
+use crate::packet::{write_packet, write_string};
 
 /// Clientbound `game_state_change`.
 pub const CB_GAME_STATE_CHANGE: i32 = 0x26;
@@ -30,6 +30,8 @@ pub const CB_ABILITIES: i32 = 0x40;
 pub const CB_UPDATE_HEALTH: i32 = 0x68;
 /// Clientbound `update_time`.
 pub const CB_UPDATE_TIME: i32 = 0x71;
+/// Clientbound `player_info_update` (tab list / player list).
+pub const CB_PLAYER_INFO_UPDATE: i32 = 0x46;
 
 /// `game_state_change` reason: the player's gamemode changed.
 pub const GAME_STATE_CHANGE_GAMEMODE: u8 = 3;
@@ -254,12 +256,43 @@ pub fn encode_gamemode_change(mode: GameMode) -> Vec<u8> {
 /// needed in addition to abilities and game-state-change: it updates the
 /// client's player-info state used by the spectator renderer and tab list.
 pub fn encode_player_info_gamemode(uuid: &[u8; 16], mode: GameMode) -> Vec<u8> {
-    const CB_PLAYER_INFO_UPDATE: i32 = 0x46;
     let mut data = Vec::with_capacity(24);
     encode_varint(0x04, &mut data);
     encode_varint(1, &mut data);
     data.extend_from_slice(uuid);
     encode_varint(mode.id(), &mut data);
+    let mut out = Vec::new();
+    write_packet(&mut out, CB_PLAYER_INFO_UPDATE, &data);
+    out
+}
+
+/// Encode a `player_info_update` add-player action (the tab-list entry).
+///
+/// Action `0x01` (`add_player`): uuid, name, (empty) properties, gamemode,
+/// ping, and no display name. This is what populates the client's tab list.
+pub fn encode_player_info_add(uuid: &[u8; 16], name: &str, mode: GameMode, ping: i32) -> Vec<u8> {
+    let mut data = Vec::with_capacity(32);
+    encode_varint(0x01, &mut data); // add player
+    encode_varint(1, &mut data); // one entry
+    data.extend_from_slice(uuid);
+    write_string(name, &mut data);
+    encode_varint(0, &mut data); // properties count
+    encode_varint(mode.id(), &mut data); // gamemode
+    encode_varint(ping, &mut data); // latency
+    data.push(0); // has_display_name = false
+    let mut out = Vec::new();
+    write_packet(&mut out, CB_PLAYER_INFO_UPDATE, &data);
+    out
+}
+
+/// Encode a `player_info_update` update-listed action that removes a player
+/// from the tab list (action `0x08`, listed = false).
+pub fn encode_player_info_remove(uuid: &[u8; 16]) -> Vec<u8> {
+    let mut data = Vec::with_capacity(24);
+    encode_varint(0x08, &mut data); // update listed
+    encode_varint(1, &mut data); // one entry
+    data.extend_from_slice(uuid);
+    data.push(0); // listed = false
     let mut out = Vec::new();
     write_packet(&mut out, CB_PLAYER_INFO_UPDATE, &data);
     out

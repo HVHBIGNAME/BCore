@@ -25,8 +25,9 @@ use crate::chat::{
 use crate::command::{self, CommandContext, Destination, Effect};
 use crate::commands::{bcore_command_tree, CB_DECLARE_COMMANDS};
 use crate::gameplay::{
-    encode_abilities_for, encode_full_health, encode_gamemode_switch, encode_set_day_time,
-    encode_time_of_day, CB_ABILITIES, CB_UPDATE_HEALTH, CB_UPDATE_TIME,
+    encode_abilities_for, encode_full_health, encode_gamemode_switch, encode_player_info_add,
+    encode_player_info_remove, encode_set_day_time, encode_time_of_day, GameMode, CB_ABILITIES,
+    CB_UPDATE_HEALTH, CB_UPDATE_TIME,
 };
 use crate::nbt::Component;
 use crate::packet::{read_frame, read_string, write_packet, write_string, PacketError};
@@ -168,7 +169,7 @@ pub fn run_login_and_join(
     // Register only once the player is really in the world, so a failed join
     // never leaves a ghost in `/list`.
     let handle = server.join(&name, uuid);
-    let result = send_join_state(stream, &view).and_then(|_| {
+    let result = send_join_state(stream, &view, server, &handle).and_then(|_| {
         announce_join(server, &handle);
         play_loop(stream, &mut view, server, &handle)
     });
@@ -182,14 +183,30 @@ pub fn run_login_and_join(
 }
 
 /// Send the chat/command/gameplay state a joining player needs: the command
-/// tree, full health, the time of day and the abilities for its gamemode.
-fn send_join_state(stream: &mut TcpStream, view: &PlayerView) -> Result<(), PacketError> {
+/// tree, full health, the time of day, the abilities for its gamemode, and the
+/// tab list (a `player_info` add-player entry for every online player).
+fn send_join_state(
+    stream: &mut TcpStream,
+    view: &PlayerView,
+    server: &SharedServer,
+    handle: &PlayerHandle,
+) -> Result<(), PacketError> {
     let mut out = Vec::new();
     out.extend_from_slice(&bcore_command_tree().encode());
     out.extend_from_slice(&encode_full_health());
     let age = world_age_ticks();
     out.extend_from_slice(&encode_time_of_day(age, view.day_time));
     out.extend_from_slice(&encode_abilities_for(view.game_mode));
+    // Tab list: every online player. The joiner gets its own gamemode; the
+    // others are tracked as survival until gamemode changes are persisted.
+    for player in server.players() {
+        let mode = if player.id == handle.id {
+            view.game_mode
+        } else {
+            GameMode::Survival
+        };
+        out.extend_from_slice(&encode_player_info_add(&player.uuid, &player.name, mode, 0));
+    }
     stream.write_all(&out)?;
     Ok(())
 }
@@ -201,6 +218,9 @@ fn announce_join(server: &SharedServer, handle: &PlayerHandle) {
         false,
     );
     server.broadcast_except(handle.id, &notice);
+    // Add the joiner to everyone's tab list (it already added itself).
+    let add = encode_player_info_add(&handle.uuid, &handle.name, GameMode::Survival, 0);
+    server.broadcast_except(handle.id, &add);
     let online = server.player_count();
     server.send_to(
         handle.id,
@@ -224,6 +244,8 @@ fn announce_leave(server: &SharedServer, handle: &PlayerHandle) {
         false,
     );
     server.broadcast_except(handle.id, &notice);
+    // Remove the leaver from everyone's tab list.
+    server.broadcast_except(handle.id, &encode_player_info_remove(&handle.uuid));
 }
 
 /// The world age in ticks, derived from the wall clock so every connection
@@ -340,9 +362,9 @@ fn stream_initial_chunks(stream: &mut TcpStream, view: &mut PlayerView) -> Resul
         view.spawn = (x, y, z);
     }
 
-    // Send the complete view-distance square in one initial batch.  The client
-    // expects all chunks in its configured view distance to become available;
-    // chunk-batch flow control is not a server-side view-distance limit.
+    // Bound the very first batch so a fresh join does not burst the whole
+    // 41x41 view at once (the play loop streams the rest as the client acks).
+    view.set_chunk_batch_size(64);
     let sent = view.stream_chunks(stream)?;
     let (cx, cz) = view.chunk();
     println!(
@@ -370,6 +392,7 @@ fn play_loop(
     let mut last_keepalive = Instant::now();
     let mut keepalive_id: i64 = 0;
     let mut last_chunk = view.chunk();
+    view.set_chunk_batch_size(64);
 
     loop {
         if handle.is_kicked() || server.is_shutting_down() {

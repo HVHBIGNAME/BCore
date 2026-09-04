@@ -147,6 +147,14 @@ impl ServerState {
         names
     }
 
+    /// Snapshot of all connected players (uuid + name) for the tab list.
+    pub fn players(&self) -> Vec<PlayerHandle> {
+        self.players
+            .lock()
+            .map(|p| p.values().cloned().collect())
+            .unwrap_or_default()
+    }
+
     /// Look up a player by name, case-insensitively.
     pub fn find_by_name(&self, name: &str) -> Option<PlayerHandle> {
         let players = self.players.lock().ok()?;
