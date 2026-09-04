@@ -461,12 +461,21 @@ fn interpolate(inner: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContex
     let sx = tx;
     let sy = ty;
     let sz = tz;
-    let c =
-        |dx: f64, dy: f64, dz: f64| inner.evaluate(x0 + dx * cw, y0 + dy * ch, z0 + dz * cw, ctx);
-    let x00 = c(0., 0., 0.) + (c(1., 0., 0.) - c(0., 0., 0.)) * sx;
-    let x10 = c(0., 1., 0.) + (c(1., 1., 0.) - c(0., 1., 0.)) * sx;
-    let x01 = c(0., 0., 1.) + (c(1., 0., 1.) - c(0., 0., 1.)) * sx;
-    let x11 = c(0., 1., 1.) + (c(1., 1., 1.) - c(0., 1., 1.)) * sx;
+    // Evaluate each lattice corner exactly once.  The previous expression
+    // evaluated the four lower corners twice (12 graph traversals instead of
+    // 8) for every interpolated sample; this dominates the density path.
+    let c000 = inner.evaluate(x0, y0, z0, ctx);
+    let c100 = inner.evaluate(x0 + cw, y0, z0, ctx);
+    let c010 = inner.evaluate(x0, y0 + ch, z0, ctx);
+    let c110 = inner.evaluate(x0 + cw, y0 + ch, z0, ctx);
+    let c001 = inner.evaluate(x0, y0, z0 + cw, ctx);
+    let c101 = inner.evaluate(x0 + cw, y0, z0 + cw, ctx);
+    let c011 = inner.evaluate(x0, y0 + ch, z0 + cw, ctx);
+    let c111 = inner.evaluate(x0 + cw, y0 + ch, z0 + cw, ctx);
+    let x00 = c000 + (c100 - c000) * sx;
+    let x10 = c010 + (c110 - c010) * sx;
+    let x01 = c001 + (c101 - c001) * sx;
+    let x11 = c011 + (c111 - c011) * sx;
     let y0v = x00 + (x10 - x00) * sy;
     let y1v = x01 + (x11 - x01) * sy;
     y0v + (y1v - y0v) * sz
