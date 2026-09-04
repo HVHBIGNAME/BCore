@@ -325,6 +325,155 @@ impl PerlinNoise {
         }
         out
     }
+
+    /// The i-th octave's ImprovedNoise (None for zero-amplitude octaves),
+    /// matching vanilla `PerlinNoise.getOctaveNoise(i)` = `noiseLevels[length-1-i]`
+    /// (the BlendedNoise iterates octaves from highest to lowest).
+    pub fn octave(&self, i: usize) -> Option<&ImprovedNoise> {
+        let n = self.levels.len();
+        self.levels
+            .get(n.wrapping_sub(1).wrapping_sub(i))
+            .and_then(|l| l.as_ref())
+    }
+
+    /// `PerlinNoise.create` with `useNewInitialization = false` (legacy): the
+    /// zero octave is drawn from the random's *current* state, then lower
+    /// octaves are drawn sequentially, `skipOctave` (262 longs) for
+    /// zero-amplitude octaves.
+    pub fn create_legacy(r: &mut Xoroshiro, first: i32, amps: &[f64]) -> Self {
+        let octaves = amps.len();
+        let zero_octave_index = (-first) as usize;
+        let mut levels: Vec<Option<ImprovedNoise>> = vec![None; octaves];
+        let mut zero_octave = Some(ImprovedNoise::from_random(r));
+        if zero_octave_index < octaves && amps[zero_octave_index] != 0.0 {
+            levels[zero_octave_index] = zero_octave.take();
+        }
+        let mut i = zero_octave_index as i64 - 1;
+        while i >= 0 {
+            let idx = i as usize;
+            if idx < octaves {
+                if amps[idx] != 0.0 {
+                    levels[idx] = Some(ImprovedNoise::from_random(r));
+                } else {
+                    skip_octave(r);
+                }
+            } else {
+                skip_octave(r);
+            }
+            i -= 1;
+        }
+        Self {
+            amps: amps.to_vec(),
+            levels,
+            first,
+        }
+    }
+}
+
+fn skip_octave(r: &mut Xoroshiro) {
+    for _ in 0..262 {
+        r.next_long();
+    }
+}
+
+/// Vanilla `synth.BlendedNoise` (the `old_blended_noise` density function in
+/// 26.2): three legacy PerlinNoise (min/max −15..0, main −7..0) seeded from
+/// `XoroshiroRandomSource(0)` (world-independent), sampled through the
+/// 684.412-scaled limit/main lattice.
+pub struct BlendedNoise {
+    min_limit: PerlinNoise,
+    max_limit: PerlinNoise,
+    main: PerlinNoise,
+    xz_multiplier: f64,
+    y_multiplier: f64,
+    xz_factor: f64,
+    y_factor: f64,
+    smear_scale_multiplier: f64,
+}
+
+impl BlendedNoise {
+    /// Vanilla `RandomState.wrapNew`: the codec builds the BlendedNoise with a
+    /// throwaway seed-0 source, then the runtime replaces the random with
+    /// `random.fromHashOf("minecraft:terrain")` (world-seed-derived). `for_world`
+    /// reproduces that final state directly.
+    pub fn for_world(
+        world_seed: i64,
+        xz_scale: f64,
+        y_scale: f64,
+        xz_factor: f64,
+        y_factor: f64,
+        smear: f64,
+    ) -> Self {
+        let mut root = Xoroshiro::new(world_seed);
+        let factory = root.fork_positional();
+        let mut random = factory.from_hash_of("minecraft:terrain");
+        let o16 = vec![1.0; 16];
+        let o8 = vec![1.0; 8];
+        let min_limit = PerlinNoise::create_legacy(&mut random, -15, &o16);
+        let max_limit = PerlinNoise::create_legacy(&mut random, -15, &o16);
+        let main = PerlinNoise::create_legacy(&mut random, -7, &o8);
+        Self {
+            min_limit,
+            max_limit,
+            main,
+            xz_multiplier: 684.412 * xz_scale,
+            y_multiplier: 684.412 * y_scale,
+            xz_factor,
+            y_factor,
+            smear_scale_multiplier: smear,
+        }
+    }
+
+    pub fn compute(&self, x: f64, y: f64, z: f64) -> f64 {
+        let limit_x = x * self.xz_multiplier;
+        let limit_y = y * self.y_multiplier;
+        let limit_z = z * self.xz_multiplier;
+        let main_x = limit_x / self.xz_factor;
+        let main_y = limit_y / self.y_factor;
+        let main_z = limit_z / self.xz_factor;
+        let limit_smear = self.y_multiplier * self.smear_scale_multiplier;
+        let main_smear = limit_smear / self.y_factor;
+        let mut main_noise_value = 0.0;
+        let mut pow = 1.0;
+        for i in 0..8 {
+            if let Some(noise) = self.main.octave(i) {
+                main_noise_value += noise.noise(
+                    wrap(main_x * pow),
+                    wrap(main_y * pow),
+                    wrap(main_z * pow),
+                    main_smear * pow,
+                    main_y * pow,
+                ) / pow;
+            }
+            pow /= 2.0;
+        }
+        let factor = (main_noise_value / 10.0 + 1.0) / 2.0;
+        let is_max = factor >= 1.0;
+        let is_min = factor <= 0.0;
+        let mut blend_min = 0.0;
+        let mut blend_max = 0.0;
+        pow = 1.0;
+        for i in 0..16 {
+            let wx = wrap(limit_x * pow);
+            let wy = wrap(limit_y * pow);
+            let wz = wrap(limit_z * pow);
+            let y_scale_pow = limit_smear * pow;
+            if !is_max {
+                if let Some(noise) = self.min_limit.octave(i) {
+                    blend_min += noise.noise(wx, wy, wz, y_scale_pow, limit_y * pow) / pow;
+                }
+            }
+            if !is_min {
+                if let Some(noise) = self.max_limit.octave(i) {
+                    blend_max += noise.noise(wx, wy, wz, y_scale_pow, limit_y * pow) / pow;
+                }
+            }
+            pow /= 2.0;
+        }
+        let lo = blend_min / 512.0;
+        let hi = blend_max / 512.0;
+        (lo + (hi - lo) * factor.clamp(0.0, 1.0)) / 128.0
+    }
 }
 
 #[inline]

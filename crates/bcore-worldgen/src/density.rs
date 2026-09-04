@@ -1,6 +1,7 @@
 //! Vanilla-style density-function evaluation primitives.
 //! The JSON reader intentionally has no dependency on serde, keeping worldgen usable standalone.
-use crate::simplex::{NoiseRegistry, SimplexNoise};
+use crate::noise_perlin;
+use crate::simplex::NoiseRegistry;
 use std::collections::HashMap;
 use std::sync::OnceLock;
 
@@ -72,6 +73,9 @@ pub enum DensityFunction {
     OldBlendedNoise {
         xz_scale: f64,
         y_scale: f64,
+        xz_factor: f64,
+        y_factor: f64,
+        smear: f64,
     },
     NoOp(Box<Self>),
     QuarterNegative(Box<Self>),
@@ -254,9 +258,14 @@ impl DensityFunction {
                 input.evaluate(x, y, z, ctx) * *rarity
             }
             Self::EndIslands => 0.,
-            Self::OldBlendedNoise { xz_scale, y_scale } => {
-                old_blended_noise(x, y, z, *xz_scale, *y_scale, ctx.seed)
-            }
+            Self::OldBlendedNoise {
+                xz_scale,
+                y_scale,
+                xz_factor,
+                y_factor,
+                smear,
+            } => blended_noise(ctx.seed, *xz_scale, *y_scale, *xz_factor, *y_factor, *smear)
+                .compute(x, y, z),
             Self::Invert(a) => -a.evaluate(x, y, z, ctx),
             Self::FindTopSurface {
                 density,
@@ -284,21 +293,26 @@ impl DensityFunction {
         }
     }
 }
-/// Vanilla `old_blended_noise`: for a fresh world this is the legacy 3-D
-/// simplex noise (first octave -7, eight unit amplitudes) — there is no old
-/// terrain to blend with, so the blend factor is zero and only the base noise
-/// remains.
-fn old_blended_noise(x: f64, y: f64, z: f64, xz_scale: f64, y_scale: f64, seed: i64) -> f64 {
-    let mut v = 0.0;
-    for n in 0..8 {
-        let scale = 2f64.powi(-7 + n as i32);
-        v += SimplexNoise::new(seed.wrapping_add(n as i64)).get_value(
-            x * xz_scale * scale,
-            y * y_scale * scale,
-            z * xz_scale * scale,
-        );
-    }
-    v / 8.0
+/// Cached vanilla `BlendedNoise` keyed by world seed (derived from
+/// `fromHashOf("minecraft:terrain")`, so it differs per world).
+fn blended_noise(
+    seed: i64,
+    xz_scale: f64,
+    y_scale: f64,
+    xz_factor: f64,
+    y_factor: f64,
+    smear: f64,
+) -> &'static noise_perlin::BlendedNoise {
+    use std::sync::Mutex;
+    static BLENDED: OnceLock<Mutex<HashMap<i64, &'static noise_perlin::BlendedNoise>>> =
+        OnceLock::new();
+    let cache = BLENDED.get_or_init(|| Mutex::new(HashMap::new()));
+    let mut guard = cache.lock().unwrap();
+    guard.entry(seed).or_insert_with(|| {
+        Box::leak(Box::new(noise_perlin::BlendedNoise::for_world(
+            seed, xz_scale, y_scale, xz_factor, y_factor, smear,
+        )))
+    })
 }
 
 fn interpolate(inner: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContext) -> f64 {
@@ -634,6 +648,9 @@ fn parse_value(v: &J) -> DensityFunction {
                 "minecraft:old_blended_noise" => DensityFunction::OldBlendedNoise {
                     xz_scale: num(o, "xz_scale", 0.25),
                     y_scale: num(o, "y_scale", 0.125),
+                    xz_factor: num(o, "xz_factor", 80.),
+                    y_factor: num(o, "y_factor", 160.),
+                    smear: num(o, "smear_scale_multiplier", 8.),
                 },
                 "minecraft:no_op" => DensityFunction::NoOp(Box::new(boxed(o.get("argument")))),
                 "minecraft:quarter_negative" => {
