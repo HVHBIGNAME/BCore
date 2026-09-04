@@ -184,8 +184,10 @@ impl<'a> Aquifer<'a> {
             lowest = lowest.min(self.preliminary_level(x + ox * 16, z + oz * 16));
         }
         let center_surface = self.preliminary_level(x, z) + 8;
+        // Vanilla: floodednessFactor = surfaceUnderWater ?
+        //   clampedMap(lowest+8-y, 0, 64, 1.0, 0.0) : 0.0   = 1 - d/64 clamped.
         let factor = if center_surface < global.level {
-            ((lowest + 8 - y) as f64 / 64.0).clamp(0., 1.)
+            (1.0 - (lowest + 8 - y) as f64 / 64.0).clamp(0., 1.)
         } else {
             0.
         };

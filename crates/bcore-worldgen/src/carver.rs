@@ -173,7 +173,7 @@ fn carve_ellipsoid(
     let max_z = hi_z.min(15) as usize;
     let min_y = ((cy - vr).floor() as i32 - 1).max(MIN_Y + 1);
     let max_y = ((cy + vr).floor() as i32 + 1).min(MAX_Y - 7);
-    if max_y < min_y {
+    if max_y <= min_y {
         return;
     }
     for lz in min_z..=max_z {
@@ -185,7 +185,7 @@ fn carve_ellipsoid(
             if xd * xd + zd * zd >= 1.0 {
                 continue;
             }
-            for wy in (min_y..=max_y).rev() {
+            for wy in (min_y + 1..=max_y).rev() {
                 let yd = (wy as f64 - 0.5 - cy) / vr;
                 let skip = match canyon_width {
                     None => yd <= floor || xd * xd + yd * yd + zd * zd >= 1.0,
@@ -256,9 +256,12 @@ fn carve_cave(
     let mut y_rota = 0.0f32;
     let mut x_rota = 0.0f32;
     for current_step in step..dist {
-        let hr = 1.5
-            + mth_sin(std::f64::consts::PI * current_step as f64 / dist as f64) as f64
-                * thickness as f64;
+        // Vanilla `Mth.PI` is a *float* ((float)Math.PI), so the whole
+        // `Mth.PI * currentStep / dist` expression is float arithmetic
+        // before the SIN-table lookup (which takes a double).
+        let progress_arg = std::f32::consts::PI * current_step as f32 / dist as f32;
+        let sin_val = mth_sin(progress_arg as f64);
+        let hr = 1.5 + (sin_val * thickness) as f64;
         let vr = hr;
         let cos_x = mth_cos(vrot as f64);
         cx += (mth_cos(hrot as f64) * cos_x) as f64;
@@ -365,10 +368,13 @@ fn carve_cave_chunk(
         let floor = uniform_float(r, -1.0, -0.4) as f64;
         let mut tunnels = 1;
         if r.next_int(4) == 0 {
-            // createRoom: ellipsoid with the sampled y scale.
+            // createRoom: ellipsoid with the sampled y scale. Vanilla room
+            // thickness = 1.0F + nextFloat()*6.0F (float), radius =
+            // 1.5 + sin((float)(π/2))·thickness (sin table → 1.0f).
             let y_scale = uniform_float(r, 0.1, 0.9) as f64;
-            let thickness = 1.0 + r.next_float() as f64 * 6.0;
-            let hr = 1.5 + mth_sin(std::f64::consts::FRAC_PI_2) as f64 * thickness;
+            let thickness: f32 = 1.0 + r.next_float() * 6.0;
+            let sin_val = mth_sin(std::f32::consts::FRAC_PI_2 as f64);
+            let hr = 1.5 + (sin_val * thickness) as f64;
             let vr = hr * y_scale;
             carve_ellipsoid(
                 pos,
@@ -453,9 +459,10 @@ fn carve_canyon_chunk(
     let (mut hrot, mut vrot) = (hrot0, vrot0);
     let (mut y_rota, mut x_rota) = (0.0f32, 0.0f32);
     for current_step in 0..distance {
-        let mut hr = 1.5
-            + mth_sin(std::f64::consts::PI * current_step as f64 / distance as f64) as f64
-                * thickness as f64;
+        // Vanilla `Mth.PI` is float ((float)Math.PI): float arithmetic.
+        let progress_arg = std::f32::consts::PI * current_step as f32 / distance as f32;
+        let sin_val = mth_sin(progress_arg as f64);
+        let mut hr = 1.5 + (sin_val * thickness) as f64;
         let mut vr = hr * y_scale;
         hr *= uniform_float(&mut r2, 0.75, 1.0) as f64;
         // updateVerticalRadius: vrd=1.0, vrc=0.0 → factor=1.0.
