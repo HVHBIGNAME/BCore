@@ -2,6 +2,7 @@
 //! The JSON reader intentionally has no dependency on serde, keeping worldgen usable standalone.
 use crate::noise_perlin;
 use crate::simplex::NoiseRegistry;
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::sync::OnceLock;
 
@@ -113,16 +114,117 @@ pub struct EvalContext {
     pub seed: i64,
     pub cell_width: i32,
     pub cell_height: i32,
+    /// Blender hooks. The defaults are vanilla's empty Blender; callers that
+    /// have legacy-chunk data can provide the three exact Blender operations.
+    pub blend_alpha: fn(i32, i32) -> f64,
+    pub blend_offset: fn(i32, i32) -> f64,
+    pub blend_density: fn(i32, i32, i32, f64) -> f64,
 }
+
+fn empty_blend_alpha(_: i32, _: i32) -> f64 {
+    1.0
+}
+fn empty_blend_offset(_: i32, _: i32) -> f64 {
+    0.0
+}
+fn empty_blend_density(_: i32, _: i32, _: i32, noise: f64) -> f64 {
+    noise
+}
+
 impl Default for EvalContext {
     fn default() -> Self {
         Self {
             seed: 0,
             cell_width: 4,
             cell_height: 8,
+            blend_alpha: empty_blend_alpha,
+            blend_offset: empty_blend_offset,
+            blend_density: empty_blend_density,
         }
     }
 }
+thread_local! {
+    static CACHE_ALL_IN_CELL: RefCell<HashMap<(usize, i64, i32, i32, i32), f64>> = RefCell::new(HashMap::new());
+    static CACHE_2D: RefCell<HashMap<(usize, i64, i64, i64), f64>> = RefCell::new(HashMap::new());
+    static FLAT_CACHE: RefCell<HashMap<usize, (i64, u64, u64, u64, f64)>> = RefCell::new(HashMap::new());
+    static CACHE_ONCE: RefCell<HashMap<usize, f64>> = RefCell::new(HashMap::new());
+}
+
+fn cache_all_in_cell(a: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContext) -> f64 {
+    let width = ctx.cell_width.max(1);
+    let height = ctx.cell_height.max(1);
+    let cell = (
+        (x / width as f64).floor() as i32 * width,
+        (y / height as f64).floor() as i32 * height,
+        (z / width as f64).floor() as i32 * width,
+    );
+    let key = (
+        a as *const DensityFunction as usize,
+        ctx.seed,
+        cell.0,
+        cell.1,
+        cell.2,
+    );
+    if let Some(value) = CACHE_ALL_IN_CELL.with(|cache| cache.borrow().get(&key).copied()) {
+        return value;
+    }
+    let value = a.evaluate(cell.0 as f64, cell.1 as f64, cell.2 as f64, ctx);
+    CACHE_ALL_IN_CELL.with(|cache| {
+        cache.borrow_mut().insert(key, value);
+    });
+    value
+}
+
+fn cache_2d(a: &DensityFunction, x: f64, z: f64, ctx: &EvalContext) -> f64 {
+    let key = (
+        a as *const DensityFunction as usize,
+        ctx.seed,
+        x.to_bits() as i64,
+        z.to_bits() as i64,
+    );
+    if let Some(value) = CACHE_2D.with(|cache| cache.borrow().get(&key).copied()) {
+        return value;
+    }
+    let value = a.evaluate(x, 0., z, ctx);
+    CACHE_2D.with(|cache| {
+        cache.borrow_mut().insert(key, value);
+    });
+    value
+}
+
+fn flat_cache(a: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContext) -> f64 {
+    let key = (ctx.seed, x.to_bits(), y.to_bits(), z.to_bits());
+    if let Some(value) = FLAT_CACHE.with(|cache| {
+        cache
+            .borrow()
+            .get(&(a as *const DensityFunction as usize))
+            .filter(|entry| (entry.0, entry.1, entry.2, entry.3) == key)
+            .map(|entry| entry.4)
+    }) {
+        return value;
+    }
+    let value = a.evaluate(x, y, z, ctx);
+    FLAT_CACHE.with(|cache| {
+        cache.borrow_mut().insert(
+            a as *const DensityFunction as usize,
+            (ctx.seed, x.to_bits(), y.to_bits(), z.to_bits(), value),
+        );
+    });
+    value
+}
+
+fn cache_once(a: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContext) -> f64 {
+    let key = a as *const DensityFunction as usize;
+    if let Some(value) = CACHE_ONCE.with(|cache| cache.borrow().get(&key).copied()) {
+        return value;
+    }
+    let value = a.evaluate(x, y, z, ctx);
+    CACHE_ONCE.with(|cache| {
+        cache.borrow_mut().insert(key, value);
+    });
+    value
+}
+
 impl DensityFunction {
     pub fn constant(v: f64) -> Self {
         Self::Constant(v)
@@ -186,12 +288,20 @@ impl DensityFunction {
                 v / 2. - v * v * v / 24.
             }
             Self::Interpolated(a) => interpolate(a, x, y, z, ctx),
-            Self::BlendDensity(a) => a.evaluate(x, y, z, ctx),
-            Self::Cache2d(a)
-            | Self::CacheAllInCell(a)
-            | Self::FlatCache(a)
-            | Self::CacheOnce(a)
-            | Self::NoOp(a) => a.evaluate(x, y, z, ctx),
+            Self::BlendDensity(a) => {
+                let noise = a.evaluate(x, y, z, ctx);
+                (ctx.blend_density)(
+                    (x / 4.).floor() as i32,
+                    (y / 8.).floor() as i32,
+                    (z / 4.).floor() as i32,
+                    noise,
+                )
+            }
+            Self::CacheAllInCell(a) => cache_all_in_cell(a, x, y, z, ctx),
+            Self::Cache2d(a) => cache_2d(a, x, z, ctx),
+            Self::FlatCache(a) => flat_cache(a, x, y, z, ctx),
+            Self::CacheOnce(a) => cache_once(a, x, y, z, ctx),
+            Self::NoOp(a) => a.evaluate(x, y, z, ctx),
             Self::QuarterNegative(a) => {
                 let v = a.evaluate(x, y, z, ctx);
                 if v < 0.0 {
@@ -241,10 +351,9 @@ impl DensityFunction {
                 noise_registry().sample(name, ctx.seed, x * xz + sx, y * ys + sy, z * xz + sz)
             }
             // Vanilla's empty Blender reports alpha=1 and offset=0.  The
-            // offset graph then selects the normal terrain spline (the second
-            // lerp input), rather than the legacy-chunk blend offset.
-            Self::BlendOffset(_) => 0.,
-            Self::BlendAlpha(_) => 1.,
+            // actual non-empty Blender is supplied by EvalContext hooks.
+            Self::BlendOffset(_) => (ctx.blend_offset)(x.floor() as i32, z.floor() as i32),
+            Self::BlendAlpha(_) => (ctx.blend_alpha)(x.floor() as i32, z.floor() as i32),
             Self::ShiftA(name) => {
                 // `ShiftA.compute` = `compute(x, 0, z)`.
                 noise_registry().sample(name, ctx.seed, x * 0.25, 0., z * 0.25) * 4.0
@@ -758,5 +867,35 @@ mod tests {
             to_value: 1.,
         };
         assert_eq!(f.evaluate(0., 5., 0., &Default::default()), 0.);
+    }
+
+    #[test]
+    fn vanilla_blend_markers_match_empty_blender() {
+        let ctx = EvalContext::default();
+        let alpha = parse_json(r#"{"type":"minecraft:blend_alpha"}"#).unwrap();
+        let offset = parse_json(r#"{"type":"minecraft:blend_offset"}"#).unwrap();
+        let density = parse_json(
+            r#"{"type":"minecraft:blend_density","argument":{"type":"minecraft:constant","value":2.5}}"#,
+        )
+        .unwrap();
+        assert_eq!(alpha.evaluate(13., 37., -9., &ctx), 1.0);
+        assert_eq!(offset.evaluate(13., 37., -9., &ctx), 0.0);
+        assert_eq!(density.evaluate(13., 37., -9., &ctx), 2.5);
+    }
+
+    #[test]
+    fn interpolated_is_trilinear_over_cell_corners() {
+        let inner = DensityFunction::YGradient {
+            from: 0,
+            to: 100,
+            from_value: 0.,
+            to_value: 100.,
+        };
+        let f = DensityFunction::Interpolated(Box::new(inner));
+        let ctx = EvalContext::default();
+        // Default cells are 4x4x8; a linear function remains unchanged.
+        assert_eq!(f.evaluate(1., 4., 3., &ctx), 4.);
+        // floor() is important for negative coordinates, matching Java's floorDiv.
+        assert_eq!(f.evaluate(-1., 4., -1., &ctx), 4.);
     }
 }

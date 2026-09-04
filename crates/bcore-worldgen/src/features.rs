@@ -737,7 +737,7 @@ mod tests {
     fn ore_veins_are_deterministic_and_stay_in_chunk_and_ranges() {
         let collect = || {
             let mut out = Vec::new();
-            place_ore_veins(1234, -34, 3, &mut |x, y, z, state| {
+            place_ore_veins(1234, -34, 3, &|_, _| 100, &mut |x, y, z, state| {
                 out.push((x, y, z, state));
             });
             out
@@ -756,6 +756,7 @@ mod tests {
         let mut rng = WorldgenRandom::new(7);
         let placed = place_ore(
             &mut rng,
+            &|_, _| 100,
             &mut |x, y, z, state| vein.push((x, y, z, state)),
             0,
             0,
@@ -771,6 +772,7 @@ mod tests {
         let mut rng2 = WorldgenRandom::new(7);
         place_ore(
             &mut rng2,
+            &|_, _| 100,
             &mut |x, y, z, state| vein2.push((x, y, z, state)),
             0,
             0,
