@@ -35,7 +35,7 @@ use crate::chunk::ChunkColumn;
 use crate::chunk_store::ChunkStore;
 
 /// The default world seed. `/seed` reports this.
-pub const DEFAULT_SEED: i64 = 0x0BC0_0E00_1234_5678u64 as i64;
+pub const DEFAULT_SEED: i64 = 0x1A93_2A57_9B13_2D98u64 as i64;
 
 /// How the blocks of a chunk were obtained.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
