@@ -268,21 +268,26 @@ impl SimplexNoise {
     }
 }
 
-/// Per-thread cache of `SimplexNoise` instances keyed by seed.
+/// Per-thread cache of `NormalNoise` instances, keyed by `(world seed, noise name)`.
 ///
-/// `SimplexNoise::new` shuffles a 256-entry permutation table, which is far too
-/// expensive to repeat for every sampled block. Worldgen reuses a handful of
-/// seeds per octave, so caching collapses that cost to a hash lookup + a 256-byte
-/// clone.
+/// Building one `NormalNoise` means constructing up to 2×9 `ImprovedNoise`
+/// permutation tables, which is far too expensive to repeat per sampled block.
 thread_local! {
-    static NORMAL_CACHE: std::cell::RefCell<std::collections::HashMap<i64, crate::noise_perlin::NormalNoise>> =
+    static NORMAL_CACHE: std::cell::RefCell<std::collections::HashMap<(i64, String), crate::noise_perlin::NormalNoise>> =
         std::cell::RefCell::new(std::collections::HashMap::new());
 }
-fn cached_normal(seed: i64, first: i32, amplitudes: &[f64]) -> crate::noise_perlin::NormalNoise {
+fn cached_normal(
+    seed: i64,
+    noise_name: &str,
+    first: i32,
+    amplitudes: &[f64],
+) -> crate::noise_perlin::NormalNoise {
     NORMAL_CACHE.with(|c| {
         let mut m = c.borrow_mut();
-        m.entry(seed)
-            .or_insert_with(|| crate::noise_perlin::NormalNoise::new(seed, first, amplitudes))
+        m.entry((seed, noise_name.to_string()))
+            .or_insert_with(|| {
+                crate::noise_perlin::NormalNoise::for_world(seed, noise_name, first, amplitudes)
+            })
             .clone()
     })
 }
@@ -328,13 +333,15 @@ impl NoiseRegistry {
         let Some(d) = self.defs.get(key) else {
             return 0.;
         };
-        // Vanilla RandomState: `random = WorldgenRandom(LegacyRandomSource(seed)).forkPositional()`,
-        // then each noise is `NormalNoise.create(random.fromHashOf("minecraft:<key>"), ...)`.
-        // fromHashOf(name) = LegacyRandomSource(name.hashCode() ^ forkSeed).
-        let fork_seed = fork_seed_for(seed);
-        let noise_seed =
-            crate::noise_perlin::java_string_hash(&format!("minecraft:{key}")) as i64 ^ fork_seed;
-        let n = cached_normal(noise_seed, d.first_octave, &d.amplitudes);
+        // Vanilla `RandomState` with `legacy_random_source: false` (the overworld
+        // default): the root random is Xoroshiro, forked positionally, and each
+        // noise comes from `fromHashOf("minecraft:<key>")` (MD5-derived seed pair).
+        let n = cached_normal(
+            seed,
+            &format!("minecraft:{key}"),
+            d.first_octave,
+            &d.amplitudes,
+        );
         n.get_value(x, y, z)
     }
 }
