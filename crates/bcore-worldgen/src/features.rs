@@ -149,30 +149,38 @@ pub fn place_ore(
         return false;
     }
     let state = ore_state(kind);
-    let dir = rng.next_float() as f64 * std::f64::consts::PI;
-    let spread_xy = size as f64 / 8.0;
-    let max_radius = ((size as f64 / 16.0 * 2.0 + 1.0) / 2.0).ceil() as i32;
-    let x0 = x as f64 + dir.sin() * spread_xy;
-    let x1 = x as f64 - dir.sin() * spread_xy;
-    let z0 = z as f64 + dir.cos() * spread_xy;
-    let z1 = z as f64 - dir.cos() * spread_xy;
+    // Vanilla keeps these in `float` before widening; the narrower mantissa
+    // changes sphere placement by fractions of a block, which is enough to move
+    // whole blocks in or out of the vein.
+    let dir = rng.next_float() * std::f32::consts::PI;
+    let spread_xy = (size as f32 / 8.0) as f64;
+    let max_radius = (size as f32 / 16.0 * 2.0 + 1.0) / 2.0;
+    let max_radius = max_radius.ceil() as i32;
+    let x0 = x as f64 + (dir as f64).sin() * spread_xy;
+    let x1 = x as f64 - (dir as f64).sin() * spread_xy;
+    let z0 = z as f64 + (dir as f64).cos() * spread_xy;
+    let z1 = z as f64 - (dir as f64).cos() * spread_xy;
     let y0 = y as f64 + rng.next_int(3) as i32 as f64 - 2.0;
     let y1 = y as f64 + rng.next_int(3) as i32 as f64 - 2.0;
-    let x_start = x - (spread_xy.ceil() as i32) - max_radius;
+    let x_start = x - (spread_xy as f32).ceil() as i32 - max_radius;
     let y_start = y - 2 - max_radius;
-    let z_start = z - (spread_xy.ceil() as i32) - max_radius;
-    let size_xz = 2 * (spread_xy.ceil() as i32 + max_radius);
+    let z_start = z - (spread_xy as f32).ceil() as i32 - max_radius;
+    let size_xz = 2 * ((spread_xy as f32).ceil() as i32 + max_radius);
     let size_y = 2 * (2 + max_radius);
 
     // doPlace: generate the sphere centers and radii.
     let mut data = vec![0.0f64; size * 4];
     for i in 0..size {
-        let step = i as f64 / size as f64;
+        // `float step = (float) i / size;` — float division in vanilla.
+        let step = (i as f32 / size as f32) as f64;
         let xx = lerp(step, x0, x1);
         let yy = lerp(step, y0, y1);
         let zz = lerp(step, z0, z1);
         let ss = rng.next_double() * size as f64 / 16.0;
-        let r = ((step * std::f64::consts::PI).sin() + 1.0) * ss + 1.0 / 2.0;
+        // `((Mth.sin(Mth.PI * step) + 1.0F) * ss + 1.0) / 2.0` — the whole
+        // expression is halved, and `Mth.sin` is a 65536-entry lookup table,
+        // not libm `sin`.
+        let r = ((mth_sin(std::f32::consts::PI * step as f32) as f64 + 1.0) * ss + 1.0) / 2.0;
         data[i * 4] = xx;
         data[i * 4 + 1] = yy;
         data[i * 4 + 2] = zz;
@@ -247,6 +255,23 @@ pub fn place_ore(
 #[inline]
 fn lerp(t: f64, a: f64, b: f64) -> f64 {
     a + t * (b - a)
+}
+
+/// Vanilla `Mth.sin` — a 65536-entry lookup table indexed by
+/// `(long)(x * SIN_SCALE) & 0xFFFF`, so it is *not* interchangeable with libm
+/// `sin` at the bit level.
+fn mth_sin(x: f32) -> f32 {
+    const SIN_SCALE: f64 = 10430.378350470453;
+    let idx = ((x as f64 * SIN_SCALE) as i64 & 0xFFFF) as usize;
+    (idx as f64 / SIN_SCALE).sin() as f32
+}
+
+/// Vanilla `Mth.cos`.
+#[allow(dead_code)]
+fn mth_cos(x: f32) -> f32 {
+    const SIN_SCALE: f64 = 10430.378350470453;
+    let idx = (((x as f64 * SIN_SCALE) + 16384.0) as i64 & 0xFFFF) as usize;
+    (idx as f64 / SIN_SCALE).sin() as f32
 }
 
 fn next_range_u64(state: &mut u64, min: i32, max: i32) -> i32 {
