@@ -123,6 +123,15 @@ pub mod block {
     pub const REDSTONE_ORE: u32 = 6882;
     pub const SNOW_BLOCK: u32 = 6928;
     pub const CACTUS: u32 = 6929;
+    // Deepslate ore variants (`deepslate_ore_replaceables` target).
+    pub const DEEPSLATE_COAL_ORE: u32 = 134;
+    pub const DEEPSLATE_IRON_ORE: u32 = 132;
+    pub const DEEPSLATE_COPPER_ORE: u32 = 27791;
+    pub const DEEPSLATE_GOLD_ORE: u32 = 130;
+    pub const DEEPSLATE_REDSTONE_ORE: u32 = 6883;
+    pub const DEEPSLATE_DIAMOND_ORE: u32 = 5308;
+    pub const DEEPSLATE_LAPIS_ORE: u32 = 564;
+    pub const DEEPSLATE_EMERALD_ORE: u32 = 9574;
     pub const DEEPSLATE: u32 = 30417;
 }
 
@@ -834,8 +843,23 @@ impl WorldGenerator {
             }
             let idx = (y - MIN_Y) as usize * column_count + lz as usize * CHUNK_SIZE + lx as usize;
             let cur = ore_chunk.states[idx];
-            if cur == block::STONE || cur == block::DEEPSLATE {
+            if cur == block::STONE {
                 ore_chunk.states[idx] = state;
+            } else if cur == block::DEEPSLATE {
+                // `deepslate_ore_replaceables` target → the deepslate variant; the
+                // stone blobs (granite/diorite/andesite/tuff/dirt/gravel) are the
+                // same block in both realms and pass through unchanged.
+                ore_chunk.states[idx] = match state {
+                    block::COAL_ORE => block::DEEPSLATE_COAL_ORE,
+                    block::IRON_ORE => block::DEEPSLATE_IRON_ORE,
+                    block::COPPER_ORE => block::DEEPSLATE_COPPER_ORE,
+                    block::GOLD_ORE => block::DEEPSLATE_GOLD_ORE,
+                    block::REDSTONE_ORE => block::DEEPSLATE_REDSTONE_ORE,
+                    block::DIAMOND_ORE => block::DEEPSLATE_DIAMOND_ORE,
+                    block::LAPIS_ORE => block::DEEPSLATE_LAPIS_ORE,
+                    9573 => block::DEEPSLATE_EMERALD_ORE,
+                    other => other,
+                };
             }
         });
         chunk
