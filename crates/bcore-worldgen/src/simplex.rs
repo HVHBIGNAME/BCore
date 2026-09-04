@@ -27,6 +27,12 @@ impl JavaRandom {
     pub fn new(seed: i64) -> Self {
         Self((((seed as u64) ^ 0x5deece66d) & ((1u64 << 48) - 1)))
     }
+    pub fn set_seed(&mut self, seed: i64) {
+        self.0 = ((seed as u64) ^ 0x5deece66d) & ((1u64 << 48) - 1);
+    }
+    pub fn next_int_unbounded(&mut self) -> i32 {
+        self.next(32) as i32
+    }
     fn next(&mut self, bits: u32) -> u32 {
         self.0 = (self.0.wrapping_mul(0x5deece66d).wrapping_add(0xb)) & ((1u64 << 48) - 1);
         (self.0 >> (48 - bits)) as u32
@@ -50,10 +56,13 @@ impl JavaRandom {
             }
         }
     }
-    /// Java `Random.nextLong` — combines two 32-bit draws, as vanilla's
-    /// `WorldgenRandom` does for `fork()`.
+    /// Java `Random.nextLong` — `((long)next(32) << 32) + next(32)` with
+    /// *signed* 32-bit draws (the low word is added to the sign-extended high
+    /// word, exactly like `BitRandomSource.nextLong`).
     pub fn next_long(&mut self) -> i64 {
-        ((self.next(32) as u64) << 32 | self.next(32) as u64) as i64
+        let hi = self.next(32) as i32 as i64;
+        let lo = self.next(32) as i32 as i64;
+        hi.wrapping_shl(32).wrapping_add(lo)
     }
     /// Vanilla `RandomSource.fork()`: a fresh random seeded from this one.
     pub fn fork(&mut self) -> Self {

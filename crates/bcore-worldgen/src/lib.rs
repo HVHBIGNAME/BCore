@@ -35,6 +35,7 @@ use std::sync::OnceLock;
 
 pub mod aquifer;
 pub mod biome;
+pub mod carver;
 pub mod density;
 pub mod features;
 pub mod noise;
@@ -836,6 +837,9 @@ impl WorldGenerator {
             }
         }
 
+        // Vanilla carvers run after surface and before underground ores.
+        carver::apply(self.seed, pos, &mut chunk, &graph, ctx);
+
         // Vanilla UNDERGROUND_ORES step: `OreFeature` replaces blocks matching the
         // configured target. The stone *blobs* (granite/diorite/andesite/tuff/dirt/
         // gravel) target `base_stone_overworld` (stone + granite + diorite + andesite
@@ -1277,9 +1281,9 @@ struct VanillaColumn {
     states: Vec<u32>,
 }
 
-struct VanillaGraph {
-    final_density: density::DensityFunction,
-    preliminary_surface_level: Option<density::DensityFunction>,
+pub(crate) struct VanillaGraph {
+    pub(crate) final_density: density::DensityFunction,
+    pub(crate) preliminary_surface_level: Option<density::DensityFunction>,
     // Exposed in the graph for cave probes and parity diagnostics.  These are
     noodle: Option<density::DensityFunction>,
     cave_cheese: Option<density::DensityFunction>,
