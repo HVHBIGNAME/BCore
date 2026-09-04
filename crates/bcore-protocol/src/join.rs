@@ -340,9 +340,9 @@ fn stream_initial_chunks(stream: &mut TcpStream, view: &mut PlayerView) -> Resul
         view.spawn = (x, y, z);
     }
 
-    // Bound the very first batch too, so a fresh join does not burst the whole
-    // 41x41 view at once (the play loop streams the rest 64 chunks per tick).
-    view.set_chunk_batch_size(64);
+    // Send the complete view-distance square in one initial batch.  The client
+    // expects all chunks in its configured view distance to become available;
+    // chunk-batch flow control is not a server-side view-distance limit.
     let sent = view.stream_chunks(stream)?;
     let (cx, cz) = view.chunk();
     println!(
@@ -370,7 +370,6 @@ fn play_loop(
     let mut last_keepalive = Instant::now();
     let mut keepalive_id: i64 = 0;
     let mut last_chunk = view.chunk();
-    view.set_chunk_batch_size(64);
 
     loop {
         if handle.is_kicked() || server.is_shutting_down() {
@@ -455,8 +454,9 @@ fn play_loop(
             Err(_) => break, // peer closed or sent something unreadable
         }
 
-        // Continue a large teleport/movement stream on each tick. The first
-        // batch is deliberately small; this prevents a 1681-chunk burst.
+        // Continue a large teleport/movement stream on each tick. Client-side
+        // chunk-batch acknowledgements may lower the per-batch flow-control
+        // value, but all chunks in the configured view remain pending here.
         if view.has_pending_chunks() {
             match view.stream_chunks(stream) {
                 Ok(_) => {}

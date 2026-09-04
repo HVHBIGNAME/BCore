@@ -16,6 +16,29 @@ pub fn noise_registry() -> &'static NoiseRegistry {
     })
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum RarityMapper {
+    Tunnels,
+    Caves,
+}
+
+impl RarityMapper {
+    #[inline]
+    fn scale(self, rarity: f64) -> f64 {
+        match self {
+            Self::Tunnels if rarity < -0.5 => 0.75,
+            Self::Tunnels if rarity < 0.0 => 1.0,
+            Self::Tunnels if rarity < 0.5 => 1.5,
+            Self::Tunnels => 2.0,
+            Self::Caves if rarity < -0.75 => 0.5,
+            Self::Caves if rarity < -0.5 => 0.75,
+            Self::Caves if rarity < 0.5 => 1.0,
+            Self::Caves if rarity < 0.75 => 2.0,
+            Self::Caves => 3.0,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum DensityFunction {
     Constant(f64),
@@ -68,7 +91,8 @@ pub enum DensityFunction {
     WeirdScaledSampler {
         input: Box<Self>,
         noise: String,
-        rarity: f64,
+        /// Vanilla's `QuantizedSpaghettiRarity` mapper, not a fixed multiplier.
+        rarity_mapper: RarityMapper,
     },
     EndIslands,
     OldBlendedNoise {
@@ -106,6 +130,7 @@ pub enum DensityFunction {
         lower_bound: i32,
         cell_height: i32,
     },
+    Y,
     Unknown,
 }
 
@@ -355,8 +380,15 @@ impl DensityFunction {
                 // swapped relative to ShiftA.
                 noise_registry().sample(name, ctx.seed, z * 0.25, x * 0.25, 0.) * 4.0
             }
-            Self::WeirdScaledSampler { input, rarity, .. } => {
-                input.evaluate(x, y, z, ctx) * *rarity
+            Self::WeirdScaledSampler {
+                input,
+                noise,
+                rarity_mapper,
+            } => {
+                // Vanilla samples the rarity input first, quantizes it through
+                // QuantizedSpaghettiRarity, then multiplies the noise sample.
+                let rarity = input.evaluate(x, y, z, ctx);
+                noise_registry().sample(noise, ctx.seed, x, y, z) * rarity_mapper.scale(rarity)
             }
             Self::EndIslands => 0.,
             Self::OldBlendedNoise {
@@ -390,6 +422,7 @@ impl DensityFunction {
                 }
                 *lower_bound as f64
             }
+            Self::Y => y,
             Self::Unknown => 0.,
         }
     }
@@ -664,6 +697,7 @@ fn parse_value(v: &J) -> DensityFunction {
                     from_value: num(o, "from_value", 0.),
                     to_value: num(o, "to_value", 0.),
                 },
+                "minecraft:y" => DensityFunction::Y,
                 "minecraft:cache_once" => {
                     DensityFunction::CacheOnce(Box::new(boxed(o.get("argument"))))
                 }
@@ -743,7 +777,13 @@ fn parse_value(v: &J) -> DensityFunction {
                         Some(J::S(s)) => s.clone(),
                         _ => String::new(),
                     },
-                    rarity: num(o, "rarity_value", 1.),
+                    rarity_mapper: match o.get("rarity_value_mapper").and_then(|v| match v {
+                        J::S(s) => Some(s.as_str()),
+                        _ => None,
+                    }) {
+                        Some("type_2") => RarityMapper::Caves,
+                        _ => RarityMapper::Tunnels,
+                    },
                 },
                 "minecraft:end_islands" => DensityFunction::EndIslands,
                 "minecraft:old_blended_noise" => DensityFunction::OldBlendedNoise {

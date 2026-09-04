@@ -124,7 +124,7 @@ impl World {
             }
         }
 
-        let generated = self.generator.generate_chunk(ChunkPos::new(x, z));
+        let generated = self.generator.generate_chunk_vanilla(ChunkPos::new(x, z));
         let column = ChunkColumn::from_generated(&generated);
 
         if let Some(store) = &self.store {
@@ -137,7 +137,7 @@ impl World {
 
     /// Generate a chunk without consulting or touching the disk.
     pub fn generate(&self, x: i32, z: i32) -> ChunkColumn {
-        ChunkColumn::from_generated(&self.generator.generate_chunk(ChunkPos::new(x, z)))
+        ChunkColumn::from_generated(&self.generator.generate_chunk_vanilla(ChunkPos::new(x, z)))
     }
 
     /// The encoded `map_chunk` payload for `(x, z)`, cached across calls.
