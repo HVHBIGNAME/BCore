@@ -836,8 +836,12 @@ impl WorldGenerator {
             }
         }
 
-        // Vanilla UNDERGROUND_ORES step: stone blobs and ore veins replace only the
-        // default block (stone/deepslate), exactly as `OreFeature`'s target test does.
+        // Vanilla UNDERGROUND_ORES step: `OreFeature` replaces blocks matching the
+        // configured target. The stone *blobs* (granite/diorite/andesite/tuff/dirt/
+        // gravel) target `base_stone_overworld` (stone + granite + diorite + andesite
+        // + tuff + deepslate), while the metal ores target `stone_ore_replaceables`
+        // (stone + granite + diorite + andesite) and `deepslate_ore_replaceables`
+        // (deepslate). This lets a later blob overwrite an earlier one.
         let ore_chunk = &mut chunk;
         features::place_ore_veins(self.seed, pos.x, pos.z, &mut |wx, y, wz, state| {
             let lx = wx - base_x;
@@ -851,12 +855,36 @@ impl WorldGenerator {
             }
             let idx = (y - MIN_Y) as usize * column_count + lz as usize * CHUNK_SIZE + lx as usize;
             let cur = ore_chunk.states[idx];
-            if cur == block::STONE {
+            let is_base_stone = matches!(
+                state,
+                block::GRANITE
+                    | block::DIORITE
+                    | block::ANDESITE
+                    | block::TUFF
+                    | block::DIRT
+                    | block::GRAVEL
+            );
+            if is_base_stone {
+                // base_stone_overworld: stone, granite, diorite, andesite, tuff, deepslate.
+                if matches!(
+                    cur,
+                    block::STONE
+                        | block::DEEPSLATE
+                        | block::GRANITE
+                        | block::DIORITE
+                        | block::ANDESITE
+                        | block::TUFF
+                ) {
+                    ore_chunk.states[idx] = state;
+                }
+            } else if matches!(
+                cur,
+                block::STONE | block::GRANITE | block::DIORITE | block::ANDESITE
+            ) {
+                // stone_ore_replaceables → the plain ore state.
                 ore_chunk.states[idx] = state;
             } else if cur == block::DEEPSLATE {
-                // `deepslate_ore_replaceables` target → the deepslate variant; the
-                // stone blobs (granite/diorite/andesite/tuff/dirt/gravel) are the
-                // same block in both realms and pass through unchanged.
+                // deepslate_ore_replaceables → the deepslate variant.
                 ore_chunk.states[idx] = match state {
                     block::COAL_ORE => block::DEEPSLATE_COAL_ORE,
                     block::IRON_ORE => block::DEEPSLATE_IRON_ORE,
