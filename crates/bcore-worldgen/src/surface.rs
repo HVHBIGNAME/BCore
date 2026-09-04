@@ -142,6 +142,11 @@ fn deepslate_gradient(x: i32, y: i32, z: i32, seed: i64) -> bool {
 /// `SurfaceRules.VerticalGradientConditionSource`: true below `true_at_and_below`,
 /// false at/above `false_at_and_above`, and a linearly-falling random chance in
 /// between, sampled from a positional random derived from `random_name`.
+///
+/// Vanilla `legacy_random_source: false` path:
+///   `random`        = `XoroshiroRandomSource(seed).forkPositional()`
+///   `randomFactory` = `random.fromHashOf(name).forkPositional()`
+///   `randomFactory.at(x, y, z).nextFloat()`
 pub(crate) fn vertical_gradient(
     random_name: &str,
     x: i32,
@@ -160,31 +165,12 @@ pub(crate) fn vertical_gradient(
     // Mth.map(y, trueAtAndBelow, falseAtAndAbove, 1.0, 0.0)
     let probability =
         1.0 - (y - true_at_and_below) as f64 / (false_at_and_above - true_at_and_below) as f64;
-    let mut at_rng = crate::simplex::JavaRandom::new(positional_seed(random_name, x, y, z, seed));
+    let mut root = crate::noise_perlin::Xoroshiro::new(seed);
+    let factory = root.fork_positional();
+    let mut named = factory.from_hash_of(random_name);
+    let named_factory = named.fork_positional();
+    let mut at_rng = named_factory.at(x, y, z);
     (at_rng.next_float() as f64) < probability
-}
-
-/// `randomState.getOrCreateRandomFactory(name)` = `random.fromHashOf(name).forkPositional()`,
-/// then `.at(x, y, z)` = `LegacyRandomSource(Mth.getSeed(x,y,z) ^ factorySeed)`.
-fn positional_seed(random_name: &str, x: i32, y: i32, z: i32, seed: i64) -> i64 {
-    let fork_seed = crate::simplex::fork_seed_for(seed);
-    let named_seed = crate::noise_perlin::java_string_hash(random_name) as i64 ^ fork_seed;
-    let factory_seed = crate::simplex::JavaRandom::new(named_seed).next_long();
-    mth_get_seed(x, y, z) ^ factory_seed
-}
-
-/// Vanilla `Mth.getSeed`.
-///
-/// Note `x * 3129871` is *int* arithmetic in Java (32-bit wrapping) before being
-/// widened by the `long` xor — the width matters for large coordinates.
-fn mth_get_seed(x: i32, y: i32, z: i32) -> i64 {
-    let mut i =
-        (x.wrapping_mul(3129871) as i64) ^ ((z as i64).wrapping_mul(116129781)) ^ (y as i64);
-    i = i
-        .wrapping_mul(i)
-        .wrapping_mul(42317861)
-        .wrapping_add(i.wrapping_mul(11));
-    i >> 16
 }
 
 #[cfg(test)]
