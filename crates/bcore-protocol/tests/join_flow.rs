@@ -20,9 +20,9 @@ fn join_flow_reaches_play_state() {
     let mut stream = std::net::TcpStream::connect(addr).expect("connect");
     stream.set_nodelay(true).ok();
 
-    // Handshake -> login (protocol 776).
+    // Handshake -> login (protocol 775).
     let mut hs = Vec::new();
-    encode_varint(776, &mut hs);
+    encode_varint(775, &mut hs);
     write_string("127.0.0.1", &mut hs);
     hs.extend_from_slice(&addr.port().to_be_bytes());
     encode_varint(2, &mut hs);
@@ -38,9 +38,10 @@ fn join_flow_reaches_play_state() {
     write_packet(&mut frame, 0x00, &ls);
     stream.write_all(&frame).expect("login start");
 
-    // Login success: parse uuid + name + properties + profile-id (16 bytes).
+    // Login success: parse uuid + name + properties (protocol 775 has no profile id).
     let (pid, data) = read_frame(&mut stream).expect("login success");
     assert_eq!(pid, 0x02, "expected login success");
+    let data_len = data.len();
     let mut cur = Cursor::new(data);
     let mut uuid = [0u8; 16];
     cur.read_exact(&mut uuid).expect("uuid");
@@ -48,13 +49,9 @@ fn join_flow_reaches_play_state() {
     assert_eq!(name, "TestPlayer");
     let props = read_varint(&mut cur).expect("props");
     assert_eq!(props, 0, "offline login has no properties");
-    let mut profile_id = [0u8; 16];
-    cur.read_exact(&mut profile_id).expect("profile id");
-    // profile id must be a valid v4 UUID (version nibble == 4).
-    assert_eq!(profile_id[6] >> 4, 4, "profile id must be uuid v4");
     assert_eq!(
         cur.position() as usize,
-        uuid.len() + name.len() + 1 + 1 + 16,
+        data_len,
         "login success must be fully consumed"
     );
 

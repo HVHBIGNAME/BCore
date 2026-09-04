@@ -39,6 +39,11 @@ use crate::world::{
 
 pub const LOGIN_SUCCESS_ID: i32 = 0x02;
 pub const LOGIN_ACKNOWLEDGED_ID: i32 = 0x03;
+const PLAY_LOGIN_ID: i32 = 0x31;
+const PLAY_LOGIN_ENTITY_ID: i32 = 392;
+const PLAY_VIEW_DISTANCE: i32 = 8;
+const PLAY_SEA_LEVEL: i32 = 63;
+const WORLD_HASHED_SEED: i64 = -1328540181389140506;
 const CONFIG_SELECT_KNOWN_PACKS_ID: i32 = 0x0e;
 const CONFIG_KNOWN_PACKS_RESPONSE_ID: i32 = 0x07;
 const CONFIG_FINISH_ID: i32 = 0x03;
@@ -81,6 +86,37 @@ pub fn encode_login_success(uuid: &[u8; 16], name: &str) -> Vec<u8> {
     encode_varint(0, &mut data); // properties count
     let mut out = Vec::new();
     write_packet(&mut out, LOGIN_SUCCESS_ID, &data);
+    out
+}
+
+fn encode_play_login(view: &PlayerView) -> Vec<u8> {
+    let mut data = Vec::new();
+    data.extend_from_slice(&PLAY_LOGIN_ENTITY_ID.to_be_bytes());
+    data.push(0); // hardcore
+    encode_varint(3, &mut data);
+    for name in [
+        "minecraft:overworld",
+        "minecraft:the_nether",
+        "minecraft:the_end",
+    ] {
+        write_string(name, &mut data);
+    }
+    encode_varint(MAX_PLAYERS as i32, &mut data);
+    encode_varint(PLAY_VIEW_DISTANCE, &mut data);
+    encode_varint(PLAY_VIEW_DISTANCE, &mut data);
+    data.extend_from_slice(&[0, 1, 0]); // reducedDebugInfo, respawnScreen, limitedCrafting
+    encode_varint(0, &mut data); // overworld dimension
+    write_string("minecraft:overworld", &mut data);
+    data.extend_from_slice(&WORLD_HASHED_SEED.to_be_bytes());
+    data.push(view.game_mode.id() as u8);
+    data.push(0xff); // previous gamemode
+    data.extend_from_slice(&[0, 0]); // debug, flat
+    data.push(0); // last death location: absent (option<bool GlobalPos>)
+    encode_varint(0, &mut data); // portal cooldown
+    encode_varint(PLAY_SEA_LEVEL, &mut data);
+    data.push(0); // enforces secure chat
+    let mut out = Vec::new();
+    write_packet(&mut out, PLAY_LOGIN_ID, &data);
     out
 }
 
@@ -163,13 +199,13 @@ pub fn run_login_and_join(
 
     config_replay(stream)?;
     let mut view = play_replay(stream, &uuid, &name)?;
-    stream_initial_chunks(stream, &mut view)?;
 
     // Register only once the player is really in the world, so a failed join
     // never leaves a ghost in `/list`.
     let handle = server.join(&name, uuid);
     let result = send_join_state(stream, &view, server, &handle).and_then(|_| {
         announce_join(server, &handle);
+        stream_initial_chunks(stream, &mut view)?;
         play_loop(stream, &mut view, server, &handle)
     });
     server.leave(handle.id);
@@ -191,11 +227,11 @@ fn send_join_state(
     handle: &PlayerHandle,
 ) -> Result<(), PacketError> {
     let mut out = Vec::new();
+    out.extend_from_slice(&encode_abilities_for(view.game_mode));
     out.extend_from_slice(&bcore_command_tree().encode());
     out.extend_from_slice(&encode_full_health());
     let age = world_age_ticks();
     out.extend_from_slice(&encode_time_of_day(age, view.day_time));
-    out.extend_from_slice(&encode_abilities_for(view.game_mode));
     // Tab list: every online player. The joiner gets its own gamemode; the
     // others are tracked as survival until gamemode changes are persisted.
     for player in server.players() {
@@ -292,6 +328,7 @@ fn play_replay(
 ) -> Result<PlayerView, PacketError> {
     let packets = parse_captured(PLAY_PACKETS);
     let mut view = PlayerView::new(0.0, 0.0, 0.0);
+    stream.write_all(&encode_play_login(&view))?;
     for (pid, data) in &packets.items {
         match *pid {
             // The world is generated natively; drop the captured 3x3 batch so the
@@ -300,7 +337,8 @@ fn play_replay(
             // These are now built natively in `send_join_state`, from BCore's own
             // state rather than the capture's. Replaying them too would send the
             // client two command trees and two clocks.
-            CB_DECLARE_COMMANDS | CB_UPDATE_HEALTH | CB_UPDATE_TIME | CB_ABILITIES => continue,
+            CB_DECLARE_COMMANDS | CB_UPDATE_HEALTH | CB_UPDATE_TIME | CB_ABILITIES
+            | PLAY_LOGIN_ID => continue,
             // The capture ends with vanilla kicking the capture client. Replaying
             // it would disconnect every player the moment they joined.
             PLAY_KICK_DISCONNECT_ID => continue,
@@ -779,7 +817,7 @@ fn rebuild_player_info(uuid: &[u8; 16], name: &str) -> Vec<u8> {
     write_string(name, &mut out);
     encode_varint(0, &mut out); // properties
                                 // chatSession=false, gamemode=0(survival), listed=true, latency=0,
-                                // displayName=none, listPriority=0, showHat=false
-    out.extend_from_slice(&[0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00]);
+                                // displayName=none, listPriority=0, showHat=true
+    out.extend_from_slice(&[0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01]);
     out
 }

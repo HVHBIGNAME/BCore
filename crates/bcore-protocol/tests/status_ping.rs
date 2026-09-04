@@ -19,7 +19,7 @@ fn server_list_status_and_ping() {
 
     // Handshake -> status.
     let mut hs = Vec::new();
-    encode_varint(776, &mut hs);
+    encode_varint(775, &mut hs);
     write_string("127.0.0.1", &mut hs);
     hs.extend_from_slice(&25565u16.to_be_bytes());
     encode_varint(1, &mut hs);
@@ -38,7 +38,7 @@ fn server_list_status_and_ping() {
     let mut cursor = Cursor::new(data);
     let json_str = read_string(&mut cursor, 32767).expect("status json string");
     let json: serde_json::Value = serde_json::from_str(&json_str).expect("valid json");
-    assert_eq!(json["version"]["protocol"], 776);
+    assert_eq!(json["version"]["protocol"], 775);
     assert_eq!(json["version"]["name"], "26.2");
 
     // Ping -> pong.
