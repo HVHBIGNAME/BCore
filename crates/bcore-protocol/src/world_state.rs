@@ -29,13 +29,13 @@ use std::collections::HashMap;
 use std::sync::{Mutex, OnceLock};
 
 use bcore_core::ChunkPos;
-use bcore_worldgen::WorldGenerator;
+use bcore_worldgen::{block, WorldGenerator};
 
 use crate::chunk::ChunkColumn;
 use crate::chunk_store::ChunkStore;
 
 /// The default world seed. `/seed` reports this.
-pub const DEFAULT_SEED: i64 = 0x1A93_2A57_9B13_2D98u64 as i64;
+pub const DEFAULT_SEED: i64 = 0x0BC0_0E00_1234_5678u64 as i64;
 
 /// How the blocks of a chunk were obtained.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -174,6 +174,57 @@ impl World {
         let y = self.generator.spawn_y(x.floor() as i32, z.floor() as i32);
         (x, y, z)
     }
+
+    /// A spawn on the nearest column whose actual vanilla-generated surface is
+    /// land above sea level. The search retains the original chunk spiral, but
+    /// never uses the approximate noise height for this decision or Y value.
+    pub fn land_spawn(&self, x0: i32, z0: i32) -> (f64, f64, f64) {
+        let (mut bx, mut bz) = (x0, z0);
+        let actual_surface = |x: i32, z: i32| {
+            let cx = x.div_euclid(16);
+            let cz = z.div_euclid(16);
+            let lx = x.rem_euclid(16) as usize;
+            let lz = z.rem_euclid(16) as usize;
+            let chunk = self.generator.generate_chunk_vanilla(ChunkPos::new(cx, cz));
+            chunk
+                .surface_y(lx, lz)
+                .map(|y| (y, chunk.get(lx, y, lz).expect("surface block")))
+        };
+        let is_land = |x: i32, z: i32| {
+            actual_surface(x, z).is_some_and(|(y, state)| {
+                y >= crate::chunk::SEA_LEVEL && state != block::WATER && state != block::LAVA
+            })
+        };
+        if is_land(bx, bz) {
+            let y = actual_surface(bx, bz).expect("land surface").0 + 1;
+            return (bx as f64, y as f64, bz as f64);
+        }
+        let mut radius = 1;
+        'outer: loop {
+            for dz in -radius..=radius {
+                for dx in -radius..=radius {
+                    if dx != radius && dx != -radius && dz != radius && dz != -radius {
+                        continue;
+                    }
+                    let (tx, tz) = (bx + dx * 16, bz + dz * 16);
+                    if is_land(tx, tz) {
+                        bx = tx;
+                        bz = tz;
+                        break 'outer;
+                    }
+                }
+            }
+            radius += 1;
+            if radius > 256 {
+                break;
+            }
+        }
+        let y = actual_surface(bx, bz)
+            .map(|(surface, _)| surface)
+            .unwrap_or(crate::chunk::SEA_LEVEL)
+            + 1;
+        (bx as f64, y as f64, bz as f64)
+    }
 }
 
 /// The process-wide world, created on first use.
@@ -307,6 +358,25 @@ mod tests {
         );
     }
 
+    #[test]
+    fn land_spawn_uses_actual_vanilla_surface() {
+        let world = World::in_memory(DEFAULT_SEED);
+        let (x, y, z) = world.land_spawn(10, -3);
+        let cx = (x as i32).div_euclid(16);
+        let cz = (z as i32).div_euclid(16);
+        let lx = (x as i32).rem_euclid(16) as usize;
+        let lz = (z as i32).rem_euclid(16) as usize;
+        let chunk = world
+            .generator()
+            .generate_chunk_vanilla(ChunkPos::new(cx, cz));
+        let surface = chunk.surface_y(lx, lz).expect("spawn has a surface");
+        let state = chunk.get(lx, surface, lz).expect("surface block");
+        println!("land spawn: x={x} y={y} z={z}, surface_y={surface}, state={state}");
+        assert_eq!(y, (surface + 1) as f64);
+        assert!(surface >= crate::chunk::SEA_LEVEL);
+        assert_ne!(state, block::WATER);
+        assert_ne!(state, block::LAVA);
+    }
     #[test]
     fn the_shared_world_is_a_singleton() {
         let a = shared();

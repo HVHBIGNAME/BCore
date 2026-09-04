@@ -331,8 +331,10 @@ fn parse_spawn_position(data: &[u8]) -> Option<(f64, f64, f64)> {
 /// buried in stone and suffocate.
 fn stream_initial_chunks(stream: &mut TcpStream, view: &mut PlayerView) -> Result<(), PacketError> {
     let world = crate::world_state::shared();
-    let (x, y, z) = world.spawn_position(view.x, view.z);
-    if (y - view.y).abs() > 0.5 {
+    // Spawn on the nearest solid land near the live spawn (the captured
+    // `position` packet pins a fixed spawn that may sit in the water).
+    let (x, y, z) = world.land_spawn(view.x.floor() as i32, view.z.floor() as i32);
+    if (y - view.y).abs() > 0.5 || (x - view.x).abs() > 0.5 || (z - view.z).abs() > 0.5 {
         let frame = view.teleport(x, y, z);
         stream.write_all(&frame)?;
         view.spawn = (x, y, z);
