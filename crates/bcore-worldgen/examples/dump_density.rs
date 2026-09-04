@@ -26,6 +26,12 @@ fn main() {
     println!("layer={} cheese_noise={} cheese_clamp={} slope_term={} cheese={} entrances={} spaghetti={} pillars={} noodle={}",
         noise("cave_layer",1.,8.), noise("cave_cheese",1.,2./3.), (0.27+noise("cave_cheese",1.,2./3.)).clamp(-1.,1.), (1.5-0.64*p("overworld/sloped_cheese")).clamp(0., 0.5),
         p("overworld/sloped_cheese"), p("overworld/caves/entrances"), p("overworld/caves/spaghetti_2d"), p("overworld/caves/pillars"), p("overworld/caves/noodle"));
+    println!(
+        "pillar={} pillar_rareness={} pillar_thickness={}",
+        noise("pillar", 25., 0.3),
+        noise("pillar_rareness", 1., 1.),
+        noise("pillar_thickness", 1., 1.)
+    );
     if let Some((f, n, c, en)) = WorldGenerator::cave_density_probe(seed, x, y, z) {
         println!(
             "x={x} y={y} z={z} final={f:.17e} noodle={n:?} cave_cheese={c:?} entrances={en:?}"
