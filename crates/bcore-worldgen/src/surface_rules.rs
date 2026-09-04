@@ -113,28 +113,49 @@ impl SurfaceCondition {
                 } else {
                     c.stone_depth_above
                 };
+                let secondary_depth = if *secondary == 0 {
+                    0
+                } else {
+                    let v = c
+                        .noise
+                        .map(|n| {
+                            n.sample(
+                                "minecraft:surface_secondary",
+                                c.seed,
+                                c.x as f64,
+                                0.0,
+                                c.z as f64,
+                            )
+                        })
+                        .unwrap_or(0.0);
+                    (((v.clamp(-1.0, 1.0) + 1.0) * 0.5) * *secondary as f64) as i32
+                };
                 depth
-                    + offset
-                    + if *add_surface_depth {
-                        c.surface_depth
-                    } else {
-                        0
-                    }
-                    <= *secondary
+                    <= 1 + *offset
+                        + if *add_surface_depth {
+                            c.surface_depth
+                        } else {
+                            0
+                        }
+                        + secondary_depth
             }
             Self::Water {
                 offset,
                 add_stone_depth,
                 multiplier,
             } => {
-                let d = if *add_stone_depth {
-                    c.stone_depth_above * *multiplier
+                if c.water_height == i32::MIN {
+                    return true;
+                }
+                c.y + if *add_stone_depth {
+                    c.stone_depth_above
                 } else {
                     0
-                };
-                c.y <= c.water_height + offset + d
+                } >= c.water_height + *offset + c.surface_depth * *multiplier
             }
-            Self::AbovePreliminarySurface => c.y >= c.preliminary_surface_level,
+            Self::AbovePreliminarySurface => {
+                c.y >= c.preliminary_surface_level + c.surface_depth - 8
+            }
             Self::VerticalGradient { name, below, above } => {
                 vertical_gradient(name, c.x, c.y, c.z, c.seed, *below, *above)
             }
@@ -144,13 +165,13 @@ impl SurfaceCondition {
                 add_stone_depth,
             } => {
                 c.y + if *add_stone_depth {
-                    c.stone_depth_above * *multiplier
+                    c.stone_depth_above
                 } else {
                     0
-                } >= *anchor
+                } >= *anchor + c.surface_depth * *multiplier
             }
             Self::Not(x) => !x.test(c),
-            Self::Hole => c.stone_depth_above < 0,
+            Self::Hole => c.surface_depth <= 0,
             Self::Noise { name, min, max } => c
                 .noise
                 .map(|n| {
@@ -261,16 +282,17 @@ fn block_id(v: Option<&Value>) -> BlockState {
     }
 }
 fn anchor(v: Option<&Value>) -> i32 {
-    v.and_then(|x| x.get("absolute").or_else(|| x.get("above_bottom")))
-        .and_then(Value::as_i64)
-        .map(|n| {
-            if v.unwrap().get("above_bottom").is_some() {
-                MIN_Y + n as i32
-            } else {
-                n as i32
-            }
-        })
-        .unwrap_or(MIN_Y)
+    let Some(x) = v else { return MIN_Y };
+    if let Some(n) = x.get("absolute").and_then(Value::as_i64) {
+        return n as i32;
+    }
+    if let Some(n) = x.get("above_bottom").and_then(Value::as_i64) {
+        return MIN_Y + n as i32;
+    }
+    if let Some(n) = x.get("below_top").and_then(Value::as_i64) {
+        return crate::MAX_Y - n as i32;
+    }
+    MIN_Y
 }
 fn i32v(v: &Value, k: &str, d: i32) -> i32 {
     v.get(k)

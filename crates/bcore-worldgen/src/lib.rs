@@ -68,6 +68,16 @@ pub const MAX_SURFACE: i32 = 140;
 /// Deepslate replaces stone below this Y.
 pub const DEEPSLATE_Y: i32 = 0;
 
+/// Vanilla `SurfaceSystem.getSurfaceDepth` for the overworld.
+fn surface_depth(seed: i64, x: i32, z: i32) -> i32 {
+    let noise =
+        noise_perlin::NormalNoise::for_world(seed, "minecraft:surface", -6, &[1.0, 1.0, 1.0]);
+    let mut root = noise_perlin::Xoroshiro::new(seed);
+    let positional = root.fork_positional();
+    let mut random = positional.at(x, 0, z);
+    (noise.get_value(x as f64, 0.0, z as f64) * 2.75 + 3.0 + random.next_double() * 0.25) as i32
+}
+
 /// Network block-state ids for the blocks the generator places.
 ///
 /// These are the real 26.2 `minecraft:block_state` ids, taken from the vanilla
@@ -741,16 +751,47 @@ impl WorldGenerator {
                     biome_is_water(biome_id),
                     density::noise_registry(),
                 );
-                for y in MIN_Y..=MAX_Y {
+                let mut stone_depth_above = 0i32;
+                let mut water_height = i32::MIN;
+                let surface_depth = surface_depth(self.seed, wx, wz);
+                let preliminary_surface_level = top;
+                for y in (MIN_Y..=MAX_Y).rev() {
                     let density_value = densities[(y - MIN_Y) as usize];
                     let substance = aquifer.substance(wx, y, wz, density_value);
-                    states[(y - MIN_Y) as usize] = if density_value > 0.0 {
-                        surface::surface_block(biome_id, y, top, top, SEA_LEVEL, wx, wz, self.seed)
-                    } else if substance == block::WATER || substance == block::LAVA {
-                        substance
+                    let idx = (y - MIN_Y) as usize;
+                    if substance == block::WATER || substance == block::LAVA {
+                        water_height = water_height.max(y);
+                    }
+                    if density_value > 0.0 {
+                        let default_state = block::STONE;
+                        let ctx = surface_rules::SurfaceContext {
+                            biome: biome_id,
+                            stone_depth_above,
+                            stone_depth_below: 0,
+                            water_height,
+                            surface_depth,
+                            preliminary_surface_level,
+                            sea_level: SEA_LEVEL,
+                            x: wx,
+                            y,
+                            z: wz,
+                            seed: self.seed,
+                            noise: Some(density::noise_registry()),
+                        };
+                        states[idx] = graph
+                            .surface_rule
+                            .as_ref()
+                            .and_then(|r| r.evaluate(&ctx))
+                            .unwrap_or(default_state);
+                        stone_depth_above += 1;
                     } else {
-                        block::AIR
-                    };
+                        states[idx] = if substance == block::WATER || substance == block::LAVA {
+                            substance
+                        } else {
+                            block::AIR
+                        };
+                        stone_depth_above = 0;
+                    }
                 }
                 VanillaColumn { top, biome, states }
             })
@@ -1157,6 +1198,7 @@ struct VanillaGraph {
     erosion: Option<density::DensityFunction>,
     weirdness: Option<density::DensityFunction>,
     depth: Option<density::DensityFunction>,
+    surface_rule: Option<surface_rules::SurfaceRule>,
 }
 impl VanillaGraph {
     fn load() -> Option<&'static Self> {
@@ -1192,6 +1234,9 @@ impl VanillaGraph {
             root.join("../datagen/reports/biome_parameters/minecraft/overworld.json"),
         )
         .unwrap_or_default();
+        let surface_rule = serde_json::from_str::<serde_json::Value>(&text)
+            .ok()
+            .and_then(|v| v.get("surface_rule").map(surface_rules::SurfaceRule::parse));
         Some(Self {
             final_density,
             noodle: load_cave("noodle"),
@@ -1204,6 +1249,7 @@ impl VanillaGraph {
             erosion: load("erosion"),
             weirdness: load("ridges"),
             depth: load("depth"),
+            surface_rule,
         })
     }
 }

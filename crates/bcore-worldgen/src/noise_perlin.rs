@@ -137,6 +137,19 @@ pub struct XoroshiroPositional {
 }
 
 impl XoroshiroPositional {
+    /// `at(x, y, z)` = a positional Xoroshiro source seeded by `Mth.getSeed`
+    /// XORed with this factory's two root seed words.
+    pub fn at(&self, x: i32, y: i32, z: i32) -> Xoroshiro {
+        let mut i =
+            (x.wrapping_mul(3129871) as i64) ^ (z as i64).wrapping_mul(116129781) ^ y as i64;
+        i = i
+            .wrapping_mul(i)
+            .wrapping_mul(42317861)
+            .wrapping_add(i.wrapping_mul(11));
+        let seed = (i >> 16) as u64;
+        Xoroshiro::from_seed128(seed ^ self.lo, self.hi)
+    }
+
     /// `fromHashOf(name)` = `XoroshiroRandomSource(seedFromHashOf(name).xor(lo, hi))`,
     /// where `seedFromHashOf` splits `MD5(name)` into two big-endian halves.
     pub fn from_hash_of(&self, name: &str) -> Xoroshiro {
