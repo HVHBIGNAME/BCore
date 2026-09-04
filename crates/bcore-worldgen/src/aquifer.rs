@@ -1,92 +1,24 @@
-//! Vanilla-style noise aquifers.
-//!
-//! The real generator evaluates this after final density: positive density is
-//! stone, while negative density is resolved by nearby 16x12x16 aquifer cells.
-//! This implementation keeps the same cell geometry and positional seeding and
-//! uses the four 26.2 aquifer noises from the datapack.
+//! Vanilla `NoiseBasedAquifer` substance computation.
+use crate::{block, density, noise_perlin::Xoroshiro, simplex::NoiseRegistry};
 
-use crate::{
-    block,
-    simplex::{fork_seed_for, JavaRandom, NoiseRegistry},
-};
-
-const NO_FLUID: i32 = -1_000_000;
-const XZ_SPACING: i32 = 16;
+const NO_FLUID: i32 = i32::MIN / 4;
+const X_SPACING: i32 = 16;
 const Y_SPACING: i32 = 12;
+const Z_SPACING: i32 = 16;
+const X_RANGE: u32 = 10;
+const Y_RANGE: u32 = 9;
+const Z_RANGE: u32 = 10;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug)]
 struct FluidStatus {
     level: i32,
     lava: bool,
 }
-
-/// Per-column aquifer resolver. It is deliberately local to a generated column:
-/// no mutable global cache is needed and rayon order cannot affect generation.
-pub struct Aquifer<'a> {
-    seed: i64,
-    top: i32,
-    water_column: bool,
-    noises: &'a NoiseRegistry,
-    locations: [((i32, i32, i32), (i32, i32, i32)); 12],
-}
-
-impl<'a> Aquifer<'a> {
-    pub fn new(seed: i64, top: i32, water_column: bool, noises: &'a NoiseRegistry) -> Self {
-        Self {
-            seed,
-            top,
-            water_column,
-            noises,
-            locations: [((0, 0, 0), (0, 0, 0)); 12],
-        }
-    }
-
-    /// Resolve a density into the block substance (never returns `None`).
-    pub fn substance(&mut self, x: i32, y: i32, z: i32, density: f64) -> u32 {
-        if density > 0.0 {
-            return if y < crate::DEEPSLATE_Y {
-                block::DEEPSLATE
-            } else {
-                block::STONE
-            };
-        }
-        // Aquifers do not affect the five-block surface crust or the bedrock floor.
-        if y >= self.top - 5 || y <= crate::MIN_Y + 4 {
-            return block::AIR;
-        }
-        let (best, second, third) = self.nearest(x, y, z);
-        let a = self.status(best);
-        let b = self.status(second);
-        let c = self.status(third);
-        let d1 = dist(best, x, y, z);
-        let d2 = dist(second, x, y, z);
-        let d3 = dist(third, x, y, z);
-        let sim12 = 1.0 - (d2 - d1) as f64 / 25.0;
-        let fluid = if sim12 <= 0.0 {
-            a
-        } else {
-            // Barrier noise is pressure between unlike fluid levels. This is the
-            // important vanilla distinction from simply testing density > 0.
-            let pressure = self.pressure(x, y, z, a, b);
-            if density + sim12 * pressure > 0.0 {
-                return if y < crate::DEEPSLATE_Y {
-                    block::DEEPSLATE
-                } else {
-                    block::STONE
-                };
-            }
-            let sim13 = 1.0 - (d3 - d1) as f64 / 25.0;
-            if sim13 > 0.0 && density + sim12 * sim13 * self.pressure(x, y, z, a, c) > 0.0 {
-                return if y < crate::DEEPSLATE_Y {
-                    block::DEEPSLATE
-                } else {
-                    block::STONE
-                };
-            }
-            a
-        };
-        if fluid.level != NO_FLUID && y < fluid.level {
-            if fluid.lava {
+impl FluidStatus {
+    #[inline]
+    fn at(self, y: i32) -> u32 {
+        if y < self.level {
+            if self.lava {
                 block::LAVA
             } else {
                 block::WATER
@@ -95,126 +27,267 @@ impl<'a> Aquifer<'a> {
             block::AIR
         }
     }
+}
 
-    fn nearest(
+/// Stateful per-column resolver; the only state is the small center cache.
+pub struct Aquifer<'a> {
+    seed: i64,
+    fallback_surface: i32,
+    water_column: bool,
+    noises: &'a NoiseRegistry,
+    preliminary: Option<&'a density::DensityFunction>,
+    ctx: density::EvalContext,
+    centers: Vec<((i32, i32, i32), (i32, i32, i32))>,
+}
+
+impl<'a> Aquifer<'a> {
+    pub fn new(
+        seed: i64,
+        fallback_surface: i32,
+        water_column: bool,
+        noises: &'a NoiseRegistry,
+        preliminary: Option<&'a density::DensityFunction>,
+        ctx: density::EvalContext,
+    ) -> Self {
+        Self {
+            seed,
+            fallback_surface,
+            water_column,
+            noises,
+            preliminary,
+            ctx,
+            centers: Vec::with_capacity(12),
+        }
+    }
+
+    /// Vanilla returns null for solid; callers map null to stone.
+    pub fn substance(&mut self, x: i32, y: i32, z: i32, density_value: f64) -> u32 {
+        if density_value > 0.0 {
+            return block::STONE;
+        }
+        let global = self.global(y);
+        if y > 40 {
+            return global.at(y);
+        }
+        if global.lava {
+            return block::LAVA;
+        }
+        let (p1, p2, p3, p4) = self.nearest_four(x, y, z);
+        let s1 = self.status(p1);
+        let s2 = self.status(p2);
+        let s3 = self.status(p3);
+        let _s4 = self.status(p4);
+        let d1 = dist(p1, x, y, z);
+        let d2 = dist(p2, x, y, z);
+        let d3 = dist(p3, x, y, z);
+        let fluid = s1.at(y);
+        let sim12 = similarity(d1, d2);
+        if sim12 <= 0.0 {
+            return fluid;
+        }
+        if density_value + sim12 * self.pressure(x, y, z, s1, s2) > 0.0 {
+            return block::STONE;
+        }
+        let sim13 = similarity(d1, d3);
+        if sim13 > 0.0 && density_value + sim12 * sim13 * self.pressure(x, y, z, s1, s3) > 0.0 {
+            return block::STONE;
+        }
+        // Vanilla performs the third barrier check against centers 2 and 3.
+        let sim23 = similarity(d2, d3);
+        if sim23 > 0.0 && density_value + sim12 * sim23 * self.pressure(x, y, z, s2, s3) > 0.0 {
+            return block::STONE;
+        }
+        fluid
+    }
+
+    fn global(&self, y: i32) -> FluidStatus {
+        if y < -54 {
+            FluidStatus {
+                level: -54,
+                lava: true,
+            }
+        } else {
+            FluidStatus {
+                level: crate::SEA_LEVEL,
+                lava: false,
+            }
+        }
+    }
+
+    fn nearest_four(
         &mut self,
         x: i32,
         y: i32,
         z: i32,
-    ) -> ((i32, i32, i32), (i32, i32, i32), (i32, i32, i32)) {
-        let ax = x.div_euclid(16);
+    ) -> (
+        (i32, i32, i32),
+        (i32, i32, i32),
+        (i32, i32, i32),
+        (i32, i32, i32),
+    ) {
+        let ax = (x - 5).div_euclid(16);
         let ay = (y + 1).div_euclid(12);
-        let az = z.div_euclid(16);
-        let mut v: Vec<((i32, i32, i32), i32)> = Vec::with_capacity(12);
-        for dx in 0..=1 {
-            for dy in -1..=1 {
-                for dz in 0..=1 {
-                    let cell = (ax + dx, ay + dy, az + dz);
-                    let p = self.location(cell);
-                    v.push((cell, dist(p, x, y, z)));
+        let az = (z - 5).div_euclid(16);
+        let mut v = Vec::with_capacity(12);
+        for gx in 0..=1 {
+            for gy in -1..=1 {
+                for gz in 0..=1 {
+                    let c = (ax + gx, ay + gy, az + gz);
+                    let p = self.center(c);
+                    v.push((c, dist(p, x, y, z)));
                 }
             }
         }
-        v.sort_by_key(|x| x.1);
-        (v[0].0, v[1].0, v[2].0)
+        v.sort_unstable_by_key(|e| e.1);
+        (v[0].0, v[1].0, v[2].0, v[3].0)
     }
-
-    fn location(&mut self, cell: (i32, i32, i32)) -> (i32, i32, i32) {
-        // Tiny fixed cache covers the 12 cells queried for a column.
-        for &((cx, cy, cz), p) in &self.locations {
-            if (cx, cy, cz) == cell && (cx != 0 || cy != 0 || cz != 0) {
-                return p;
-            }
+    fn center(&mut self, c: (i32, i32, i32)) -> (i32, i32, i32) {
+        if let Some(&(_, p)) = self.centers.iter().find(|(k, _)| *k == c) {
+            return p;
         }
-        let named = crate::noise_perlin::java_string_hash("minecraft: aquifer");
-        let mut r = JavaRandom::new(
-            named as i64
-                ^ fork_seed_for(self.seed)
-                ^ (cell.0 as i64).wrapping_mul(0x9e3779b97f4a7c15u64 as i64)
-                ^ (cell.1 as i64).wrapping_mul(0xc2b2ae3d27d4eb4fu64 as i64)
-                ^ (cell.2 as i64).wrapping_mul(0x165667b19e3779f9),
-        );
+        let mut root = Xoroshiro::new(self.seed);
+        let factory = root.fork_positional();
+        // positional factory at(gridX,gridY,gridZ), then bounded draws.
+        let mut rr = factory.at(c.0, c.1, c.2);
         let p = (
-            cell.0 * 16 + r.next_int(10) as i32,
-            cell.1 * 12 + r.next_int(9) as i32,
-            cell.2 * 16 + r.next_int(10) as i32,
+            c.0 * 16 + rr.next_int(X_RANGE) as i32,
+            c.1 * 12 + rr.next_int(Y_RANGE) as i32,
+            c.2 * 16 + rr.next_int(Z_RANGE) as i32,
         );
-        for slot in &mut self.locations {
-            if slot.0 == (0, 0, 0) {
-                *slot = (cell, p);
-                break;
-            }
-        }
+        self.centers.push((c, p));
         p
     }
 
-    fn status(&self, cell: (i32, i32, i32)) -> FluidStatus {
-        let (x, y, z) = (cell.0 * 16, cell.1 * 12, cell.2 * 16);
-        let global_level = if self.water_column {
-            crate::SEA_LEVEL
+    fn status(&self, c: (i32, i32, i32)) -> FluidStatus {
+        let (x, y, z) = (c.0 * 16, c.1 * 12, c.2 * 16);
+        let global = self.global(y);
+        if global.lava {
+            return global;
+        }
+        let offsets = [
+            (0, 0),
+            (-2, -1),
+            (-1, -1),
+            (0, -1),
+            (1, -1),
+            (-3, 0),
+            (-2, 0),
+            (-1, 0),
+            (1, 0),
+            (-2, 1),
+            (-1, 1),
+            (0, 1),
+            (1, 1),
+        ];
+        let mut lowest = i32::MAX;
+        for (ox, oz) in offsets {
+            lowest = lowest.min(self.preliminary_level(x + ox * 16, z + oz * 16));
+        }
+        let center_surface = self.preliminary_level(x, z) + 8;
+        let factor = if center_surface < global.level {
+            ((lowest + 8 - y) as f64 / 64.0).clamp(0., 1.)
+        } else {
+            0.
+        };
+        let n = self
+            .noises
+            .sample(
+                "aquifer_fluid_level_floodedness",
+                self.seed,
+                x as f64,
+                y as f64 * 0.67,
+                z as f64,
+            )
+            .clamp(-1., 1.);
+        let fully = n - lerp(factor, 0.8, -0.3);
+        let partial = n - lerp(factor, 0.4, -0.8);
+        let level = if fully > 0. {
+            global.level
+        } else if partial > 0. {
+            self.random_level(x, y, z, lowest)
         } else {
             NO_FLUID
         };
-        let flooded = self.noises.sample(
-            "aquifer_fluid_level_floodedness",
-            self.seed,
-            x as f64,
-            y as f64 * 0.67,
-            z as f64,
-        );
-        if flooded < -0.15 {
-            return FluidStatus {
-                level: NO_FLUID,
-                lava: false,
-            };
-        }
-        let spread = self.noises.sample(
-            "aquifer_fluid_level_spread",
-            self.seed,
-            (cell.0 as f64) / 1.0,
-            (cell.1 as f64) / 1.0,
-            (cell.2 as f64) / 1.0,
-        ) * 10.0;
-        let spread = (spread / 3.0).round() as i32 * 3;
-        let level = (cell.1 * 12 + 6 + spread)
-            .min(self.top - 8)
-            .min(global_level.max(NO_FLUID));
-        let lava = self
-            .noises
-            .sample(
-                "aquifer_lava",
-                self.seed,
-                (cell.0 as f64) / 4.0,
-                (cell.1 as f64) / 4.0,
-                (cell.2 as f64) / 4.0,
-            )
-            .abs()
-            > 0.3
-            && level <= -10;
+        let lava = level != NO_FLUID
+            && level <= -10
+            && !global.lava
+            && self
+                .noises
+                .sample(
+                    "aquifer_lava",
+                    self.seed,
+                    x as f64 / 64.,
+                    y as f64 / 40.,
+                    z as f64 / 64.,
+                )
+                .abs()
+                > 0.3;
         FluidStatus { level, lava }
     }
-
-    fn pressure(&self, x: i32, y: i32, z: i32, a: FluidStatus, b: FluidStatus) -> f64 {
-        if a.lava != b.lava && a.level != NO_FLUID && b.level != NO_FLUID {
-            return 2.0;
-        }
-        let diff = (a.level - b.level).abs();
-        if diff == 0 {
-            return 0.0;
-        }
-        let avg = (a.level + b.level) as f64 * 0.5;
-        let h = y as f64 + 0.5 - avg;
-        let g = (diff as f64 / 2.0 - h.abs()) / if h > 0.0 { 1.5 } else { 3.0 };
-        2.0 * (g + self.noises.sample(
-            "aquifer_barrier",
+    fn preliminary_level(&self, x: i32, z: i32) -> i32 {
+        self.preliminary
+            .map(|f| density::evaluate(f, x as f64, 0., z as f64, &self.ctx).round() as i32)
+            .unwrap_or(self.fallback_surface)
+    }
+    fn random_level(&self, x: i32, y: i32, z: i32, lowest: i32) -> i32 {
+        let cx = x.div_euclid(16);
+        let cy = y.div_euclid(40);
+        let cz = z.div_euclid(16);
+        let n = self.noises.sample(
+            "aquifer_fluid_level_spread",
             self.seed,
-            x as f64,
-            y as f64 * 0.5,
-            z as f64,
-        ))
+            cx as f64,
+            cy as f64,
+            cz as f64,
+        ) * 10.;
+        (lowest.min(cy * 40 + 20 + (n / 3.).round() as i32 * 3))
+    }
+    fn pressure(&self, x: i32, y: i32, z: i32, a: FluidStatus, b: FluidStatus) -> f64 {
+        let ta = a.at(y);
+        let tb = b.at(y);
+        if (ta == block::LAVA && tb == block::WATER) || (ta == block::WATER && tb == block::LAVA) {
+            return 2.;
+        }
+        let diff = (a.level - b.level).abs() as f64;
+        if diff == 0. {
+            return 0.;
+        }
+        let above = y as f64 + 0.5 - (a.level + b.level) as f64 * 0.5;
+        let edge = diff / 2. - above.abs();
+        let gradient = if above > 0. {
+            if edge > 0. {
+                edge / 1.5
+            } else {
+                edge / 2.5
+            }
+        } else {
+            let q = 3. + edge;
+            if q > 0. {
+                q / 3.
+            } else {
+                q / 10.
+            }
+        };
+        let noise = if !(-2. ..=2.).contains(&gradient) {
+            0.
+        } else {
+            self.noises.sample(
+                "aquifer_barrier",
+                self.seed,
+                x as f64,
+                y as f64 * 0.5,
+                z as f64,
+            )
+        };
+        2. * (noise + gradient)
     }
 }
-
+fn lerp(t: f64, a: f64, b: f64) -> f64 {
+    a + (b - a) * t
+}
+fn similarity(a: i32, b: i32) -> f64 {
+    1. - (b - a) as f64 / 25.
+}
 fn dist(p: (i32, i32, i32), x: i32, y: i32, z: i32) -> i32 {
     (p.0 - x).pow(2) + (p.1 - y).pow(2) + (p.2 - z).pow(2)
 }

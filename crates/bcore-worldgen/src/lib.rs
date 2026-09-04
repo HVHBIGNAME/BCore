@@ -750,6 +750,8 @@ impl WorldGenerator {
                     top,
                     biome_is_water(biome_id),
                     density::noise_registry(),
+                    graph.preliminary_surface_level.as_ref(),
+                    ctx,
                 );
                 let mut stone_depth_above = 0i32;
                 let mut water_height = i32::MIN;
@@ -757,12 +759,16 @@ impl WorldGenerator {
                 let preliminary_surface_level = top;
                 for y in (MIN_Y..=MAX_Y).rev() {
                     let density_value = densities[(y - MIN_Y) as usize];
+                    // Vanilla `NoiseChunk.getInterpolatedState()`: the aquifer returns
+                    // null (solid) for density > 0 *or* a pressure barrier; anything
+                    // else is a fluid/air. We encode "solid" as `STONE` and treat every
+                    // other result as the final block.
                     let substance = aquifer.substance(wx, y, wz, density_value);
                     let idx = (y - MIN_Y) as usize;
                     if substance == block::WATER || substance == block::LAVA {
                         water_height = water_height.max(y);
                     }
-                    if density_value > 0.0 {
+                    if substance == block::STONE {
                         let default_state = block::STONE;
                         let ctx = surface_rules::SurfaceContext {
                             biome: biome_id,
@@ -785,11 +791,7 @@ impl WorldGenerator {
                             .unwrap_or(default_state);
                         stone_depth_above += 1;
                     } else {
-                        states[idx] = if substance == block::WATER || substance == block::LAVA {
-                            substance
-                        } else {
-                            block::AIR
-                        };
+                        states[idx] = substance;
                         stone_depth_above = 0;
                     }
                 }
@@ -1186,8 +1188,8 @@ struct VanillaColumn {
 
 struct VanillaGraph {
     final_density: density::DensityFunction,
+    preliminary_surface_level: Option<density::DensityFunction>,
     // Exposed in the graph for cave probes and parity diagnostics.  These are
-    // the same parsed functions referenced by NoiseRouterData's cave branch.
     noodle: Option<density::DensityFunction>,
     cave_cheese: Option<density::DensityFunction>,
     entrances: Option<density::DensityFunction>,
@@ -1237,8 +1239,17 @@ impl VanillaGraph {
         let surface_rule = serde_json::from_str::<serde_json::Value>(&text)
             .ok()
             .and_then(|v| v.get("surface_rule").map(surface_rules::SurfaceRule::parse));
+        let preliminary = serde_json::from_str::<serde_json::Value>(&text)
+            .ok()
+            .and_then(|v| {
+                v.get("noise_router")
+                    .and_then(|r| r.get("preliminary_surface_level"))
+                    .cloned()
+            })
+            .and_then(|v| density::parse_json(&v.to_string()).ok());
         Some(Self {
             final_density,
+            preliminary_surface_level: preliminary,
             noodle: load_cave("noodle"),
             cave_cheese: load("sloped_cheese"),
             entrances: load_cave("entrances"),
