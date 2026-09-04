@@ -72,9 +72,13 @@ pub const DEEPSLATE_Y: i32 = 0;
 fn surface_depth(seed: i64, x: i32, z: i32) -> i32 {
     let noise =
         noise_perlin::NormalNoise::for_world(seed, "minecraft:surface", -6, &[1.0, 1.0, 1.0]);
+    // `noiseRandom = rootPositional.fromHashOf("minecraft:surface").forkPositional()`,
+    // then `noiseRandom.at(x, 0, z).nextDouble()` — the named factory, not the root.
     let mut root = noise_perlin::Xoroshiro::new(seed);
     let positional = root.fork_positional();
-    let mut random = positional.at(x, 0, z);
+    let mut named = positional.from_hash_of("minecraft:surface");
+    let named_factory = named.fork_positional();
+    let mut random = named_factory.at(x, 0, z);
     (noise.get_value(x as f64, 0.0, z as f64) * 2.75 + 3.0 + random.next_double() * 0.25) as i32
 }
 

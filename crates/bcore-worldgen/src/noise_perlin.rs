@@ -95,10 +95,11 @@ impl Xoroshiro {
         self.next_long() >> (64 - bits)
     }
 
-    /// `nextDouble` = `nextBits(53) * DOUBLE_UNIT`, where vanilla's `DOUBLE_UNIT`
-    /// is written as a **float** literal (`1.110223E-16F`) and then widened.
+    /// `nextDouble` = `nextBits(53) * 1.110223E-16F`: `nextBits` (a long) is
+    /// promoted to *float*, multiplied by the *float* literal, then widened to
+    /// double on return (same lossy promotion as `BitRandomSource`).
     pub fn next_double(&mut self) -> f64 {
-        self.next_bits(53) as f64 * (1.110223e-16f32 as f64)
+        (self.next_bits(53) as f32 * 1.110223e-16f32) as f64
     }
 
     pub fn next_float(&mut self) -> f32 {
