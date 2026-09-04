@@ -241,11 +241,14 @@ impl DensityFunction {
             // lerp input), rather than the legacy-chunk blend offset.
             Self::BlendOffset(_) => 0.,
             Self::BlendAlpha(_) => 1.,
-            Self::ShiftA(name) | Self::ShiftB(name) => {
-                // Vanilla shift noises are 2-D and use the world seed. The
-                // coordinate transforms are applied by the graph around this
-                // scalar function; this is the offset value itself.
+            Self::ShiftA(name) => {
+                // `ShiftA.compute` = `compute(x, 0, z)`.
                 noise_registry().sample(name, ctx.seed, x * 0.25, 0., z * 0.25) * 4.0
+            }
+            Self::ShiftB(name) => {
+                // `ShiftB.compute` = `compute(z, x, 0)` — the x/z arguments are
+                // swapped relative to ShiftA.
+                noise_registry().sample(name, ctx.seed, z * 0.25, x * 0.25, 0.) * 4.0
             }
             Self::WeirdScaledSampler { input, rarity, .. } => {
                 input.evaluate(x, y, z, ctx) * *rarity
