@@ -24,8 +24,19 @@ fn main() {
         ))
     };
     println!("layer={} cheese_noise={} cheese_clamp={} slope_term={} cheese={} entrances={} spaghetti={} pillars={} noodle={}",
-        noise("cave_layer",1.,8.), noise("cave_cheese",1.,2./3.), (0.27+noise("cave_cheese",1.,2./3.)).clamp(-1.,1.), (1.5-0.64*p("overworld/sloped_cheese")).clamp(0., 0.5),
-        p("overworld/sloped_cheese"), p("overworld/caves/entrances"), p("overworld/caves/spaghetti_2d"), p("overworld/caves/pillars"), p("overworld/caves/noodle"));
+        noise("cave_layer",1.,8.), noise("cave_cheese",1.,2./3.), (0.27+noise("cave_cheese",1.,2./3.)).clamp(-1.,1.), 0.0, p("overworld/sloped_cheese"), p("overworld/caves/entrances"), p("overworld/caves/spaghetti_2d"), p("overworld/caves/pillars"), p("overworld/caves/noodle"));
+    let elev = noise("spaghetti_2d_elevation", 1., 0.);
+    let thick = noise("spaghetti_2d_thickness", 2., 1.);
+    let mod2d = noise("spaghetti_2d_modulator", 2., 1.);
+    let yg = (y - -64.0) / (320.0 - -64.0) * (-40.0 - 8.0) + 8.0;
+    println!(
+        "elevation={} thickness={} mod2d={} sloped={} layer_cube={}",
+        elev,
+        thick,
+        mod2d,
+        (elev * 8.0 + yg).abs(),
+        ((elev * 8.0 + yg).abs() + (-0.95 - 0.35 * thick)).powi(3)
+    );
     println!(
         "pillar={} pillar_rareness={} pillar_thickness={}",
         noise("pillar", 25., 0.3),
