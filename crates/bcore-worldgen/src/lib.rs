@@ -129,7 +129,7 @@ pub mod block {
     pub const DEEPSLATE_IRON_ORE: u32 = 132;
     pub const DEEPSLATE_COPPER_ORE: u32 = 27791;
     pub const DEEPSLATE_GOLD_ORE: u32 = 130;
-    pub const DEEPSLATE_REDSTONE_ORE: u32 = 6883;
+    pub const DEEPSLATE_REDSTONE_ORE: u32 = 6884;
     pub const DEEPSLATE_DIAMOND_ORE: u32 = 5308;
     pub const DEEPSLATE_LAPIS_ORE: u32 = 564;
     pub const DEEPSLATE_EMERALD_ORE: u32 = 9574;
@@ -846,6 +846,10 @@ impl WorldGenerator {
         // + tuff + deepslate), while the metal ores target `stone_ore_replaceables`
         // (stone + granite + diorite + andesite) and `deepslate_ore_replaceables`
         // (deepslate). This lets a later blob overwrite an earlier one.
+        // Vanilla `applyBiomeDecoration` runs once per chunk; ore veins extend
+        // ±8-10 blocks around their origin, so the 8 neighbouring chunks'
+        // UNDERGROUND_ORES placements also spill into this chunk's borders.
+        // Decorate the 3×3, writing only the target chunk's cells.
         let ore_chunk = &mut chunk;
         // Edge-extrapolated OCEAN_FLOOR_WG top used by OreFeature.place.
         // (A copied height table avoids borrowing `ore_chunk` twice.)
@@ -855,68 +859,72 @@ impl WorldGenerator {
             let lz = (wz - base_z).clamp(0, CHUNK_SIZE as i32 - 1) as usize;
             heights[lz * CHUNK_SIZE + lx]
         };
-        features::place_ore_veins(
-            self.seed,
-            pos.x,
-            pos.z,
-            &ocean_floor,
-            &mut |wx, y, wz, state| {
-                let lx = wx - base_x;
-                let lz = wz - base_z;
-                if !(0..CHUNK_SIZE as i32).contains(&lx)
-                    || !(0..CHUNK_SIZE as i32).contains(&lz)
-                    || y < MIN_Y
-                    || y > MAX_Y
-                {
-                    return;
-                }
-                let idx =
-                    (y - MIN_Y) as usize * column_count + lz as usize * CHUNK_SIZE + lx as usize;
-                let cur = ore_chunk.states[idx];
-                let is_base_stone = matches!(
-                    state,
-                    block::GRANITE
+        let mut write = |wx: i32, y: i32, wz: i32, state: u32| {
+            let lx = wx - base_x;
+            let lz = wz - base_z;
+            if !(0..CHUNK_SIZE as i32).contains(&lx)
+                || !(0..CHUNK_SIZE as i32).contains(&lz)
+                || y < MIN_Y
+                || y > MAX_Y
+            {
+                return;
+            }
+            let idx = (y - MIN_Y) as usize * column_count + lz as usize * CHUNK_SIZE + lx as usize;
+            let cur = ore_chunk.states[idx];
+            let is_base_stone = matches!(
+                state,
+                block::GRANITE
+                    | block::DIORITE
+                    | block::ANDESITE
+                    | block::TUFF
+                    | block::DIRT
+                    | block::GRAVEL
+            );
+            if is_base_stone {
+                // base_stone_overworld: stone, granite, diorite, andesite, tuff, deepslate.
+                if matches!(
+                    cur,
+                    block::STONE
+                        | block::DEEPSLATE
+                        | block::GRANITE
                         | block::DIORITE
                         | block::ANDESITE
                         | block::TUFF
-                        | block::DIRT
-                        | block::GRAVEL
-                );
-                if is_base_stone {
-                    // base_stone_overworld: stone, granite, diorite, andesite, tuff, deepslate.
-                    if matches!(
-                        cur,
-                        block::STONE
-                            | block::DEEPSLATE
-                            | block::GRANITE
-                            | block::DIORITE
-                            | block::ANDESITE
-                            | block::TUFF
-                    ) {
-                        ore_chunk.states[idx] = state;
-                    }
-                } else if matches!(
-                    cur,
-                    block::STONE | block::GRANITE | block::DIORITE | block::ANDESITE
                 ) {
-                    // stone_ore_replaceables → the plain ore state.
                     ore_chunk.states[idx] = state;
-                } else if cur == block::DEEPSLATE {
-                    // deepslate_ore_replaceables → the deepslate variant.
-                    ore_chunk.states[idx] = match state {
-                        block::COAL_ORE => block::DEEPSLATE_COAL_ORE,
-                        block::IRON_ORE => block::DEEPSLATE_IRON_ORE,
-                        block::COPPER_ORE => block::DEEPSLATE_COPPER_ORE,
-                        block::GOLD_ORE => block::DEEPSLATE_GOLD_ORE,
-                        block::REDSTONE_ORE => block::DEEPSLATE_REDSTONE_ORE,
-                        block::DIAMOND_ORE => block::DEEPSLATE_DIAMOND_ORE,
-                        block::LAPIS_ORE => block::DEEPSLATE_LAPIS_ORE,
-                        9573 => block::DEEPSLATE_EMERALD_ORE,
-                        other => other,
-                    };
                 }
-            },
-        );
+            } else if matches!(
+                cur,
+                block::STONE | block::GRANITE | block::DIORITE | block::ANDESITE
+            ) {
+                // stone_ore_replaceables → the plain ore state.
+                ore_chunk.states[idx] = state;
+            } else if cur == block::DEEPSLATE {
+                // deepslate_ore_replaceables → the deepslate variant.
+                ore_chunk.states[idx] = match state {
+                    block::COAL_ORE => block::DEEPSLATE_COAL_ORE,
+                    block::IRON_ORE => block::DEEPSLATE_IRON_ORE,
+                    block::COPPER_ORE => block::DEEPSLATE_COPPER_ORE,
+                    block::GOLD_ORE => block::DEEPSLATE_GOLD_ORE,
+                    block::REDSTONE_ORE => block::DEEPSLATE_REDSTONE_ORE,
+                    block::DIAMOND_ORE => block::DEEPSLATE_DIAMOND_ORE,
+                    block::LAPIS_ORE => block::DEEPSLATE_LAPIS_ORE,
+                    9573 => block::DEEPSLATE_EMERALD_ORE,
+                    other => other,
+                };
+            }
+        };
+        for dx in -1..=1 {
+            for dz in -1..=1 {
+                features::place_ore_veins(
+                    self.seed,
+                    pos.x + dx,
+                    pos.z + dz,
+                    &ocean_floor,
+                    &mut write,
+                );
+            }
+        }
         chunk
     }
     pub fn cave_density_probe(
