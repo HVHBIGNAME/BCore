@@ -138,6 +138,7 @@ pub fn place_tree(
 /// placed (vanilla returns `placed > 0`).
 pub fn place_ore(
     rng: &mut WorldgenRandom,
+    ocean_floor: &dyn Fn(i32, i32) -> i32,
     world_write: &mut dyn FnMut(i32, i32, i32, BlockState),
     x: i32,
     y: i32,
@@ -167,6 +168,18 @@ pub fn place_ore(
     let z_start = z - (spread_xy as f32).ceil() as i32 - max_radius;
     let size_xz = 2 * ((spread_xy as f32).ceil() as i32 + max_radius);
     let size_y = 2 * (2 + max_radius);
+
+    // Vanilla `OreFeature.place`: the whole vein is skipped (before any
+    // per-sphere `nextDouble` draw) when its bottom is above the ocean floor
+    // at *every* footprint column — `yStart <= getHeight(OCEAN_FLOOR_WG)`
+    // anywhere lets the doPlace run. Keeping the draw count exact matters:
+    // each above-terrain vein consumes only 3 draws (dir + y0 + y1), not
+    // 3 + size, and the shared decoration RNG must stay in sync.
+    let probe_ok = (x_start..=x_start + size_xz)
+        .any(|bx| (z_start..=z_start + size_xz).any(|bz| y_start <= ocean_floor(bx, bz)));
+    if !probe_ok {
+        return false;
+    }
 
     // doPlace: generate the sphere centers and radii.
     let mut data = vec![0.0f64; size * 4];
@@ -332,6 +345,7 @@ pub fn place_ore_veins(
     seed: i64,
     chunk_x: i32,
     chunk_z: i32,
+    ocean_floor: &dyn Fn(i32, i32) -> i32,
     world_write: &mut dyn FnMut(i32, i32, i32, BlockState),
 ) {
     const FEATURES: &[OrePlacement] = &[
@@ -639,7 +653,16 @@ pub fn place_ore_veins(
             let x = base_x.wrapping_add(rng.next_int(16) as i32);
             let z = base_z.wrapping_add(rng.next_int(16) as i32);
             let y = feature.height(&mut rng);
-            place_ore(&mut rng, world_write, x, y, z, feature.kind, feature.size);
+            place_ore(
+                &mut rng,
+                ocean_floor,
+                world_write,
+                x,
+                y,
+                z,
+                feature.kind,
+                feature.size,
+            );
         }
     }
 }
