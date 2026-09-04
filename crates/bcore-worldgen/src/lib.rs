@@ -119,6 +119,7 @@ pub mod block {
     pub const LAPIS_ORE: u32 = 563;
     pub const SANDSTONE: u32 = 578;
     pub const SHORT_GRASS: u32 = 2248;
+    pub const LEAF_LITTER: u32 = 30339;
     pub const DEAD_BUSH: u32 = 2250;
     pub const DIAMOND_ORE: u32 = 5307;
     pub const REDSTONE_ORE: u32 = 6882;
@@ -925,8 +926,57 @@ impl WorldGenerator {
                 );
             }
         }
+        self.decorate_vanilla(&mut chunk);
         chunk
     }
+
+    /// Add post-surface trees and ground cover without changing terrain heights.
+    fn decorate_vanilla(self, chunk: &mut GeneratedChunk) {
+        let base_x = chunk.pos.x * CHUNK_SIZE as i32;
+        let base_z = chunk.pos.z * CHUNK_SIZE as i32;
+        for z in 0..CHUNK_SIZE {
+            for x in 0..CHUNK_SIZE {
+                let wx = base_x + x as i32;
+                let wz = base_z + z as i32;
+                let y = chunk.height_at(x, z);
+                if y < SEA_LEVEL || chunk.get(x, y, z) == Some(block::AIR) {
+                    continue;
+                }
+                let roll = hash_2d(self.channel(51), wx as i64, wz as i64);
+                if roll > 0.72 {
+                    chunk.set_if_air(x, y + 1, z, block::SHORT_GRASS);
+                } else if roll > 0.60 {
+                    chunk.set_if_air(x, y + 1, z, block::LEAF_LITTER);
+                }
+            }
+        }
+        for z in -2..(CHUNK_SIZE as i32 + 2) {
+            for x in -2..(CHUNK_SIZE as i32 + 2) {
+                let wx = base_x + x;
+                let wz = base_z + z;
+                if hash_2d(self.channel(50), wx as i64, wz as i64) < 0.90 {
+                    continue;
+                }
+                let info = self.column(wx, wz);
+                if info.height < SEA_LEVEL || info.biome == Biome::Desert {
+                    continue;
+                }
+                let mut rng = splitmix64((self.seed as u64)
+                    ^ (wx as i64 as u64).wrapping_mul(0x9e37_79b9_7f4a_7c15)
+                    ^ (wz as i64 as u64).wrapping_mul(0xc2b2_ae3d_27d4_eb4f));
+                features::place_tree(&mut rng, &mut |tx, ty, tz, state| {
+                    let lx = tx - base_x;
+                    let lz = tz - base_z;
+                    if (0..CHUNK_SIZE as i32).contains(&lx)
+                        && (0..CHUNK_SIZE as i32).contains(&lz)
+                    {
+                        chunk.set_if_air(lx as usize, ty, lz as usize, state);
+                    }
+                }, wx, info.height, wz, features::TreeKind::Oak);
+            }
+        }
+    }
+
     pub fn cave_density_probe(
         seed: i64,
         x: f64,

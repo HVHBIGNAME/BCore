@@ -172,7 +172,13 @@ thread_local! {
     static CACHE_ALL_IN_CELL: RefCell<HashMap<(usize, i64, i32, i32, i32), f64>> = RefCell::new(HashMap::new());
     static CACHE_2D: RefCell<HashMap<(usize, i64, i64, i64), f64>> = RefCell::new(HashMap::new());
     static FLAT_CACHE: RefCell<HashMap<usize, (i64, u64, u64, u64, f64)>> = RefCell::new(HashMap::new());
-    static CACHE_ONCE: RefCell<HashMap<usize, f64>> = RefCell::new(HashMap::new());
+    // CacheOnce is keyed by the complete evaluation coordinate.  The previous
+    // implementation intentionally bypassed this cache because a pointer-only
+    // key returned a value from a different column/height.  Vanilla's cache
+    // node may be sampled repeatedly at the same point by interpolated nodes;
+    // retaining the full key is both safe and bit-for-bit transparent.
+    static CACHE_ONCE: RefCell<HashMap<(usize, i64, u64, u64, u64), f64>> = RefCell::new(HashMap::new());
+    static INTERPOLATED_CORNERS: RefCell<HashMap<(usize, i64, u64, u64, u64), [f64; 8]>> = RefCell::new(HashMap::new());
 }
 
 fn cache_all_in_cell(a: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContext) -> f64 {
@@ -239,7 +245,21 @@ fn flat_cache(a: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContext) ->
 }
 
 fn cache_once(a: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContext) -> f64 {
-    a.evaluate(x, y, z, ctx)
+    let key = (
+        a as *const DensityFunction as usize,
+        ctx.seed,
+        x.to_bits(),
+        y.to_bits(),
+        z.to_bits(),
+    );
+    if let Some(value) = CACHE_ONCE.with(|cache| cache.borrow().get(&key).copied()) {
+        return value;
+    }
+    let value = a.evaluate(x, y, z, ctx);
+    CACHE_ONCE.with(|cache| {
+        cache.borrow_mut().insert(key, value);
+    });
+    value
 }
 
 impl DensityFunction {
@@ -461,17 +481,34 @@ fn interpolate(inner: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContex
     let sx = tx;
     let sy = ty;
     let sz = tz;
-    // Evaluate each lattice corner exactly once.  The previous expression
-    // evaluated the four lower corners twice (12 graph traversals instead of
-    // 8) for every interpolated sample; this dominates the density path.
-    let c000 = inner.evaluate(x0, y0, z0, ctx);
-    let c100 = inner.evaluate(x0 + cw, y0, z0, ctx);
-    let c010 = inner.evaluate(x0, y0 + ch, z0, ctx);
-    let c110 = inner.evaluate(x0 + cw, y0 + ch, z0, ctx);
-    let c001 = inner.evaluate(x0, y0, z0 + cw, ctx);
-    let c101 = inner.evaluate(x0 + cw, y0, z0 + cw, ctx);
-    let c011 = inner.evaluate(x0, y0 + ch, z0 + cw, ctx);
-    let c111 = inner.evaluate(x0 + cw, y0 + ch, z0 + cw, ctx);
+    let key = (
+        inner as *const DensityFunction as usize,
+        ctx.seed,
+        x0.to_bits(),
+        y0.to_bits(),
+        z0.to_bits(),
+    );
+    let corners = if let Some(corners) =
+        INTERPOLATED_CORNERS.with(|cache| cache.borrow().get(&key).copied())
+    {
+        corners
+    } else {
+        let corners = [
+            inner.evaluate(x0, y0, z0, ctx),
+            inner.evaluate(x0 + cw, y0, z0, ctx),
+            inner.evaluate(x0, y0 + ch, z0, ctx),
+            inner.evaluate(x0 + cw, y0 + ch, z0, ctx),
+            inner.evaluate(x0, y0, z0 + cw, ctx),
+            inner.evaluate(x0 + cw, y0, z0 + cw, ctx),
+            inner.evaluate(x0, y0 + ch, z0 + cw, ctx),
+            inner.evaluate(x0 + cw, y0 + ch, z0 + cw, ctx),
+        ];
+        INTERPOLATED_CORNERS.with(|cache| {
+            cache.borrow_mut().insert(key, corners);
+        });
+        corners
+    };
+    let [c000, c100, c010, c110, c001, c101, c011, c111] = corners;
     let x00 = c000 + (c100 - c000) * sx;
     let x10 = c010 + (c110 - c010) * sx;
     let x01 = c001 + (c101 - c001) * sx;

@@ -571,6 +571,16 @@ mod tests {
     }
 
     #[test]
+    fn blended_noise_varies_in_three_dimensions() {
+        let n = BlendedNoise::for_world(846692123413862008i64, 0.25, 0.125, 80.0, 160.0, 8.0);
+        let values: Vec<_> = (0..8).map(|x| n.compute(x as f64, 120.0, 0.0)).collect();
+        let min = values.iter().copied().fold(f64::INFINITY, f64::min);
+        let max = values.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+        println!("blended={values:?} spread={}", max - min);
+        assert!(max - min > 1e-6);
+    }
+
+    #[test]
     fn normal_noise_is_in_range_and_deterministic() {
         let amps = [1.0, 1.0, 2.0, 2.0, 2.0, 1.0, 1.0, 1.0, 1.0];
         let n = NormalNoise::for_world(1234, "minecraft:continentalness", -9, &amps);
