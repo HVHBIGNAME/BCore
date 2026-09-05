@@ -1429,6 +1429,20 @@ impl VanillaGraph {
             .split("\"vein_toggle\"")
             .next()?;
         let final_density = density::parse_json(final_json).ok()?;
+        // Climate router entries are inline in vanilla's overworld settings,
+        // unlike continents/erosion/ridges which have standalone density files.
+        // Keep the router's exact shifted-noise graphs here; treating a missing
+        // standalone `overworld/{temperature,humidity}.json` as zero collapses
+        // multi-noise biome selection to Plains.
+        let settings_value: serde_json::Value = serde_json::from_str(&text).ok()?;
+        let router_density = |name: &str| {
+            settings_value
+                .get("noise_router")
+                .and_then(|router| router.get(name))
+                .and_then(|value| density::parse_json(&value.to_string()).ok())
+        };
+        let router_temperature = router_density("temperature");
+        let router_humidity = router_density("vegetation");
         let dir = root.join("data/minecraft/worldgen/density_function/overworld");
         let load = |name: &str| {
             fs::read_to_string(dir.join(format!("{name}.json")))
@@ -1463,8 +1477,8 @@ impl VanillaGraph {
             cave_cheese: load("sloped_cheese"),
             entrances: load_cave("entrances"),
             parameters,
-            temperature: load("temperature"),
-            humidity: load("humidity"),
+            temperature: router_temperature,
+            humidity: router_humidity,
             continentalness: load("continents"),
             erosion: load("erosion"),
             weirdness: load("ridges"),

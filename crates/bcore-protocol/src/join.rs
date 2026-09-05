@@ -64,6 +64,10 @@ const PLAY_KEEP_ALIVE_ID: i32 = 0x2c;
 const PLAY_TELEPORT_CONFIRM_ID: i32 = 0x00;
 /// Clientbound `kick_disconnect`: present in the capture, never replayed.
 const PLAY_KICK_DISCONNECT_ID: i32 = 0x20;
+/// Clientbound `update_recipes` (declare_recipes). The captured recipe list has
+/// entries ViaVersion's RecipeDisplayRewriter rejects ("Template item cannot be
+/// empty"), so it is never replayed — the client uses an empty recipe book.
+const PLAY_DECLARE_RECIPES_ID: i32 = 0x85;
 
 /// The world seed `/seed` reports.
 ///
@@ -202,13 +206,18 @@ pub fn run_login_and_join(
     println!("[BCore] join: {name} (offline)");
 
     stream.write_all(&encode_login_success(&uuid, &name))?;
+    eprintln!("[BCore] login success sent for {name}");
 
     let (pid, _) = read_frame(stream)?;
+    eprintln!("[BCore] login ack: pid=0x{pid:02x}");
     if pid != LOGIN_ACKNOWLEDGED_ID {
         return Err(PacketError::UnexpectedPacket(pid));
     }
 
     config_replay(stream)?;
+    eprintln!("[BCore] config replay done");
+    // Non-blocking reads for the play phase: teleport confirm may lag the chunks.
+    stream.set_read_timeout(Some(Duration::from_millis(50)))?;
     let mut view = play_replay(stream, &uuid, &name)?;
 
     // Register only once the player is really in the world, so a failed join
@@ -340,11 +349,14 @@ fn play_replay(
     let packets = parse_captured(PLAY_PACKETS);
     let mut view = PlayerView::new(0.0, 0.0, 0.0);
     stream.write_all(&encode_play_login(&view))?;
+    eprintln!("[BCore] play/login sent");
     for (pid, data) in &packets.items {
         match *pid {
             // The world is generated natively; drop the captured 3x3 batch so the
             // streamer owns every chunk the client holds.
             CB_MAP_CHUNK | CB_CHUNK_BATCH_START | CB_CHUNK_BATCH_FINISHED => continue,
+            // The captured recipe list crashes ViaVersion's RecipeDisplayRewriter.
+            PLAY_DECLARE_RECIPES_ID => continue,
             // These are now built natively in `send_join_state`, from BCore's own
             // state rather than the capture's. Replaying them too would send the
             // client two command trees and two clocks.
@@ -371,14 +383,8 @@ fn play_replay(
             if let Some(spawn) = parse_spawn_position(data) {
                 view = PlayerView::new(spawn.0, spawn.1, spawn.2);
             }
-            // Wait for the client's teleport confirmation before chunks.
-            loop {
-                let (cpid, cdata) = read_frame(stream)?;
-                if cpid == PLAY_TELEPORT_CONFIRM_ID {
-                    break;
-                }
-                view.apply_movement(cpid, &cdata);
-            }
+            // Don't block on the teleport confirm here: the chunks must reach the
+            // client immediately, and the confirm is handled later in play_loop.
         }
     }
     Ok(view)
@@ -470,15 +476,8 @@ fn play_loop(
                     let current = view.chunk();
                     if current != last_chunk {
                         last_chunk = current;
-                        match view.stream_chunks(stream) {
-                            Ok(sent) if sent > 0 => {
-                                println!(
-                                    "[BCore] player entered chunk ({}, {}): streamed {sent} chunks",
-                                    current.0, current.1
-                                );
-                            }
-                            Ok(_) => {}
-                            Err(_) => break,
+                        if view.stream_chunks(stream).is_err() {
+                            break;
                         }
                     }
                 } else if let Some(input) = parse_chat_input(pid, &data) {

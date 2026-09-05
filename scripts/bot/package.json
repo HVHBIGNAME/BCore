@@ -1,0 +1,16 @@
+{
+  "name": "bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "type": "commonjs",
+  "dependencies": {
+    "canvas": "^3.2.3",
+    "mineflayer": "^4.38.0",
+    "prismarine-viewer": "^1.33.0"
+  }
+}

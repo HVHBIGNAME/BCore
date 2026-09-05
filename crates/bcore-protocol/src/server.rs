@@ -72,6 +72,10 @@ fn handle_connection(mut stream: TcpStream, server: &SharedServer) -> Result<(),
     }
     let mut cursor = Cursor::new(data);
     let handshake = read_handshake(&mut cursor)?;
+    eprintln!(
+        "[BCore] handshake: protocol={}, state={:?}",
+        handshake.protocol_version, handshake.next_state
+    );
 
     match handshake.next_state {
         NextState::Status => handle_status(&mut stream, server),

@@ -303,11 +303,26 @@ impl PlayerView {
         write_packet(&mut buf, CB_UPDATE_VIEW_POSITION, &center);
 
         if !missing.is_empty() {
-            let batch = missing.iter().take(self.chunk_batch_size);
+            let batch: Vec<(i32, i32)> = missing.iter().take(self.chunk_batch_size).copied().collect();
             write_packet(&mut buf, CB_CHUNK_BATCH_START, &[]);
+            // Generate the batch in parallel. Worldgen is ~0.2s/chunk and used to
+            // run sequentially on the connection thread (a 64-chunk batch blocked
+            // the player's socket for ~14s). The `World` is `Sync` and the worldgen
+            // keeps its caches thread-local, so a scoped thread per column cuts the
+            // batch cost to ~ceil(batch/cores) * per-chunk.
+            let payloads: Vec<Vec<u8>> = std::thread::scope(|scope| {
+                let handles: Vec<_> = batch
+                    .iter()
+                    .map(|&(x, z)| scope.spawn(move || world.chunk_payload(x, z)))
+                    .collect();
+                handles
+                    .into_iter()
+                    .map(|handle| handle.join().expect("chunk generation panicked"))
+                    .collect()
+            });
             let mut sent = 0usize;
-            for &(x, z) in batch {
-                write_packet(&mut buf, CB_MAP_CHUNK, &world.chunk_payload(x, z));
+            for (&(x, z), payload) in batch.iter().zip(payloads) {
+                write_packet(&mut buf, CB_MAP_CHUNK, &payload);
                 self.loaded.insert((x, z));
                 sent += 1;
             }

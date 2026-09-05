@@ -13,3 +13,9 @@
 # `crates/bcore-protocol/world/` because tests run with the crate as their cwd.
 world/
 /crates/*/world/
+
+# Node/bot scratch + native build artifacts (not part of the server)
+node_modules/
+**/node_modules/
+/scripts/target/
+/scripts/bot/node_modules/

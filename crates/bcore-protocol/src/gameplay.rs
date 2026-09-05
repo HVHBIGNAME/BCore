@@ -272,14 +272,18 @@ pub fn encode_player_info_gamemode(uuid: &[u8; 16], mode: GameMode) -> Vec<u8> {
 /// ping, and no display name. This is what populates the client's tab list.
 pub fn encode_player_info_add(uuid: &[u8; 16], name: &str, mode: GameMode, ping: i32) -> Vec<u8> {
     let mut data = Vec::with_capacity(32);
-    encode_varint(0x01, &mut data); // add player
+    data.push(0xff); // action = all flags (vanilla's createPlayerInitializing)
     encode_varint(1, &mut data); // one entry
     data.extend_from_slice(uuid);
     write_string(name, &mut data);
     encode_varint(0, &mut data); // properties count
+    data.push(0x00); // chatSession = none (offline)
     encode_varint(mode.id(), &mut data); // gamemode
+    data.push(0x01); // listed = true
     encode_varint(ping, &mut data); // latency
-    data.push(0); // has_display_name = false
+    data.push(0x00); // displayName = none
+    encode_varint(0, &mut data); // listPriority
+    data.push(0x01); // showHat = true
     let mut out = Vec::new();
     write_packet(&mut out, CB_PLAYER_INFO_UPDATE, &data);
     out
