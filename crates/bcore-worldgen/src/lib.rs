@@ -111,18 +111,18 @@ pub mod block {
     pub const GOLD_ORE: u32 = 129;
     pub const IRON_ORE: u32 = 131;
     pub const COAL_ORE: u32 = 133;
-    pub const COPPER_ORE: u32 = 27790;
+    pub const COPPER_ORE: u32 = 25313;
     pub const OAK_LOG: u32 = 137;
-    pub const OAK_PLANKS: u32 = 138;
-    pub const OAK_LEAVES: u32 = 255;
+    pub const OAK_PLANKS: u32 = 15;
+    pub const OAK_LEAVES: u32 = 279;
     pub const BIRCH_LOG: u32 = 143;
-    pub const BIRCH_LEAVES: u32 = 311;
-    pub const SPRUCE_LOG: u32 = 149;
-    pub const SPRUCE_LEAVES: u32 = 367;
+    pub const BIRCH_LEAVES: u32 = 335;
+    pub const SPRUCE_LOG: u32 = 140;
+    pub const SPRUCE_LEAVES: u32 = 307;
     pub const LAPIS_ORE: u32 = 563;
     pub const SANDSTONE: u32 = 578;
     pub const SHORT_GRASS: u32 = 2248;
-    pub const LEAF_LITTER: u32 = 30339;
+    pub const LEAF_LITTER: u32 = 27846;
     pub const DEAD_BUSH: u32 = 2250;
     pub const DIAMOND_ORE: u32 = 5307;
     pub const REDSTONE_ORE: u32 = 6882;
@@ -131,13 +131,13 @@ pub mod block {
     // Deepslate ore variants (`deepslate_ore_replaceables` target).
     pub const DEEPSLATE_COAL_ORE: u32 = 134;
     pub const DEEPSLATE_IRON_ORE: u32 = 132;
-    pub const DEEPSLATE_COPPER_ORE: u32 = 27791;
+    pub const DEEPSLATE_COPPER_ORE: u32 = 25314;
     pub const DEEPSLATE_GOLD_ORE: u32 = 130;
     pub const DEEPSLATE_REDSTONE_ORE: u32 = 6884;
     pub const DEEPSLATE_DIAMOND_ORE: u32 = 5308;
     pub const DEEPSLATE_LAPIS_ORE: u32 = 564;
     pub const DEEPSLATE_EMERALD_ORE: u32 = 9574;
-    pub const DEEPSLATE: u32 = 30417;
+    pub const DEEPSLATE: u32 = 27924;
 }
 
 /// Network biome ids from the `minecraft:worldgen/biome` registry sync
@@ -939,6 +939,12 @@ impl WorldGenerator {
     }
 
     /// Add post-surface trees and ground cover without changing terrain heights.
+    ///
+    /// Vanilla vegetation is a placed-feature pass, not an independent coin flip
+    /// for every column.  Use a 3x3-column origin grid with a deterministic jitter:
+    /// this gives forests roughly 0.08--0.11 trees/column while preventing the
+    /// one-block clustering produced by per-column rolls.  Plains deliberately have
+    /// no tree feature at all.
     fn decorate_vanilla(self, chunk: &mut GeneratedChunk) {
         let base_x = chunk.pos.x * CHUNK_SIZE as i32;
         let base_z = chunk.pos.z * CHUNK_SIZE as i32;
@@ -947,64 +953,87 @@ impl WorldGenerator {
                 let wx = base_x + x as i32;
                 let wz = base_z + z as i32;
                 let y = chunk.height_at(x, z);
-                if y < SEA_LEVEL || chunk.get(x, y, z) == Some(block::AIR) {
+                if y < SEA_LEVEL || chunk.get(x, y, z) != Some(block::GRASS_BLOCK) {
                     continue;
                 }
                 let roll = hash_2d(self.channel(51), wx as i64, wz as i64);
-                if roll > 0.72 {
+                let biome = chunk.biome_at(x, z);
+                let grass_rate = match biome {
+                    Biome::Plains => 0.28,
+                    Biome::Forest | Biome::BirchForest => 0.20,
+                    Biome::DarkForest => 0.16,
+                    Biome::Taiga => 0.12,
+                    Biome::Jungle => 0.24,
+                    Biome::Savanna => 0.18,
+                    Biome::Mountains => 0.10,
+                    _ => 0.0,
+                };
+                if roll < grass_rate {
                     chunk.set_if_air(x, y + 1, z, block::SHORT_GRASS);
-                } else if roll > 0.60 {
+                } else if matches!(
+                    biome,
+                    Biome::Forest | Biome::BirchForest | Biome::DarkForest | Biome::Taiga
+                ) && roll < grass_rate + 0.08
+                {
                     chunk.set_if_air(x, y + 1, z, block::LEAF_LITTER);
                 }
             }
         }
-        // Tree origins are selected from the vanilla column table above, not
-        // `self.column()`: that method belongs to the fallback generator and its
-        // height/biome can disagree with the vanilla density graph (at spawn it
-        // reports a low frozen-ocean column while this chunk is plains at Y 125).
-        // A 6% per-column attempt rate is close to vanilla's scattered-tree
-        // placement and keeps neighbouring canopies deterministic.
-        for z in 0..CHUNK_SIZE as i32 {
-            for x in 0..CHUNK_SIZE as i32 {
-                let wx = base_x + x;
-                let wz = base_z + z;
-                if hash_2d(self.channel(50), wx as i64, wz as i64) < 0.94 {
-                    continue;
-                }
-                let lx = x as usize;
-                let lz = z as usize;
-                let height = chunk.height_at(lx, lz);
-                let biome = chunk.biome_at(lx, lz);
-                if height < SEA_LEVEL
-                    || !matches!(chunk.get(lx, height, lz), Some(block::GRASS_BLOCK))
-                    || biome == Biome::Desert
+
+        // One jittered origin per 3x3 cell, then a biome-specific placed-feature
+        // chance.  All decisions are keyed by absolute seed/position, so chunk
+        // generation order cannot change decoration.
+        const CELL: i32 = 3;
+        for cz in
+            (base_z.div_euclid(CELL) - 1)..=((base_z + CHUNK_SIZE as i32 - 1).div_euclid(CELL) + 1)
+        {
+            for cx in (base_x.div_euclid(CELL) - 1)
+                ..=((base_x + CHUNK_SIZE as i32 - 1).div_euclid(CELL) + 1)
+            {
+                let cell_seed = self.channel(50);
+                let ox = (hash_2d(cell_seed, cx as i64, cz as i64) * CELL as f64) as i32;
+                let oz = (hash_2d(cell_seed ^ 0x51, cx as i64, cz as i64) * CELL as f64) as i32;
+                let wx = cx * CELL + ox;
+                let wz = cz * CELL + oz;
+                if wx < base_x
+                    || wx >= base_x + CHUNK_SIZE as i32
+                    || wz < base_z
+                    || wz >= base_z + CHUNK_SIZE as i32
                 {
                     continue;
                 }
+                let lx = (wx - base_x) as usize;
+                let lz = (wz - base_z) as usize;
+                let height = chunk.height_at(lx, lz);
+                let biome = chunk.biome_at(lx, lz);
+                let density = match biome {
+                    Biome::Forest => 0.75,
+                    Biome::BirchForest => 0.70,
+                    Biome::DarkForest => 0.95,
+                    Biome::Taiga => 0.60,
+                    Biome::Jungle => 0.80,
+                    Biome::Savanna => 0.05,
+                    _ => 0.0,
+                };
+                if density == 0.0
+                    || height < SEA_LEVEL
+                    || chunk.get(lx, height, lz) != Some(block::GRASS_BLOCK)
+                    || hash_2d(self.channel(53), wx as i64, wz as i64) >= density
+                {
+                    continue;
+                }
+                let kind = match biome {
+                    Biome::BirchForest => features::TreeKind::Birch,
+                    Biome::Taiga => features::TreeKind::Spruce,
+                    _ => features::TreeKind::Oak,
+                };
+                // Do not let a tree overwrite terrain or another tree.  The
+                // callback remains set-if-air as a second guard for foliage.
                 let mut rng = splitmix64(
                     (self.seed as u64)
                         ^ (wx as i64 as u64).wrapping_mul(0x9e37_79b9_7f4a_7c15)
                         ^ (wz as i64 as u64).wrapping_mul(0xc2b2_ae3d_27d4_eb4f),
                 );
-                let kind = match biome {
-                    Biome::BirchForest => {
-                        // Birch forest is not perfectly uniform in vanilla: retain an
-                        // occasional oak so the forest edge reads as mixed.
-                        if hash_2d(self.channel(54), wx as i64, wz as i64) < 0.28 {
-                            features::TreeKind::Oak
-                        } else {
-                            features::TreeKind::Birch
-                        }
-                    }
-                    Biome::Forest => {
-                        if hash_2d(self.channel(54), wx as i64, wz as i64) < 0.30 {
-                            features::TreeKind::Birch
-                        } else {
-                            features::TreeKind::Oak
-                        }
-                    }
-                    _ => features::TreeKind::Oak,
-                };
                 features::place_tree(
                     &mut rng,
                     &mut |tx, ty, tz, state| {
