@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 //! Deterministic, seed-based realistic world generation for BCore.
 //!
 //! # Design
@@ -41,9 +42,9 @@ pub mod features;
 pub mod noise;
 pub mod noise_perlin;
 pub mod simplex;
+pub mod structure;
 pub mod surface;
 pub mod surface_rules;
-pub mod structure;
 
 pub use noise::{fbm2, fbm3, hash_2d, splitmix64, value_noise_2d, value_noise_3d};
 
@@ -980,9 +981,11 @@ impl WorldGenerator {
                 {
                     continue;
                 }
-                let mut rng = splitmix64((self.seed as u64)
-                    ^ (wx as i64 as u64).wrapping_mul(0x9e37_79b9_7f4a_7c15)
-                    ^ (wz as i64 as u64).wrapping_mul(0xc2b2_ae3d_27d4_eb4f));
+                let mut rng = splitmix64(
+                    (self.seed as u64)
+                        ^ (wx as i64 as u64).wrapping_mul(0x9e37_79b9_7f4a_7c15)
+                        ^ (wz as i64 as u64).wrapping_mul(0xc2b2_ae3d_27d4_eb4f),
+                );
                 let kind = match biome {
                     Biome::BirchForest => {
                         // Birch forest is not perfectly uniform in vanilla: retain an
@@ -1002,15 +1005,22 @@ impl WorldGenerator {
                     }
                     _ => features::TreeKind::Oak,
                 };
-                features::place_tree(&mut rng, &mut |tx, ty, tz, state| {
-                    let lx = tx - base_x;
-                    let lz = tz - base_z;
-                    if (0..CHUNK_SIZE as i32).contains(&lx)
-                        && (0..CHUNK_SIZE as i32).contains(&lz)
-                    {
-                        chunk.set_if_air(lx as usize, ty, lz as usize, state);
-                    }
-                }, wx, height, wz, kind);
+                features::place_tree(
+                    &mut rng,
+                    &mut |tx, ty, tz, state| {
+                        let lx = tx - base_x;
+                        let lz = tz - base_z;
+                        if (0..CHUNK_SIZE as i32).contains(&lx)
+                            && (0..CHUNK_SIZE as i32).contains(&lz)
+                        {
+                            chunk.set_if_air(lx as usize, ty, lz as usize, state);
+                        }
+                    },
+                    wx,
+                    height,
+                    wz,
+                    kind,
+                );
             }
         }
     }
@@ -1494,6 +1504,21 @@ mod tests {
     use super::*;
 
     const SEED: i64 = 1234;
+
+    #[test]
+    fn density_caches_stay_bounded_across_many_chunks() {
+        // Generation runs on this test thread, so the thread-local density
+        // caches accumulate here and are observable via density_cache_capacity().
+        let generator = WorldGenerator::new(SEED);
+        for i in 0..12 {
+            let _ = generator.generate_chunk_vanilla(ChunkPos::new(i, i));
+        }
+        let capacity = crate::density::density_cache_capacity();
+        assert!(
+            capacity <= 5 * (1 << 18),
+            "density caches ballooned to {capacity} buckets"
+        );
+    }
 
     #[test]
     #[ignore]

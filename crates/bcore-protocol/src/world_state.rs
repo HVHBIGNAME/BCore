@@ -35,7 +35,8 @@ type PayloadShard = RwLock<HashMap<(i32, i32), Vec<u8>>>;
 
 type GenerationJob = (i32, i32);
 static GENERATION_QUEUE: OnceLock<mpsc::Sender<GenerationJob>> = OnceLock::new();
-static GENERATION_IN_FLIGHT: OnceLock<Mutex<std::collections::HashSet<GenerationJob>>> = OnceLock::new();
+static GENERATION_IN_FLIGHT: OnceLock<Mutex<std::collections::HashSet<GenerationJob>>> =
+    OnceLock::new();
 
 fn generation_queue() -> &'static mpsc::Sender<GenerationJob> {
     GENERATION_QUEUE.get_or_init(|| {
@@ -48,7 +49,10 @@ fn generation_queue() -> &'static mpsc::Sender<GenerationJob> {
                 let Ok((x, z)) = job else { break };
                 let _ = shared().chunk_payload(x, z);
                 if let Some(in_flight) = GENERATION_IN_FLIGHT.get() {
-                    in_flight.lock().expect("generation in-flight lock").remove(&(x, z));
+                    in_flight
+                        .lock()
+                        .expect("generation in-flight lock")
+                        .remove(&(x, z));
                 }
             });
         }
@@ -193,7 +197,9 @@ impl World {
             return;
         }
         let key = (x, z);
-        let mut pending = generation_in_flight().lock().expect("generation in-flight lock");
+        let mut pending = generation_in_flight()
+            .lock()
+            .expect("generation in-flight lock");
         if pending.insert(key) {
             let _ = generation_queue().send(key);
         }
@@ -366,6 +372,25 @@ mod tests {
         assert_eq!(world.cached_payloads(), 2);
         world.clear_cache();
         assert_eq!(world.cached_payloads(), 0);
+    }
+
+    #[test]
+    fn payload_cache_evicts_when_it_exceeds_the_cap() {
+        let world = World::in_memory(1);
+        // Push the cache over the cap directly (bypassing worldgen, which is
+        // ~0.2s/chunk). The shards and shard function are in scope because this
+        // test module is a child of the `world_state` module.
+        for i in 0..=MAX_CACHED_PAYLOADS {
+            world.payloads[payload_shard(i as i32, 0)]
+                .write()
+                .expect("shard lock")
+                .insert((i as i32, 0), vec![0u8; 4]);
+        }
+        assert!(world.cached_payloads() > MAX_CACHED_PAYLOADS);
+        // A cache miss must detect the overflow and clear the whole cache so the
+        // encoded-chunk cache never grows without bound.
+        let _ = world.chunk_payload(9999, 9999);
+        assert!(world.cached_payloads() <= MAX_CACHED_PAYLOADS);
     }
 
     #[test]

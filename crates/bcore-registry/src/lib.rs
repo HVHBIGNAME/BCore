@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 //! BCore data-driven block/item registry (future work).
 //!
 //! Modern Minecraft assigns block/item IDs during the login "registry sync"

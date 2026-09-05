@@ -184,12 +184,43 @@ thread_local! {
 /// Drop every per-thread density cache. The worldgen calls this once per chunk
 /// so the caches stay bounded to a single chunk's worth of samples instead of
 /// growing without bound across the whole world (which leaked gigabytes of RAM).
+///
+/// `HashMap::clear` keeps the allocated capacity, so a single dense chunk could
+/// still leave a multi-MB arena pinned in thread-local storage forever. When a
+/// cache has ballooned past [`MAX_DENSITY_CACHE_ENTRIES`] buckets we drop it
+/// outright so the arena is actually freed, not just emptied.
 pub fn clear_density_caches() {
-    CACHE_ALL_IN_CELL.with(|c| c.borrow_mut().clear());
-    CACHE_2D.with(|c| c.borrow_mut().clear());
-    FLAT_CACHE.with(|c| c.borrow_mut().clear());
-    CACHE_ONCE.with(|c| c.borrow_mut().clear());
-    INTERPOLATED_CORNERS.with(|c| c.borrow_mut().clear());
+    macro_rules! clear {
+        ($cache:ident) => {
+            $cache.with(|c| {
+                let mut cache = c.borrow_mut();
+                cache.clear();
+                if cache.capacity() > MAX_DENSITY_CACHE_ENTRIES {
+                    *cache = HashMap::new();
+                }
+            });
+        };
+    }
+    clear!(CACHE_ALL_IN_CELL);
+    clear!(CACHE_2D);
+    clear!(FLAT_CACHE);
+    clear!(CACHE_ONCE);
+    clear!(INTERPOLATED_CORNERS);
+}
+
+/// Bucket cap for a single thread-local density cache. The heaviest chunk
+/// samples a few tens of thousands of points, so 2^18 buckets is a comfortable
+/// ceiling; anything beyond that is a pathological growth we refuse to keep.
+const MAX_DENSITY_CACHE_ENTRIES: usize = 1 << 18;
+
+/// Total bucket capacity across every thread-local density cache, for
+/// diagnostics and the bounded-cache soak test.
+pub fn density_cache_capacity() -> usize {
+    CACHE_ALL_IN_CELL.with(|c| c.borrow().capacity())
+        + CACHE_2D.with(|c| c.borrow().capacity())
+        + FLAT_CACHE.with(|c| c.borrow().capacity())
+        + CACHE_ONCE.with(|c| c.borrow().capacity())
+        + INTERPOLATED_CORNERS.with(|c| c.borrow().capacity())
 }
 
 fn cache_all_in_cell(a: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContext) -> f64 {

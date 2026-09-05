@@ -27,7 +27,13 @@ fn main() {
     });
     let par = t1.elapsed();
 
-    println!("sequential 16 chunks: {seq:?}  ({:.2} ms/chunk)", seq.as_millis() as f64 / 16.0);
-    println!("parallel   16 chunks: {par:?}  ({:.2} ms/chunk)", par.as_millis() as f64 / 16.0);
+    println!(
+        "sequential 16 chunks: {seq:?}  ({:.2} ms/chunk)",
+        seq.as_millis() as f64 / 16.0
+    );
+    println!(
+        "parallel   16 chunks: {par:?}  ({:.2} ms/chunk)",
+        par.as_millis() as f64 / 16.0
+    );
     println!("speedup: {:.1}x", seq.as_secs_f64() / par.as_secs_f64());
 }

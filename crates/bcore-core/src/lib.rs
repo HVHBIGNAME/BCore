@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 //! Core shared types for BCore: version constants, protocol primitives,
 //! positions, identifiers, and a bootstrap registry.
 
