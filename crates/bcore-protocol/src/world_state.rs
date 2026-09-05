@@ -26,7 +26,17 @@
 //! to pure generation (with a one-time warning) rather than dropping players.
 
 use std::collections::HashMap;
-use std::sync::{Mutex, OnceLock};
+use std::sync::{Mutex, OnceLock, RwLock};
+
+const PAYLOAD_SHARDS: usize = 32;
+const MAX_CACHED_PAYLOADS: usize = 8192;
+type PayloadShard = RwLock<HashMap<(i32, i32), Vec<u8>>>;
+
+fn payload_shard(x: i32, z: i32) -> usize {
+    let mut hash = (x as u64).wrapping_mul(0x9e37_79b9_7f4a_7c15) ^ (z as u64).rotate_left(32);
+    hash ^= hash >> 33;
+    (hash as usize) & (PAYLOAD_SHARDS - 1)
+}
 
 use bcore_core::ChunkPos;
 use bcore_worldgen::{block, WorldGenerator};
@@ -52,7 +62,7 @@ pub struct World {
     generator: WorldGenerator,
     store: Option<ChunkStore>,
     /// Encoded `map_chunk` payloads, keyed by chunk position.
-    payloads: Mutex<HashMap<(i32, i32), Vec<u8>>>,
+    payloads: [PayloadShard; PAYLOAD_SHARDS],
     /// Set once the first persistence error has been reported.
     warned: Mutex<bool>,
 }
@@ -63,7 +73,7 @@ impl World {
         Self {
             generator: WorldGenerator::new(seed),
             store: Some(ChunkStore::new()),
-            payloads: Mutex::new(HashMap::new()),
+            payloads: std::array::from_fn(|_| RwLock::new(HashMap::new())),
             warned: Mutex::new(false),
         }
     }
@@ -73,7 +83,7 @@ impl World {
         Self {
             generator: WorldGenerator::new(seed),
             store: Some(store),
-            payloads: Mutex::new(HashMap::new()),
+            payloads: std::array::from_fn(|_| RwLock::new(HashMap::new())),
             warned: Mutex::new(false),
         }
     }
@@ -83,7 +93,7 @@ impl World {
         Self {
             generator: WorldGenerator::new(seed),
             store: None,
-            payloads: Mutex::new(HashMap::new()),
+            payloads: std::array::from_fn(|_| RwLock::new(HashMap::new())),
             warned: Mutex::new(false),
         }
     }
@@ -142,31 +152,36 @@ impl World {
 
     /// The encoded `map_chunk` payload for `(x, z)`, cached across calls.
     pub fn chunk_payload(&self, x: i32, z: i32) -> Vec<u8> {
-        if let Some(hit) = self
-            .payloads
-            .lock()
-            .expect("world payload lock")
-            .get(&(x, z))
-        {
+        let shard = &self.payloads[payload_shard(x, z)];
+        if let Some(hit) = shard.read().expect("world payload shard lock").get(&(x, z)) {
             return hit.clone();
         }
         let (column, _origin) = self.chunk(x, z);
         let payload = column.encode_payload(x, z);
-        self.payloads
-            .lock()
-            .expect("world payload lock")
-            .insert((x, z), payload.clone());
+        shard
+            .write()
+            .expect("world payload shard lock")
+            .entry((x, z))
+            .or_insert_with(|| payload.clone());
+        if self.cached_payloads() > MAX_CACHED_PAYLOADS {
+            self.clear_cache();
+        }
         payload
     }
 
     /// Drop cached payloads (used when a test wants to force a re-read).
     pub fn clear_cache(&self) {
-        self.payloads.lock().expect("world payload lock").clear();
+        for shard in &self.payloads {
+            shard.write().expect("world payload shard lock").clear();
+        }
     }
 
     /// How many payloads are currently cached.
     pub fn cached_payloads(&self) -> usize {
-        self.payloads.lock().expect("world payload lock").len()
+        self.payloads
+            .iter()
+            .map(|shard| shard.read().expect("world payload shard lock").len())
+            .sum()
     }
 
     /// A safe spawn position: the terrain surface at `(x, z)`, plus one block.

@@ -735,7 +735,9 @@ impl WorldGenerator {
                 let wx = base_x + x as i32;
                 let wz = base_z + z as i32;
                 let mut top = MIN_Y;
-                let mut densities = vec![0.0f64; WORLD_HEIGHT as usize];
+                // Fixed-size scratch avoids two heap allocations per column. The
+                // indexed layout and scalar evaluation order are unchanged.
+                let mut densities = [0.0f64; WORLD_HEIGHT as usize];
                 for y in MIN_Y..=MAX_Y {
                     let d = density::evaluate(
                         &graph.final_density,

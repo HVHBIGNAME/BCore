@@ -16,37 +16,65 @@
 //! [`BTreeMap`] so `/list` and broadcast order are deterministic.
 
 use std::collections::{BTreeMap, BTreeSet};
-use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
+use std::sync::mpsc::{self, Receiver, Sender, TryRecvError};
+use std::sync::{Arc, Mutex, RwLock};
 
 /// Identifier of a connected player, unique for the server's lifetime.
 pub type PlayerId = u64;
 
 /// A player's pending outbound bytes (fully framed packets).
-#[derive(Debug, Default)]
+///
+/// Producers only clone/use the sender: `push` never waits on a lock. The
+/// receiver is briefly serialized only while the owning connection drains it.
+#[derive(Debug)]
 pub struct Outbox {
-    queued: Mutex<Vec<u8>>,
+    tx: Sender<Vec<u8>>,
+    rx: Mutex<Receiver<Vec<u8>>>,
+    queued_bytes: AtomicUsize,
+}
+
+impl Default for Outbox {
+    fn default() -> Self {
+        let (tx, rx) = mpsc::channel();
+        Self {
+            tx,
+            rx: Mutex::new(rx),
+            queued_bytes: AtomicUsize::new(0),
+        }
+    }
 }
 
 impl Outbox {
     /// Append framed packet bytes for the owning connection to flush.
     pub fn push(&self, bytes: &[u8]) {
-        if let Ok(mut queued) = self.queued.lock() {
-            queued.extend_from_slice(bytes);
+        self.queued_bytes.fetch_add(bytes.len(), Ordering::Relaxed);
+        if self.tx.send(bytes.to_vec()).is_err() {
+            self.queued_bytes.fetch_sub(bytes.len(), Ordering::Relaxed);
         }
     }
 
     /// Take everything queued so far, leaving the outbox empty.
     pub fn drain(&self) -> Vec<u8> {
-        match self.queued.lock() {
-            Ok(mut queued) => std::mem::take(&mut *queued),
-            Err(_) => Vec::new(),
+        let Ok(rx) = self.rx.lock() else {
+            return Vec::new();
+        };
+        let mut drained = Vec::new();
+        loop {
+            match rx.try_recv() {
+                Ok(bytes) => {
+                    self.queued_bytes.fetch_sub(bytes.len(), Ordering::Relaxed);
+                    drained.extend(bytes);
+                }
+                Err(TryRecvError::Empty | TryRecvError::Disconnected) => break,
+            }
         }
+        drained
     }
 
     /// Bytes currently queued.
     pub fn len(&self) -> usize {
-        self.queued.lock().map(|q| q.len()).unwrap_or(0)
+        self.queued_bytes.load(Ordering::Relaxed)
     }
 
     /// True when nothing is queued.
@@ -81,7 +109,7 @@ impl PlayerHandle {
 /// State shared by every connection thread.
 #[derive(Debug, Default)]
 pub struct ServerState {
-    players: Mutex<BTreeMap<PlayerId, PlayerHandle>>,
+    players: RwLock<BTreeMap<PlayerId, PlayerHandle>>,
     next_id: AtomicU64,
     /// Global chat message counter (`player_chat`'s `globalIndex`).
     chat_index: AtomicU64,
@@ -118,7 +146,7 @@ impl ServerState {
             outbox: Arc::new(Outbox::default()),
             kicked: Arc::new(AtomicBool::new(false)),
         };
-        if let Ok(mut players) = self.players.lock() {
+        if let Ok(mut players) = self.players.write() {
             players.insert(id, handle.clone());
         }
         handle
@@ -126,20 +154,20 @@ impl ServerState {
 
     /// Remove a player from the registry.
     pub fn leave(&self, id: PlayerId) {
-        if let Ok(mut players) = self.players.lock() {
+        if let Ok(mut players) = self.players.write() {
             players.remove(&id);
         }
     }
 
     /// Number of players currently online.
     pub fn player_count(&self) -> usize {
-        self.players.lock().map(|p| p.len()).unwrap_or(0)
+        self.players.read().map(|p| p.len()).unwrap_or(0)
     }
 
     /// Online player names, sorted (deterministic: the map is a `BTreeMap`,
     /// and names are sorted explicitly so join order does not leak in).
     pub fn player_names(&self) -> Vec<String> {
-        let mut names: Vec<String> = match self.players.lock() {
+        let mut names: Vec<String> = match self.players.read() {
             Ok(players) => players.values().map(|p| p.name.clone()).collect(),
             Err(_) => Vec::new(),
         };
@@ -150,14 +178,14 @@ impl ServerState {
     /// Snapshot of all connected players (uuid + name) for the tab list.
     pub fn players(&self) -> Vec<PlayerHandle> {
         self.players
-            .lock()
+            .read()
             .map(|p| p.values().cloned().collect())
             .unwrap_or_default()
     }
 
     /// Look up a player by name, case-insensitively.
     pub fn find_by_name(&self, name: &str) -> Option<PlayerHandle> {
-        let players = self.players.lock().ok()?;
+        let players = self.players.read().ok()?;
         players
             .values()
             .find(|p| p.name.eq_ignore_ascii_case(name))
@@ -166,7 +194,7 @@ impl ServerState {
 
     /// Queue framed bytes for every online player.
     pub fn broadcast(&self, bytes: &[u8]) {
-        if let Ok(players) = self.players.lock() {
+        if let Ok(players) = self.players.read() {
             for player in players.values() {
                 player.outbox.push(bytes);
             }
@@ -175,7 +203,7 @@ impl ServerState {
 
     /// Queue framed bytes for everyone except `except`.
     pub fn broadcast_except(&self, except: PlayerId, bytes: &[u8]) {
-        if let Ok(players) = self.players.lock() {
+        if let Ok(players) = self.players.read() {
             for (id, player) in players.iter() {
                 if *id != except {
                     player.outbox.push(bytes);
@@ -186,7 +214,7 @@ impl ServerState {
 
     /// Queue framed bytes for one player, if still online.
     pub fn send_to(&self, id: PlayerId, bytes: &[u8]) {
-        if let Ok(players) = self.players.lock() {
+        if let Ok(players) = self.players.read() {
             if let Some(player) = players.get(&id) {
                 player.outbox.push(bytes);
             }
@@ -202,7 +230,7 @@ impl ServerState {
     /// Request a full server shutdown (`/stop`).
     pub fn request_shutdown(&self) {
         self.shutdown.store(true, Ordering::Relaxed);
-        if let Ok(players) = self.players.lock() {
+        if let Ok(players) = self.players.read() {
             for player in players.values() {
                 player.kick();
             }
@@ -406,6 +434,28 @@ mod tests {
         server.request_shutdown();
         assert!(server.is_shutting_down());
         assert!(a.is_kicked());
+    }
+
+    #[test]
+    fn concurrent_broadcast_join_leave_is_thread_safe() {
+        let server = new_shared_server();
+        let receiver = server.join("Receiver", [0; 16]);
+        let mut threads = Vec::new();
+        for worker in 0..8 {
+            let server = Arc::clone(&server);
+            threads.push(std::thread::spawn(move || {
+                for iteration in 0..100 {
+                    let player = server.join(&format!("worker-{worker}-{iteration}"), [worker; 16]);
+                    server.broadcast(b"tick");
+                    server.leave(player.id);
+                }
+            }));
+        }
+        for thread in threads {
+            thread.join().expect("thread");
+        }
+        assert_eq!(server.player_count(), 1);
+        assert_eq!(receiver.outbox.drain().len(), 8 * 100 * b"tick".len());
     }
 
     #[test]
