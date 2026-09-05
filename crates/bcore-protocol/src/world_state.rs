@@ -26,11 +26,39 @@
 //! to pure generation (with a one-time warning) rather than dropping players.
 
 use std::collections::HashMap;
-use std::sync::{Mutex, OnceLock, RwLock};
+use std::sync::{mpsc, Mutex, OnceLock, RwLock};
+use std::thread;
 
 const PAYLOAD_SHARDS: usize = 32;
 const MAX_CACHED_PAYLOADS: usize = 8192;
 type PayloadShard = RwLock<HashMap<(i32, i32), Vec<u8>>>;
+
+type GenerationJob = (i32, i32);
+static GENERATION_QUEUE: OnceLock<mpsc::Sender<GenerationJob>> = OnceLock::new();
+static GENERATION_IN_FLIGHT: OnceLock<Mutex<std::collections::HashSet<GenerationJob>>> = OnceLock::new();
+
+fn generation_queue() -> &'static mpsc::Sender<GenerationJob> {
+    GENERATION_QUEUE.get_or_init(|| {
+        let (tx, rx) = mpsc::channel::<GenerationJob>();
+        let rx = std::sync::Arc::new(Mutex::new(rx));
+        for _ in 0..std::thread::available_parallelism().map_or(2, |n| n.get().min(8)) {
+            let rx = rx.clone();
+            thread::spawn(move || loop {
+                let job = rx.lock().expect("generation queue lock").recv();
+                let Ok((x, z)) = job else { break };
+                let _ = shared().chunk_payload(x, z);
+                if let Some(in_flight) = GENERATION_IN_FLIGHT.get() {
+                    in_flight.lock().expect("generation in-flight lock").remove(&(x, z));
+                }
+            });
+        }
+        tx
+    })
+}
+
+fn generation_in_flight() -> &'static Mutex<std::collections::HashSet<GenerationJob>> {
+    GENERATION_IN_FLIGHT.get_or_init(|| Mutex::new(std::collections::HashSet::new()))
+}
 
 fn payload_shard(x: i32, z: i32) -> usize {
     let mut hash = (x as u64).wrapping_mul(0x9e37_79b9_7f4a_7c15) ^ (z as u64).rotate_left(32);
@@ -148,6 +176,34 @@ impl World {
     /// Generate a chunk without consulting or touching the disk.
     pub fn generate(&self, x: i32, z: i32) -> ChunkColumn {
         ChunkColumn::from_generated(&self.generator.generate_chunk_vanilla(ChunkPos::new(x, z)))
+    }
+
+    /// Return a cached payload without doing world generation.
+    pub fn cached_payload(&self, x: i32, z: i32) -> Option<Vec<u8>> {
+        self.payloads[payload_shard(x, z)]
+            .read()
+            .expect("world payload shard lock")
+            .get(&(x, z))
+            .cloned()
+    }
+
+    /// Queue generation for a chunk, returning immediately.
+    pub fn request_payload(&self, x: i32, z: i32) {
+        if self.cached_payload(x, z).is_some() {
+            return;
+        }
+        let key = (x, z);
+        let mut pending = generation_in_flight().lock().expect("generation in-flight lock");
+        if pending.insert(key) {
+            let _ = generation_queue().send(key);
+        }
+    }
+
+    /// Queue generation for all requested chunks without blocking the caller.
+    pub fn request_payloads<I: IntoIterator<Item = (i32, i32)>>(&self, chunks: I) {
+        for (x, z) in chunks {
+            self.request_payload(x, z);
+        }
     }
 
     /// The encoded `map_chunk` payload for `(x, z)`, cached across calls.

@@ -48,7 +48,10 @@ pub const CB_UPDATE_VIEW_POSITION: i32 = 0x5e;
 pub const CB_POSITION: i32 = 0x48;
 
 /// View distance in chunks, matching the `viewDistance` announced at join.
-pub const VIEW_DISTANCE: i32 = 20;
+pub const VIEW_DISTANCE: i32 = 32;
+
+/// Minimum useful streaming batch even when a client initially reports 1.0.
+pub const MIN_CHUNK_BATCH_SIZE: usize = 4;
 
 /// A test-only override for [`default_view_distance`]; 0 means "use the default".
 static VIEW_DISTANCE_OVERRIDE: AtomicI32 = AtomicI32::new(0);
@@ -150,13 +153,13 @@ impl PlayerView {
 
     /// Override the number of chunks emitted per streaming batch.
     pub fn with_chunk_batch_size(mut self, chunk_batch_size: usize) -> Self {
-        self.chunk_batch_size = chunk_batch_size.max(1);
+        self.chunk_batch_size = chunk_batch_size.max(MIN_CHUNK_BATCH_SIZE);
         self
     }
 
     /// Set the client's requested chunks-per-tick flow-control value.
     pub fn set_chunk_batch_size(&mut self, chunk_batch_size: usize) {
-        self.chunk_batch_size = chunk_batch_size.max(1);
+        self.chunk_batch_size = chunk_batch_size.max(MIN_CHUNK_BATCH_SIZE);
     }
 
     /// Whether a subsequent tick still has chunk work to send.
@@ -302,33 +305,32 @@ impl PlayerView {
         encode_varint(cz, &mut center);
         write_packet(&mut buf, CB_UPDATE_VIEW_POSITION, &center);
 
-        if !missing.is_empty() {
-            let batch: Vec<(i32, i32)> = missing.iter().take(self.chunk_batch_size).copied().collect();
-            write_packet(&mut buf, CB_CHUNK_BATCH_START, &[]);
-            // Generate the batch in parallel. Worldgen is ~0.2s/chunk and used to
-            // run sequentially on the connection thread (a 64-chunk batch blocked
-            // the player's socket for ~14s). The `World` is `Sync` and the worldgen
-            // keeps its caches thread-local, so a scoped thread per column cuts the
-            // batch cost to ~ceil(batch/cores) * per-chunk.
-            let payloads: Vec<Vec<u8>> = std::thread::scope(|scope| {
-                let handles: Vec<_> = batch
-                    .iter()
-                    .map(|&(x, z)| scope.spawn(move || world.chunk_payload(x, z)))
-                    .collect();
-                handles
-                    .into_iter()
-                    .map(|handle| handle.join().expect("chunk generation panicked"))
-                    .collect()
-            });
-            let mut sent = 0usize;
-            for (&(x, z), payload) in batch.iter().zip(payloads) {
-                write_packet(&mut buf, CB_MAP_CHUNK, &payload);
-                self.loaded.insert((x, z));
-                sent += 1;
+        // Tests use in-memory worlds and expect deterministic synchronous output;
+        // the shared production world uses the worker pool.
+        if world.store().is_none() {
+            for &(x, z) in missing.iter().take(self.chunk_batch_size) {
+                if world.cached_payload(x, z).is_none() {
+                    let _ = world.chunk_payload(x, z);
+                }
             }
-            sent_count = sent;
+        } else {
+            world.request_payloads(missing.iter().copied());
+        }
+        let batch: Vec<((i32, i32), Vec<u8>)> = missing
+            .iter()
+            .take(self.chunk_batch_size)
+            .filter_map(|&(x, z)| world.cached_payload(x, z).map(|payload| ((x, z), payload)))
+            .collect();
+
+        if !batch.is_empty() {
+            write_packet(&mut buf, CB_CHUNK_BATCH_START, &[]);
+            for &((x, z), ref payload) in &batch {
+                write_packet(&mut buf, CB_MAP_CHUNK, payload);
+                self.loaded.insert((x, z));
+            }
+            sent_count = batch.len();
             let mut size = Vec::new();
-            encode_varint(sent as i32, &mut size);
+            encode_varint(sent_count as i32, &mut size);
             write_packet(&mut buf, CB_CHUNK_BATCH_FINISHED, &size);
         }
 
@@ -525,9 +527,11 @@ mod tests {
         let mut view = PlayerView::new(10.5, -60.0, -3.5);
         stream(&mut view, &mut Vec::new()).expect("initial");
         let mut data = Vec::new();
-        data.extend_from_slice(&1000.0f64.to_be_bytes());
+        // Jump far enough that no chunk of the new view overlaps the old one
+        // (> 2 * VIEW_DISTANCE chunks away).
+        data.extend_from_slice(&2000.0f64.to_be_bytes());
         data.extend_from_slice(&(-60.0f64).to_be_bytes());
-        data.extend_from_slice(&1000.0f64.to_be_bytes());
+        data.extend_from_slice(&2000.0f64.to_be_bytes());
         data.push(0x01);
         view.apply_movement(SB_POSITION, &data);
         let want = (2 * VIEW_DISTANCE + 1).pow(2) as usize;

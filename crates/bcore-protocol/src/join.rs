@@ -43,7 +43,7 @@ pub const LOGIN_SUCCESS_ID: i32 = 0x02;
 pub const LOGIN_ACKNOWLEDGED_ID: i32 = 0x03;
 const PLAY_LOGIN_ID: i32 = 0x31;
 const PLAY_LOGIN_ENTITY_ID: i32 = 392;
-const PLAY_VIEW_DISTANCE: i32 = 8;
+const PLAY_VIEW_DISTANCE: i32 = 32;
 const PLAY_SEA_LEVEL: i32 = 63;
 
 /// Minecraft's `hashedSeed`: SHA-256 of the seed's little-endian bytes,
@@ -418,7 +418,7 @@ fn stream_initial_chunks(stream: &mut TcpStream, view: &mut PlayerView) -> Resul
 
     // Bound the very first batch so a fresh join does not burst the whole
     // 41x41 view at once (the play loop streams the rest as the client acks).
-    view.set_chunk_batch_size(64);
+    view.set_chunk_batch_size(4);
     let sent = view.stream_chunks(stream)?;
     let (cx, cz) = view.chunk();
     println!(
@@ -508,7 +508,7 @@ fn play_loop(
                 } else if pid == SB_CHUNK_BATCH_RECEIVED && data.len() >= 4 {
                     // Vanilla sends the desired chunks/tick as an f32.
                     let desired = f32::from_be_bytes(data[..4].try_into().expect("checked length"));
-                    if desired.is_finite() && desired >= 1.0 {
+                    if desired.is_finite() && desired >= 0.0 {
                         view.set_chunk_batch_size(desired.floor() as usize);
                     }
                 }
