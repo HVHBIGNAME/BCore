@@ -1,5 +1,6 @@
 use bcore_core::ChunkPos;
 use bcore_worldgen::WorldGenerator;
+use std::collections::HashMap;
 
 /// Surface-height grid probe, output format matching `scripts/bot/dump_terrain.js`
 /// so a vanilla comparison can diff the two line-for-line.
@@ -15,6 +16,10 @@ fn main() {
     let generator = WorldGenerator::new(seed);
     let half = region / 2;
 
+    // Generate each unique chunk once: the 256 columns in a 16-wide grid live
+    // in at most a handful of chunks, and worldgen is ~0.2s/chunk.
+    let mut cache: HashMap<(i32, i32), bcore_worldgen::GeneratedChunk> = HashMap::new();
+
     for dz in -half..half {
         let mut row = String::new();
         for dx in -half..half {
@@ -24,7 +29,9 @@ fn main() {
             let ccz = wz.div_euclid(16);
             let lx = wx.rem_euclid(16) as usize;
             let lz = wz.rem_euclid(16) as usize;
-            let chunk = generator.generate_chunk_vanilla(ChunkPos::new(ccx, ccz));
+            let chunk = cache
+                .entry((ccx, ccz))
+                .or_insert_with(|| generator.generate_chunk_vanilla(ChunkPos::new(ccx, ccz)));
             let top = chunk.surface_y(lx, lz).unwrap_or(-1);
             let block = if top >= 0 {
                 chunk.get(lx, top, lz).unwrap_or(0)

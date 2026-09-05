@@ -66,9 +66,11 @@ impl<'a> Aquifer<'a> {
             return block::STONE;
         }
         let global = self.global(y);
-        if y > 40 {
-            return global.at(y);
-        }
+        // Vanilla does not use a fixed Y cutoff here.  The global fluid picker
+        // is only the fallback for cells whose density is already non-solid;
+        // aquifer barriers still decide whether underground air is water or air
+        // at every Y (including above y=40).  The former shortcut flooded every
+        // below-sea-level cavity and made land columns differ from vanilla.
         if global.lava {
             return block::LAVA;
         }
@@ -227,8 +229,14 @@ impl<'a> Aquifer<'a> {
         FluidStatus { level, lava }
     }
     fn preliminary_level(&self, x: i32, z: i32) -> i32 {
+        // NoiseChunk.preliminarySurfaceLevel samples the flat cache at quart
+        // coordinates, not at the arbitrary block coordinates of the aquifer
+        // cell.  Without this quantization the 13-cell scan uses different
+        // surfaces from vanilla, shifting floodedness and ocean boundaries.
+        let qx = (x >> 2) << 2;
+        let qz = (z >> 2) << 2;
         self.preliminary
-            .map(|f| density::evaluate(f, x as f64, 0., z as f64, &self.ctx).floor() as i32)
+            .map(|f| density::evaluate(f, qx as f64, 0., qz as f64, &self.ctx).floor() as i32)
             .unwrap_or(self.fallback_surface)
     }
     fn random_level(&self, x: i32, y: i32, z: i32, lowest: i32) -> i32 {

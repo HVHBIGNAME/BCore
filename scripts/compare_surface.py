@@ -20,7 +20,8 @@ NAMES = {
 
 def run(cmd, cwd=None):
     return subprocess.run(
-        cmd, shell=True, capture_output=True, text=True, errors="replace", cwd=cwd
+        cmd, shell=True, capture_output=True, text=True, errors="replace",
+        cwd=cwd, timeout=90,
     ).stdout
 
 def parse(text):

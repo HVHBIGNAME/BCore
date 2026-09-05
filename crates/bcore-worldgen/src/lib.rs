@@ -763,8 +763,8 @@ impl WorldGenerator {
                     climate(&graph.humidity),
                     climate(&graph.continentalness),
                     climate(&graph.erosion),
-                    climate(&graph.weirdness),
                     climate(&graph.depth),
+                    climate(&graph.weirdness),
                 );
                 let biome = biome_from_id(biome_id);
                 let mut states = vec![block::AIR; WORLD_HEIGHT as usize];
@@ -1371,6 +1371,7 @@ fn biome_from_id(id: biome::BiomeId) -> Biome {
     match id {
         biome::ids::OCEAN => Biome::Ocean,
         biome::ids::FROZEN_OCEAN => Biome::FrozenOcean,
+        biome::ids::BEACH => Biome::Beach,
         biome::ids::RIVER => Biome::River,
         biome::ids::DESERT => Biome::Desert,
         biome::ids::SNOWY_PLAINS => Biome::SnowyPlains,

@@ -14,8 +14,10 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 bot.on('login', async () => {
     console.error(`[${name}] logged in, teleporting to ${center.x},${center.z}`);
     bot.chat(`/tp ${center.x} ${center.y} ${center.z}`);
-    // Wait for the teleport + the chunk load around the target.
-    await sleep(9000);
+    // Wait for the teleport + the chunk load around the target. Far chunks
+    // (and ocean aquifers) can take the vanilla server well over 9s to
+    // generate and ship, so give it a generous window.
+    await sleep(25000);
 
     const half = Math.floor(region / 2);
     const out = [];
@@ -35,6 +37,9 @@ bot.on('login', async () => {
     }
     console.log(out.join('\n'));
     bot.quit();
+    // Explicit exit: the socket close can keep the event loop alive, which
+    // hangs the harness. Give it a moment to flush, then exit regardless.
+    setTimeout(() => process.exit(0), 200);
 });
 
 bot.on('error', e => console.error('bot error:', e.message));

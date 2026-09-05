@@ -43,8 +43,8 @@ pub fn biome_at(
     humidity: f64,
     continentalness: f64,
     erosion: f64,
-    weirdness: f64,
     depth: f64,
+    weirdness: f64,
 ) -> BiomeId {
     parameters
         .iter()
@@ -55,8 +55,8 @@ pub fn biome_at(
                 humidity,
                 continentalness,
                 erosion,
-                weirdness,
                 depth,
+                weirdness,
             )
             .total_cmp(&parameter_distance(
                 b,
@@ -64,8 +64,8 @@ pub fn biome_at(
                 humidity,
                 continentalness,
                 erosion,
-                weirdness,
                 depth,
+                weirdness,
             ))
         })
         .map(|(id, _)| *id)
@@ -88,21 +88,21 @@ fn parameter_distance(
     humidity: f64,
     continentalness: f64,
     erosion: f64,
-    weirdness: f64,
     depth: f64,
+    weirdness: f64,
 ) -> f64 {
     [
         range_distance(p.temperature, temperature),
         range_distance(p.humidity, humidity),
         range_distance(p.continentalness, continentalness),
         range_distance(p.erosion, erosion),
-        range_distance(p.weirdness, weirdness),
         range_distance(p.depth, depth),
-        p.offset,
+        range_distance(p.weirdness, weirdness),
     ]
     .into_iter()
     .map(|distance| distance * distance)
-    .sum()
+    .sum::<f64>()
+        + p.offset
 }
 
 /// Vanilla's normal fallback for an unmatched multi-noise point.
@@ -111,6 +111,7 @@ pub const DEFAULT_BIOME: BiomeId = 40; // minecraft:plains in BCore's registry
 /// IDs currently used by the built-in surface rules.
 pub mod ids {
     pub const BADLANDS: u32 = 2;
+    pub const BEACH: u32 = 3;
     pub const BIRCH_FOREST: u32 = 5;
     pub const DARK_FOREST: u32 = 13;
     pub const DESERT: u32 = 14;
@@ -200,6 +201,7 @@ fn biome_name_to_id(name: &str) -> BiomeId {
         "forest" => ids::FOREST,
         "birch_forest" => ids::BIRCH_FOREST,
         "dark_forest" => ids::DARK_FOREST,
+        "beach" => ids::BEACH,
         "desert" => ids::DESERT,
         "ocean" => ids::OCEAN,
         "frozen_ocean" => ids::FROZEN_OCEAN,
