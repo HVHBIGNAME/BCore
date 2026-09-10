@@ -16,6 +16,9 @@ fn tree_config(kind: TreeKind) -> &'static TreeConfig {
         TreeKind::Birch => &tree::BIRCH,
         TreeKind::Spruce => &tree::SPRUCE,
         TreeKind::Pine => &tree::PINE,
+        TreeKind::Acacia => &tree::ACACIA,
+        TreeKind::DarkOak => &tree::DARK_OAK,
+        TreeKind::Jungle => &tree::JUNGLE,
     }
 }
 
@@ -28,58 +31,156 @@ const VEGETAL_DECORATION_STEP: i32 = 7;
 struct TreePlacement {
     index: i32,
     kind: TreeKind,
-    /// `None` means no rarity filter; otherwise the feature is placed with
-    /// probability `1 / rarity` before its count is sampled.
-    rarity: Option<i32>,
-    count: i32,
+    count: CountProvider,
+}
+
+/// The vanilla `count` placement modifier for a tree placed feature.
+#[derive(Clone, Copy)]
+enum CountProvider {
+    /// `"count": N` — a plain int, consumes no randomness.
+    Constant(i32),
+    /// `weighted_list`: consumes exactly one bounded draw, then returns the
+    /// matching entry. Vanilla `WeightedListInt.sample` draws `nextInt(total)`.
+    Weighted {
+        low: i32,
+        high: i32,
+        weight_low: i32,
+        weight_high: i32,
+    },
+}
+
+impl CountProvider {
+    /// Vanilla `IntProvider.sample`.
+    fn sample(self, random: &mut WorldgenRandom) -> i32 {
+        match self {
+            Self::Constant(value) => value,
+            Self::Weighted {
+                low,
+                high,
+                weight_low,
+                weight_high,
+            } => {
+                if random.next_i32_bounded(weight_low + weight_high) < weight_low {
+                    low
+                } else {
+                    high
+                }
+            }
+        }
+    }
 }
 
 fn tree_placement(biome: Biome) -> Option<TreePlacement> {
-    // These are the overworld tree placed-feature entries. Keeping the index
-    // explicit is important: setFeatureSeed uses the registry position, not a
-    // per-biome counter.
+    // `count` values and weights are read verbatim from vanilla's
+    // `data/minecraft/worldgen/placed_feature/trees_*.json` (26.1). `count` is
+    // the first placement modifier, so it is the first consumer of the
+    // feature's random stream — getting the provider kind right (constant vs
+    // weighted list) matters as much as the value.
     Some(match biome {
+        // trees_plains: weighted 0 (w19) / 1 (w1).
         Biome::Plains => TreePlacement {
             index: 0,
             kind: TreeKind::Oak,
-            rarity: Some(5),
-            count: 1,
+            count: CountProvider::Weighted {
+                low: 0,
+                high: 1,
+                weight_low: 19,
+                weight_high: 1,
+            },
         },
+        // trees_birch_and_oak_leaf_litter: weighted 10 (w9) / 11 (w1).
         Biome::Forest => TreePlacement {
             index: 1,
             kind: TreeKind::Oak,
-            rarity: None,
-            count: 5,
+            count: CountProvider::Weighted {
+                low: 10,
+                high: 11,
+                weight_low: 9,
+                weight_high: 1,
+            },
         },
+        // trees_birch: weighted 10 (w9) / 11 (w1).
         Biome::BirchForest => TreePlacement {
             index: 2,
             kind: TreeKind::Birch,
-            rarity: None,
-            count: 10,
+            count: CountProvider::Weighted {
+                low: 10,
+                high: 11,
+                weight_low: 9,
+                weight_high: 1,
+            },
         },
+        // dark_forest_vegetation: plain 16.
         Biome::DarkForest => TreePlacement {
             index: 3,
-            kind: TreeKind::Oak,
-            rarity: None,
-            count: 6,
+            kind: TreeKind::DarkOak,
+            count: CountProvider::Constant(16),
         },
+        // trees_taiga: weighted 10 (w9) / 11 (w1).
         Biome::Taiga => TreePlacement {
             index: 4,
             kind: TreeKind::Spruce,
-            rarity: None,
-            count: 10,
+            count: CountProvider::Weighted {
+                low: 10,
+                high: 11,
+                weight_low: 9,
+                weight_high: 1,
+            },
         },
-        Biome::Jungle => TreePlacement {
+        // trees_snowy: weighted 0 (w9) / 1 (w1).
+        Biome::SnowyPlains => TreePlacement {
             index: 5,
-            kind: TreeKind::Oak,
-            rarity: None,
-            count: 4,
+            kind: TreeKind::Spruce,
+            count: CountProvider::Weighted {
+                low: 0,
+                high: 1,
+                weight_low: 9,
+                weight_high: 1,
+            },
         },
+        // trees_savanna: weighted 1 (w9) / 2 (w1).
         Biome::Savanna => TreePlacement {
             index: 6,
+            kind: TreeKind::Acacia,
+            count: CountProvider::Weighted {
+                low: 1,
+                high: 2,
+                weight_low: 9,
+                weight_high: 1,
+            },
+        },
+        // trees_jungle: weighted 50 (w9) / 51 (w1).
+        Biome::Jungle => TreePlacement {
+            index: 7,
+            kind: TreeKind::Jungle,
+            count: CountProvider::Weighted {
+                low: 50,
+                high: 51,
+                weight_low: 9,
+                weight_high: 1,
+            },
+        },
+        // trees_swamp: weighted 2 (w9) / 3 (w1).
+        Biome::Swamp => TreePlacement {
+            index: 8,
             kind: TreeKind::Oak,
-            rarity: Some(20),
-            count: 1,
+            count: CountProvider::Weighted {
+                low: 2,
+                high: 3,
+                weight_low: 9,
+                weight_high: 1,
+            },
+        },
+        // trees_windswept_hills: weighted 0 (w9) / 1 (w1).
+        Biome::Mountains | Biome::SnowyMountains => TreePlacement {
+            index: 9,
+            kind: TreeKind::Spruce,
+            count: CountProvider::Weighted {
+                low: 0,
+                high: 1,
+                weight_low: 9,
+                weight_high: 1,
+            },
         },
         _ => return None,
     })
@@ -105,28 +206,30 @@ pub fn decorate(world_seed: i64, chunk: &mut GeneratedChunk) {
         tree_placement(Biome::BirchForest),
         tree_placement(Biome::DarkForest),
         tree_placement(Biome::Taiga),
-        tree_placement(Biome::Jungle),
+        tree_placement(Biome::SnowyPlains),
         tree_placement(Biome::Savanna),
+        tree_placement(Biome::Jungle),
+        tree_placement(Biome::Swamp),
+        tree_placement(Biome::Mountains),
     ]
     .into_iter()
     .flatten()
     {
         random.set_feature_seed(decoration_seed, placement.index, VEGETAL_DECORATION_STEP);
-        if placement
-            .rarity
-            .is_some_and(|rarity| random.next_f32() >= 1.0 / rarity as f32)
-        {
-            continue;
-        }
-        for _ in 0..placement.count {
+        // `count` is the first placement modifier, so it draws before
+        // `in_square` does.
+        let count = placement.count.sample(&mut random);
+        for _ in 0..count {
             let x = base_x + random.next_i32_bounded(16);
             let z = base_z + random.next_i32_bounded(16);
             let lx = (x - base_x) as usize;
             let lz = (z - base_z) as usize;
             let biome = chunk.biome_at(lx, lz);
             // in_square + heightmap(world_surface), followed by the feature's
-            // biome predicate. A feature never starts in another biome.
-            if tree_placement(biome).is_none() {
+            // biome predicate. The column's biome must admit *this* feature
+            // (same index), not merely some tree feature: otherwise the jungle
+            // entry would plant jungle trees inside forest columns.
+            if tree_placement(biome).map(|p| p.index) != Some(placement.index) {
                 continue;
             }
             let y = chunk.height_at(lx, lz);

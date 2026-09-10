@@ -19,6 +19,9 @@ pub enum TreeKind {
     Birch,
     Spruce,
     Pine,
+    Acacia,
+    DarkOak,
+    Jungle,
 }
 
 /// Ore configurations represented by the vanilla configured features.
@@ -83,6 +86,26 @@ pub fn place_tree(
             6 + next_range_u64(rng, 0, 4),
             1,
         ),
+        // The remaining kinds only exist so this legacy hash-driven path still
+        // compiles; vanilla placement goes through `tree::place_tree`.
+        TreeKind::Acacia => (
+            block::ACACIA_LOG,
+            block::ACACIA_LEAVES,
+            5 + next_range_u64(rng, 0, 2),
+            2,
+        ),
+        TreeKind::DarkOak => (
+            block::DARK_OAK_LOG,
+            block::DARK_OAK_LEAVES,
+            6 + next_range_u64(rng, 0, 1),
+            0,
+        ),
+        TreeKind::Jungle => (
+            block::JUNGLE_LOG,
+            block::JUNGLE_LEAVES,
+            4 + next_range_u64(rng, 0, 8),
+            2,
+        ),
     };
 
     for dy in 1..=height {
@@ -110,7 +133,11 @@ pub fn place_tree(
             }
             world_write(x, y + height + 1, z, leaves);
         }
-        TreeKind::Oak | TreeKind::Birch => {
+        TreeKind::Oak
+        | TreeKind::Birch
+        | TreeKind::Acacia
+        | TreeKind::DarkOak
+        | TreeKind::Jungle => {
             // Blob foliage placer: two broad layers and a smaller upper layer.
             for (dy, radius) in [
                 (height - 1, foliage_radius),
