@@ -4,6 +4,7 @@
 //! owns the decoration and feature seeds, while `features` owns the tree.
 
 use crate::block;
+use crate::feature_sorter::sorter;
 use crate::features::TreeKind;
 use crate::random::WorldgenRandom;
 use crate::tree::{self, TreeConfig};
@@ -23,13 +24,12 @@ fn tree_config(kind: TreeKind) -> &'static TreeConfig {
 }
 
 /// Vanilla's vegetal-decoration generation step.
-const VEGETAL_DECORATION_STEP: i32 = 7;
+const VEGETAL_DECORATION_STEP: i32 = 9;
 
 /// A configured/placed tree feature in the compact overworld registry used by
 /// this crate. Indices are the feature order within the vanilla step.
 #[derive(Clone, Copy)]
 struct TreePlacement {
-    index: i32,
     kind: TreeKind,
     count: CountProvider,
 }
@@ -79,7 +79,6 @@ fn tree_placement(biome: Biome) -> Option<TreePlacement> {
     Some(match biome {
         // trees_plains: weighted 0 (w19) / 1 (w1).
         Biome::Plains => TreePlacement {
-            index: 0,
             kind: TreeKind::Oak,
             count: CountProvider::Weighted {
                 low: 0,
@@ -90,7 +89,6 @@ fn tree_placement(biome: Biome) -> Option<TreePlacement> {
         },
         // trees_birch_and_oak_leaf_litter: weighted 10 (w9) / 11 (w1).
         Biome::Forest => TreePlacement {
-            index: 1,
             kind: TreeKind::Oak,
             count: CountProvider::Weighted {
                 low: 10,
@@ -101,7 +99,6 @@ fn tree_placement(biome: Biome) -> Option<TreePlacement> {
         },
         // trees_birch: weighted 10 (w9) / 11 (w1).
         Biome::BirchForest => TreePlacement {
-            index: 2,
             kind: TreeKind::Birch,
             count: CountProvider::Weighted {
                 low: 10,
@@ -112,13 +109,11 @@ fn tree_placement(biome: Biome) -> Option<TreePlacement> {
         },
         // dark_forest_vegetation: plain 16.
         Biome::DarkForest => TreePlacement {
-            index: 3,
             kind: TreeKind::DarkOak,
             count: CountProvider::Constant(16),
         },
         // trees_taiga: weighted 10 (w9) / 11 (w1).
         Biome::Taiga => TreePlacement {
-            index: 4,
             kind: TreeKind::Spruce,
             count: CountProvider::Weighted {
                 low: 10,
@@ -129,7 +124,6 @@ fn tree_placement(biome: Biome) -> Option<TreePlacement> {
         },
         // trees_snowy: weighted 0 (w9) / 1 (w1).
         Biome::SnowyPlains => TreePlacement {
-            index: 5,
             kind: TreeKind::Spruce,
             count: CountProvider::Weighted {
                 low: 0,
@@ -140,7 +134,6 @@ fn tree_placement(biome: Biome) -> Option<TreePlacement> {
         },
         // trees_savanna: weighted 1 (w9) / 2 (w1).
         Biome::Savanna => TreePlacement {
-            index: 6,
             kind: TreeKind::Acacia,
             count: CountProvider::Weighted {
                 low: 1,
@@ -151,7 +144,6 @@ fn tree_placement(biome: Biome) -> Option<TreePlacement> {
         },
         // trees_jungle: weighted 50 (w9) / 51 (w1).
         Biome::Jungle => TreePlacement {
-            index: 7,
             kind: TreeKind::Jungle,
             count: CountProvider::Weighted {
                 low: 50,
@@ -162,7 +154,6 @@ fn tree_placement(biome: Biome) -> Option<TreePlacement> {
         },
         // trees_swamp: weighted 2 (w9) / 3 (w1).
         Biome::Swamp => TreePlacement {
-            index: 8,
             kind: TreeKind::Oak,
             count: CountProvider::Weighted {
                 low: 2,
@@ -173,7 +164,6 @@ fn tree_placement(biome: Biome) -> Option<TreePlacement> {
         },
         // trees_windswept_hills: weighted 0 (w9) / 1 (w1).
         Biome::Mountains | Biome::SnowyMountains => TreePlacement {
-            index: 9,
             kind: TreeKind::Spruce,
             count: CountProvider::Weighted {
                 low: 0,
@@ -200,22 +190,33 @@ pub fn decorate(world_seed: i64, chunk: &mut GeneratedChunk) {
 
     // Vanilla iterates decoration steps in order. Structures are intentionally
     // absent from this crate's registry; vegetal decoration is step 7.
-    for placement in [
-        tree_placement(Biome::Plains),
-        tree_placement(Biome::Forest),
-        tree_placement(Biome::BirchForest),
-        tree_placement(Biome::DarkForest),
-        tree_placement(Biome::Taiga),
-        tree_placement(Biome::SnowyPlains),
-        tree_placement(Biome::Savanna),
-        tree_placement(Biome::Jungle),
-        tree_placement(Biome::Swamp),
-        tree_placement(Biome::Mountains),
+    // The compact implementation currently has one entry per supported biome.
+    // The sorter supplies vanilla's within-step index for the placed feature.
+    let feature_sorter = sorter();
+    let mut tree_placements: Vec<_> = [
+        (Biome::Plains, "trees_plains"),
+        (Biome::Forest, "trees_birch_and_oak_leaf_litter"),
+        (Biome::BirchForest, "trees_birch"),
+        (Biome::DarkForest, "dark_forest_vegetation"),
+        (Biome::Taiga, "trees_taiga"),
+        (Biome::SnowyPlains, "trees_snowy"),
+        (Biome::Savanna, "trees_savanna"),
+        (Biome::Jungle, "trees_jungle"),
+        (Biome::Swamp, "trees_swamp"),
+        (Biome::Mountains, "trees_windswept_hills"),
     ]
     .into_iter()
-    .flatten()
-    {
-        random.set_feature_seed(decoration_seed, placement.index, VEGETAL_DECORATION_STEP);
+    .filter_map(|(biome, name)| tree_placement(biome).map(|p| (p, name)))
+    .collect();
+    // Vanilla places the union of the region's biome feature indices in index order.
+    tree_placements.sort_by_key(|(_, name)| feature_sorter.within_step_index(name));
+    for placement in tree_placements {
+        let (placement, feature_name) = placement;
+        let (feature_step, feature_index) = feature_sorter
+            .within_step_index(feature_name)
+            .expect("tree feature missing from vanilla sorter");
+        debug_assert_eq!(feature_step as i32, VEGETAL_DECORATION_STEP);
+        random.set_feature_seed(decoration_seed, feature_index as i32, feature_step as i32);
         // `count` is the first placement modifier, so it draws before
         // `in_square` does.
         let count = placement.count.sample(&mut random);
@@ -229,7 +230,22 @@ pub fn decorate(world_seed: i64, chunk: &mut GeneratedChunk) {
             // biome predicate. The column's biome must admit *this* feature
             // (same index), not merely some tree feature: otherwise the jungle
             // entry would plant jungle trees inside forest columns.
-            if tree_placement(biome).map(|p| p.index) != Some(placement.index) {
+            if !feature_sorter.feature_in_biome(
+                match biome {
+                    Biome::Plains => "plains",
+                    Biome::Forest => "forest",
+                    Biome::BirchForest => "birch_forest",
+                    Biome::DarkForest => "dark_forest",
+                    Biome::Taiga => "taiga",
+                    Biome::SnowyPlains => "snowy_plains",
+                    Biome::Savanna => "savanna",
+                    Biome::Jungle => "jungle",
+                    Biome::Swamp => "swamp",
+                    Biome::Mountains | Biome::SnowyMountains => "windswept_hills",
+                    _ => "",
+                },
+                feature_name,
+            ) {
                 continue;
             }
             let y = chunk.height_at(lx, lz);
@@ -247,7 +263,10 @@ pub fn decorate(world_seed: i64, chunk: &mut GeneratedChunk) {
 
     // A small vanilla-style grass patch pass. It uses the same placement
     // modifiers and seed mechanism, but deliberately does not invent flowers.
-    random.set_feature_seed(decoration_seed, 7, VEGETAL_DECORATION_STEP);
+    let (_, grass_index) = sorter()
+        .within_step_index("patch_grass_normal")
+        .expect("grass feature missing from vanilla sorter");
+    random.set_feature_seed(decoration_seed, grass_index as i32, VEGETAL_DECORATION_STEP);
     for _ in 0..32 {
         let x = base_x + random.next_i32_bounded(16);
         let z = base_z + random.next_i32_bounded(16);

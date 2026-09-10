@@ -16,7 +16,10 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     let cx: i32 = args[1].parse().expect("center x");
     let cz: i32 = args[2].parse().expect("center z");
-    let region: i32 = args.get(3).map(|s| s.parse().expect("region")).unwrap_or(32);
+    let region: i32 = args
+        .get(3)
+        .map(|s| s.parse().expect("region"))
+        .unwrap_or(32);
     let ground = args.iter().any(|a| a == "--ground");
     let generator = WorldGenerator::new(seed);
     let half = region / 2;

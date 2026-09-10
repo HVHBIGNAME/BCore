@@ -39,6 +39,7 @@ pub mod biome;
 pub mod carver;
 pub mod decoration;
 pub mod density;
+pub mod feature_sorter;
 pub mod features;
 pub mod noise;
 pub mod noise_perlin;
