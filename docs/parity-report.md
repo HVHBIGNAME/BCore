@@ -19,7 +19,7 @@ Top height is the non-air surface and is separated from terrain height; top-bloc
 
 | sample | top height | top block | vanilla origins | BCore origins | origin match |
 |---|---:|---:|---:|---:|---:|
-| (0,0) | 12.50% | 44.14% | 0 | 0 | 0.00% |
+| (0,0) | 12.50% | 44.14% | 10 | 7 | 0.00% |
 | (1000,0) | 8.59% | 41.02% | 16 | 10 | 0.00% |
 | (-2000,3000) | 9.77% | 30.47% | 13 | 3 | 0.00% |
 
@@ -27,6 +27,6 @@ Top height is the non-air surface and is separated from terrain height; top-bloc
 
 | sample | compared cells | equal | different | diff % |
 |---|---:|---:|---:|---:|
-| (0,0) | 20736 | 18667 | 2069 | 9.98% |
-| (1000,0) | 20736 | 17797 | 2939 | 14.17% |
-| (-2000,3000) | 20736 | 16746 | 3990 | 19.24% |
+| (0,0) | 46336 | 44662 | 1674 | 3.61% |
+| (1000,0) | 46336 | 44894 | 1442 | 3.11% |
+| (-2000,3000) | 46336 | 43791 | 2545 | 5.49% |

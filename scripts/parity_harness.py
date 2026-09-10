@@ -15,13 +15,12 @@ BCORE = ROOT / "target" / "release" / "examples" / "surface_grid.exe"
 CHUNK = ROOT / "target" / "release" / "examples" / "dump_chunk.exe"
 SEED = 846692123413862008
 SAMPLES = [(0, 0), (1000, 0), (-2000, 3000)]
-# Network state IDs used by bcore-worldgen and the mineflayer names.
-IDS = {0:"air", 1:"stone", 9:"grass_block", 10:"dirt", 11:"coarse_dirt",
-       13:"podzol", 85:"bedrock", 86:"water", 118:"sand", 124:"gravel",
-       137:"oak_log", 140:"spruce_log", 143:"birch_log", 279:"oak_leaves",
-       307:"spruce_leaves", 335:"birch_leaves", 2248:"short_grass",
-       2250:"dead_bush", 6928:"snow_block", 6929:"cactus", 578:"sandstone",
-       23452:"tuff", 27924:"deepslate"}
+# Network state IDs used by bcore-worldgen -> human names, generated from
+# minecraft-data 26.1 (scripts/block_ids.json).  The earlier hand-written
+# 23-entry stub meant every other BCore block fell through to a raw id string
+# and could never match the vanilla name, understating top-block parity.
+_IDS_PATH = Path(__file__).resolve().parents[1] / "scripts" / "block_ids.json"
+IDS = {int(k): v for k, v in json.loads(_IDS_PATH.read_text()).items()}
 LOGS = {"oak_log", "birch_log", "spruce_log", "jungle_log", "acacia_log", "dark_oak_log"}
 
 def run(cmd, cwd=ROOT, timeout=240):
@@ -69,7 +68,9 @@ def bcore_blocks(x,z,region,ymin,ymax):
     return out
 
 def block_map_vanilla(x,z,region,ymin,ymax):
-    args=["node",str(BOT),"127.0.0.1","25571",str(x),str(z),str(region),"bot","--full"]
+    # The probe's own hardcoded ceiling silently capped this to 40..120 before;
+    # the range must be passed through or the two sides cover different Y spans.
+    args=["node",str(BOT),"127.0.0.1","25571",str(x),str(z),str(region),"bot","--full",f"--ymin={ymin}",f"--ymax={ymax}"]
     out,err=run(args,cwd=BOT.parent)
     if "position after teleport" not in err: raise RuntimeError("vanilla full probe position was not verified")
     data=json.loads(out)
@@ -83,7 +84,10 @@ def pct(a,b): return 100.0*a/b if b else 0.0
 
 def main():
     ap=argparse.ArgumentParser(); ap.add_argument("--region",type=int,default=16); ap.add_argument("--no-build-check",action="store_true")
-    ns=ap.parse_args(); region=ns.region; ymin,ymax=40,120
+    # Y range must cover the whole column where vegetation can sit: at (0,0) the
+    # ground is ~126 and oak foliage reaches ~137, so the old 40..120 ceiling
+    # clipped every tree there and reported 0 origins on BOTH sides.
+    ns=ap.parse_args(); region=ns.region; ymin,ymax=40,220
     if not BCORE.exists() or not CHUNK.exists(): raise SystemExit("missing release examples; build surface_grid and dump_chunk first")
     records=[]
     for x,z in SAMPLES:

@@ -71,7 +71,14 @@ bot.on('login', async () => {
     }
     if (full) {
         const blocks = [];
-        const ymin = 40, ymax = 120;
+        // Y range is caller-controlled: a hardcoded 40..120 clipped every tree
+        // whose ground sits above ~120 (e.g. ground 126 at (0,0)), which made
+        // vanilla/Bcore tree-origin comparisons read 0 on BOTH sides.
+        const _numArg = (prefix, dflt) => {
+            const hit = argv.find(a => a.startsWith(prefix));
+            return hit ? parseInt(hit.split('=')[1], 10) : dflt;
+        };
+        const ymin = _numArg('--ymin=', 40), ymax = _numArg('--ymax=', 120);
         for (let dx = -half; dx < half; dx++) {
             for (let dz = -half; dz < half; dz++) {
                 const wx = center.x + dx, wz = center.z + dz;
