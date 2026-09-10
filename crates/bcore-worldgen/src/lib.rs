@@ -41,6 +41,7 @@ pub mod density;
 pub mod features;
 pub mod noise;
 pub mod noise_perlin;
+pub mod random;
 pub mod simplex;
 pub mod structure;
 pub mod surface;
