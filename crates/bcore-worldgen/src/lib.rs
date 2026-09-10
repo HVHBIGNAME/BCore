@@ -37,6 +37,7 @@ use std::sync::OnceLock;
 pub mod aquifer;
 pub mod biome;
 pub mod carver;
+pub mod decoration;
 pub mod density;
 pub mod features;
 pub mod noise;
@@ -46,6 +47,7 @@ pub mod simplex;
 pub mod structure;
 pub mod surface;
 pub mod surface_rules;
+pub mod tree;
 
 pub use noise::{fbm2, fbm3, hash_2d, splitmix64, value_noise_2d, value_noise_3d};
 
@@ -120,6 +122,12 @@ pub mod block {
     pub const BIRCH_LEAVES: u32 = 335;
     pub const SPRUCE_LOG: u32 = 140;
     pub const SPRUCE_LEAVES: u32 = 307;
+    pub const JUNGLE_LOG: u32 = 146;
+    pub const JUNGLE_LEAVES: u32 = 363;
+    pub const ACACIA_LOG: u32 = 149;
+    pub const ACACIA_LEAVES: u32 = 391;
+    pub const DARK_OAK_LOG: u32 = 155;
+    pub const DARK_OAK_LEAVES: u32 = 447;
     pub const LAPIS_ORE: u32 = 563;
     pub const SANDSTONE: u32 = 578;
     pub const SHORT_GRASS: u32 = 2248;
@@ -939,14 +947,13 @@ impl WorldGenerator {
         chunk
     }
 
-    /// Add post-surface trees and ground cover without changing terrain heights.
-    ///
-    /// Vanilla vegetation is a placed-feature pass, not an independent coin flip
-    /// for every column.  Use a 3x3-column origin grid with a deterministic jitter:
-    /// this gives forests roughly 0.08--0.11 trees/column while preventing the
-    /// one-block clustering produced by per-column rolls.  Plains deliberately have
-    /// no tree feature at all.
+    /// Add post-surface trees and ground cover using vanilla feature seeds.
     fn decorate_vanilla(self, chunk: &mut GeneratedChunk) {
+        decoration::decorate(self.seed, chunk);
+    }
+
+    /*
+    fn decorate_vanilla_old(self, chunk: &mut GeneratedChunk) {
         let base_x = chunk.pos.x * CHUNK_SIZE as i32;
         let base_z = chunk.pos.z * CHUNK_SIZE as i32;
         for z in 0..CHUNK_SIZE {
@@ -1054,6 +1061,7 @@ impl WorldGenerator {
             }
         }
     }
+    */
 
     pub fn cave_density_probe(
         seed: i64,

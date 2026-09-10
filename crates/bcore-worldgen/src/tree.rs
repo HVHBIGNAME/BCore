@@ -1,0 +1,827 @@
+//! Vanilla `TreeFeature` shape placement.
+//!
+//! Ported from the vanilla tree feature (`StraightTrunkPlacer`,
+//! `BlobFoliagePlacer`, `SpruceFoliagePlacer`, ...) so that, given the same
+//! [`WorldgenRandom`] stream, the produced blocks match vanilla exactly.
+//!
+//! The single most important property of this module is the **random
+//! consumption order**: vanilla samples the tree height, then the foliage
+//! height, then the leaf radius, then the root origin, and only then starts
+//! touching blocks. [`IntProvider::Constant`] consumes no randomness at all,
+//! which is why the oak/birch (whose radius/offset/height are constants) draw
+//! exactly two values for their height and nothing else.
+
+use crate::block;
+use crate::random::WorldgenRandom;
+use crate::GeneratedChunk;
+
+const CHUNK_SIZE_I32: i32 = 16;
+
+/// Vanilla `IntProvider` — the subset used by tree placers.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum IntProvider {
+    /// Always the same value; **consumes no randomness** when sampled.
+    Constant(i32),
+    /// Uniform inclusive over `[min, max]`.
+    Uniform { min: i32, max: i32 },
+}
+
+impl IntProvider {
+    /// Vanilla `IntProvider.sample`.
+    pub fn sample(self, random: &mut WorldgenRandom) -> i32 {
+        match self {
+            Self::Constant(value) => value,
+            Self::Uniform { min, max } => min + random.next_i32_bounded(max - min + 1),
+        }
+    }
+}
+
+/// Vanilla trunk placers, carrying the vanilla `base_height`/`height_rand_a`/`height_rand_b`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TrunkPlacer {
+    /// `minecraft:straight_trunk_placer`.
+    Straight {
+        base_height: i32,
+        height_rand_a: i32,
+        height_rand_b: i32,
+    },
+    /// `minecraft:forking_trunk_placer`.
+    Forking {
+        base_height: i32,
+        height_rand_a: i32,
+        height_rand_b: i32,
+    },
+    /// `minecraft:dark_oak_trunk_placer`.
+    DarkOak {
+        base_height: i32,
+        height_rand_a: i32,
+        height_rand_b: i32,
+    },
+    /// `minecraft:giant_trunk_placer` (2x2 trunk, e.g. mega jungle).
+    Giant {
+        base_height: i32,
+        height_rand_a: i32,
+        height_rand_b: i32,
+    },
+}
+
+impl TrunkPlacer {
+    const fn random_range(self) -> (i32, i32) {
+        match self {
+            Self::Straight {
+                height_rand_a,
+                height_rand_b,
+                ..
+            }
+            | Self::Forking {
+                height_rand_a,
+                height_rand_b,
+                ..
+            }
+            | Self::DarkOak {
+                height_rand_a,
+                height_rand_b,
+                ..
+            }
+            | Self::Giant {
+                height_rand_a,
+                height_rand_b,
+                ..
+            } => (height_rand_a, height_rand_b),
+        }
+    }
+
+    const fn base_height(self) -> i32 {
+        match self {
+            Self::Straight { base_height, .. }
+            | Self::Forking { base_height, .. }
+            | Self::DarkOak { base_height, .. }
+            | Self::Giant { base_height, .. } => base_height,
+        }
+    }
+}
+
+/// Vanilla foliage placers — the subset needed by the common overworld trees.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FoliagePlacer {
+    /// `minecraft:blob_foliage_placer` — oak, birch, jungle.
+    Blob {
+        radius: IntProvider,
+        offset: IntProvider,
+        height: IntProvider,
+    },
+    /// `minecraft:spruce_foliage_placer` — spruce, mega spruce.
+    Spruce {
+        radius: IntProvider,
+        offset: IntProvider,
+        trunk_height: IntProvider,
+    },
+    /// `minecraft:pine_foliage_placer` — pine, mega pine.
+    Pine {
+        radius: IntProvider,
+        offset: IntProvider,
+        height: IntProvider,
+    },
+    /// `minecraft:acacia_foliage_placer` — acacia.
+    Acacia {
+        radius: IntProvider,
+        offset: IntProvider,
+    },
+    /// `minecraft:dark_oak_foliage_placer` — dark oak.
+    DarkOak {
+        radius: IntProvider,
+        offset: IntProvider,
+    },
+}
+
+/// A vanilla `TreeConfiguration` (only the fields that affect the blocks).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct TreeConfig {
+    pub trunk: TrunkPlacer,
+    pub foliage: FoliagePlacer,
+    pub log: u32,
+    pub leaves: u32,
+}
+
+const fn blob(radius: i32, offset: i32, height: i32) -> FoliagePlacer {
+    FoliagePlacer::Blob {
+        radius: IntProvider::Constant(radius),
+        offset: IntProvider::Constant(offset),
+        height: IntProvider::Constant(height),
+    }
+}
+
+/// `data/minecraft/worldgen/configured_feature/oak.json`.
+pub const OAK: TreeConfig = TreeConfig {
+    trunk: TrunkPlacer::Straight {
+        base_height: 4,
+        height_rand_a: 2,
+        height_rand_b: 0,
+    },
+    foliage: blob(2, 0, 3),
+    log: block::OAK_LOG,
+    leaves: block::OAK_LEAVES,
+};
+
+/// `birch.json`.
+pub const BIRCH: TreeConfig = TreeConfig {
+    trunk: TrunkPlacer::Straight {
+        base_height: 5,
+        height_rand_a: 2,
+        height_rand_b: 0,
+    },
+    foliage: blob(2, 0, 3),
+    log: block::BIRCH_LOG,
+    leaves: block::BIRCH_LEAVES,
+};
+
+/// `spruce.json`.
+pub const SPRUCE: TreeConfig = TreeConfig {
+    trunk: TrunkPlacer::Straight {
+        base_height: 5,
+        height_rand_a: 2,
+        height_rand_b: 1,
+    },
+    foliage: FoliagePlacer::Spruce {
+        radius: IntProvider::Uniform { min: 2, max: 3 },
+        offset: IntProvider::Uniform { min: 0, max: 2 },
+        trunk_height: IntProvider::Uniform { min: 1, max: 2 },
+    },
+    log: block::SPRUCE_LOG,
+    leaves: block::SPRUCE_LEAVES,
+};
+
+/// `pine.json`.
+pub const PINE: TreeConfig = TreeConfig {
+    trunk: TrunkPlacer::Straight {
+        base_height: 6,
+        height_rand_a: 4,
+        height_rand_b: 0,
+    },
+    foliage: FoliagePlacer::Pine {
+        radius: IntProvider::Constant(1),
+        offset: IntProvider::Constant(1),
+        height: IntProvider::Uniform { min: 3, max: 4 },
+    },
+    log: block::SPRUCE_LOG,
+    leaves: block::SPRUCE_LEAVES,
+};
+
+/// `jungle_tree.json`.
+pub const JUNGLE: TreeConfig = TreeConfig {
+    trunk: TrunkPlacer::Straight {
+        base_height: 4,
+        height_rand_a: 8,
+        height_rand_b: 0,
+    },
+    foliage: blob(2, 0, 3),
+    log: block::JUNGLE_LOG,
+    leaves: block::JUNGLE_LEAVES,
+};
+
+/// `acacia.json`.
+pub const ACACIA: TreeConfig = TreeConfig {
+    trunk: TrunkPlacer::Forking {
+        base_height: 5,
+        height_rand_a: 2,
+        height_rand_b: 2,
+    },
+    foliage: FoliagePlacer::Acacia {
+        radius: IntProvider::Constant(2),
+        offset: IntProvider::Constant(0),
+    },
+    log: block::ACACIA_LOG,
+    leaves: block::ACACIA_LEAVES,
+};
+
+/// `dark_oak.json`.
+pub const DARK_OAK: TreeConfig = TreeConfig {
+    trunk: TrunkPlacer::DarkOak {
+        base_height: 6,
+        height_rand_a: 2,
+        height_rand_b: 1,
+    },
+    foliage: FoliagePlacer::DarkOak {
+        radius: IntProvider::Constant(0),
+        offset: IntProvider::Constant(0),
+    },
+    log: block::DARK_OAK_LOG,
+    leaves: block::DARK_OAK_LEAVES,
+};
+
+/// A foliage attachment point produced by a trunk placer.
+#[derive(Debug, Clone, Copy)]
+struct FoliageAttachment {
+    x: i32,
+    y: i32,
+    z: i32,
+    /// Vanilla `FoliageAttachment.radiusOffset`.
+    radius_offset: i32,
+    double_trunk: bool,
+}
+
+/// Places one vanilla tree. `origin` is the world-space trunk base.
+///
+/// Returns `true` if the tree was placed. The caller owns the random stream;
+/// this function draws from it in exactly the vanilla order.
+pub fn place_tree(
+    chunk: &mut GeneratedChunk,
+    random: &mut WorldgenRandom,
+    config: &TreeConfig,
+    origin: (i32, i32, i32),
+) -> bool {
+    let tree_height = sample_tree_height(random, config.trunk);
+    let foliage_height = sample_foliage_height(random, config.foliage, tree_height);
+    let trunk_height = tree_height - foliage_height;
+    let leaf_radius = sample_foliage_radius(random, config.foliage, trunk_height);
+
+    let (ox, oy, oz) = origin;
+    if oy + tree_height + 1 > 319 || oy < -63 {
+        return false;
+    }
+
+    let mut attachments = Vec::with_capacity(4);
+    place_trunk(
+        chunk,
+        random,
+        config,
+        (ox, oy, oz),
+        tree_height,
+        &mut attachments,
+    );
+    if attachments.is_empty() {
+        return false;
+    }
+    for attachment in &attachments {
+        create_foliage(
+            chunk,
+            random,
+            config,
+            attachment,
+            foliage_height,
+            leaf_radius,
+        );
+    }
+    true
+}
+
+/// Vanilla `TrunkPlacer.getTreeHeight` — identical across the straight-family
+/// placers: `base + next(a+1) + next(b+1)`.
+fn sample_tree_height(random: &mut WorldgenRandom, trunk: TrunkPlacer) -> i32 {
+    let (a, b) = trunk.random_range();
+    trunk.base_height() + random.next_i32_bounded(a + 1) + random.next_i32_bounded(b + 1)
+}
+
+/// Vanilla `FoliagePlacer.foliageHeight`.
+fn sample_foliage_height(
+    random: &mut WorldgenRandom,
+    foliage: FoliagePlacer,
+    tree_height: i32,
+) -> i32 {
+    match foliage {
+        FoliagePlacer::Blob { height, .. } => height.sample(random),
+        FoliagePlacer::Spruce { trunk_height, .. } => {
+            (tree_height - trunk_height.sample(random)).max(4)
+        }
+        FoliagePlacer::Pine { height, .. } => height.sample(random),
+        FoliagePlacer::Acacia { .. } => 0,
+        FoliagePlacer::DarkOak { .. } => 4,
+    }
+}
+
+/// Vanilla `FoliagePlacer.foliageRadius`.
+fn sample_foliage_radius(
+    random: &mut WorldgenRandom,
+    foliage: FoliagePlacer,
+    trunk_height: i32,
+) -> i32 {
+    let _ = trunk_height;
+    match foliage {
+        FoliagePlacer::Blob { radius, .. }
+        | FoliagePlacer::Spruce { radius, .. }
+        | FoliagePlacer::Pine { radius, .. }
+        | FoliagePlacer::Acacia { radius, .. }
+        | FoliagePlacer::DarkOak { radius, .. } => radius.sample(random),
+    }
+}
+
+/// Vanilla `FoliagePlacer.foliageOffset`.
+fn sample_foliage_offset(random: &mut WorldgenRandom, foliage: FoliagePlacer) -> i32 {
+    match foliage {
+        FoliagePlacer::Blob { offset, .. }
+        | FoliagePlacer::Spruce { offset, .. }
+        | FoliagePlacer::Pine { offset, .. }
+        | FoliagePlacer::Acacia { offset, .. }
+        | FoliagePlacer::DarkOak { offset, .. } => offset.sample(random),
+    }
+}
+
+/// Places the trunk logs and returns the foliage attachment points.
+fn place_trunk(
+    chunk: &mut GeneratedChunk,
+    random: &mut WorldgenRandom,
+    config: &TreeConfig,
+    origin: (i32, i32, i32),
+    height: i32,
+    attachments: &mut Vec<FoliageAttachment>,
+) {
+    let (ox, oy, oz) = origin;
+    match config.trunk {
+        TrunkPlacer::Straight { .. } => {
+            for y in 0..height {
+                place_log(chunk, config, (ox, oy + y, oz));
+            }
+            place_below_trunk_block(chunk, config, (ox, oy - 1, oz));
+            attachments.push(FoliageAttachment {
+                x: ox,
+                y: oy + height,
+                z: oz,
+                radius_offset: 0,
+                double_trunk: false,
+            });
+        }
+        TrunkPlacer::Giant { .. } | TrunkPlacer::DarkOak { .. } => {
+            for y in 0..height {
+                for dx in 0..2 {
+                    for dz in 0..2 {
+                        place_log(chunk, config, (ox + dx, oy + y, oz + dz));
+                    }
+                }
+            }
+            for dx in 0..2 {
+                for dz in 0..2 {
+                    place_below_trunk_block(chunk, config, (ox + dx, oy - 1, oz + dz));
+                }
+            }
+            attachments.push(FoliageAttachment {
+                x: ox,
+                y: oy + height - 1,
+                z: oz,
+                radius_offset: 0,
+                double_trunk: true,
+            });
+        }
+        TrunkPlacer::Forking { .. } => {
+            place_forking_trunk(chunk, random, config, origin, height, attachments);
+        }
+    }
+}
+
+/// Vanilla `ForkingTrunkPlacer.placeTrunk` (acacia).
+fn place_forking_trunk(
+    chunk: &mut GeneratedChunk,
+    random: &mut WorldgenRandom,
+    config: &TreeConfig,
+    origin: (i32, i32, i32),
+    height: i32,
+    attachments: &mut Vec<FoliageAttachment>,
+) {
+    let (ox, oy, oz) = origin;
+    let mut x = ox;
+    let mut z = oz;
+    let direction = random.next_i32_bounded(4);
+    let lean_height = height - random.next_i32_bounded(4) - 1;
+    let mut branch_steps = 3 - random.next_i32_bounded(3);
+
+    for y in 0..height {
+        place_log(chunk, config, (x, oy + y, z));
+        if y >= lean_height && branch_steps > 0 {
+            match direction {
+                0 => x += 1,
+                1 => x -= 1,
+                2 => z += 1,
+                _ => z -= 1,
+            }
+            branch_steps -= 1;
+        }
+    }
+    place_below_trunk_block(chunk, config, (ox, oy - 1, oz));
+    attachments.push(FoliageAttachment {
+        x,
+        y: oy + height,
+        z,
+        radius_offset: 1,
+        double_trunk: false,
+    });
+}
+
+/// Vanilla `createFoliage` dispatch.
+fn create_foliage(
+    chunk: &mut GeneratedChunk,
+    random: &mut WorldgenRandom,
+    config: &TreeConfig,
+    attachment: &FoliageAttachment,
+    foliage_height: i32,
+    leaf_radius: i32,
+) {
+    match config.foliage {
+        FoliagePlacer::Blob { .. } => {
+            let offset = sample_foliage_offset(random, config.foliage);
+            for y in (offset - foliage_height..=offset).rev() {
+                let current_radius = (leaf_radius + attachment.radius_offset - 1 - y / 2).max(0);
+                place_leaves_row(chunk, random, config, attachment, current_radius, y);
+            }
+        }
+        FoliagePlacer::Spruce { .. } => {
+            let offset = sample_foliage_offset(random, config.foliage);
+            for y in (offset - foliage_height..=offset).rev() {
+                let current_radius = if y != offset && y != offset - foliage_height {
+                    leaf_radius + 1
+                } else {
+                    leaf_radius
+                };
+                place_leaves_row(chunk, random, config, attachment, current_radius, y);
+            }
+        }
+        FoliagePlacer::Pine { .. } => {
+            let offset = sample_foliage_offset(random, config.foliage);
+            let mut current_radius = 0;
+            for y in (offset - foliage_height..=offset).rev() {
+                place_leaves_row(chunk, random, config, attachment, current_radius, y);
+                if current_radius >= 1 && y == offset - foliage_height + 1 {
+                    current_radius -= 1;
+                } else if current_radius < leaf_radius + attachment.radius_offset {
+                    current_radius += 1;
+                }
+            }
+        }
+        FoliagePlacer::Acacia { .. } => {
+            let offset = sample_foliage_offset(random, config.foliage);
+            let leaf_height = 1 + random.next_i32_bounded(2);
+            for y in (offset - leaf_height..=offset).rev() {
+                let current_radius = leaf_radius + attachment.radius_offset + 1 - y.abs();
+                place_leaves_row(chunk, random, config, attachment, current_radius, y);
+            }
+        }
+        FoliagePlacer::DarkOak { .. } => {
+            let offset = sample_foliage_offset(random, config.foliage);
+            let base = FoliageAttachment {
+                y: attachment.y + offset,
+                ..*attachment
+            };
+            let (inner, outer, top) = if attachment.double_trunk {
+                (leaf_radius + 2, leaf_radius + 3, leaf_radius)
+            } else {
+                (leaf_radius + 2, leaf_radius + 2, leaf_radius)
+            };
+            place_leaves_row(chunk, random, config, &base, inner, -1);
+            place_leaves_row(chunk, random, config, &base, outer, 0);
+            place_leaves_row(chunk, random, config, &base, inner, 1);
+            if random.next_bool() {
+                place_leaves_row(chunk, random, config, &base, top, 2);
+            }
+        }
+    }
+}
+
+/// Vanilla `FoliagePlacer.placeLeavesRow`.
+fn place_leaves_row(
+    chunk: &mut GeneratedChunk,
+    random: &mut WorldgenRandom,
+    config: &TreeConfig,
+    attachment: &FoliageAttachment,
+    current_radius: i32,
+    y: i32,
+) {
+    let offset = i32::from(attachment.double_trunk);
+    for dx in -current_radius..=current_radius + offset {
+        for dz in -current_radius..=current_radius + offset {
+            if should_skip_location(
+                random,
+                config.foliage,
+                dx,
+                y,
+                dz,
+                current_radius,
+                attachment,
+            ) {
+                continue;
+            }
+            try_place_leaf(
+                chunk,
+                config,
+                (attachment.x + dx, attachment.y + y, attachment.z + dz),
+            );
+        }
+    }
+}
+
+/// Vanilla `FoliagePlacer.shouldSkipLocationSigned` + per-placer skip rule.
+fn should_skip_location(
+    random: &mut WorldgenRandom,
+    foliage: FoliagePlacer,
+    dx: i32,
+    y: i32,
+    dz: i32,
+    current_radius: i32,
+    attachment: &FoliageAttachment,
+) -> bool {
+    if let FoliagePlacer::DarkOak { .. } = foliage {
+        return dark_oak_should_skip_location(dx, y, dz, current_radius, attachment.double_trunk);
+    }
+    let (dx, dz) = signed_distances(dx, dz, attachment.double_trunk);
+    match foliage {
+        // NOTE: the short-circuit matters — vanilla only draws the coin flip
+        // when the (dx, dz) corner test passes.
+        FoliagePlacer::Blob { .. } => {
+            dx == current_radius
+                && dz == current_radius
+                && (random.next_i32_bounded(2) == 0 || y == 0)
+        }
+        FoliagePlacer::Spruce { .. } | FoliagePlacer::Pine { .. } => {
+            dx == current_radius && dz == current_radius && current_radius > 0
+        }
+        FoliagePlacer::Acacia { .. } => {
+            dx == current_radius
+                && dz == current_radius
+                && (y == 0 || random.next_i32_bounded(2) == 0)
+        }
+        FoliagePlacer::DarkOak { .. } => unreachable!(),
+    }
+}
+
+/// Vanilla `FoliagePlacer.foliageSignedDistances`.
+fn signed_distances(dx: i32, dz: i32, double_trunk: bool) -> (i32, i32) {
+    if double_trunk {
+        (dx.abs().min((dx - 1).abs()), dz.abs().min((dz - 1).abs()))
+    } else {
+        (dx.abs(), dz.abs())
+    }
+}
+
+/// Vanilla `DarkOakFoliagePlacer.shouldSkipLocation`.
+fn dark_oak_should_skip_location(
+    dx: i32,
+    y: i32,
+    dz: i32,
+    current_radius: i32,
+    double_trunk: bool,
+) -> bool {
+    if y == 0
+        && double_trunk
+        && (dx == -current_radius || dx >= current_radius)
+        && (dz == -current_radius || dz >= current_radius)
+    {
+        return true;
+    }
+    let (dx, dz) = signed_distances(dx, dz, double_trunk);
+    if y == -1 && !double_trunk {
+        dx == current_radius && dz == current_radius
+    } else if y == 1 {
+        dx + dz > current_radius * 2 - 2
+    } else {
+        false
+    }
+}
+
+/// Vanilla `TreeFeature.tryPlaceLeaf`.
+fn try_place_leaf(chunk: &mut GeneratedChunk, config: &TreeConfig, pos: (i32, i32, i32)) -> bool {
+    let (x, y, z) = pos;
+    let (Some(lx), Some(lz)) = (local_coord(x), local_coord(z)) else {
+        return false;
+    };
+    let Some(state) = chunk.get(lx, y, lz) else {
+        return false;
+    };
+    if !is_valid_tree_pos(state) {
+        return false;
+    }
+    chunk.set(lx, y, lz, config.leaves)
+}
+
+/// Vanilla `TreeFeature.placeLog`.
+fn place_log(chunk: &mut GeneratedChunk, config: &TreeConfig, pos: (i32, i32, i32)) -> bool {
+    let (x, y, z) = pos;
+    let (Some(lx), Some(lz)) = (local_coord(x), local_coord(z)) else {
+        return false;
+    };
+    let Some(state) = chunk.get(lx, y, lz) else {
+        return false;
+    };
+    if !is_valid_tree_pos(state) {
+        return false;
+    }
+    chunk.set(lx, y, lz, config.log)
+}
+
+/// Vanilla `TrunkPlacer.placeBelowTrunkBlock` (the supportive dirt).
+fn place_below_trunk_block(chunk: &mut GeneratedChunk, _config: &TreeConfig, pos: (i32, i32, i32)) {
+    let (x, y, z) = pos;
+    let (Some(lx), Some(lz)) = (local_coord(x), local_coord(z)) else {
+        return;
+    };
+    let Some(state) = chunk.get(lx, y, lz) else {
+        return;
+    };
+    // Only replace soil-like blocks, matching vanilla's
+    // `isStateAtPosition(state -> state.is(BlockTags.DIRT))`-style guard.
+    if matches!(state, block::GRASS_BLOCK | block::DIRT) {
+        chunk.set(lx, y, lz, block::DIRT);
+    }
+}
+
+const fn local_coord(world: i32) -> Option<usize> {
+    let local = world.rem_euclid(CHUNK_SIZE_I32);
+    if local >= 0 && (local as usize) < crate::CHUNK_SIZE {
+        Some(local as usize)
+    } else {
+        None
+    }
+}
+
+/// Vanilla `TreeFeature.validTreePos`: air, or a block in
+/// `minecraft:replaceable_by_trees`.
+fn is_valid_tree_pos(state: u32) -> bool {
+    state == block::AIR || is_replaceable_by_trees(state)
+}
+
+/// Blocks tagged `minecraft:replaceable_by_trees` that can occur at tree
+/// height in the overworld. Trees whose leaves would land on any other block
+/// are skipped, exactly as in vanilla.
+fn is_replaceable_by_trees(state: u32) -> bool {
+    matches!(
+        state,
+        block::WATER
+            | block::SHORT_GRASS
+            | block::LEAF_LITTER
+            | block::DEAD_BUSH
+            | block::OAK_LEAVES
+            | block::BIRCH_LEAVES
+            | block::SPRUCE_LEAVES
+            | block::JUNGLE_LEAVES
+            | block::ACACIA_LEAVES
+            | block::DARK_OAK_LEAVES
+    )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::ChunkPos;
+
+    fn chunk_at(seed: i64) -> GeneratedChunk {
+        let generator = crate::WorldGenerator::new(seed);
+        generator.generate_chunk_vanilla(ChunkPos::new(0, 0))
+    }
+
+    /// The oak draws exactly two bounded values and nothing else; this pins the
+    /// vanilla random consumption order that bit-exact parity depends on.
+    #[test]
+    fn oak_height_matches_vanilla_formula() {
+        for seed in [0_u64, 1, 0x1234, 846_692_123_413_862_008] {
+            let mut a = WorldgenRandom::from_seed(seed);
+            let mut b = WorldgenRandom::from_seed(seed);
+            let expected = 4 + b.next_i32_bounded(3) + b.next_i32_bounded(1);
+            assert_eq!(sample_tree_height(&mut a, OAK.trunk), expected);
+        }
+    }
+
+    /// `IntProvider::Constant` must not consume randomness — this is the bug
+    /// that silently shifted every leaf of every oak.
+    #[test]
+    fn constant_int_provider_consumes_no_randomness() {
+        let mut a = WorldgenRandom::from_seed(7);
+        let mut b = WorldgenRandom::from_seed(7);
+        assert_eq!(IntProvider::Constant(2).sample(&mut a), 2);
+        assert_eq!(a.next_i32(), b.next_i32());
+    }
+
+    #[test]
+    fn oak_radius_and_height_constants_do_not_advance_the_stream() {
+        let mut a = WorldgenRandom::from_seed(99);
+        let mut b = WorldgenRandom::from_seed(99);
+        sample_tree_height(&mut a, OAK.trunk);
+        let _ = sample_foliage_height(&mut a, OAK.foliage, 6);
+        let _ = sample_foliage_radius(&mut a, OAK.foliage, 3);
+        sample_tree_height(&mut b, OAK.trunk);
+        assert_eq!(a.next_i32(), b.next_i32());
+    }
+
+    #[test]
+    fn birch_uses_vanilla_config_values() {
+        assert_eq!(
+            BIRCH.trunk,
+            TrunkPlacer::Straight {
+                base_height: 5,
+                height_rand_a: 2,
+                height_rand_b: 0
+            }
+        );
+        assert_eq!(BIRCH.log, block::BIRCH_LOG);
+    }
+
+    #[test]
+    fn spruce_trunk_and_foliage_ranges_match_vanilla_json() {
+        assert_eq!(
+            SPRUCE.trunk,
+            TrunkPlacer::Straight {
+                base_height: 5,
+                height_rand_a: 2,
+                height_rand_b: 1
+            }
+        );
+        match SPRUCE.foliage {
+            FoliagePlacer::Spruce {
+                radius,
+                offset,
+                trunk_height,
+            } => {
+                assert_eq!(radius, IntProvider::Uniform { min: 2, max: 3 });
+                assert_eq!(offset, IntProvider::Uniform { min: 0, max: 2 });
+                assert_eq!(trunk_height, IntProvider::Uniform { min: 1, max: 2 });
+            }
+            other => panic!("expected spruce foliage, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn placing_an_oak_on_flat_ground_produces_logs_under_leaves() {
+        let mut chunk = chunk_at(846_692_123_413_862_008);
+        let mut random = WorldgenRandom::from_seed(1);
+        let ground = chunk.height_at(8, 8);
+        assert!(place_tree(
+            &mut chunk,
+            &mut random,
+            &OAK,
+            (8, ground + 1, 8)
+        ));
+
+        let mut logs = 0;
+        let mut leaves = 0;
+        for y in ground..ground + 12 {
+            match chunk.get(8, y, 8) {
+                Some(block::OAK_LOG) => logs += 1,
+                Some(_) => {}
+                None => {}
+            }
+        }
+        for dx in -3..=3_i32 {
+            for dz in -3..=3_i32 {
+                for y in ground..ground + 12 {
+                    let (lx, lz) = (
+                        (8 + dx).rem_euclid(16) as usize,
+                        (8 + dz).rem_euclid(16) as usize,
+                    );
+                    if chunk.get(lx, y, lz) == Some(block::OAK_LEAVES) {
+                        leaves += 1;
+                    }
+                }
+            }
+        }
+        assert!(logs >= 4, "expected a trunk of at least 4 logs, got {logs}");
+        assert!(leaves > 0, "expected some leaves, got {leaves}");
+    }
+
+    #[test]
+    fn tree_placement_is_deterministic_for_a_fixed_seed() {
+        let mut a = chunk_at(846_692_123_413_862_008);
+        let mut b = chunk_at(846_692_123_413_862_008);
+        let mut ra = WorldgenRandom::from_seed(42);
+        let mut rb = WorldgenRandom::from_seed(42);
+        let ga = a.height_at(4, 4);
+        let gb = b.height_at(4, 4);
+        place_tree(&mut a, &mut ra, &OAK, (4, ga + 1, 4));
+        place_tree(&mut b, &mut rb, &OAK, (4, gb + 1, 4));
+        assert_eq!(a.states(), b.states());
+    }
+}
