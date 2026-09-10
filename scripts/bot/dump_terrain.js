@@ -59,7 +59,9 @@ bot.on('login', async () => {
                     // leaves with boundingBox 'block'.
                     if (
                         ground &&
-                        (b.boundingBox === 'empty' || b.name.endsWith('_leaves'))
+                        (b.boundingBox === 'empty' ||
+                            b.name.endsWith('_leaves') ||
+                            b.name.endsWith('_log'))
                     )
                         continue;
                     top = y; nm = b.name; break;
