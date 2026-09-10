@@ -335,13 +335,18 @@ fn sample_foliage_radius(
     foliage: FoliagePlacer,
     trunk_height: i32,
 ) -> i32 {
-    let _ = trunk_height;
     match foliage {
         FoliagePlacer::Blob { radius, .. }
         | FoliagePlacer::Spruce { radius, .. }
-        | FoliagePlacer::Pine { radius, .. }
         | FoliagePlacer::Acacia { radius, .. }
         | FoliagePlacer::DarkOak { radius, .. } => radius.sample(random),
+        FoliagePlacer::Pine { radius, .. } => {
+            // Vanilla PineFoliagePlacer.foliageRadius samples both the
+            // configured radius and a second bounded value, even when the
+            // configured radius is Constant.  The latter is based on the
+            // trunk height and is part of the feature's RNG contract.
+            radius.sample(random) + random.next_i32_bounded((trunk_height + 1).max(1))
+        }
     }
 }
 
@@ -464,13 +469,20 @@ fn create_foliage(
         }
         FoliagePlacer::Spruce { .. } => {
             let offset = sample_foliage_offset(random, config.foliage);
-            for y in (offset - foliage_height..=offset).rev() {
-                let current_radius = if y != offset && y != offset - foliage_height {
-                    leaf_radius + 1
-                } else {
-                    leaf_radius
-                };
+            // Vanilla SpruceFoliagePlacer consumes one draw to choose the
+            // initial layer radius before placing the first row.
+            let mut current_radius = random.next_i32_bounded(2);
+            let mut max_radius = 1;
+            let mut min_radius = 0;
+            for y in (-foliage_height..=offset).rev() {
                 place_leaves_row(chunk, random, config, attachment, current_radius, y);
+                if current_radius >= max_radius {
+                    current_radius = min_radius;
+                    min_radius = 1;
+                    max_radius = (max_radius + 1).min(leaf_radius + attachment.radius_offset);
+                } else {
+                    current_radius += 1;
+                }
             }
         }
         FoliagePlacer::Pine { .. } => {
@@ -812,6 +824,45 @@ mod tests {
         assert!(leaves > 0, "expected some leaves, got {leaves}");
     }
 
+    #[test]
+    fn pine_radius_consumes_vanilla_trunk_height_draw() {
+        let mut actual = WorldgenRandom::from_seed(0x51_9e37);
+        let mut expected = WorldgenRandom::from_seed(0x51_9e37);
+        let tree_height = sample_tree_height(&mut actual, PINE.trunk);
+        let foliage_height = sample_foliage_height(&mut actual, PINE.foliage, tree_height);
+        let trunk_height = tree_height - foliage_height;
+        let radius = sample_foliage_radius(&mut actual, PINE.foliage, trunk_height);
+
+        sample_tree_height(&mut expected, PINE.trunk);
+        sample_foliage_height(&mut expected, PINE.foliage, tree_height);
+        let expected_radius = 1 + expected.next_i32_bounded((trunk_height + 1).max(1));
+
+        assert_eq!(radius, expected_radius);
+        assert_eq!(actual.next_i32(), expected.next_i32());
+    }
+
+    #[test]
+    fn spruce_foliage_consumes_initial_layer_radius_draw() {
+        let mut actual = WorldgenRandom::from_seed(0x5a_7ce);
+        let mut expected = WorldgenRandom::from_seed(0x5a_7ce);
+        let tree_height = sample_tree_height(&mut actual, SPRUCE.trunk);
+        let foliage_height = sample_foliage_height(&mut actual, SPRUCE.foliage, tree_height);
+        let trunk_height = tree_height - foliage_height;
+        let leaf_radius = sample_foliage_radius(&mut actual, SPRUCE.foliage, trunk_height);
+        let offset = sample_foliage_offset(&mut actual, SPRUCE.foliage);
+        let initial_radius = actual.next_i32_bounded(2);
+
+        sample_tree_height(&mut expected, SPRUCE.trunk);
+        sample_foliage_height(&mut expected, SPRUCE.foliage, tree_height);
+        let _ = sample_foliage_radius(&mut expected, SPRUCE.foliage, trunk_height);
+        let expected_offset = expected.next_i32_bounded(3);
+        let expected_initial_radius = expected.next_i32_bounded(2);
+
+        assert_eq!(offset, expected_offset);
+        assert_eq!(initial_radius, expected_initial_radius);
+        assert!((2..=3).contains(&leaf_radius));
+        assert_eq!(actual.next_i32(), expected.next_i32());
+    }
     #[test]
     fn tree_placement_is_deterministic_for_a_fixed_seed() {
         let mut a = chunk_at(846_692_123_413_862_008);
