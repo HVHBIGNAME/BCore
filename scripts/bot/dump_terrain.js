@@ -53,7 +53,15 @@ bot.on('login', async () => {
                     // Skip no-collision blocks (leaves, grass, plants) when the
                     // caller wants the terrain height (world_surface) rather
                     // than the top non-air block.
-                    if (ground && b.boundingBox === 'empty') continue;
+                    // `--ground` mirrors vanilla's MOTION_BLOCKING_NO_LEAVES:
+                    // non-colliding blocks AND leaves are skipped. The leaf
+                    // check must be name-based because minecraft-data reports
+                    // leaves with boundingBox 'block'.
+                    if (
+                        ground &&
+                        (b.boundingBox === 'empty' || b.name.endsWith('_leaves'))
+                    )
+                        continue;
                     top = y; nm = b.name; break;
                 }
             }
