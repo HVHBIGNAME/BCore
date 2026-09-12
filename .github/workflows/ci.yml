@@ -20,4 +20,4 @@ jobs:
       - name: Build
         run: cargo build --workspace --release --locked
       - name: Test
-        run: cargo test --workspace --release --locked -- --test-threads=4
+        run: cargo test --workspace --release --locked --no-fail-fast -- --test-threads=4

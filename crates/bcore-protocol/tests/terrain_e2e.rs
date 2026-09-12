@@ -348,18 +348,14 @@ fn the_server_streams_real_terrain_not_a_flat_world() {
                     continue;
                 }
 
-                // Dry land: grass/sand/stone/snow on top, never floating soil.
+                // Look for a soil layer, without forbidding natural overhangs.
+                // Vanilla 26.1 on the reference seed has grass at (26,121,-32)
+                // with air immediately beneath it at y=120.
                 if top == block_state::GRASS_BLOCK {
                     let under = chunk.get(lx, surface - 1, lz);
-                    assert!(
-                        under == block_state::DIRT || under == block_state::GRAVEL,
-                        "grass at ({lx},{surface},{lz}) of ({cx},{cz}) sits on {under}"
-                    );
-                    // Deeper down must be stone/ore, not soil.
-                    let deep = chunk.get(lx, surface - 10, lz);
-                    assert_ne!(deep, block_state::GRASS_BLOCK);
-                    assert_ne!(deep, block_state::DIRT, "dirt 10 blocks below the surface");
-                    saw_soil_stack = true;
+                    saw_soil_stack |= under == block_state::DIRT || under == block_state::GRAVEL;
+                    // Vanilla ore_dirt features also place dirt well below the
+                    // soil layer. Rock is checked across the region below.
                 }
             }
         }
@@ -367,6 +363,12 @@ fn the_server_streams_real_terrain_not_a_flat_world() {
     assert!(
         saw_soil_stack,
         "no grass/dirt/stone stack found in the streamed chunks"
+    );
+    assert!(
+        sample
+            .iter()
+            .any(|(_, _, chunk)| chunk.states.contains(&block_state::STONE)),
+        "streamed terrain has no stone below its surface"
     );
     let _ = saw_water; // water depends on where spawn landed; not required here
 
