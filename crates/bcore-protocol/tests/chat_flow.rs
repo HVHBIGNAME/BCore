@@ -99,9 +99,12 @@ impl Client {
             seen: Vec::new(),
         };
         // Read until the join chunk batch is done, confirming the teleport.
-        client.pump_until(Duration::from_secs(15), |seen| {
-            seen.iter().any(|p| p.id == CB_CHUNK_BATCH_FINISHED)
-        });
+        assert!(
+            client.pump_until(Duration::from_secs(120), |seen| {
+                seen.iter().any(|p| p.id == CB_CHUNK_BATCH_FINISHED)
+            }),
+            "join did not finish its first chunk batch"
+        );
         client
     }
 

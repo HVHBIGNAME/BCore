@@ -93,6 +93,8 @@ pub struct World {
     store: Option<ChunkStore>,
     /// Encoded `map_chunk` payloads, keyed by chunk position.
     payloads: [PayloadShard; PAYLOAD_SHARDS],
+    /// Coalesce concurrent cache misses before loading/generating the same chunk.
+    generation_locks: [Mutex<()>; PAYLOAD_SHARDS],
     /// Set once the first persistence error has been reported.
     warned: Mutex<bool>,
 }
@@ -104,6 +106,7 @@ impl World {
             generator: WorldGenerator::new(seed),
             store: Some(ChunkStore::new()),
             payloads: std::array::from_fn(|_| RwLock::new(HashMap::new())),
+            generation_locks: std::array::from_fn(|_| Mutex::new(())),
             warned: Mutex::new(false),
         }
     }
@@ -114,6 +117,7 @@ impl World {
             generator: WorldGenerator::new(seed),
             store: Some(store),
             payloads: std::array::from_fn(|_| RwLock::new(HashMap::new())),
+            generation_locks: std::array::from_fn(|_| Mutex::new(())),
             warned: Mutex::new(false),
         }
     }
@@ -124,6 +128,7 @@ impl World {
             generator: WorldGenerator::new(seed),
             store: None,
             payloads: std::array::from_fn(|_| RwLock::new(HashMap::new())),
+            generation_locks: std::array::from_fn(|_| Mutex::new(())),
             warned: Mutex::new(false),
         }
     }
@@ -169,6 +174,9 @@ impl World {
     ///
     /// Returns the column and where it came from.
     pub fn chunk(&self, x: i32, z: i32) -> (ChunkColumn, ChunkOrigin) {
+        let _generation = self.generation_locks[payload_shard(x, z)]
+            .lock()
+            .expect("chunk generation lock");
         if let Some(store) = &self.store {
             match store.load(x, z) {
                 Ok(Some(column)) => return (column, ChunkOrigin::Loaded),
@@ -361,6 +369,36 @@ mod tests {
         assert_eq!(first, second, "disk round trip must be lossless");
 
         std::fs::remove_dir_all(store.root()).ok();
+    }
+
+    #[test]
+    fn simultaneous_requests_generate_a_persisted_chunk_once() {
+        let store = temp_store("concurrent-origin");
+        let world = std::sync::Arc::new(World::with_store(DEFAULT_SEED, store.clone()));
+        let barrier = std::sync::Arc::new(std::sync::Barrier::new(4));
+        let threads: Vec<_> = (0..4)
+            .map(|_| {
+                let world = world.clone();
+                let barrier = barrier.clone();
+                std::thread::spawn(move || {
+                    barrier.wait();
+                    world.chunk(0, 0)
+                })
+            })
+            .collect();
+        let results: Vec<_> = threads
+            .into_iter()
+            .map(|thread| thread.join().unwrap())
+            .collect();
+        assert_eq!(
+            results
+                .iter()
+                .filter(|(_, origin)| *origin == ChunkOrigin::Generated)
+                .count(),
+            1
+        );
+        assert!(results.iter().all(|(column, _)| *column == results[0].0));
+        std::fs::remove_dir_all(store.root()).unwrap();
     }
 
     #[test]
