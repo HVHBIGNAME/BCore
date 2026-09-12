@@ -261,7 +261,9 @@ impl WorldgenRandom {
         self.next_i32_bounded(max - min + 1) + min
     }
 
-    /// Vanilla `nextLong()`.
+    /// Vanilla `BitRandomSource.nextLong()` — `((long)i << 32) + (long)j`.
+    /// Both words are sign-extended and ADDED (bytecode: `i2l; lshl; ladd`),
+    /// NOT masked-OR'd, matching Java's signed-word addition.
     pub fn next_i64(&mut self) -> i64 {
         let upper = self.next_i32();
         let lower = self.next_i32();

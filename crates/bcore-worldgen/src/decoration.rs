@@ -5,22 +5,13 @@
 
 use crate::block;
 use crate::feature_sorter::sorter;
-use crate::features::TreeKind;
 use crate::random::WorldgenRandom;
-use crate::tree::{self, TreeConfig};
+use crate::tree::{self, TreeSelector};
 use crate::{Biome, GeneratedChunk, CHUNK_SIZE, SEA_LEVEL};
 
-/// Vanilla tree configuration for a biome's tree feature.
-fn tree_config(kind: TreeKind) -> &'static TreeConfig {
-    match kind {
-        TreeKind::Oak => &tree::OAK,
-        TreeKind::Birch => &tree::BIRCH,
-        TreeKind::Spruce => &tree::SPRUCE,
-        TreeKind::Pine => &tree::PINE,
-        TreeKind::Acacia => &tree::ACACIA,
-        TreeKind::DarkOak => &tree::DARK_OAK,
-        TreeKind::Jungle => &tree::JUNGLE,
-    }
+/// Vanilla tree selector for a biome's tree feature.
+fn tree_selector(name: &str) -> TreeSelector {
+    tree::selector_for(name).expect("tree feature missing selector")
 }
 
 /// Vanilla's vegetal-decoration generation step.
@@ -30,7 +21,7 @@ const VEGETAL_DECORATION_STEP: i32 = 9;
 /// this crate. Indices are the feature order within the vanilla step.
 #[derive(Clone, Copy)]
 struct TreePlacement {
-    kind: TreeKind,
+    selector: TreeSelector,
     count: CountProvider,
 }
 
@@ -79,7 +70,7 @@ fn tree_placement(biome: Biome) -> Option<TreePlacement> {
     Some(match biome {
         // trees_plains: weighted 0 (w19) / 1 (w1).
         Biome::Plains => TreePlacement {
-            kind: TreeKind::Oak,
+            selector: tree_selector("trees_plains"),
             count: CountProvider::Weighted {
                 low: 0,
                 high: 1,
@@ -89,7 +80,7 @@ fn tree_placement(biome: Biome) -> Option<TreePlacement> {
         },
         // trees_birch_and_oak_leaf_litter: weighted 10 (w9) / 11 (w1).
         Biome::Forest => TreePlacement {
-            kind: TreeKind::Oak,
+            selector: tree_selector("trees_birch_and_oak_leaf_litter"),
             count: CountProvider::Weighted {
                 low: 10,
                 high: 11,
@@ -99,7 +90,7 @@ fn tree_placement(biome: Biome) -> Option<TreePlacement> {
         },
         // trees_birch: weighted 10 (w9) / 11 (w1).
         Biome::BirchForest => TreePlacement {
-            kind: TreeKind::Birch,
+            selector: tree_selector("trees_birch"),
             count: CountProvider::Weighted {
                 low: 10,
                 high: 11,
@@ -109,12 +100,15 @@ fn tree_placement(biome: Biome) -> Option<TreePlacement> {
         },
         // dark_forest_vegetation: plain 16.
         Biome::DarkForest => TreePlacement {
-            kind: TreeKind::DarkOak,
+            selector: TreeSelector::Random {
+                features: &[],
+                default: tree::DARK_OAK,
+            },
             count: CountProvider::Constant(16),
         },
         // trees_taiga: weighted 10 (w9) / 11 (w1).
         Biome::Taiga => TreePlacement {
-            kind: TreeKind::Spruce,
+            selector: tree_selector("trees_taiga"),
             count: CountProvider::Weighted {
                 low: 10,
                 high: 11,
@@ -124,7 +118,7 @@ fn tree_placement(biome: Biome) -> Option<TreePlacement> {
         },
         // trees_snowy: weighted 0 (w9) / 1 (w1).
         Biome::SnowyPlains => TreePlacement {
-            kind: TreeKind::Spruce,
+            selector: tree_selector("trees_snowy"),
             count: CountProvider::Weighted {
                 low: 0,
                 high: 1,
@@ -134,7 +128,7 @@ fn tree_placement(biome: Biome) -> Option<TreePlacement> {
         },
         // trees_savanna: weighted 1 (w9) / 2 (w1).
         Biome::Savanna => TreePlacement {
-            kind: TreeKind::Acacia,
+            selector: tree_selector("trees_savanna"),
             count: CountProvider::Weighted {
                 low: 1,
                 high: 2,
@@ -144,7 +138,7 @@ fn tree_placement(biome: Biome) -> Option<TreePlacement> {
         },
         // trees_jungle: weighted 50 (w9) / 51 (w1).
         Biome::Jungle => TreePlacement {
-            kind: TreeKind::Jungle,
+            selector: tree_selector("trees_jungle"),
             count: CountProvider::Weighted {
                 low: 50,
                 high: 51,
@@ -154,7 +148,10 @@ fn tree_placement(biome: Biome) -> Option<TreePlacement> {
         },
         // trees_swamp: weighted 2 (w9) / 3 (w1).
         Biome::Swamp => TreePlacement {
-            kind: TreeKind::Oak,
+            selector: TreeSelector::Random {
+                features: &[],
+                default: tree::OAK,
+            },
             count: CountProvider::Weighted {
                 low: 2,
                 high: 3,
@@ -164,7 +161,7 @@ fn tree_placement(biome: Biome) -> Option<TreePlacement> {
         },
         // trees_windswept_hills: weighted 0 (w9) / 1 (w1).
         Biome::Mountains | Biome::SnowyMountains => TreePlacement {
-            kind: TreeKind::Spruce,
+            selector: tree_selector("trees_windswept_hills"),
             count: CountProvider::Weighted {
                 low: 0,
                 high: 1,
@@ -189,7 +186,7 @@ pub fn decorate(world_seed: i64, chunk: &mut GeneratedChunk) {
     let decoration_seed = random.set_decoration_seed(world_seed, base_x, base_z);
 
     // Vanilla iterates decoration steps in order. Structures are intentionally
-    // absent from this crate's registry; vegetal decoration is step 7.
+    // absent from this crate's registry; vegetal decoration is step 9.
     // The compact implementation currently has one entry per supported biome.
     // The sorter supplies vanilla's within-step index for the placed feature.
     let feature_sorter = sorter();
@@ -225,39 +222,29 @@ pub fn decorate(world_seed: i64, chunk: &mut GeneratedChunk) {
             let z = base_z + random.next_i32_bounded(16);
             let lx = (x - base_x) as usize;
             let lz = (z - base_z) as usize;
-            let biome = chunk.biome_at(lx, lz);
+            let y = chunk.height_at(lx, lz);
             // in_square + heightmap(world_surface), followed by the feature's
             // biome predicate. The column's biome must admit *this* feature
             // (same index), not merely some tree feature: otherwise the jungle
             // entry would plant jungle trees inside forest columns.
             if !feature_sorter.feature_in_biome(
-                match biome {
-                    Biome::Plains => "plains",
-                    Biome::Forest => "forest",
-                    Biome::BirchForest => "birch_forest",
-                    Biome::DarkForest => "dark_forest",
-                    Biome::Taiga => "taiga",
-                    Biome::SnowyPlains => "snowy_plains",
-                    Biome::Savanna => "savanna",
-                    Biome::Jungle => "jungle",
-                    Biome::Swamp => "swamp",
-                    Biome::Mountains | Biome::SnowyMountains => "windswept_hills",
-                    _ => "",
-                },
+                crate::biome::name(chunk.noise_biome_at(lx, y, lz)),
                 feature_name,
             ) {
                 continue;
             }
-            let y = chunk.height_at(lx, lz);
             if y < SEA_LEVEL || chunk.get(lx, y, lz) != Some(block::GRASS_BLOCK) {
                 continue;
             }
-            let config = tree_config(placement.kind);
-            // Vanilla passes the *same* decoration random straight through to
-            // the feature: the `in_square` draws above already advanced it, and
-            // the feature continues the stream. Reseeding here would break
-            // bit-exact parity with vanilla.
-            tree::place_tree(chunk, &mut random, config, (x, y + 1, z));
+            let config = placement.selector.select(&mut random).1;
+            if !tree::place_tree(chunk, &mut random, &config, (x, y + 1, z)) {
+                continue;
+            }
+            tree::place_tree_decorators(&mut random, config.beehive_probability);
+            if config.leaf_litter {
+                tree::place_on_ground(chunk, &mut random, (x, y + 1, z), 4, 2, 96, 3);
+                tree::place_on_ground(chunk, &mut random, (x, y + 1, z), 2, 2, 150, 4);
+            }
         }
     }
 

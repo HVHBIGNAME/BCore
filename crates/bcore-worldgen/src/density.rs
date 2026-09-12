@@ -9,10 +9,31 @@ use std::sync::OnceLock;
 pub fn noise_registry() -> &'static NoiseRegistry {
     static REGISTRY: OnceLock<NoiseRegistry> = OnceLock::new();
     REGISTRY.get_or_init(|| {
-        let root = std::env::var_os("BCORE_DATAPACK")
-            .map(std::path::PathBuf::from)
-            .unwrap_or_else(|| std::path::PathBuf::from("target/datapack"));
-        NoiseRegistry::load_dir(root.join("data/minecraft/worldgen/noise")).unwrap_or_default()
+        let mut registry = NoiseRegistry::default();
+        for path in crate::assets::bundled()
+            .keys()
+            .filter(|path| path.starts_with("noise/"))
+        {
+            let value = crate::assets::load(path).expect("vanilla noise definition");
+            let name = path
+                .strip_prefix("noise/")
+                .unwrap()
+                .strip_suffix(".json")
+                .unwrap();
+            registry.defs.insert(
+                name.to_owned(),
+                crate::simplex::NoiseDefinition {
+                    first_octave: value["firstOctave"].as_i64().expect("noise octave") as i32,
+                    amplitudes: value["amplitudes"]
+                        .as_array()
+                        .expect("noise amplitudes")
+                        .iter()
+                        .map(|v| v.as_f64().expect("noise amplitude"))
+                        .collect(),
+                },
+            );
+        }
+        registry
     })
 }
 
@@ -735,17 +756,10 @@ fn parse_value(v: &J) -> DensityFunction {
     match v {
         J::N(n) => DensityFunction::Constant(*n),
         J::S(s) => {
-            let root = std::env::var_os("BCORE_DATAPACK")
-                .map(std::path::PathBuf::from)
-                .unwrap_or_else(|| std::path::PathBuf::from("target/datapack"));
             let path = s.strip_prefix("minecraft:").unwrap_or(s);
-            let file = root
-                .join("data/minecraft/worldgen/density_function")
-                .join(format!("{path}.json"));
-            std::fs::read_to_string(file)
-                .ok()
-                .and_then(|text| parse_json(&text).ok())
-                .unwrap_or(DensityFunction::Unknown)
+            let value = crate::assets::load(&format!("density_function/{path}.json"))
+                .unwrap_or_else(|e| panic!("{e}"));
+            parse_json(&value.to_string()).expect("valid referenced density function")
         }
         J::O(o) => {
             let typ = match o.get("type") {

@@ -1,7 +1,16 @@
 {
   "project": "BCore",
-  "version": "0.4.0",
-  "updated": "2026-09-03",
+  "version": "0.7.0-alpha.1",
+  "updated": "2026-09-13",
+  "protocol": 775,
+  "parity": {
+    "seed": "846692123413862008",
+    "scope": "One seed, three 16×16 Overworld regions, Y=-64..319. Full worldgen parity remains incomplete.",
+    "terrain": "768 / 768 heights",
+    "biomes": "4608 / 4608 quart cells",
+    "states": "282673 / 294912 states (95.85%, includes air)",
+    "report": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/parity-report.md"
+  },
   "categories": [
     {
       "name": "Protocol & Networking",
@@ -13,21 +22,25 @@
         { "name": "Configuration state (registry sync)", "status": "done" },
         { "name": "Play state (join + spawn)", "status": "done" },
         { "name": "Compression", "status": "planned" },
-        { "name": "Gameplay packets", "status": "done" }
+        { "name": "Gameplay packets", "status": "partial" }
       ]
     },
     {
       "name": "World Generation",
       "items": [
-        { "name": "Chunk data structure (776)", "status": "done" },
+        { "name": "Chunk data structure (775)", "status": "done" },
         { "name": "Native chunk encoder (byte-parity)", "status": "done" },
         { "name": "Flat (superflat) world", "status": "done" },
-        { "name": "Realistic terrain (noise heightmap)", "status": "done" },
-        { "name": "Biomes (plains/forest/desert/mountains/ocean)", "status": "done" },
-        { "name": "Trees & vegetation", "status": "done" },
-        { "name": "Ores (coal/iron/gold/diamond)", "status": "done" },
-        { "name": "Caves", "status": "done" },
-        { "name": "Water & lakes", "status": "done" },
+        { "name": "Terrain parity across seeds and biomes", "status": "partial" },
+        { "name": "3D biome sampling and network palettes", "status": "partial" },
+        { "name": "Bundled worldgen assets / offline reference tests", "status": "done" },
+        { "name": "Trees & vegetation (shapes, decorators, borders)", "status": "partial" },
+        { "name": "Leaf litter placement and state properties", "status": "partial" },
+        { "name": "Ores (coal/iron/gold/diamond)", "status": "partial" },
+        { "name": "Caves", "status": "partial" },
+        { "name": "Water & aquifers", "status": "partial" },
+        { "name": "Cross-chunk staged generation", "status": "planned" },
+        { "name": "Nether and End parity", "status": "planned" },
         { "name": "Structures (villages/dungeons)", "status": "planned" },
         { "name": "Lighting (skylight/blocklight)", "status": "partial" }
       ]
@@ -37,7 +50,7 @@
       "items": [
         { "name": "Chunk sending", "status": "done" },
         { "name": "View distance (configurable)", "status": "done" },
-        { "name": "Streaming on movement", "status": "done" },
+        { "name": "Streaming on movement (bounded generation lookahead)", "status": "partial" },
         { "name": "Chunk unloading", "status": "done" },
         { "name": "World save/load (persistence)", "status": "done" },
         { "name": "Region format (.mca) compat", "status": "planned" }
@@ -92,15 +105,15 @@
     {
       "name": "Gameplay Mechanics",
       "items": [
-        { "name": "Health & hunger", "status": "done" },
+        { "name": "Health & hunger simulation", "status": "partial" },
         { "name": "World time (/time set)", "status": "done" },
         { "name": "Abilities & gamemode", "status": "done" },
-        { "name": "F3+F4 gamemode switch", "status": "done" },
+        { "name": "F3+F4 permissions and switch packet flow", "status": "partial" },
         { "name": "Spectator (fly + invisible)", "status": "done" },
         { "name": "Day/night cycle (tick loop)", "status": "done" },
         { "name": "TPS 20 (fixed-rate tick)", "status": "done" },
         { "name": "Server console (stdin)", "status": "done" },
-        { "name": "Entities (item + mob base)", "status": "in progress" },
+        { "name": "Entities (item + mob base)", "status": "partial" },
         { "name": "Weather", "status": "planned" },
         { "name": "Respawn & death", "status": "planned" }
       ]

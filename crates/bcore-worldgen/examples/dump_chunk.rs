@@ -22,5 +22,28 @@ fn main() {
         }
         print!("{state}");
     }
-    println!("]}}\n");
+    print!("],\"heights\":[");
+    for z in 0..16 {
+        for x in 0..16 {
+            if x != 0 || z != 0 {
+                print!(",");
+            }
+            print!("{}", chunk.height_at(x, z));
+        }
+    }
+    print!("],\"biomes\":[");
+    for y in (-64..320).step_by(4) {
+        for z in (0..16).step_by(4) {
+            for x in (0..16).step_by(4) {
+                if x != 0 || z != 0 || y != -64 {
+                    print!(",");
+                }
+                print!(
+                    "\"minecraft:{}\"",
+                    bcore_worldgen::biome::name(chunk.noise_biome_at(x, y, z))
+                );
+            }
+        }
+    }
+    println!("]}}");
 }

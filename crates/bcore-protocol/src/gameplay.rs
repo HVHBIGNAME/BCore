@@ -33,6 +33,16 @@ pub const CB_UPDATE_TIME: i32 = 0x71;
 /// Clientbound `player_info_update` (tab list / player list).
 pub const CB_PLAYER_INFO_UPDATE: i32 = 0x46;
 
+/// Clientbound entity event, including the client's permission-level projection.
+pub fn encode_permission_level(entity_id: i32, level: u8) -> Vec<u8> {
+    assert!(level <= 4);
+    let mut data = entity_id.to_be_bytes().to_vec();
+    data.push(24 + level);
+    let mut packet = Vec::new();
+    write_packet(&mut packet, 0x22, &data);
+    packet
+}
+
 /// `game_state_change` reason: the player's gamemode changed.
 pub const GAME_STATE_CHANGE_GAMEMODE: u8 = 3;
 

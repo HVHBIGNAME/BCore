@@ -98,10 +98,11 @@ fn join(addr: SocketAddr, name: &str, uuid_byte: u8) -> Joined {
     }
     send(&mut stream, 0x03, &[]); // acknowledge_finish_configuration
 
-    // Play: collect chunks until the batch is finished.
+    // A bounded initial batch is intentionally smaller than the sample. Keep
+    // acknowledging batches until at least the nearest 3×3 has arrived.
     let mut chunks = Vec::new();
     let mut spawn = None;
-    let deadline = Instant::now() + Duration::from_secs(60);
+    let deadline = Instant::now() + Duration::from_secs(120);
     let mut batches = 0;
     while Instant::now() < deadline {
         let (pid, data) = match read_frame(&mut stream) {
@@ -129,7 +130,7 @@ fn join(addr: SocketAddr, name: &str, uuid_byte: u8) -> Joined {
             CB_CHUNK_BATCH_FINISHED => {
                 send(&mut stream, SB_CHUNK_BATCH_RECEIVED, &16.0f32.to_be_bytes());
                 batches += 1;
-                if !chunks.is_empty() && spawn.is_some() && batches >= 1 {
+                if chunks.len() >= 9 && spawn.is_some() && batches >= 1 {
                     break;
                 }
             }

@@ -314,7 +314,9 @@ impl PlayerView {
                 }
             }
         } else {
-            world.request_payloads(missing.iter().copied());
+            // Bounded lookahead avoids queuing an entire 41×41 view, including
+            // thousands of obsolete chunks when the player teleports again.
+            world.request_payloads(missing.iter().take(8).copied());
         }
         let batch: Vec<((i32, i32), Vec<u8>)> = missing
             .iter()
@@ -360,11 +362,11 @@ fn read_f32(data: &[u8], at: usize) -> f32 {
 mod tests {
     use super::*;
 
-    /// Tests must not generate real terrain for 441 chunks (slow) or touch the
-    /// real `world/` directory, so they stream from a throwaway in-memory world.
+    /// Preload real encoded flat chunks to test selection independently of worldgen.
     /// What these tests assert is chunk *selection*, not the blocks inside.
     fn stream(view: &mut PlayerView, out: &mut Vec<u8>) -> Result<usize, PacketError> {
-        view.stream_chunks_from(out, &World::in_memory(0))
+        let world = World::flat_fixture(view.missing_chunks());
+        view.stream_chunks_from(out, &world)
     }
 
     #[test]
@@ -488,7 +490,7 @@ mod tests {
     #[test]
     fn long_jump_can_be_streamed_in_bounded_batches() {
         let mut view = PlayerView::new(0.0, 0.0, 0.0).with_chunk_batch_size(64);
-        let world = World::in_memory(0);
+        let world = World::flat_fixture(view.missing_chunks());
         let mut out = Vec::new();
         assert_eq!(
             view.stream_chunks_from(&mut out, &world).expect("initial"),

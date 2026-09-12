@@ -1,0 +1,269 @@
+{
+  "seed": 846692123413862008,
+  "protocol": 775,
+  "ymin": -64,
+  "ymax": 319,
+  "executable_sha256": "811cb8c0477c8fb685b3d9202df82b1bccafcb9b90a5d56cc2386180a43c14ef",
+  "samples": [
+    {
+      "center": [
+        0,
+        0
+      ],
+      "cells": 98304,
+      "equal_states": 91202,
+      "different_names": 6905,
+      "columns": 256,
+      "terrain_matches": 256,
+      "height_deltas": {
+        "0": 256
+      },
+      "vanilla_tree_origins": 12,
+      "bcore_tree_origins": 16,
+      "tree_intersection": 1,
+      "vanilla_biomes": {
+        "minecraft:deep_dark": 214,
+        "minecraft:forest": 891,
+        "minecraft:dripstone_caves": 431
+      },
+      "biome_cells": 1536,
+      "biome_matches": 1536,
+      "top_differences": [
+        [
+          "air",
+          "deepslate",
+          2652
+        ],
+        [
+          "air",
+          "tuff",
+          552
+        ],
+        [
+          "air",
+          "oak_leaves",
+          536
+        ],
+        [
+          "sculk",
+          "deepslate",
+          338
+        ],
+        [
+          "oak_leaves",
+          "air",
+          336
+        ],
+        [
+          "stone",
+          "coal_ore",
+          287
+        ],
+        [
+          "copper_ore",
+          "stone",
+          270
+        ],
+        [
+          "sculk_vein",
+          "deepslate",
+          151
+        ],
+        [
+          "coal_ore",
+          "stone",
+          145
+        ],
+        [
+          "gray_wool",
+          "deepslate",
+          139
+        ],
+        [
+          "air",
+          "birch_leaves",
+          134
+        ],
+        [
+          "air",
+          "gravel",
+          119
+        ]
+      ],
+      "capture_sha256": "ce653f2337a0cecd5c5553cb58b34057dac6599375414d0f2c78fff443115b89"
+    },
+    {
+      "center": [
+        1000,
+        0
+      ],
+      "cells": 98304,
+      "equal_states": 96606,
+      "different_names": 1569,
+      "columns": 256,
+      "terrain_matches": 256,
+      "height_deltas": {
+        "0": 256
+      },
+      "vanilla_tree_origins": 16,
+      "bcore_tree_origins": 7,
+      "tree_intersection": 1,
+      "vanilla_biomes": {
+        "minecraft:deep_dark": 29,
+        "minecraft:forest": 1507
+      },
+      "biome_cells": 1536,
+      "biome_matches": 1536,
+      "top_differences": [
+        [
+          "oak_leaves",
+          "air",
+          498
+        ],
+        [
+          "coal_ore",
+          "stone",
+          209
+        ],
+        [
+          "air",
+          "oak_leaves",
+          147
+        ],
+        [
+          "air",
+          "birch_leaves",
+          84
+        ],
+        [
+          "leaf_litter",
+          "air",
+          76
+        ],
+        [
+          "gravel",
+          "stone",
+          65
+        ],
+        [
+          "stone",
+          "coal_ore",
+          49
+        ],
+        [
+          "stone",
+          "gravel",
+          46
+        ],
+        [
+          "air",
+          "leaf_litter",
+          44
+        ],
+        [
+          "oak_log",
+          "air",
+          36
+        ],
+        [
+          "birch_leaves",
+          "air",
+          31
+        ],
+        [
+          "oak_leaves",
+          "birch_leaves",
+          28
+        ]
+      ],
+      "capture_sha256": "2355cb1a8cfc1dea7c8149eb74e441cddb183a12d14fb672499ce169a6b05aae"
+    },
+    {
+      "center": [
+        -2000,
+        3000
+      ],
+      "cells": 98304,
+      "equal_states": 94865,
+      "different_names": 3201,
+      "columns": 256,
+      "terrain_matches": 256,
+      "height_deltas": {
+        "0": 256
+      },
+      "vanilla_tree_origins": 13,
+      "bcore_tree_origins": 10,
+      "tree_intersection": 4,
+      "vanilla_biomes": {
+        "minecraft:deep_dark": 126,
+        "minecraft:forest": 980,
+        "minecraft:dripstone_caves": 430
+      },
+      "biome_cells": 1536,
+      "biome_matches": 1536,
+      "top_differences": [
+        [
+          "water",
+          "air",
+          469
+        ],
+        [
+          "copper_ore",
+          "stone",
+          336
+        ],
+        [
+          "oak_leaves",
+          "air",
+          258
+        ],
+        [
+          "dripstone_block",
+          "stone",
+          176
+        ],
+        [
+          "coal_ore",
+          "stone",
+          160
+        ],
+        [
+          "stone",
+          "air",
+          153
+        ],
+        [
+          "stone",
+          "coal_ore",
+          152
+        ],
+        [
+          "air",
+          "oak_leaves",
+          128
+        ],
+        [
+          "stone",
+          "copper_ore",
+          126
+        ],
+        [
+          "birch_leaves",
+          "air",
+          106
+        ],
+        [
+          "water",
+          "stone",
+          94
+        ],
+        [
+          "copper_ore",
+          "granite",
+          76
+        ]
+      ],
+      "capture_sha256": "a900c2c6731eb34a38cfbaf37afc61764e387feb4b349f15ce3abe9da025569e"
+    }
+  ]
+}

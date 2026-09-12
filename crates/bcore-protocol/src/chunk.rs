@@ -420,21 +420,19 @@ impl ChunkColumn {
 
     /// Convert a generated chunk into an encodable column.
     ///
-    /// The generator stores one surface biome per `(x, z)`; the wire format wants
-    /// one id per 4x4x4 cell, so each cell takes the biome of the column at its
-    /// centre — the same 4-block biome resolution vanilla itself uses.
+    /// Preserve the generator's three-dimensional quart-cell biome palette.
     pub fn from_generated(chunk: &GeneratedChunk) -> Self {
         let states = chunk.states().to_vec();
         let mut biomes = Vec::with_capacity(SECTION_COUNT * SECTION_BIOMES);
-        for _section in 0..SECTION_COUNT {
+        for section in 0..SECTION_COUNT {
             for cell_y in 0..4 {
-                let _ = cell_y;
                 for cell_z in 0..4 {
                     for cell_x in 0..4 {
                         // Centre of the 4x4 area this cell covers.
                         let x = cell_x * 4 + 2;
                         let z = cell_z * 4 + 2;
-                        biomes.push(chunk.biome_at(x, z).network_id());
+                        let y = MIN_Y + (section * 16 + cell_y * 4) as i32;
+                        biomes.push(chunk.noise_biome_at(x, y, z));
                     }
                 }
             }

@@ -39,7 +39,7 @@ fn server_list_status_and_ping() {
     let json_str = read_string(&mut cursor, 32767).expect("status json string");
     let json: serde_json::Value = serde_json::from_str(&json_str).expect("valid json");
     assert_eq!(json["version"]["protocol"], 775);
-    assert_eq!(json["version"]["name"], "26.2");
+    assert_eq!(json["version"]["name"], "26.1");
 
     // Ping -> pong.
     let payload = 0x1234_5678_9abc_def0u64 as i64;

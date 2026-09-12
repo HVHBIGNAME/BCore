@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "bcore"
-version = "0.1.0"
+version = "0.7.0-alpha.1"
 dependencies = [
  "bcore-core",
  "bcore-protocol",

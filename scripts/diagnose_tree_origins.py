@@ -30,7 +30,7 @@ def vanilla_blocks(x, z, region, ymin, ymax):
     if "position after teleport" not in p.stderr:
         raise RuntimeError("vanilla probe position not verified")
     data = json.loads(p.stdout)
-    return {(a, b, c): d for a, b, c, d in data["blocks"]}
+    return {tuple(row[:3]): row[3] for row in data["blocks"]}
 
 def bcore_blocks(x, z, region, ymin, ymax):
     out = {}

@@ -42,7 +42,7 @@ use crate::world::{
 pub const LOGIN_SUCCESS_ID: i32 = 0x02;
 pub const LOGIN_ACKNOWLEDGED_ID: i32 = 0x03;
 const PLAY_LOGIN_ID: i32 = 0x31;
-const PLAY_LOGIN_ENTITY_ID: i32 = 392;
+pub(crate) const PLAY_LOGIN_ENTITY_ID: i32 = 392;
 const PLAY_VIEW_DISTANCE: i32 = 32;
 const PLAY_SEA_LEVEL: i32 = 63;
 
@@ -248,6 +248,10 @@ fn send_join_state(
 ) -> Result<(), PacketError> {
     let mut out = Vec::new();
     out.extend_from_slice(&encode_abilities_for(view.game_mode));
+    out.extend_from_slice(&crate::gameplay::encode_permission_level(
+        PLAY_LOGIN_ENTITY_ID,
+        if server.is_op(&handle.name) { 4 } else { 0 },
+    ));
     out.extend_from_slice(&bcore_command_tree().encode());
     out.extend_from_slice(&encode_full_health());
     let age = world_age_ticks();
@@ -446,7 +450,7 @@ fn play_loop(
     let mut last_keepalive = Instant::now();
     let mut keepalive_id: i64 = 0;
     let mut last_chunk = view.chunk();
-    view.set_chunk_batch_size(64);
+    view.set_chunk_batch_size(8);
 
     loop {
         if handle.is_kicked() || server.is_shutting_down() {
@@ -487,6 +491,9 @@ fn play_loop(
                     last_chunk = view.chunk();
                 } else if pid == SB_CHANGE_GAMEMODE {
                     // F3+F4 debug screen: the client asks to switch gamemode.
+                    if !server.is_op(&handle.name) {
+                        continue;
+                    }
                     if let Some(mode) = parse_gamemode(&data) {
                         println!("[BCore] change_gamemode (F3+F4) -> {mode:?}");
                         view.game_mode = mode;

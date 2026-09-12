@@ -13,6 +13,10 @@ const name = username || 'bot';
 const center = new Vec3(parseInt(cx), 100, parseInt(cz));
 
 const bot = mineflayer.createBot({ host, port: parseInt(port), username: name, version: '26.1' });
+let biomeNames = [];
+bot._client.on('registry_data', packet => {
+    if (packet.id === 'minecraft:worldgen/biome') biomeNames = packet.entries.map(entry => entry.key);
+});
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
@@ -41,9 +45,9 @@ bot.on('login', async () => {
     }
     const half = Math.floor(region / 2);
     const out = [];
-    for (let dx = -half; dx < half; dx++) {
+    for (let dz = -half; dz < half; dz++) {
         const row = [];
-        for (let dz = -half; dz < half; dz++) {
+        for (let dx = -half; dx < half; dx++) {
             const wx = center.x + dx;
             const wz = center.z + dz;
             let top = -1, nm = '?';
@@ -73,6 +77,8 @@ bot.on('login', async () => {
     }
     if (full) {
         const blocks = [];
+        const columns = [];
+        const biomes = [];
         // Y range is caller-controlled: a hardcoded 40..120 clipped every tree
         // whose ground sits above ~120 (e.g. ground 126 at (0,0)), which made
         // vanilla/Bcore tree-origin comparisons read 0 on BOTH sides.
@@ -84,13 +90,23 @@ bot.on('login', async () => {
         for (let dx = -half; dx < half; dx++) {
             for (let dz = -half; dz < half; dz++) {
                 const wx = center.x + dx, wz = center.z + dz;
+                let top = null, terrain = null;
                 for (let y = ymin; y <= ymax; y++) {
                     const b = bot.blockAt(new Vec3(wx, y, wz));
-                    blocks.push([wx, y, wz, b ? b.name : 'unknown']);
+                    if (!b) throw new Error(`Unloaded block at ${wx},${y},${wz}`);
+                    blocks.push([wx, y, wz, b.name, b.stateId]);
+                    if (!['air', 'cave_air', 'void_air'].includes(b.name)) top = y;
+                    if (b.boundingBox !== 'empty' && !b.name.endsWith('_leaves') && !b.name.endsWith('_log')) terrain = y;
+                    if (wx % 4 === 0 && y % 4 === 0 && wz % 4 === 0) {
+                        const biomeName = biomeNames[b.biome.id];
+                        if (!biomeName) throw new Error(`Unknown biome ID ${b.biome.id}`);
+                        biomes.push([wx, y, wz, biomeName]);
+                    }
                 }
+                columns.push([wx, wz, top, terrain]);
             }
         }
-        console.log(JSON.stringify({center: [center.x, center.z], position: [bot.entity.position.x, bot.entity.position.y, bot.entity.position.z], blocks}));
+        console.log(JSON.stringify({center: [center.x, center.z], position: [bot.entity.position.x, bot.entity.position.y, bot.entity.position.z], ymin, ymax, blocks, columns, biomes}));
     } else {
         console.log(out.join('\n'));
     }

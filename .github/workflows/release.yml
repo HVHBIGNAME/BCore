@@ -21,10 +21,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2026-08-21
       - uses: Swatinem/rust-cache@v2
       - name: Build release
-        run: cargo build --release -p bcore
+        run: cargo build --release --locked -p bcore
+      - name: Verify bundled vanilla reference
+        run: cargo test --release --locked -p bcore-worldgen --test vanilla_reference
       - name: Prepare artifact
         shell: bash
         run: cp "target/release/bcore${{ matrix.suffix }}" "${{ matrix.name }}${{ matrix.suffix }}"
@@ -37,10 +41,13 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
       - uses: softprops/action-gh-release@v2
         with:
           files: artifacts/**/*
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          body_path: docs/release-notes.md
           generate_release_notes: true

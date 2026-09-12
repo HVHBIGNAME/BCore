@@ -66,6 +66,8 @@
   }
   li:first-child { border-top: 0; }
   .name { flex: 1; }
+  .parity p { margin: 8px 0; }
+  a { color: var(--accent); }
   .badge {
     font-size: 0.72rem;
     font-weight: 600;
@@ -99,7 +101,7 @@
   <div id="categories"></div>
 
   <footer>
-    BCore — a native Rust Minecraft server (26.2 / protocol 776). MIT licensed.
+    BCore — a native Rust Minecraft server. Development protocol 775; 776 migration planned. MIT licensed.
     This tracker updates automatically from <code>tracker.json</code> in the repository.
   </footer>
 </div>
@@ -130,10 +132,22 @@
     document.getElementById('overall-pct').textContent = pct + '%';
     document.getElementById('overall-count').textContent =
       `${doneCount} / ${all.length} items complete`;
+    document.getElementById('overall-count').textContent += ' · weighted implementation checklist';
     document.getElementById('overall-bar').style.width = pct + '%';
 
     const container = document.getElementById('categories');
     container.innerHTML = '';
+    if (data.parity) {
+      const p = data.parity;
+      const measured = document.createElement('section');
+      measured.className = 'category parity';
+      measured.innerHTML = `<h2>Measured vanilla 26.1 parity</h2>` +
+        `<p class="sub">${escapeHtml(p.scope)}</p>` +
+        `<p>Seed: <code>${escapeHtml(p.seed)}</code> · protocol ${data.protocol}</p>` +
+        `<p>Terrain: ${escapeHtml(p.terrain)}<br>Biomes: ${escapeHtml(p.biomes)}<br>Blocks: ${escapeHtml(p.states)}</p>` +
+        `<a href="${escapeHtml(p.report)}">Method, regressions and remaining work</a>`;
+      container.appendChild(measured);
+    }
     for (const cat of data.categories) {
       const done = cat.items.filter(i => i.status === 'done').length;
       const catPct = Math.round((done / cat.items.length) * 100);

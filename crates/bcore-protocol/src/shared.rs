@@ -255,12 +255,25 @@ impl ServerState {
         if let Ok(mut ops) = self.ops.lock() {
             ops.insert(name.to_string());
         }
+        self.send_permission_level(name, 4);
     }
 
     /// Remove operator status from `name` (in memory; call [`Self::save_ops`] to persist).
     pub fn remove_op(&self, name: &str) {
         if let Ok(mut ops) = self.ops.lock() {
             ops.remove(name);
+        }
+        self.send_permission_level(name, 0);
+    }
+
+    fn send_permission_level(&self, name: &str, level: u8) {
+        if let Some(player) = self.find_by_name(name) {
+            player
+                .outbox
+                .push(&crate::gameplay::encode_permission_level(
+                    crate::join::PLAY_LOGIN_ENTITY_ID,
+                    level,
+                ));
         }
     }
 
@@ -344,6 +357,28 @@ mod tests {
         server.leave(a.id);
         assert_eq!(server.player_names(), vec!["Beta"]);
         assert_eq!(server.player_count(), 1);
+    }
+
+    #[test]
+    fn op_changes_update_only_the_targets_client_permissions() {
+        let server = ServerState::default();
+        let player = server.join("Operator", [1; 16]);
+        let other = server.join("Other", [2; 16]);
+        for (op, expected) in [(true, 28), (false, 24)] {
+            if op {
+                server.add_op("Operator");
+            } else {
+                server.remove_op("Operator");
+            }
+            let (id, body) =
+                crate::packet::read_frame(&mut std::io::Cursor::new(player.outbox.drain()))
+                    .unwrap();
+            assert_eq!(id, 0x22);
+            assert_eq!(&body[..4], &crate::join::PLAY_LOGIN_ENTITY_ID.to_be_bytes());
+            assert_eq!(body[4], expected);
+            assert_eq!(server.is_op("Operator"), op);
+            assert!(other.outbox.is_empty());
+        }
     }
 
     #[test]

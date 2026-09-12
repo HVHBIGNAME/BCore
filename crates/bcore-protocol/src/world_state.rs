@@ -41,21 +41,19 @@ static GENERATION_IN_FLIGHT: OnceLock<Mutex<std::collections::HashSet<Generation
 fn generation_queue() -> &'static mpsc::Sender<GenerationJob> {
     GENERATION_QUEUE.get_or_init(|| {
         let (tx, rx) = mpsc::channel::<GenerationJob>();
-        let rx = std::sync::Arc::new(Mutex::new(rx));
-        for _ in 0..std::thread::available_parallelism().map_or(2, |n| n.get().min(8)) {
-            let rx = rx.clone();
-            thread::spawn(move || loop {
-                let job = rx.lock().expect("generation queue lock").recv();
-                let Ok((x, z)) = job else { break };
-                let _ = shared().chunk_payload(x, z);
-                if let Some(in_flight) = GENERATION_IN_FLIGHT.get() {
-                    in_flight
-                        .lock()
-                        .expect("generation in-flight lock")
-                        .remove(&(x, z));
-                }
-            });
-        }
+        // A chunk already uses the Rayon pool. One dispatcher keeps nearest-first
+        // jobs from competing with seven other whole-chunk parallel generations.
+        thread::spawn(move || loop {
+            let job = rx.recv();
+            let Ok((x, z)) = job else { break };
+            let _ = shared().chunk_payload(x, z);
+            if let Some(in_flight) = GENERATION_IN_FLIGHT.get() {
+                in_flight
+                    .lock()
+                    .expect("generation in-flight lock")
+                    .remove(&(x, z));
+            }
+        });
         tx
     })
 }
@@ -128,6 +126,19 @@ impl World {
             payloads: std::array::from_fn(|_| RwLock::new(HashMap::new())),
             warned: Mutex::new(false),
         }
+    }
+
+    /// Pre-encoded terrain for unit tests of chunk selection and packet batching.
+    #[cfg(test)]
+    pub(crate) fn flat_fixture(positions: impl IntoIterator<Item = (i32, i32)>) -> Self {
+        let world = Self::in_memory(0);
+        for (x, z) in positions {
+            world.payloads[payload_shard(x, z)]
+                .write()
+                .unwrap()
+                .insert((x, z), crate::chunk::flat_chunk_payload(x, z));
+        }
+        world
     }
 
     /// The seed this world generates from.
@@ -248,8 +259,14 @@ impl World {
 
     /// A safe spawn position: the terrain surface at `(x, z)`, plus one block.
     pub fn spawn_position(&self, x: f64, z: f64) -> (f64, f64, f64) {
-        let y = self.generator.spawn_y(x.floor() as i32, z.floor() as i32);
-        (x, y, z)
+        let bx = x.floor() as i32;
+        let bz = z.floor() as i32;
+        let (column, _) = self.chunk(bx.div_euclid(16), bz.div_euclid(16));
+        let y = column
+            .surface_y(bx.rem_euclid(16) as usize, bz.rem_euclid(16) as usize)
+            .unwrap_or(crate::chunk::SEA_LEVEL)
+            + 1;
+        (x, y as f64, z)
     }
 
     /// A spawn on the nearest column whose actual vanilla-generated surface is
@@ -262,7 +279,7 @@ impl World {
             let cz = z.div_euclid(16);
             let lx = x.rem_euclid(16) as usize;
             let lz = z.rem_euclid(16) as usize;
-            let chunk = self.generator.generate_chunk_vanilla(ChunkPos::new(cx, cz));
+            let (chunk, _) = self.chunk(cx, cz);
             chunk
                 .surface_y(lx, lz)
                 .map(|y| (y, chunk.get(lx, y, lz).expect("surface block")))

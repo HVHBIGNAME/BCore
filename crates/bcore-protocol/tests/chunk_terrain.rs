@@ -371,10 +371,10 @@ fn heightmaps_are_sent_as_the_same_three_kinds_as_vanilla() {
 fn the_three_heightmaps_differ_on_terrain_with_trees() {
     // Terrain has leaves and plants, so the kinds must not be identical copies —
     // otherwise the predicates are not actually being applied.
-    let world = World::in_memory(SEED);
+    // These forest chunks are covered by the captured vanilla worldgen reference.
+    let world = World::in_memory(846_692_123_413_862_008);
     let mut found_difference = false;
-    for i in 0..40i32 {
-        let (cx, cz) = (i % 10, i / 10);
+    for (cx, cz) in [(0, 0), (62, 0)] {
         let column = world.generate(cx, cz);
         let surface = column.heightmap();
         let no_leaves = column.heightmap_motion_blocking_no_leaves();
@@ -441,7 +441,7 @@ fn block_and_fluid_counts_follow_the_rules_measured_from_vanilla() {
 }
 
 #[test]
-fn our_water_sections_report_a_matching_fluid_count() {
+fn our_water_and_lava_sections_report_a_matching_fluid_count() {
     let world = World::in_memory(SEED);
     // Find a chunk with ocean in it, the same way the generator's own tests do.
     let mut checked = 0;
@@ -451,17 +451,17 @@ fn our_water_sections_report_a_matching_fluid_count() {
         let column = world.generate(cx, cz);
         let decoded = decode_chunk(&column.encode_payload(cx, cz));
         for (s, section) in decoded.sections.iter().enumerate() {
-            let water = section
+            let fluids = section
                 .blocks
                 .values
                 .iter()
-                .filter(|&&state| state == block_state::WATER)
+                .filter(|&&state| (86..=117).contains(&state))
                 .count();
             assert_eq!(
-                section.fluid_count as usize, water,
-                "fluidCount must equal the water blocks in section {s} of ({cx},{cz})"
+                section.fluid_count as usize, fluids,
+                "fluidCount must include water AND lava in section {s} of ({cx},{cz})"
             );
-            if water > 0 {
+            if fluids > 0 {
                 checked += 1;
             }
         }

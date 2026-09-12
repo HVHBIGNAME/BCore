@@ -30,11 +30,10 @@
 
 use bcore_core::ChunkPos;
 use rayon::prelude::*;
-use std::fs;
-use std::path::PathBuf;
 use std::sync::OnceLock;
 
 pub mod aquifer;
+mod assets;
 pub mod biome;
 pub mod carver;
 pub mod decoration;
@@ -302,6 +301,8 @@ pub struct GeneratedChunk {
     states: Vec<u32>,
     /// Surface biome per `(x, z)`, indexed `z * 16 + x`.
     biomes: Vec<Biome>,
+    /// 4×4×96 quart cells in x/z/y order, independent of surface-biome aliases.
+    noise_biomes: Option<Vec<biome::BiomeId>>,
     /// Terrain height (topmost solid terrain Y, before features) per `(x, z)`.
     heights: Vec<i32>,
 }
@@ -312,6 +313,7 @@ impl GeneratedChunk {
             pos,
             states: vec![block::AIR; CHUNK_SIZE * CHUNK_SIZE * WORLD_HEIGHT as usize],
             biomes: vec![Biome::Plains; CHUNK_SIZE * CHUNK_SIZE],
+            noise_biomes: None,
             heights: vec![MIN_Y; CHUNK_SIZE * CHUNK_SIZE],
         }
     }
@@ -350,6 +352,14 @@ impl GeneratedChunk {
     /// The surface biome at a chunk-local `(x, z)`.
     pub fn biome_at(&self, x: usize, z: usize) -> Biome {
         self.biomes[z * CHUNK_SIZE + x]
+    }
+
+    pub fn noise_biome_at(&self, x: usize, y: i32, z: usize) -> biome::BiomeId {
+        assert!(x < 16 && z < 16 && (MIN_Y..=MAX_Y).contains(&y));
+        self.noise_biomes
+            .as_ref()
+            .map(|cells| cells[((y - MIN_Y) as usize / 4) * 16 + (z / 4) * 4 + x / 4])
+            .unwrap_or_else(|| self.biome_at(x, z).network_id())
     }
 
     /// The terrain height at a chunk-local `(x, z)` (topmost solid terrain Y).
@@ -706,13 +716,11 @@ impl WorldGenerator {
 
     /// Generate a chunk using the staged vanilla data-driven pipeline.
     ///
-    /// Missing/incomplete datapack functions intentionally degrade to the existing
-    /// deterministic generator; this keeps callers working while density support
-    /// grows (interpolated/blend/cache are represented as zero by density.rs).
+    /// Vanilla assets are bundled in the binary. Invalid explicit overrides fail
+    /// at initialization instead of silently selecting the prototype generator.
     pub fn generate_chunk_vanilla(self, pos: ChunkPos) -> GeneratedChunk {
-        let Some(graph) = VanillaGraph::load() else {
-            return self.generate_chunk(pos);
-        };
+        let started = std::time::Instant::now();
+        let graph = VanillaGraph::load().expect("complete vanilla worldgen assets");
         // Density caches are per-chunk: reset them so memory stays bounded to a
         // single chunk rather than growing across the whole world.
         density::clear_density_caches();
@@ -735,12 +743,12 @@ impl WorldGenerator {
         let base_z = pos.z * CHUNK_SIZE as i32;
         let column_count = CHUNK_SIZE * CHUNK_SIZE;
 
-        // The biome result is stored in the chunk-local column cache together with
-        // terrain. Rayon may execute columns in any order, but indexed collection
-        // restores a fixed (z * 16 + x) layout and never shares mutable state.
+        // Each worker owns and clears its column caches; clearing only the calling
+        // thread leaves the Rayon workers retaining samples from previous chunks.
         let columns: Vec<VanillaColumn> = (0..column_count)
             .into_par_iter()
             .map(|column_index| {
+                density::clear_density_caches();
                 let x = column_index % CHUNK_SIZE;
                 let z = column_index / CHUNK_SIZE;
                 let wx = base_x + x as i32;
@@ -762,19 +770,11 @@ impl WorldGenerator {
                         top = y;
                     }
                 }
-                let climate = |f: &Option<density::DensityFunction>| {
-                    f.as_ref()
-                        .map(|v| density::evaluate(v, wx as f64, top as f64, wz as f64, &ctx))
-                        .unwrap_or(0.0)
-                };
-                let biome_id = biome::biome_at(
-                    &graph.parameters,
-                    climate(&graph.temperature),
-                    climate(&graph.humidity),
-                    climate(&graph.continentalness),
-                    climate(&graph.erosion),
-                    climate(&graph.depth),
-                    climate(&graph.weirdness),
+                let biome_id = graph.noise_biome_at(
+                    wx.div_euclid(4),
+                    top.div_euclid(4),
+                    wz.div_euclid(4),
+                    &ctx,
                 );
                 let biome = biome_from_id(biome_id);
                 let mut states = vec![block::AIR; WORLD_HEIGHT as usize];
@@ -843,11 +843,28 @@ impl WorldGenerator {
                         water_height = i32::MIN;
                     }
                 }
+                density::clear_density_caches();
                 VanillaColumn { top, biome, states }
             })
             .collect();
 
+        let terrain_done = started.elapsed();
         let mut chunk = GeneratedChunk::new(pos);
+        let mut noise_biomes = Vec::with_capacity(1536);
+        for qy in MIN_Y / 4..=MAX_Y / 4 {
+            for qz in 0..4 {
+                for qx in 0..4 {
+                    noise_biomes.push(graph.noise_biome_at(
+                        pos.x * 4 + qx,
+                        qy,
+                        pos.z * 4 + qz,
+                        &ctx,
+                    ));
+                }
+            }
+        }
+        chunk.noise_biomes = Some(noise_biomes);
+        let biomes_done = started.elapsed();
         for (column_index, column) in columns.into_iter().enumerate() {
             chunk.heights[column_index] = column.top;
             chunk.biomes[column_index] = column.biome;
@@ -945,6 +962,14 @@ impl WorldGenerator {
             }
         }
         self.decorate_vanilla(&mut chunk);
+        if std::env::var_os("BCORE_WORLDGEN_TIMINGS").is_some() {
+            eprintln!(
+                "chunk {pos:?}: terrain={terrain_done:?} biomes={:?} features={:?}",
+                biomes_done - terrain_done,
+                started.elapsed() - biomes_done
+            );
+        }
+        density::clear_density_caches();
         chunk
     }
 
@@ -1464,29 +1489,49 @@ pub(crate) struct VanillaGraph {
     surface_rule: Option<surface_rules::SurfaceRule>,
 }
 impl VanillaGraph {
+    fn noise_biome_at(
+        &self,
+        qx: i32,
+        qy: i32,
+        qz: i32,
+        ctx: &density::EvalContext,
+    ) -> biome::BiomeId {
+        let climate = |f: &Option<density::DensityFunction>| {
+            density::evaluate(
+                f.as_ref().expect("climate router function"),
+                (qx * 4) as f64,
+                (qy * 4) as f64,
+                (qz * 4) as f64,
+                ctx,
+            )
+        };
+        biome::biome_at(
+            &self.parameters,
+            climate(&self.temperature),
+            climate(&self.humidity),
+            climate(&self.continentalness),
+            climate(&self.erosion),
+            climate(&self.depth),
+            climate(&self.weirdness),
+        )
+    }
+
     fn load() -> Option<&'static Self> {
         static GRAPH: OnceLock<Option<VanillaGraph>> = OnceLock::new();
         GRAPH.get_or_init(Self::load_uncached).as_ref()
     }
 
     fn load_uncached() -> Option<Self> {
-        let root = std::env::var_os("BCORE_DATAPACK")
-            .map(PathBuf::from)
-            .unwrap_or_else(|| PathBuf::from("target/datapack"));
-        let settings = root.join("data/minecraft/worldgen/noise_settings/overworld.json");
-        let text = fs::read_to_string(settings).ok()?;
-        let final_json = text
-            .split("\"final_density\":")
-            .nth(1)?
-            .split("\"vein_toggle\"")
-            .next()?;
-        let final_density = density::parse_json(final_json).ok()?;
+        let settings_value =
+            assets::load("noise_settings/overworld.json").expect("overworld noise settings");
+        let final_density =
+            density::parse_json(&settings_value["noise_router"]["final_density"].to_string())
+                .ok()?;
         // Climate router entries are inline in vanilla's overworld settings,
         // unlike continents/erosion/ridges which have standalone density files.
         // Keep the router's exact shifted-noise graphs here; treating a missing
         // standalone `overworld/{temperature,humidity}.json` as zero collapses
         // multi-noise biome selection to Plains.
-        let settings_value: serde_json::Value = serde_json::from_str(&text).ok()?;
         let router_density = |name: &str| {
             settings_value
                 .get("noise_router")
@@ -1495,32 +1540,23 @@ impl VanillaGraph {
         };
         let router_temperature = router_density("temperature");
         let router_humidity = router_density("vegetation");
-        let dir = root.join("data/minecraft/worldgen/density_function/overworld");
         let load = |name: &str| {
-            fs::read_to_string(dir.join(format!("{name}.json")))
+            assets::load(&format!("density_function/overworld/{name}.json"))
                 .ok()
-                .and_then(|s| density::parse_json(&s).ok())
+                .and_then(|value| density::parse_json(&value.to_string()).ok())
         };
-        let cave_dir = dir.join("caves");
-        let load_cave = |name: &str| {
-            fs::read_to_string(cave_dir.join(format!("{name}.json")))
-                .ok()
-                .and_then(|s| density::parse_json(&s).ok())
-        };
-        let parameters = biome::load_overworld_parameters(
-            root.join("../datagen/reports/biome_parameters/minecraft/overworld.json"),
+        let load_cave = |name: &str| load(&format!("caves/{name}"));
+        let parameters = biome::parse_parameters(
+            &assets::load("biome_parameters/overworld.json").expect("overworld biome parameters"),
         )
-        .unwrap_or_default();
-        let surface_rule = serde_json::from_str::<serde_json::Value>(&text)
-            .ok()
-            .and_then(|v| v.get("surface_rule").map(surface_rules::SurfaceRule::parse));
-        let preliminary = serde_json::from_str::<serde_json::Value>(&text)
-            .ok()
-            .and_then(|v| {
-                v.get("noise_router")
-                    .and_then(|r| r.get("preliminary_surface_level"))
-                    .cloned()
-            })
+        .expect("valid biome parameters");
+        let surface_rule = settings_value
+            .get("surface_rule")
+            .map(surface_rules::SurfaceRule::parse);
+        let preliminary = settings_value
+            .get("noise_router")
+            .and_then(|r| r.get("preliminary_surface_level"))
+            .cloned()
             .and_then(|v| density::parse_json(&v.to_string()).ok());
         Some(Self {
             final_density,

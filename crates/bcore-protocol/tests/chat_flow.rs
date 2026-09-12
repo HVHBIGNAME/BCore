@@ -276,6 +276,36 @@ fn start_server_with_ops(ops: &[&str]) -> SocketAddr {
 }
 
 #[test]
+fn debug_gamemode_switch_advertises_and_enforces_operator_permissions() {
+    let addr = start_server_with_ops(&["SwitcherOp"]);
+    let mut op = Client::join(addr, "SwitcherOp", 0x51);
+    let event = op.all(0x22).into_iter().last().expect("permission event");
+    assert_eq!(event.data[4], 28, "operator permission level 4");
+    op.clear();
+    send(&mut op.stream, 0x05, &[3]);
+    assert!(op.pump_until(Duration::from_secs(10), |seen| seen
+        .iter()
+        .any(|p| p.id == CB_GAME_STATE_CHANGE)));
+    assert_eq!(
+        op.first(CB_GAME_STATE_CHANGE).unwrap().data,
+        [3, 0x40, 0x40, 0, 0]
+    );
+
+    let mut guest = Client::join(addr, "SwitcherGuest", 0x52);
+    let event = guest
+        .all(0x22)
+        .into_iter()
+        .last()
+        .expect("permission event");
+    assert_eq!(event.data[4], 24, "guest permission level 0");
+    guest.clear();
+    send(&mut guest.stream, 0x05, &[1]);
+    guest.send_command("seed");
+    assert!(guest.wait_for_chat("846692123413862008"));
+    assert!(guest.first(CB_GAME_STATE_CHANGE).is_none());
+}
+
+#[test]
 fn join_sends_the_command_tree_health_time_and_abilities() {
     let addr = start_server();
     let mut alpha = Client::join(addr, "AlphaProbe", 0xA1);
@@ -478,6 +508,13 @@ fn gamemode_teleport_spawn_and_time_change_state() {
     let addr = start_server();
     let mut alpha = Client::join(addr, "AlphaProbe", 0xA1);
     alpha.drain(Duration::from_millis(800));
+    let position = alpha
+        .all(CB_POSITION)
+        .into_iter()
+        .last()
+        .expect("join position");
+    let (_, offset) = decode_varint(&position.data).expect("teleport id");
+    let join_coordinates = position.data[offset..offset + 24].to_vec();
     alpha.clear();
 
     // /gamemode creative -> abilities 0x0d then game_state_change reason 3.
@@ -531,10 +568,10 @@ fn gamemode_teleport_spawn_and_time_change_state() {
         .any(|p| p.id == CB_POSITION)));
     let position = alpha.first(CB_POSITION).expect("position");
     let (_, n) = decode_varint(&position.data).expect("teleport id");
-    let spawn_x = f64::from_be_bytes(position.data[n..n + 8].try_into().expect("8 bytes"));
     assert_eq!(
-        spawn_x, 42.0,
-        "land spawn x (nearest solid land to the join point)"
+        position.data[n..n + 24],
+        join_coordinates,
+        "/spawn must restore the actual generated join position"
     );
 
     // /time set night -> one clock update carrying 13000 ticks.
@@ -542,8 +579,13 @@ fn gamemode_teleport_spawn_and_time_change_state() {
     alpha.send_command("time set night");
     assert!(alpha.pump_until(Duration::from_secs(30), |seen| seen
         .iter()
-        .any(|p| p.id == CB_UPDATE_TIME)));
-    let time = alpha.first(CB_UPDATE_TIME).expect("update_time");
+        .any(|p| p.id == CB_UPDATE_TIME && p.data.get(8) == Some(&1))));
+    // Periodic two-clock updates may arrive between the command and its response.
+    let time = alpha
+        .all(CB_UPDATE_TIME)
+        .into_iter()
+        .find(|p| p.data.get(8) == Some(&1))
+        .expect("time-set response");
     assert_eq!(time.data[8], 0x01, "one clock update");
     assert_eq!(time.data[9], 0x00, "day-time clock id");
     let (ticks, _) = bcore_core::varint::decode_varlong(&time.data[10..]).expect("varlong");

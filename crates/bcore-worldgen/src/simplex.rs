@@ -295,19 +295,22 @@ thread_local! {
     static NORMAL_CACHE: std::cell::RefCell<std::collections::HashMap<(i64, String), crate::noise_perlin::NormalNoise>> =
         std::cell::RefCell::new(std::collections::HashMap::new());
 }
-fn cached_normal(
+fn sample_cached_normal(
     seed: i64,
     noise_name: &str,
     first: i32,
     amplitudes: &[f64],
-) -> crate::noise_perlin::NormalNoise {
+    x: f64,
+    y: f64,
+    z: f64,
+) -> f64 {
     NORMAL_CACHE.with(|c| {
         let mut m = c.borrow_mut();
         m.entry((seed, noise_name.to_string()))
             .or_insert_with(|| {
                 crate::noise_perlin::NormalNoise::for_world(seed, noise_name, first, amplitudes)
             })
-            .clone()
+            .get_value(x, y, z)
     })
 }
 
@@ -355,13 +358,15 @@ impl NoiseRegistry {
         // Vanilla `RandomState` with `legacy_random_source: false` (the overworld
         // default): the root random is Xoroshiro, forked positionally, and each
         // noise comes from `fromHashOf("minecraft:<key>")` (MD5-derived seed pair).
-        let n = cached_normal(
+        sample_cached_normal(
             seed,
             &format!("minecraft:{key}"),
             d.first_octave,
             &d.amplitudes,
-        );
-        n.get_value(x, y, z)
+            x,
+            y,
+            z,
+        )
     }
 }
 
