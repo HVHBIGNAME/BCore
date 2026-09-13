@@ -3,7 +3,7 @@ name = "bcore"
 version = "0.7.0-alpha.1"
 edition = "2021"
 license = "MIT"
-description = "BCore — native Rust Minecraft Java Edition server (target 26.2)"
+description = "BCore — native Rust Minecraft Java Edition server (dev target 26.1)"
 
 [dependencies]
 bcore-core = { path = "../bcore-core" }
