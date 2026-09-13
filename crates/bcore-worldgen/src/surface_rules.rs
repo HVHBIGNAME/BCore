@@ -314,11 +314,7 @@ mod tests {
     use super::*;
     #[test]
     fn parses_real_tree() {
-        let s = std::fs::read_to_string(
-            "../../target/datapack/data/minecraft/worldgen/noise_settings/overworld.json",
-        )
-        .unwrap();
-        let d: Value = serde_json::from_str(&s).unwrap();
+        let d = crate::assets::load("noise_settings/overworld.json").unwrap();
         let r = SurfaceRule::parse(&d["surface_rule"]);
         let c = SurfaceContext {
             biome: 0,
