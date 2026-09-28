@@ -1,24 +1,18 @@
 //! First structure-generation scaffold: deterministic village starts and a house.
+pub mod mineshaft;
+pub mod placement;
+
 use crate::{block, GeneratedChunk, CHUNK_SIZE, MAX_Y, MIN_Y, SEA_LEVEL};
 use bcore_core::ChunkPos;
+use placement::RandomSpreadPlacement;
 
 pub const VILLAGE_SPACING: i32 = 34;
 pub const VILLAGE_SEPARATION: i32 = 8;
 pub const VILLAGE_SALT: i64 = 10_387_312;
 
-/// Vanilla RandomSpreadStructurePlacement-shaped candidate test.
+/// Random-spread candidate only; biome/terrain admission is performed separately.
 pub fn village_start(seed: i64, chunk: ChunkPos) -> bool {
-    let rx = div_floor(chunk.x, VILLAGE_SPACING);
-    let rz = div_floor(chunk.z, VILLAGE_SPACING);
-    let mixed = (seed as u64)
-        .wrapping_add((rx as i64 as u64).wrapping_mul(341_873_128_712))
-        .wrapping_add((rz as i64 as u64).wrapping_mul(132_897_987_541))
-        .wrapping_add(VILLAGE_SALT as u64);
-    let first = crate::splitmix64(mixed);
-    let range = (VILLAGE_SPACING - VILLAGE_SEPARATION) as u64;
-    let ox = (first % range) as i32;
-    let oz = (crate::splitmix64(first) % range) as i32;
-    chunk.x == rx * VILLAGE_SPACING + ox && chunk.z == rz * VILLAGE_SPACING + oz
+    RandomSpreadPlacement::VILLAGES.is_candidate(seed, chunk)
 }
 
 /// Place a clipped, deterministic oak house on the generated surface.
@@ -79,15 +73,6 @@ pub fn place_village_house(seed: i64, chunk: &mut GeneratedChunk) -> bool {
         }
     }
     placed
-}
-
-fn div_floor(value: i32, divisor: i32) -> i32 {
-    let q = value / divisor;
-    if value % divisor < 0 {
-        q - 1
-    } else {
-        q
-    }
 }
 
 #[cfg(test)]

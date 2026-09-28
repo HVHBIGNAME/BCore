@@ -37,6 +37,15 @@ pub fn noise_registry() -> &'static NoiseRegistry {
     })
 }
 
+/// Resolve a router field through the same bundled/explicit datapack as worldgen.
+pub fn parse_router(settings: &str, field: &str) -> Result<DensityFunction, String> {
+    let settings = crate::assets::load(&format!("noise_settings/{settings}.json"))?;
+    let function = settings["noise_router"]
+        .get(field)
+        .ok_or_else(|| format!("unknown noise router field {field}"))?;
+    parse_json(&function.to_string())
+}
+
 #[derive(Debug, Clone, Copy)]
 pub enum RarityMapper {
     Tunnels,
@@ -155,11 +164,23 @@ pub enum DensityFunction {
     Unknown,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum EvaluationMode {
+    /// DensityFunction.compute(SinglePointContext): marker nodes delegate.
+    Raw,
+    /// NoiseChunk's interpolation and cache wrappers.
+    NoiseChunk,
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct EvalContext {
     pub seed: i64,
+    pub mode: EvaluationMode,
     pub cell_width: i32,
     pub cell_height: i32,
+    /// Inclusive quart X/Z bounds of NoiseChunk's precomputed FlatCache grid.
+    /// None uses direct evaluation, as a query outside that grid would.
+    pub flat_cache_bounds: Option<[i32; 4]>,
     /// Blender hooks. The defaults are vanilla's empty Blender; callers that
     /// have legacy-chunk data can provide the three exact Blender operations.
     pub blend_alpha: fn(i32, i32) -> f64,
@@ -181,16 +202,30 @@ impl Default for EvalContext {
     fn default() -> Self {
         Self {
             seed: 0,
+            mode: EvaluationMode::NoiseChunk,
             cell_width: 4,
             cell_height: 8,
+            flat_cache_bounds: None,
             blend_alpha: empty_blend_alpha,
             blend_offset: empty_blend_offset,
             blend_density: empty_blend_density,
         }
     }
 }
+
+impl EvalContext {
+    pub fn with_noise_bounds(mut self, block_x: i32, block_z: i32, cell_count_xz: i32) -> Self {
+        self.flat_cache_bounds = Some([
+            block_x >> 2,
+            block_z >> 2,
+            (block_x + cell_count_xz * self.cell_width) >> 2,
+            (block_z + cell_count_xz * self.cell_width) >> 2,
+        ]);
+        self
+    }
+}
 thread_local! {
-    static CACHE_ALL_IN_CELL: RefCell<HashMap<(usize, i64, i32, i32, i32), f64>> = RefCell::new(HashMap::new());
+    static CACHE_ALL_IN_CELL: RefCell<HashMap<(usize, i64, u64, u64, u64), f64>> = RefCell::new(HashMap::new());
     static CACHE_2D: RefCell<HashMap<(usize, i64, i64, i64), f64>> = RefCell::new(HashMap::new());
     static FLAT_CACHE: RefCell<HashMap<usize, (i64, u64, u64, u64, f64)>> = RefCell::new(HashMap::new());
     // CacheOnce is keyed by the complete evaluation coordinate.  The previous
@@ -245,24 +280,18 @@ pub fn density_cache_capacity() -> usize {
 }
 
 fn cache_all_in_cell(a: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContext) -> f64 {
-    let width = ctx.cell_width.max(1);
-    let height = ctx.cell_height.max(1);
-    let cell = (
-        (x / width as f64).floor() as i32 * width,
-        (y / height as f64).floor() as i32 * height,
-        (z / width as f64).floor() as i32 * width,
-    );
+    // Native caches every block in the cell, not a single cell-corner value.
     let key = (
         a as *const DensityFunction as usize,
         ctx.seed,
-        cell.0,
-        cell.1,
-        cell.2,
+        x.to_bits(),
+        y.to_bits(),
+        z.to_bits(),
     );
     if let Some(value) = CACHE_ALL_IN_CELL.with(|cache| cache.borrow().get(&key).copied()) {
         return value;
     }
-    let value = a.evaluate(cell.0 as f64, cell.1 as f64, cell.2 as f64, ctx);
+    let value = a.evaluate(x, y, z, ctx);
     CACHE_ALL_IN_CELL.with(|cache| {
         cache.borrow_mut().insert(key, value);
     });
@@ -287,7 +316,19 @@ fn cache_2d(a: &DensityFunction, x: f64, z: f64, ctx: &EvalContext) -> f64 {
 }
 
 fn flat_cache(a: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContext) -> f64 {
-    let key = (ctx.seed, x.to_bits(), y.to_bits(), z.to_bits());
+    let qx = (x.floor() as i32) >> 2;
+    let qz = (z.floor() as i32) >> 2;
+    if !ctx
+        .flat_cache_bounds
+        .is_some_and(|[min_x, min_z, max_x, max_z]| {
+            (min_x..=max_x).contains(&qx) && (min_z..=max_z).contains(&qz)
+        })
+    {
+        return a.evaluate(x, y, z, ctx);
+    }
+    let x = (qx * 4) as f64;
+    let z = (qz * 4) as f64;
+    let key = (ctx.seed, x.to_bits(), 0.0f64.to_bits(), z.to_bits());
     if let Some(value) = FLAT_CACHE.with(|cache| {
         cache
             .borrow()
@@ -297,11 +338,11 @@ fn flat_cache(a: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContext) ->
     }) {
         return value;
     }
-    let value = a.evaluate(x, y, z, ctx);
+    let value = a.evaluate(x, 0.0, z, ctx);
     FLAT_CACHE.with(|cache| {
         cache.borrow_mut().insert(
             a as *const DensityFunction as usize,
-            (ctx.seed, x.to_bits(), y.to_bits(), z.to_bits(), value),
+            (key.0, key.1, key.2, key.3, value),
         );
     });
     value
@@ -331,6 +372,15 @@ impl DensityFunction {
     }
     pub fn evaluate(&self, x: f64, y: f64, z: f64, ctx: &EvalContext) -> f64 {
         match self {
+            Self::Interpolated(a)
+            | Self::CacheAllInCell(a)
+            | Self::Cache2d(a)
+            | Self::FlatCache(a)
+            | Self::CacheOnce(a)
+                if ctx.mode == EvaluationMode::Raw =>
+            {
+                a.evaluate(x, y, z, ctx)
+            }
             Self::Constant(v) => *v,
             Self::Noise { name, xz, y: ys } => {
                 noise_registry().sample(name, ctx.seed, x * xz, y * ys, z * xz)
@@ -376,8 +426,8 @@ impl DensityFunction {
                 from_value,
                 to_value,
             } => {
-                let t = ((y - *from as f64) / (*to as f64 - *from as f64)).clamp(0., 1.);
-                from_value + (to_value - from_value) * t
+                let t = (y - *from as f64) / (*to as f64 - *from as f64);
+                noise_perlin::clamped_lerp(t, *from_value, *to_value)
             }
             Self::Spline { coordinate, points } => {
                 let cx = coordinate.evaluate(x, y, z, ctx);
@@ -468,10 +518,11 @@ impl DensityFunction {
                 noise,
                 rarity_mapper,
             } => {
-                // Vanilla samples the rarity input first, quantizes it through
-                // QuantizedSpaghettiRarity, then multiplies the noise sample.
-                let rarity = input.evaluate(x, y, z, ctx);
-                noise_registry().sample(noise, ctx.seed, x, y, z) * rarity_mapper.scale(rarity)
+                let scale = rarity_mapper.scale(input.evaluate(x, y, z, ctx));
+                scale
+                    * noise_registry()
+                        .sample(noise, ctx.seed, x / scale, y / scale, z / scale)
+                        .abs()
             }
             Self::EndIslands => 0.,
             Self::OldBlendedNoise {
@@ -510,8 +561,7 @@ impl DensityFunction {
         }
     }
 }
-/// Cached vanilla `BlendedNoise` keyed by world seed (derived from
-/// `fromHashOf("minecraft:terrain")`, so it differs per world).
+/// Cache the seeded BlendedNoise for the complete codec configuration.
 fn blended_noise(
     seed: i64,
     xz_scale: f64,
@@ -521,11 +571,16 @@ fn blended_noise(
     smear: f64,
 ) -> &'static noise_perlin::BlendedNoise {
     use std::sync::Mutex;
-    static BLENDED: OnceLock<Mutex<HashMap<i64, &'static noise_perlin::BlendedNoise>>> =
+    type Key = (i64, [u64; 5]);
+    static BLENDED: OnceLock<Mutex<HashMap<Key, &'static noise_perlin::BlendedNoise>>> =
         OnceLock::new();
     let cache = BLENDED.get_or_init(|| Mutex::new(HashMap::new()));
     let mut guard = cache.lock().unwrap();
-    guard.entry(seed).or_insert_with(|| {
+    let key = (
+        seed,
+        [xz_scale, y_scale, xz_factor, y_factor, smear].map(f64::to_bits),
+    );
+    guard.entry(key).or_insert_with(|| {
         Box::leak(Box::new(noise_perlin::BlendedNoise::for_world(
             seed, xz_scale, y_scale, xz_factor, y_factor, smear,
         )))
@@ -541,6 +596,8 @@ fn interpolate(inner: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContex
     let tx = ((x - x0) / cw).clamp(0., 1.);
     let ty = ((y - y0) / ch).clamp(0., 1.);
     let tz = ((z - z0) / cw).clamp(0., 1.);
+    // NoiseChunk fills its final-density CacheAllInCell via Mth.lerp3 (X/Y/Z).
+    // Its later updateForY/X/Z path has a different rounding order.
     let sx = tx;
     let sy = ty;
     let sz = tz;
@@ -581,13 +638,6 @@ fn interpolate(inner: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContex
     y0v + (y1v - y0v) * sz
 }
 
-fn hash_name(s: &str) -> i64 {
-    let mut h = 0xcbf29ce484222325u64;
-    for b in s.bytes() {
-        h = (h ^ b as u64).wrapping_mul(0x100000001b3)
-    }
-    h as i64
-}
 fn spline(
     p: &[(f64, Box<DensityFunction>, f64)],
     cx: f64,
@@ -599,25 +649,30 @@ fn spline(
     if p.is_empty() {
         return 0.;
     }
-    let at = |i: usize| -> f64 { p[i].1.evaluate(x, y, z, ctx) };
-    if cx <= p[0].0 {
-        return at(0) + (cx - p[0].0) * p[0].2;
+    // CubicSpline is a BoundedFloatFunction: knots, nested values, coordinates
+    // and every intermediate operation are float, widened only at the boundary.
+    let cx = cx as f32;
+    let at = |i: usize| p[i].1.evaluate(x, y, z, ctx) as f32;
+    let upper = p.partition_point(|point| cx >= point.0 as f32);
+    if upper == 0 || upper == p.len() {
+        let i = if upper == 0 { 0 } else { p.len() - 1 };
+        let value = at(i);
+        let derivative = p[i].2 as f32;
+        return if derivative == 0.0 {
+            value as f64
+        } else {
+            (value + derivative * (cx - p[i].0 as f32)) as f64
+        };
     }
-    for w in p.windows(2) {
-        if cx <= w[1].0 {
-            let (x0, d0) = (w[0].0, w[0].2);
-            let (x1, d1) = (w[1].0, w[1].2);
-            let y0 = w[0].1.evaluate(x, y, z, ctx);
-            let y1 = w[1].1.evaluate(x, y, z, ctx);
-            let t = (cx - x0) / (x1 - x0);
-            return (2. * t * t * t - 3. * t * t + 1.) * y0
-                + (t * t * t - 2. * t * t + t) * d0 * (x1 - x0)
-                + (-2. * t * t * t + 3. * t * t) * y1
-                + (t * t * t - t * t) * d1 * (x1 - x0);
-        }
-    }
-    let q = p.len() - 1;
-    p[q].1.evaluate(x, y, z, ctx) + (cx - p[q].0) * p[q].2
+    let i = upper - 1;
+    let x0 = p[i].0 as f32;
+    let x1 = p[i + 1].0 as f32;
+    let t = (cx - x0) / (x1 - x0);
+    let y0 = at(i);
+    let y1 = at(i + 1);
+    let q0 = p[i].2 as f32 * (x1 - x0) - (y1 - y0);
+    let q1 = -(p[i + 1].2 as f32) * (x1 - x0) + (y1 - y0);
+    (noise_perlin::lerp_f32(t, y0, y1) + t * (1.0 - t) * noise_perlin::lerp_f32(t, q0, q1)) as f64
 }
 
 #[derive(Debug, Clone)]
@@ -626,7 +681,8 @@ enum J {
     S(String),
     A(Vec<J>),
     O(HashMap<String, J>),
-    B(bool),
+    True,
+    False,
     Null,
 }
 struct Parser<'a> {
@@ -650,11 +706,11 @@ impl<'a> Parser<'a> {
             b'"' => self.string().map(J::S),
             b't' => {
                 self.i += 4;
-                Ok(J::B(true))
+                Ok(J::True)
             }
             b'f' => {
                 self.i += 5;
-                Ok(J::B(false))
+                Ok(J::False)
             }
             b'n' => {
                 self.i += 4;

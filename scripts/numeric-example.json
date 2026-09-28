@@ -1,0 +1,21 @@
+{
+  "points": {
+    "xyz": [[0, 64, 0], [-17, -63, 16], [999.25, 0.5, -1000]],
+    "blocks": [[0, 64, 0], [-17, -63, 16], [29999983, 57, -29999981]],
+    "lerp": [[0.125, -1, 1], [1, 10000000000000000, 1], [0, -0.0, -0.0]],
+    "fade": [[0.49999999999999994, 0, 0], [0.5, 0, 0], [0.9999999999999999, 0, 0]]
+  },
+  "cases": [
+    {"id": "example/erosion", "op": "normal", "seed": 846692123413862008, "noise": "minecraft:erosion", "points": "xyz"},
+    {"id": "example/perlin", "op": "perlin", "seed": -1, "first_octave": -7, "amplitudes": [1, 0, 0.5, 2], "points": "xyz"},
+    {"id": "example/lerp64", "op": "lerp", "precision": "f64", "points": "lerp"},
+    {"id": "example/lerp32", "op": "lerp", "precision": "f32", "points": "lerp"},
+    {"id": "example/fade", "op": "smoothstep", "points": "fade"},
+    {"id": "example/final_density_raw", "op": "router", "seed": 0, "field": "final_density", "points": "blocks"},
+    {"id": "example/final_density_interpolated", "op": "noise_chunk", "seed": 0, "points": "blocks"},
+    {
+      "id": "example/custom_density", "op": "density", "seed": 0, "points": "blocks",
+      "function": {"type": "minecraft:weird_scaled_sampler", "input": -0.5, "noise": "minecraft:spaghetti_2d", "rarity_value_mapper": "type_2"}
+    }
+  ]
+}

@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-"""Replicate vanilla RNG (from decompiled bytecode) to cross-check BCore's
-decoration seed + in_square positions for a chunk."""
-import json
+"""Cross-check a decoration seed and the first forest-placement candidate.
+
+Later candidates require intervening selector, tree and decorator RNG draws.
+This script does not simulate tree placement or predict successful trunks.
+"""
 
 MASK = (1 << 64) - 1
 SILVER = 0x6A09E667F3BCC909
@@ -65,18 +67,20 @@ class WorldgenRandom:
         z_scale = (self.next_long() | 1)
         return ((bx * x_scale + bz * z_scale) ^ world_seed) & MASK
 
-seed = 846692123413862008
-r = WorldgenRandom(seed)
-dec = r.set_decoration_seed(seed, 992, 0)
-print("decoration_seed =", s64(dec), "(BCore: -3363180012525553896)")
-# feature seed for index 43, step 9
-feat = (dec + 43 + 10000 * 9) & MASK
-r.src = Xoroshiro(*upgrade(feat))
-count = 10 if r.next_int_bounded(10) < 9 else 11
-print("count =", count)
-pos = []
-for _ in range(count):
+def main():
+    seed = 846692123413862008
+    r = WorldgenRandom(seed)
+    dec = r.set_decoration_seed(seed, 992, 0)
+    print("decoration_seed =", s64(dec))
+    # trees_birch_and_oak_leaf_litter: within-step index 25, vegetal step 9.
+    feat = (dec + 25 + 10000 * 9) & MASK
+    r.src = Xoroshiro(*upgrade(feat))
+    count = 10 if r.next_int_bounded(10) < 9 else 11
+    print("count =", count)
     x = 992 + r.next_int_bounded(16)
-    z = 0 + r.next_int_bounded(16)
-    pos.append((x, z))
-print("in_square xz:", pos)
+    z = r.next_int_bounded(16)
+    print("first in_square candidate (before admission):", (x, z))
+
+
+if __name__ == "__main__":
+    main()

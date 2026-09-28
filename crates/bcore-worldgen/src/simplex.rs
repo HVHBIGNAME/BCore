@@ -18,20 +18,22 @@ const GRAD3: [[f64; 3]; 12] = [
 ];
 const F3: f64 = 1.0 / 3.0;
 const G3: f64 = 1.0 / 6.0;
-const TRIG_MULTIPLIER: f64 = std::f64::consts::PI;
 
 /// Java's 48-bit Random, required because Minecraft seeds noise with Java Random.
 #[derive(Clone)]
 pub struct JavaRandom(u64);
 impl JavaRandom {
     pub fn new(seed: i64) -> Self {
-        Self((((seed as u64) ^ 0x5deece66d) & ((1u64 << 48) - 1)))
+        Self(((seed as u64) ^ 0x5deece66d) & ((1u64 << 48) - 1))
     }
     pub fn set_seed(&mut self, seed: i64) {
         self.0 = ((seed as u64) ^ 0x5deece66d) & ((1u64 << 48) - 1);
     }
     pub fn next_int_unbounded(&mut self) -> i32 {
         self.next(32) as i32
+    }
+    pub fn next_bool(&mut self) -> bool {
+        self.next(1) != 0
     }
     fn next(&mut self, bits: u32) -> u32 {
         self.0 = (self.0.wrapping_mul(0x5deece66d).wrapping_add(0xb)) & ((1u64 << 48) - 1);
@@ -159,14 +161,15 @@ impl WorldgenRandom {
     pub fn next_float(&mut self) -> f32 {
         self.next_bits(24) as f32 * 5.9604645e-8_f32
     }
-    /// `BitRandomSource.nextDouble` — `combined * 1.110223E-16F`: the long is
-    /// promoted to *float* (lossy) and multiplied by the *float* literal, then
-    /// widened back to double on return.
+    pub fn next_bool(&mut self) -> bool {
+        self.next_bits(1) != 0
+    }
+    /// `BitRandomSource.nextDouble`: combine two draws into a 53-bit double.
     pub fn next_double(&mut self) -> f64 {
         let upper = self.next_bits(26) as i64;
         let lower = self.next_bits(27) as i64;
         let combined = (upper << 27) + lower;
-        (combined as f32 * 1.110223e-16_f32) as f64
+        combined as f64 * (1.0 / (1_u64 << 53) as f64)
     }
     pub fn set_decoration_seed(&mut self, seed: i64, chunk_x: i32, chunk_z: i32) -> i64 {
         self.set_seed(seed);
@@ -287,10 +290,8 @@ impl SimplexNoise {
     }
 }
 
-/// Per-thread cache of `NormalNoise` instances, keyed by `(world seed, noise name)`.
-///
-/// Building one `NormalNoise` means constructing up to 2×9 `ImprovedNoise`
-/// permutation tables, which is far too expensive to repeat per sampled block.
+// Per-thread cache of `NormalNoise` instances, keyed by (world seed, noise name).
+// Avoids constructing up to 2×9 ImprovedNoise permutation tables per sample.
 thread_local! {
     static NORMAL_CACHE: std::cell::RefCell<std::collections::HashMap<(i64, String), crate::noise_perlin::NormalNoise>> =
         std::cell::RefCell::new(std::collections::HashMap::new());

@@ -25,6 +25,17 @@ def run(command, cwd=ROOT):
 
 def compare(capture, executable, seed):
     chunks = {}
+    keys = sorted({(row[0] // 16, row[2] // 16) for row in capture["blocks"]})
+    coordinates = [str(value) for key in keys for value in key]
+    result = run([str(executable), str(seed), *coordinates])
+    for line in result.stdout.splitlines():
+        raw = json.loads(line)
+        key = (raw["x"], raw["z"])
+        if raw["seed"] != seed or key not in keys or key in chunks or len(raw["states"]) != 384 * 256:
+            raise ValueError("invalid or duplicate BCore chunk")
+        chunks[key] = raw
+    if set(chunks) != set(keys):
+        raise ValueError("incomplete BCore region")
     diffs = Counter()
     exact_states = 0
     vanilla_origins, bcore_origins = set(), set()
@@ -35,11 +46,6 @@ def compare(capture, executable, seed):
     bcore_blocks = {}
     for x, y, z, name, state in capture["blocks"]:
         key = (x // 16, z // 16)
-        if key not in chunks:
-            raw = json.loads(run([str(executable), str(seed), *map(str, key)]).stdout)
-            if len(raw["states"]) != 384 * 256:
-                raise ValueError("incomplete BCore chunk")
-            chunks[key] = raw
         actual = chunks[key]["states"][(y + 64) * 256 + (z % 16) * 16 + x % 16]
         actual_name = IDS.get(actual, f"state_{actual}")
         bcore_blocks[(x, y, z)] = actual_name

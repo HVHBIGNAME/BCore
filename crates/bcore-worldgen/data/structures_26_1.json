@@ -1,0 +1,395 @@
+{
+  "minecraft": "26.1",
+  "jar_sha256": "a7fed6f7d88379349e35ae0c6e9881d4484605132f6f620376a3868eea6cce52",
+  "probe_sha256": "efd6d4375ee92c5a40ec54b7fa39d1bedabd590f060f788a3848161eafbdfa1b",
+  "grid_min": -32,
+  "samples": [
+    {
+      "samples": [
+        {
+          "candidates_and_frequency_md5": "907764e1b181a795333698ce4a4a49db",
+          "seed": 0,
+          "accepted_candidates": 3
+        },
+        {
+          "candidates_and_frequency_md5": "a8e84a36aceb0531c93d8354274756ed",
+          "seed": 1,
+          "accepted_candidates": 3
+        },
+        {
+          "candidates_and_frequency_md5": "31d9b969eca1ec82d58557b5c0774f15",
+          "seed": -1,
+          "accepted_candidates": 3
+        },
+        {
+          "candidates_and_frequency_md5": "faf50c60a35680977675ced05dea9437",
+          "seed": 846692123413862008,
+          "accepted_candidates": 4
+        },
+        {
+          "candidates_and_frequency_md5": "907764e1b181a795333698ce4a4a49db",
+          "seed": -9223372036854775808,
+          "accepted_candidates": 3
+        },
+        {
+          "candidates_and_frequency_md5": "31d9b969eca1ec82d58557b5c0774f15",
+          "seed": 9223372036854775807,
+          "accepted_candidates": 3
+        }
+      ],
+      "name": "villages",
+      "placement": {
+        "type": "minecraft:random_spread",
+        "salt": 10387312.0,
+        "separation": 8.0,
+        "spacing": 34.0
+      }
+    },
+    {
+      "samples": [
+        {
+          "candidates_and_frequency_md5": "60183a165fe6e45a1cad93de76f2f55a",
+          "seed": 0,
+          "accepted_candidates": 13
+        },
+        {
+          "candidates_and_frequency_md5": "586a3955119a005b4de627f7edb61439",
+          "seed": 1,
+          "accepted_candidates": 26
+        },
+        {
+          "candidates_and_frequency_md5": "fb8dd855490ef0818e6568c9e4d99a56",
+          "seed": -1,
+          "accepted_candidates": 17
+        },
+        {
+          "candidates_and_frequency_md5": "82828d70b175ec706aa6176daff0ea9e",
+          "seed": 846692123413862008,
+          "accepted_candidates": 20
+        },
+        {
+          "candidates_and_frequency_md5": "60183a165fe6e45a1cad93de76f2f55a",
+          "seed": -9223372036854775808,
+          "accepted_candidates": 13
+        },
+        {
+          "candidates_and_frequency_md5": "fb8dd855490ef0818e6568c9e4d99a56",
+          "seed": 9223372036854775807,
+          "accepted_candidates": 17
+        }
+      ],
+      "name": "mineshafts",
+      "placement": {
+        "type": "minecraft:random_spread",
+        "frequency": 0.004,
+        "frequency_reduction_method": "legacy_type_3",
+        "salt": 0.0,
+        "separation": 0.0,
+        "spacing": 1.0
+      }
+    },
+    {
+      "samples": [
+        {
+          "candidates_and_frequency_md5": "72b5ec9ce1f9d941fca3d4351eb2131a",
+          "seed": 0,
+          "accepted_candidates": 5
+        },
+        {
+          "candidates_and_frequency_md5": "a05aa4f511aa4731037cc71c07ee6276",
+          "seed": 1,
+          "accepted_candidates": 5
+        },
+        {
+          "candidates_and_frequency_md5": "8a5d5ebe2265df453d1f57b5434d6148",
+          "seed": -1,
+          "accepted_candidates": 5
+        },
+        {
+          "candidates_and_frequency_md5": "5b9fb9d3f3cf6555fc21b8a6f4738c72",
+          "seed": 846692123413862008,
+          "accepted_candidates": 7
+        },
+        {
+          "candidates_and_frequency_md5": "72b5ec9ce1f9d941fca3d4351eb2131a",
+          "seed": -9223372036854775808,
+          "accepted_candidates": 5
+        },
+        {
+          "candidates_and_frequency_md5": "8a5d5ebe2265df453d1f57b5434d6148",
+          "seed": 9223372036854775807,
+          "accepted_candidates": 5
+        }
+      ],
+      "name": "ancient_cities",
+      "placement": {
+        "type": "minecraft:random_spread",
+        "salt": 20083232.0,
+        "separation": 8.0,
+        "spacing": 24.0
+      }
+    },
+    {
+      "samples": [
+        {
+          "candidates_and_frequency_md5": "3a2d826bf8939ccf485f53bce8b139e3",
+          "seed": 0,
+          "accepted_candidates": 3
+        },
+        {
+          "candidates_and_frequency_md5": "4f8b2b5f6249f84283c332ecdf68d7fb",
+          "seed": 1,
+          "accepted_candidates": 4
+        },
+        {
+          "candidates_and_frequency_md5": "6335f6370cc1296c622317780ca35850",
+          "seed": -1,
+          "accepted_candidates": 4
+        },
+        {
+          "candidates_and_frequency_md5": "449c3e65e1a088385d968a9003346872",
+          "seed": 846692123413862008,
+          "accepted_candidates": 3
+        },
+        {
+          "candidates_and_frequency_md5": "3a2d826bf8939ccf485f53bce8b139e3",
+          "seed": -9223372036854775808,
+          "accepted_candidates": 3
+        },
+        {
+          "candidates_and_frequency_md5": "6335f6370cc1296c622317780ca35850",
+          "seed": 9223372036854775807,
+          "accepted_candidates": 4
+        }
+      ],
+      "name": "trial_chambers",
+      "placement": {
+        "type": "minecraft:random_spread",
+        "salt": 94251327.0,
+        "separation": 12.0,
+        "spacing": 34.0
+      }
+    },
+    {
+      "samples": [
+        {
+          "candidates_and_frequency_md5": "6cd7f99415c4b95ea7b7ef9dfa8b5806",
+          "seed": 0,
+          "accepted_candidates": 4
+        },
+        {
+          "candidates_and_frequency_md5": "07869066b949854c67323b99ac036aca",
+          "seed": 1,
+          "accepted_candidates": 4
+        },
+        {
+          "candidates_and_frequency_md5": "e96fb7c180634c0537623fbed0de36b2",
+          "seed": -1,
+          "accepted_candidates": 4
+        },
+        {
+          "candidates_and_frequency_md5": "4efb185131dc64b03f3ee9d69a83e278",
+          "seed": 846692123413862008,
+          "accepted_candidates": 4
+        },
+        {
+          "candidates_and_frequency_md5": "6cd7f99415c4b95ea7b7ef9dfa8b5806",
+          "seed": -9223372036854775808,
+          "accepted_candidates": 4
+        },
+        {
+          "candidates_and_frequency_md5": "e96fb7c180634c0537623fbed0de36b2",
+          "seed": 9223372036854775807,
+          "accepted_candidates": 4
+        }
+      ],
+      "name": "ocean_monuments",
+      "placement": {
+        "type": "minecraft:random_spread",
+        "salt": 10387313.0,
+        "separation": 5.0,
+        "spacing": 32.0,
+        "spread_type": "triangular"
+      }
+    },
+    {
+      "samples": [
+        {
+          "candidates_and_frequency_md5": "13556013c6ce757cdcbdaa68a562a9f7",
+          "seed": 0,
+          "accepted_candidates": 0
+        },
+        {
+          "candidates_and_frequency_md5": "3293781b9b29f50718cbfc2517ffad5a",
+          "seed": 1,
+          "accepted_candidates": 0
+        },
+        {
+          "candidates_and_frequency_md5": "72cbed9958e564fd0e06de4008834aba",
+          "seed": -1,
+          "accepted_candidates": 1
+        },
+        {
+          "candidates_and_frequency_md5": "3461681cdc0e012ffb89ad795a4e541a",
+          "seed": 846692123413862008,
+          "accepted_candidates": 0
+        },
+        {
+          "candidates_and_frequency_md5": "13556013c6ce757cdcbdaa68a562a9f7",
+          "seed": -9223372036854775808,
+          "accepted_candidates": 0
+        },
+        {
+          "candidates_and_frequency_md5": "72cbed9958e564fd0e06de4008834aba",
+          "seed": 9223372036854775807,
+          "accepted_candidates": 1
+        }
+      ],
+      "name": "woodland_mansions",
+      "placement": {
+        "type": "minecraft:random_spread",
+        "salt": 10387319.0,
+        "separation": 20.0,
+        "spacing": 80.0,
+        "spread_type": "triangular"
+      }
+    },
+    {
+      "samples": [
+        {
+          "candidates_and_frequency_md5": "389e908e65e3ea997dfc091cd5ab402e",
+          "seed": 0,
+          "accepted_candidates": 0
+        },
+        {
+          "candidates_and_frequency_md5": "66e403d0dfb10a0df9fed6a0ef76b4e2",
+          "seed": 1,
+          "accepted_candidates": 2
+        },
+        {
+          "candidates_and_frequency_md5": "906b15a6147296c0d3ba11206146beae",
+          "seed": -1,
+          "accepted_candidates": 1
+        },
+        {
+          "candidates_and_frequency_md5": "1b57e5303c0a9c4e046efdfa6203a980",
+          "seed": 846692123413862008,
+          "accepted_candidates": 1
+        },
+        {
+          "candidates_and_frequency_md5": "389e908e65e3ea997dfc091cd5ab402e",
+          "seed": -9223372036854775808,
+          "accepted_candidates": 0
+        },
+        {
+          "candidates_and_frequency_md5": "906b15a6147296c0d3ba11206146beae",
+          "seed": 9223372036854775807,
+          "accepted_candidates": 1
+        }
+      ],
+      "name": "pillager_outposts",
+      "placement": {
+        "type": "minecraft:random_spread",
+        "exclusion_zone": {
+          "chunk_count": 10.0,
+          "other_set": "minecraft:villages"
+        },
+        "frequency": 0.2,
+        "frequency_reduction_method": "legacy_type_1",
+        "salt": 165745296.0,
+        "separation": 8.0,
+        "spacing": 32.0
+      }
+    },
+    {
+      "samples": [
+        {
+          "candidates_and_frequency_md5": "f4819047491d5dcf6865fcb4a1f44d26",
+          "seed": 0,
+          "accepted_candidates": 38
+        },
+        {
+          "candidates_and_frequency_md5": "43d2c7a3b2432440d95560dd46c24531",
+          "seed": 1,
+          "accepted_candidates": 37
+        },
+        {
+          "candidates_and_frequency_md5": "664f30058e8253a06bcae8982a02c7d5",
+          "seed": -1,
+          "accepted_candidates": 37
+        },
+        {
+          "candidates_and_frequency_md5": "57836fb3d2682629e363301b1d87b74b",
+          "seed": 846692123413862008,
+          "accepted_candidates": 34
+        },
+        {
+          "candidates_and_frequency_md5": "f4819047491d5dcf6865fcb4a1f44d26",
+          "seed": -9223372036854775808,
+          "accepted_candidates": 38
+        },
+        {
+          "candidates_and_frequency_md5": "664f30058e8253a06bcae8982a02c7d5",
+          "seed": 9223372036854775807,
+          "accepted_candidates": 37
+        }
+      ],
+      "name": "buried_treasures",
+      "placement": {
+        "type": "minecraft:random_spread",
+        "frequency": 0.01,
+        "frequency_reduction_method": "legacy_type_2",
+        "locate_offset": [
+          9.0,
+          0.0,
+          9.0
+        ],
+        "salt": 0.0,
+        "separation": 0.0,
+        "spacing": 1.0
+      }
+    },
+    {
+      "samples": [
+        {
+          "candidates_and_frequency_md5": "8d24bc245eaab8424026ed6bbfd5f58c",
+          "seed": 0,
+          "accepted_candidates": 39
+        },
+        {
+          "candidates_and_frequency_md5": "3b356953ed9ba25087a082f15c9e8d7e",
+          "seed": 1,
+          "accepted_candidates": 41
+        },
+        {
+          "candidates_and_frequency_md5": "454463c7b973e2a82e00fdb479d2b4d4",
+          "seed": -1,
+          "accepted_candidates": 36
+        },
+        {
+          "candidates_and_frequency_md5": "981b12186a00f438ad78dae34c255ecc",
+          "seed": 846692123413862008,
+          "accepted_candidates": 24
+        },
+        {
+          "candidates_and_frequency_md5": "8d24bc245eaab8424026ed6bbfd5f58c",
+          "seed": -9223372036854775808,
+          "accepted_candidates": 39
+        },
+        {
+          "candidates_and_frequency_md5": "454463c7b973e2a82e00fdb479d2b4d4",
+          "seed": 9223372036854775807,
+          "accepted_candidates": 36
+        }
+      ],
+      "name": "test_default_frequency",
+      "placement": {
+        "spacing": 7,
+        "frequency": 0.37,
+        "separation": 2,
+        "salt": 12345
+      }
+    }
+  ],
+  "grid_max": 32
+}

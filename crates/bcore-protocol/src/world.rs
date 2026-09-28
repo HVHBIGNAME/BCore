@@ -5,15 +5,16 @@
 //! streams the chunks that entered the view distance (and unloads the ones that
 //! left it). Chunk columns are generated natively by [`crate::chunk`].
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::io::Write;
 use std::sync::atomic::{AtomicI32, Ordering};
 
 use bcore_core::varint::encode_varint;
 
+use crate::entity::{encode_remove_entities, TrackedEntities};
 use crate::gameplay::{GameMode, TIME_DAY};
 use crate::packet::{write_packet, PacketError};
-use crate::world_state::{self, World};
+use crate::world_state::{self, CachedChunk, World};
 
 /// Serverbound: `position` — x/y/z + movement flags.
 pub const SB_POSITION: i32 = 0x1e;
@@ -52,6 +53,9 @@ pub const VIEW_DISTANCE: i32 = 32;
 
 /// Minimum useful streaming batch even when a client initially reports 1.0.
 pub const MIN_CHUNK_BATCH_SIZE: usize = 4;
+
+// The join replay already used teleport id 1.
+const FIRST_TELEPORT_ID: i32 = 2;
 
 /// A test-only override for [`default_view_distance`]; 0 means "use the default".
 static VIEW_DISTANCE_OVERRIDE: AtomicI32 = AtomicI32::new(0);
@@ -100,6 +104,19 @@ pub fn chunks_in_view(cx: i32, cz: i32, radius: i32) -> Vec<(i32, i32)> {
     out
 }
 
+/// Delivery bookkeeping transferred from a previous view of the same connection.
+///
+/// Created by [`PlayerView::into_delivery_state`]. Owns the exact entities sent
+/// to that client, including entities still awaiting removal after a teleport.
+#[derive(Debug)]
+#[must_use = "adopt this delivery state on the same connection or retain it until disconnect"]
+pub struct ChunkDeliveryState {
+    loaded: BTreeSet<(i32, i32)>,
+    tracked_entities: BTreeMap<(i32, i32), TrackedEntities>,
+    retired_chunks: BTreeSet<(i32, i32)>,
+    next_teleport_id: i32,
+}
+
 /// Tracks a player's position and which chunks the client currently holds.
 #[derive(Debug, Clone)]
 pub struct PlayerView {
@@ -117,6 +134,9 @@ pub struct PlayerView {
     pub spawn: (f64, f64, f64),
     /// Chunks the client has been sent and has not been told to unload.
     loaded: BTreeSet<(i32, i32)>,
+    tracked_entities: BTreeMap<(i32, i32), TrackedEntities>,
+    /// A teleport clears selection immediately but still owes unload/removal packets.
+    retired_chunks: BTreeSet<(i32, i32)>,
     view_distance: i32,
     /// Maximum number of map_chunk packets emitted in one batch.
     chunk_batch_size: usize,
@@ -138,10 +158,11 @@ impl PlayerView {
             day_time: DEFAULT_DAY_TIME,
             spawn: (x, y, z),
             loaded: BTreeSet::new(),
+            tracked_entities: BTreeMap::new(),
+            retired_chunks: BTreeSet::new(),
             view_distance: default_view_distance(),
             chunk_batch_size: usize::MAX,
-            // The join replay already used teleport id 1.
-            next_teleport_id: 2,
+            next_teleport_id: FIRST_TELEPORT_ID,
         }
     }
 
@@ -164,7 +185,9 @@ impl PlayerView {
 
     /// Whether a subsequent tick still has chunk work to send.
     pub fn has_pending_chunks(&self) -> bool {
-        !self.missing_chunks().is_empty() || !self.stale_chunks().is_empty()
+        !self.missing_chunks().is_empty()
+            || !self.stale_chunks().is_empty()
+            || !self.retired_chunks.is_empty()
     }
 
     /// The chunk the player currently occupies.
@@ -177,9 +200,41 @@ impl PlayerView {
         self.loaded.iter()
     }
 
-    /// Mark a chunk as already delivered (used to adopt the join-time batch).
-    pub fn mark_loaded(&mut self, x: i32, z: i32) {
-        self.loaded.insert((x, z));
+    /// Consume this view to hand off its delivery state on the same connection.
+    pub fn into_delivery_state(self) -> ChunkDeliveryState {
+        ChunkDeliveryState {
+            loaded: self.loaded,
+            tracked_entities: self.tracked_entities,
+            retired_chunks: self.retired_chunks,
+            next_teleport_id: self.next_teleport_id,
+        }
+    }
+
+    /// Adopt the previous view's delivery state for this same connection.
+    ///
+    /// The destination must have no loaded chunks, tracked entities or pending
+    /// retirements, and must not have issued teleports. Its position and streaming
+    /// settings determine subsequent chunk selection. Teleport IDs continue from
+    /// the previous view. The caller must ensure both views serve the same client.
+    ///
+    /// On rejection, the destination is unchanged and `Err(state)` returns all
+    /// ownership and pending removals to the caller.
+    pub fn adopt_delivery_state(
+        &mut self,
+        state: ChunkDeliveryState,
+    ) -> Result<(), ChunkDeliveryState> {
+        if !self.loaded.is_empty()
+            || !self.tracked_entities.is_empty()
+            || !self.retired_chunks.is_empty()
+            || self.next_teleport_id != FIRST_TELEPORT_ID
+        {
+            return Err(state);
+        }
+        self.loaded = state.loaded;
+        self.tracked_entities = state.tracked_entities;
+        self.retired_chunks = state.retired_chunks;
+        self.next_teleport_id = state.next_teleport_id;
+        Ok(())
     }
 
     /// Apply a serverbound movement packet, returning `true` if it was one.
@@ -254,7 +309,7 @@ impl PlayerView {
         // empty immediately: the next stream must send the complete target view,
         // rather than relying on the old loaded set to describe client state while
         // the client is still processing the absolute position packet.
-        self.loaded.clear();
+        self.retired_chunks.append(&mut self.loaded);
         let teleport_id = self.next_teleport_id;
         self.next_teleport_id = self.next_teleport_id.wrapping_add(1).max(1);
 
@@ -292,7 +347,7 @@ impl PlayerView {
     ) -> Result<usize, PacketError> {
         let missing = self.missing_chunks();
         let stale = self.stale_chunks();
-        if missing.is_empty() && stale.is_empty() {
+        if missing.is_empty() && stale.is_empty() && self.retired_chunks.is_empty() {
             return Ok(0);
         }
 
@@ -305,11 +360,17 @@ impl PlayerView {
         encode_varint(cz, &mut center);
         write_packet(&mut buf, CB_UPDATE_VIEW_POSITION, &center);
 
+        // Teleporting even within one chunk must remove the old identities before
+        // resending the chunk and spawning those same entities again.
+        for &pos in &self.retired_chunks {
+            self.append_chunk_unload(&mut buf, pos);
+        }
+
         // Tests use in-memory worlds and expect deterministic synchronous output;
         // the shared production world uses the worker pool.
         if world.store().is_none() {
             for &(x, z) in missing.iter().take(self.chunk_batch_size) {
-                if world.cached_payload(x, z).is_none() {
+                if world.cached_chunk(x, z).is_none() {
                     let _ = world.chunk_payload(x, z);
                 }
             }
@@ -318,35 +379,58 @@ impl PlayerView {
             // thousands of obsolete chunks when the player teleports again.
             world.request_payloads(missing.iter().take(8).copied());
         }
-        let batch: Vec<((i32, i32), Vec<u8>)> = missing
+        let batch: Vec<((i32, i32), CachedChunk)> = missing
             .iter()
             .take(self.chunk_batch_size)
-            .filter_map(|&(x, z)| world.cached_payload(x, z).map(|payload| ((x, z), payload)))
+            .filter_map(|&(x, z)| world.cached_chunk(x, z).map(|chunk| ((x, z), chunk)))
             .collect();
 
         if !batch.is_empty() {
             write_packet(&mut buf, CB_CHUNK_BATCH_START, &[]);
-            for &((x, z), ref payload) in &batch {
-                write_packet(&mut buf, CB_MAP_CHUNK, payload);
-                self.loaded.insert((x, z));
+            for (_, chunk) in &batch {
+                write_packet(&mut buf, CB_MAP_CHUNK, &chunk.payload);
             }
             sent_count = batch.len();
             let mut size = Vec::new();
             encode_varint(sent_count as i32, &mut size);
             write_packet(&mut buf, CB_CHUNK_BATCH_FINISHED, &size);
+            for (_, chunk) in &batch {
+                for entity in chunk.entities.iter() {
+                    buf.extend_from_slice(&entity.spawn_packet());
+                }
+            }
         }
 
-        for (x, z) in stale {
-            // unload_chunk is (chunkZ, chunkX) on the wire.
-            let mut payload = Vec::with_capacity(8);
-            payload.extend_from_slice(&z.to_be_bytes());
-            payload.extend_from_slice(&x.to_be_bytes());
-            write_packet(&mut buf, CB_UNLOAD_CHUNK, &payload);
-            self.loaded.remove(&(x, z));
+        for &pos in &stale {
+            if !self.retired_chunks.contains(&pos) {
+                self.append_chunk_unload(&mut buf, pos);
+            }
         }
 
         out.write_all(&buf)?;
+        for pos in self.retired_chunks.iter().chain(&stale) {
+            self.loaded.remove(pos);
+            self.tracked_entities.remove(pos);
+        }
+        self.retired_chunks.clear();
+        for (pos, chunk) in batch {
+            self.loaded.insert(pos);
+            if !chunk.entities.is_empty() {
+                self.tracked_entities.insert(pos, chunk.entities);
+            }
+        }
         Ok(sent_count)
+    }
+
+    fn append_chunk_unload(&self, out: &mut Vec<u8>, (x, z): (i32, i32)) {
+        if let Some(entities) = self.tracked_entities.get(&(x, z)) {
+            let ids: Vec<_> = entities.iter().map(|e| e.id).collect();
+            out.extend_from_slice(&encode_remove_entities(&ids));
+        }
+        let mut payload = Vec::with_capacity(8);
+        payload.extend_from_slice(&z.to_be_bytes());
+        payload.extend_from_slice(&x.to_be_bytes());
+        write_packet(out, CB_UNLOAD_CHUNK, &payload);
     }
 }
 
@@ -357,6 +441,9 @@ fn read_f64(data: &[u8], at: usize) -> f64 {
 fn read_f32(data: &[u8], at: usize) -> f32 {
     f32::from_be_bytes(data[at..at + 4].try_into().expect("checked length"))
 }
+
+#[cfg(test)]
+mod entity_tests;
 
 #[cfg(test)]
 mod tests {
@@ -515,10 +602,18 @@ mod tests {
 
     #[test]
     fn adopting_the_join_batch_avoids_resending_it() {
-        let mut view = PlayerView::new(10.5, -60.0, -3.5);
-        for &(x, z) in &chunks_in_view(0, -1, VIEW_DISTANCE) {
-            view.mark_loaded(x, z);
-        }
+        let mut previous = PlayerView::new(10.5, -60.0, -3.5).with_view_distance(1);
+        let mut delivered = Vec::new();
+        assert_eq!(
+            stream(&mut previous, &mut delivered).expect("join batch"),
+            9
+        );
+        assert!(!delivered.is_empty());
+
+        let mut view = PlayerView::new(10.5, -60.0, -3.5).with_view_distance(1);
+        view.adopt_delivery_state(previous.into_delivery_state())
+            .expect("empty destination");
+        assert_eq!(view.loaded_chunks().count(), 9);
         let mut out = Vec::new();
         assert_eq!(stream(&mut view, &mut out).expect("stream"), 0);
         assert!(out.is_empty());

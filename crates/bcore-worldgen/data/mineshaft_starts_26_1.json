@@ -1,0 +1,4706 @@
+{
+  "minecraft": "26.1",
+  "jar_sha256": "a7fed6f7d88379349e35ae0c6e9881d4484605132f6f620376a3868eea6cce52",
+  "probe_sha256": "cad62933074556f028ddaab1c8c5aa0ecdde108d44c6fd7f8e8165ecb2fb91ea",
+  "mineshaft_biomes": [
+    "minecraft:bamboo_jungle",
+    "minecraft:beach",
+    "minecraft:birch_forest",
+    "minecraft:cherry_grove",
+    "minecraft:cold_ocean",
+    "minecraft:dark_forest",
+    "minecraft:deep_cold_ocean",
+    "minecraft:deep_frozen_ocean",
+    "minecraft:deep_lukewarm_ocean",
+    "minecraft:deep_ocean",
+    "minecraft:desert",
+    "minecraft:dripstone_caves",
+    "minecraft:flower_forest",
+    "minecraft:forest",
+    "minecraft:frozen_ocean",
+    "minecraft:frozen_peaks",
+    "minecraft:frozen_river",
+    "minecraft:grove",
+    "minecraft:ice_spikes",
+    "minecraft:jagged_peaks",
+    "minecraft:jungle",
+    "minecraft:lukewarm_ocean",
+    "minecraft:lush_caves",
+    "minecraft:mangrove_swamp",
+    "minecraft:meadow",
+    "minecraft:mushroom_fields",
+    "minecraft:ocean",
+    "minecraft:old_growth_birch_forest",
+    "minecraft:old_growth_pine_taiga",
+    "minecraft:old_growth_spruce_taiga",
+    "minecraft:pale_garden",
+    "minecraft:plains",
+    "minecraft:river",
+    "minecraft:savanna",
+    "minecraft:savanna_plateau",
+    "minecraft:snowy_beach",
+    "minecraft:snowy_plains",
+    "minecraft:snowy_slopes",
+    "minecraft:snowy_taiga",
+    "minecraft:sparse_jungle",
+    "minecraft:stony_peaks",
+    "minecraft:stony_shore",
+    "minecraft:sunflower_plains",
+    "minecraft:swamp",
+    "minecraft:taiga",
+    "minecraft:warm_ocean",
+    "minecraft:windswept_forest",
+    "minecraft:windswept_gravelly_hills",
+    "minecraft:windswept_hills",
+    "minecraft:windswept_savanna"
+  ],
+  "mineshaft_mesa_biomes": [
+    "minecraft:badlands",
+    "minecraft:eroded_badlands",
+    "minecraft:wooded_badlands"
+  ],
+  "structure_steps": [
+    [],
+    [],
+    [],
+    [
+      "minecraft:buried_treasure",
+      "minecraft:mineshaft",
+      "minecraft:mineshaft_mesa",
+      "minecraft:trail_ruins",
+      "minecraft:trial_chambers"
+    ],
+    [
+      "minecraft:bastion_remnant",
+      "minecraft:desert_pyramid",
+      "minecraft:end_city",
+      "minecraft:igloo",
+      "minecraft:jungle_pyramid",
+      "minecraft:mansion",
+      "minecraft:monument",
+      "minecraft:ocean_ruin_cold",
+      "minecraft:ocean_ruin_warm",
+      "minecraft:pillager_outpost",
+      "minecraft:ruined_portal",
+      "minecraft:ruined_portal_desert",
+      "minecraft:ruined_portal_jungle",
+      "minecraft:ruined_portal_mountain",
+      "minecraft:ruined_portal_nether",
+      "minecraft:ruined_portal_ocean",
+      "minecraft:ruined_portal_swamp",
+      "minecraft:shipwreck",
+      "minecraft:shipwreck_beached",
+      "minecraft:stronghold",
+      "minecraft:swamp_hut",
+      "minecraft:village_desert",
+      "minecraft:village_plains",
+      "minecraft:village_savanna",
+      "minecraft:village_snowy",
+      "minecraft:village_taiga"
+    ],
+    [],
+    [],
+    [
+      "minecraft:ancient_city",
+      "minecraft:fortress",
+      "minecraft:nether_fossil"
+    ],
+    [],
+    [],
+    []
+  ],
+  "samples": [
+    {
+      "seed": 0,
+      "chunk": [
+        -20,
+        -12
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 119,
+          "bounds": [
+            -393,
+            -34,
+            -258,
+            -238,
+            -13,
+            -114
+          ],
+          "pieces_md5": "9f82bcfc3c4dd6b5d77ea6c2dd5071e2",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 0,
+      "chunk": [
+        -19,
+        -22
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 140,
+          "bounds": [
+            -383,
+            8,
+            -430,
+            -236,
+            29,
+            -265
+          ],
+          "pieces_md5": "34fe78671f8a8a118fdc1bc97fa0e6ce",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 0,
+      "chunk": [
+        -13,
+        -7
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 148,
+          "bounds": [
+            -274,
+            -38,
+            -199,
+            -141,
+            -18,
+            -24
+          ],
+          "pieces_md5": "fe3ffb4bda878d42abbe44b75c2ab626",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 0,
+      "chunk": [
+        -13,
+        27
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 105,
+          "bounds": [
+            -252,
+            -6,
+            377,
+            -120,
+            10,
+            510
+          ],
+          "pieces_md5": "22993cb8f8cf0dbcc881c71b67e4a32e",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 0,
+      "chunk": [
+        -12,
+        -25
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 176,
+          "bounds": [
+            -281,
+            19,
+            -451,
+            -116,
+            40,
+            -308
+          ],
+          "pieces_md5": "b2529e4d71afaff0512833d5ca9a973c",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 0,
+      "chunk": [
+        -12,
+        13
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 107,
+          "bounds": [
+            -230,
+            -31,
+            130,
+            -118,
+            -6,
+            267
+          ],
+          "pieces_md5": "05da331375397d82d5f021a54cc8f56d",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 0,
+      "chunk": [
+        12,
+        -25
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 88,
+          "bounds": [
+            131,
+            10,
+            -441,
+            272,
+            28,
+            -305
+          ],
+          "pieces_md5": "19416185818e2669b2e2cc7a538ac4d8",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 0,
+      "chunk": [
+        12,
+        -13
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 167,
+          "bounds": [
+            110,
+            -41,
+            -282,
+            256,
+            -17,
+            -113
+          ],
+          "pieces_md5": "2ffcb4c04c5de089a3e0ba9c0f97f2ed",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 0,
+      "chunk": [
+        13,
+        -27
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 103,
+          "bounds": [
+            155,
+            -43,
+            -479,
+            246,
+            -25,
+            -362
+          ],
+          "pieces_md5": "61d906f39bb0755e42cfabc5f49a9ff6",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 0,
+      "chunk": [
+        13,
+        7
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 136,
+          "bounds": [
+            172,
+            -59,
+            33,
+            285,
+            -47,
+            161
+          ],
+          "pieces_md5": "1fa918ae130c7e00b27ebecc23750f61",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 0,
+      "chunk": [
+        19,
+        22
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 153,
+          "bounds": [
+            241,
+            -36,
+            283,
+            405,
+            -18,
+            441
+          ],
+          "pieces_md5": "84acb46bf74f3f596066fe9b6743abf9",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 0,
+      "chunk": [
+        20,
+        12
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 113,
+          "bounds": [
+            247,
+            35,
+            124,
+            398,
+            52,
+            282
+          ],
+          "pieces_md5": "641d48a1f18167938bce2cd174994fcd",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 0,
+      "chunk": [
+        27,
+        -32
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 115,
+          "bounds": [
+            368,
+            21,
+            -587,
+            499,
+            43,
+            -428
+          ],
+          "pieces_md5": "91c7e74176ca7dad84436381af8d574a",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 0,
+      "chunk": [
+        0,
+        0
+      ],
+      "source": "overworld",
+      "starts": []
+    },
+    {
+      "seed": 0,
+      "chunk": [
+        -20,
+        -12
+      ],
+      "source": "plains",
+      "starts": [
+        {
+          "pieces": 119,
+          "bounds": [
+            -393,
+            -34,
+            -258,
+            -238,
+            -13,
+            -114
+          ],
+          "pieces_md5": "9f82bcfc3c4dd6b5d77ea6c2dd5071e2",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 0,
+      "chunk": [
+        -19,
+        -22
+      ],
+      "source": "plains",
+      "starts": [
+        {
+          "pieces": 140,
+          "bounds": [
+            -383,
+            8,
+            -430,
+            -236,
+            29,
+            -265
+          ],
+          "pieces_md5": "34fe78671f8a8a118fdc1bc97fa0e6ce",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 0,
+      "chunk": [
+        -13,
+        -7
+      ],
+      "source": "plains",
+      "starts": [
+        {
+          "pieces": 148,
+          "bounds": [
+            -274,
+            -38,
+            -199,
+            -141,
+            -18,
+            -24
+          ],
+          "pieces_md5": "fe3ffb4bda878d42abbe44b75c2ab626",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 0,
+      "chunk": [
+        -13,
+        27
+      ],
+      "source": "plains",
+      "starts": [
+        {
+          "pieces": 105,
+          "bounds": [
+            -252,
+            -6,
+            377,
+            -120,
+            10,
+            510
+          ],
+          "pieces_md5": "22993cb8f8cf0dbcc881c71b67e4a32e",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 0,
+      "chunk": [
+        -20,
+        -12
+      ],
+      "source": "badlands",
+      "starts": [
+        {
+          "pieces": 119,
+          "bounds": [
+            -393,
+            52,
+            -258,
+            -238,
+            73,
+            -114
+          ],
+          "pieces_md5": "ed8f1f0c096c95cf30febf182ef4676f",
+          "id": "minecraft:mineshaft_mesa"
+        }
+      ]
+    },
+    {
+      "seed": 0,
+      "chunk": [
+        -19,
+        -22
+      ],
+      "source": "badlands",
+      "starts": [
+        {
+          "pieces": 140,
+          "bounds": [
+            -383,
+            52,
+            -430,
+            -236,
+            73,
+            -265
+          ],
+          "pieces_md5": "9d3dc3757380d84d6d03620a3a723772",
+          "id": "minecraft:mineshaft_mesa"
+        }
+      ]
+    },
+    {
+      "seed": 0,
+      "chunk": [
+        -13,
+        -7
+      ],
+      "source": "badlands",
+      "starts": [
+        {
+          "pieces": 148,
+          "bounds": [
+            -274,
+            57,
+            -199,
+            -141,
+            77,
+            -24
+          ],
+          "pieces_md5": "f977af161be080a1a9e7990cb67b9fbe",
+          "id": "minecraft:mineshaft_mesa"
+        }
+      ]
+    },
+    {
+      "seed": 0,
+      "chunk": [
+        -13,
+        27
+      ],
+      "source": "badlands",
+      "starts": [
+        {
+          "pieces": 105,
+          "bounds": [
+            -252,
+            60,
+            377,
+            -120,
+            76,
+            510
+          ],
+          "pieces_md5": "bc4c7ab936a7f0352c4dc6e91240dcde",
+          "id": "minecraft:mineshaft_mesa"
+        }
+      ]
+    },
+    {
+      "seed": 0,
+      "chunk": [
+        -20,
+        -12
+      ],
+      "source": "deep_dark",
+      "starts": []
+    },
+    {
+      "seed": 0,
+      "chunk": [
+        -19,
+        -22
+      ],
+      "source": "deep_dark",
+      "starts": []
+    },
+    {
+      "seed": 0,
+      "chunk": [
+        -13,
+        -7
+      ],
+      "source": "deep_dark",
+      "starts": []
+    },
+    {
+      "seed": 0,
+      "chunk": [
+        -13,
+        27
+      ],
+      "source": "deep_dark",
+      "starts": []
+    },
+    {
+      "seed": 1,
+      "chunk": [
+        -32,
+        -24
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 138,
+          "bounds": [
+            -578,
+            -2,
+            -462,
+            -439,
+            18,
+            -333
+          ],
+          "pieces_md5": "5b673990c1a76ef365ade852eb925c5b",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "chunk": [
+        -32,
+        24
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 160,
+          "bounds": [
+            -566,
+            -31,
+            306,
+            -450,
+            -10,
+            467
+          ],
+          "pieces_md5": "fa28572daa323b6c045ee3370dd1cb47",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "chunk": [
+        -31,
+        -31
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 98,
+          "bounds": [
+            -579,
+            -38,
+            -569,
+            -459,
+            -11,
+            -411
+          ],
+          "pieces_md5": "25f8da2c95081615b5baaf77023e608f",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "chunk": [
+        -31,
+        -21
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 142,
+          "bounds": [
+            -579,
+            30,
+            -393,
+            -396,
+            51,
+            -261
+          ],
+          "pieces_md5": "9424946035ee45eff0f9774355b1eb0f",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "chunk": [
+        -30,
+        8
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 182,
+          "bounds": [
+            -568,
+            -29,
+            59,
+            -431,
+            -4,
+            211
+          ],
+          "pieces_md5": "3684e26a5f8ccecd4740f930b81c3a90",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "chunk": [
+        -24,
+        -15
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 107,
+          "bounds": [
+            -459,
+            -26,
+            -322,
+            -306,
+            -4,
+            -171
+          ],
+          "pieces_md5": "4494c7b3d7e94d383b390bdc48a9d330",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "chunk": [
+        -19,
+        23
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 191,
+          "bounds": [
+            -353,
+            -6,
+            284,
+            -238,
+            28,
+            469
+          ],
+          "pieces_md5": "785c8e7e49540e84727bf6d4280c7b9b",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "chunk": [
+        -18,
+        31
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 157,
+          "bounds": [
+            -351,
+            -58,
+            425,
+            -239,
+            -32,
+            579
+          ],
+          "pieces_md5": "7d0b2ec7c594440c71f64c8f3ec61a41",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "chunk": [
+        -16,
+        28
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 181,
+          "bounds": [
+            -306,
+            17,
+            356,
+            -193,
+            38,
+            542
+          ],
+          "pieces_md5": "1db9462b5e4fb6a9d4cca7fbde8cd4b8",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "chunk": [
+        -10,
+        -15
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 114,
+          "bounds": [
+            -199,
+            0,
+            -323,
+            -102,
+            24,
+            -150
+          ],
+          "pieces_md5": "7453742816afe5a034adf15a630b4cc4",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "chunk": [
+        -8,
+        -15
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 107,
+          "bounds": [
+            -163,
+            26,
+            -317,
+            -44,
+            48,
+            -175
+          ],
+          "pieces_md5": "5325deadb65520500603c78cd25f8ffe",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "chunk": [
+        -8,
+        23
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 104,
+          "bounds": [
+            -168,
+            5,
+            290,
+            -45,
+            21,
+            422
+          ],
+          "pieces_md5": "dbc2f93a91d87b814343b49cac9cbe3c",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "chunk": [
+        -7,
+        -31
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 59,
+          "bounds": [
+            -135,
+            -3,
+            -579,
+            -19,
+            18,
+            -458
+          ],
+          "pieces_md5": "6d10576e96fdf1868e2899089e25f907",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "chunk": [
+        -4,
+        0
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 141,
+          "bounds": [
+            -136,
+            -27,
+            -64,
+            5,
+            -6,
+            90
+          ],
+          "pieces_md5": "060ca1f768ae8153b814c796c1d82bca",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "chunk": [
+        7,
+        31
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 83,
+          "bounds": [
+            15,
+            -52,
+            418,
+            178,
+            -38,
+            533
+          ],
+          "pieces_md5": "d56c38f6a5a4ccaacbe9fad2f44a7bf8",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "chunk": [
+        8,
+        -23
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 130,
+          "bounds": [
+            65,
+            -56,
+            -428,
+            193,
+            -34,
+            -278
+          ],
+          "pieces_md5": "16f60050210cd2ec76f4cb9ba4e0332f",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "chunk": [
+        8,
+        -15
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 121,
+          "bounds": [
+            76,
+            -60,
+            -329,
+            194,
+            -38,
+            -213
+          ],
+          "pieces_md5": "bdb8161ff025b1153ccde0f7972e7df1",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "chunk": [
+        8,
+        17
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 70,
+          "bounds": [
+            104,
+            -35,
+            227,
+            199,
+            -16,
+            340
+          ],
+          "pieces_md5": "a6519516323c488e9a0197712e95d520",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "chunk": [
+        10,
+        15
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 154,
+          "bounds": [
+            104,
+            8,
+            148,
+            243,
+            36,
+            285
+          ],
+          "pieces_md5": "846db722be80bc679a17cf506537e8a2",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "chunk": [
+        12,
+        -21
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 166,
+          "bounds": [
+            113,
+            -50,
+            -425,
+            227,
+            -23,
+            -263
+          ],
+          "pieces_md5": "580425a3283a6836f3f531e3724fd019",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "chunk": [
+        18,
+        -31
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 194,
+          "bounds": [
+            209,
+            -15,
+            -580,
+            382,
+            14,
+            -404
+          ],
+          "pieces_md5": "ad65037bb719a00f9cfde1d1ee8c565a",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "chunk": [
+        19,
+        -23
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 109,
+          "bounds": [
+            228,
+            29,
+            -455,
+            365,
+            44,
+            -287
+          ],
+          "pieces_md5": "2a133ce67e82368bb2320a66113a53be",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "chunk": [
+        24,
+        -15
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 94,
+          "bounds": [
+            340,
+            30,
+            -303,
+            434,
+            50,
+            -159
+          ],
+          "pieces_md5": "b02b5118b3b376e58cfc9a69c4350fff",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "chunk": [
+        30,
+        -8
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 182,
+          "bounds": [
+            392,
+            -29,
+            -197,
+            529,
+            -4,
+            -45
+          ],
+          "pieces_md5": "a6663d0f1db83c7b18b659ad62e6f041",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "chunk": [
+        31,
+        21
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 150,
+          "bounds": [
+            423,
+            -21,
+            271,
+            557,
+            6,
+            431
+          ],
+          "pieces_md5": "bf2a935a9865cead002dace40fe68aa9",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "chunk": [
+        31,
+        31
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 72,
+          "bounds": [
+            450,
+            17,
+            414,
+            569,
+            31,
+            529
+          ],
+          "pieces_md5": "1c55e63c6482445037da44c37e249b10",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "chunk": [
+        0,
+        0
+      ],
+      "source": "overworld",
+      "starts": []
+    },
+    {
+      "seed": -1,
+      "chunk": [
+        -29,
+        -2
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 67,
+          "bounds": [
+            -551,
+            5,
+            -109,
+            -455,
+            29,
+            11
+          ],
+          "pieces_md5": "98687eb3a315c44b96f4183d37c8d330",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": -1,
+      "chunk": [
+        -26,
+        25
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 65,
+          "bounds": [
+            -481,
+            -55,
+            318,
+            -359,
+            -34,
+            443
+          ],
+          "pieces_md5": "e08a88ae7d2fe27e11aacf97fe74320d",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": -1,
+      "chunk": [
+        -25,
+        -25
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 76,
+          "bounds": [
+            -421,
+            5,
+            -444,
+            -346,
+            23,
+            -312
+          ],
+          "pieces_md5": "f6dcb3245da39d80823269c8ac429209",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": -1,
+      "chunk": [
+        -19,
+        -29
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 118,
+          "bounds": [
+            -346,
+            13,
+            -506,
+            -251,
+            33,
+            -391
+          ],
+          "pieces_md5": "e90603e1c8f638bb1188e70914461fe5",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": -1,
+      "chunk": [
+        -13,
+        19
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 70,
+          "bounds": [
+            -259,
+            17,
+            271,
+            -134,
+            38,
+            384
+          ],
+          "pieces_md5": "8dc6a558672dfd93c6c292f3d45def1a",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": -1,
+      "chunk": [
+        -12,
+        7
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 193,
+          "bounds": [
+            -270,
+            -60,
+            39,
+            -122,
+            -28,
+            173
+          ],
+          "pieces_md5": "0fa56fb587f57cbe89ac682cbc4a1030",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": -1,
+      "chunk": [
+        -9,
+        18
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 165,
+          "bounds": [
+            -209,
+            -61,
+            228,
+            -80,
+            -40,
+            373
+          ],
+          "pieces_md5": "b3d1870b3ef9d604cf83c176b275850d",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": -1,
+      "chunk": [
+        -6,
+        -28
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 146,
+          "bounds": [
+            -148,
+            -20,
+            -535,
+            -51,
+            0,
+            -367
+          ],
+          "pieces_md5": "be1d8e129f68f730af6391b49ef4a029",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": -1,
+      "chunk": [
+        -6,
+        -18
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 129,
+          "bounds": [
+            -153,
+            10,
+            -374,
+            -35,
+            41,
+            -202
+          ],
+          "pieces_md5": "e1c6620e1c832828e64818d4c961dc97",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": -1,
+      "chunk": [
+        6,
+        18
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 111,
+          "bounds": [
+            59,
+            22,
+            262,
+            180,
+            40,
+            380
+          ],
+          "pieces_md5": "920e133c905911a0acfa561a5a4b783b",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": -1,
+      "chunk": [
+        9,
+        -18
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 147,
+          "bounds": [
+            81,
+            20,
+            -375,
+            207,
+            47,
+            -222
+          ],
+          "pieces_md5": "94e650a9fa0391fd56adc1492b6352a4",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": -1,
+      "chunk": [
+        12,
+        -7
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 140,
+          "bounds": [
+            150,
+            7,
+            -193,
+            254,
+            28,
+            -29
+          ],
+          "pieces_md5": "8f67c9185e1c1c8aa96264be63c8c65b",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": -1,
+      "chunk": [
+        13,
+        -19
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 159,
+          "bounds": [
+            159,
+            -12,
+            -372,
+            266,
+            13,
+            -212
+          ],
+          "pieces_md5": "6490bff71a205452e0f3fd9ef0ee901c",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": -1,
+      "chunk": [
+        19,
+        29
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 243,
+          "bounds": [
+            232,
+            -39,
+            370,
+            386,
+            -10,
+            548
+          ],
+          "pieces_md5": "d3916bbda8cf246cca8c7df90ccd96ce",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": -1,
+      "chunk": [
+        25,
+        25
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 138,
+          "bounds": [
+            351,
+            -22,
+            332,
+            488,
+            3,
+            453
+          ],
+          "pieces_md5": "0d9adfd3d78ceab0f563c038c5c82f4f",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": -1,
+      "chunk": [
+        26,
+        -25
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 65,
+          "bounds": [
+            351,
+            -55,
+            -482,
+            473,
+            -34,
+            -357
+          ],
+          "pieces_md5": "3834521fed1c629253e2a06003a62412",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": -1,
+      "chunk": [
+        29,
+        2
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 113,
+          "bounds": [
+            390,
+            -18,
+            -41,
+            535,
+            2,
+            108
+          ],
+          "pieces_md5": "ecc672fe73ba490a6568e0858e4463f0",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": -1,
+      "chunk": [
+        0,
+        0
+      ],
+      "source": "overworld",
+      "starts": []
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        -27,
+        5
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 165,
+          "bounds": [
+            -477,
+            -34,
+            3,
+            -349,
+            -12,
+            138
+          ],
+          "pieces_md5": "5bef77c218b08b3377eb2f6f08ac5ea3",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        -18,
+        29
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 199,
+          "bounds": [
+            -355,
+            -4,
+            379,
+            -220,
+            23,
+            546
+          ],
+          "pieces_md5": "8c352bbd12f70b1dcedf317b8cee939f",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        -17,
+        -17
+      ],
+      "source": "overworld",
+      "starts": []
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        -17,
+        -16
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 132,
+          "bounds": [
+            -321,
+            23,
+            -310,
+            -208,
+            40,
+            -176
+          ],
+          "pieces_md5": "5d80ea5fe11659806502e59dac6362e6",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        -16,
+        -20
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 117,
+          "bounds": [
+            -292,
+            -24,
+            -410,
+            -180,
+            9,
+            -267
+          ],
+          "pieces_md5": "b589c5c4585cd4b9722d1b4313964ed5",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        -13,
+        6
+      ],
+      "source": "overworld",
+      "starts": []
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        -10,
+        -15
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 131,
+          "bounds": [
+            -198,
+            -8,
+            -318,
+            -75,
+            10,
+            -153
+          ],
+          "pieces_md5": "3bdec203cce9e5549089b2e26577bf49",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        -8,
+        27
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 117,
+          "bounds": [
+            -190,
+            -31,
+            353,
+            -52,
+            -8,
+            515
+          ],
+          "pieces_md5": "135a3185913ddf0c4e2737c115427eca",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        -3,
+        20
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 144,
+          "bounds": [
+            -97,
+            7,
+            246,
+            28,
+            39,
+            378
+          ],
+          "pieces_md5": "f23d46fd716c3ddd6642d72ef09751b2",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        -2,
+        -16
+      ],
+      "source": "overworld",
+      "starts": []
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        2,
+        16
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 130,
+          "bounds": [
+            -11,
+            -8,
+            165,
+            101,
+            14,
+            341
+          ],
+          "pieces_md5": "f376b4187a431b76f7d8a8b1585be18d",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        3,
+        -20
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 166,
+          "bounds": [
+            -30,
+            110,
+            -398,
+            123,
+            135,
+            -255
+          ],
+          "pieces_md5": "6f597d49e12eb03a0eeabeb7686c9215",
+          "id": "minecraft:mineshaft_mesa"
+        }
+      ]
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        8,
+        -27
+      ],
+      "source": "overworld",
+      "starts": []
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        10,
+        15
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 131,
+          "bounds": [
+            122,
+            -8,
+            162,
+            245,
+            10,
+            327
+          ],
+          "pieces_md5": "ffa0c41fffc429c0b32c25150ae45e08",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        13,
+        -6
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 85,
+          "bounds": [
+            163,
+            -7,
+            -134,
+            295,
+            14,
+            -7
+          ],
+          "pieces_md5": "4f7f56bfb813185b454b8dc6917d0431",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        16,
+        20
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 64,
+          "bounds": [
+            206,
+            22,
+            270,
+            313,
+            36,
+            360
+          ],
+          "pieces_md5": "8dec04ff3af5c7d5f06f4612846af9e8",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        17,
+        17
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 216,
+          "bounds": [
+            175,
+            -17,
+            190,
+            356,
+            3,
+            360
+          ],
+          "pieces_md5": "a2d1e8ad982f09695fe79c8bb50c8c04",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        18,
+        -29
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 199,
+          "bounds": [
+            221,
+            -4,
+            -549,
+            356,
+            23,
+            -382
+          ],
+          "pieces_md5": "3e49db3124c4d2b1f621bac77f5bb8b1",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        27,
+        -5
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 128,
+          "bounds": [
+            380,
+            7,
+            -150,
+            481,
+            32,
+            11
+          ],
+          "pieces_md5": "bad20eb97a3ec3d274cf7fed8f981ca3",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        32,
+        11
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 107,
+          "bounds": [
+            420,
+            15,
+            102,
+            583,
+            35,
+            224
+          ],
+          "pieces_md5": "5441ef6477634e3398dd46e7638635bd",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        0,
+        0
+      ],
+      "source": "overworld",
+      "starts": []
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        -27,
+        5
+      ],
+      "source": "plains",
+      "starts": [
+        {
+          "pieces": 165,
+          "bounds": [
+            -477,
+            -34,
+            3,
+            -349,
+            -12,
+            138
+          ],
+          "pieces_md5": "5bef77c218b08b3377eb2f6f08ac5ea3",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        -18,
+        29
+      ],
+      "source": "plains",
+      "starts": [
+        {
+          "pieces": 199,
+          "bounds": [
+            -355,
+            -4,
+            379,
+            -220,
+            23,
+            546
+          ],
+          "pieces_md5": "8c352bbd12f70b1dcedf317b8cee939f",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        -17,
+        -17
+      ],
+      "source": "plains",
+      "starts": [
+        {
+          "pieces": 115,
+          "bounds": [
+            -313,
+            -30,
+            -354,
+            -210,
+            3,
+            -190
+          ],
+          "pieces_md5": "e3ffaa8a50c0cb139734ed6896db72a5",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        -17,
+        -16
+      ],
+      "source": "plains",
+      "starts": [
+        {
+          "pieces": 132,
+          "bounds": [
+            -321,
+            23,
+            -310,
+            -208,
+            40,
+            -176
+          ],
+          "pieces_md5": "5d80ea5fe11659806502e59dac6362e6",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        -27,
+        5
+      ],
+      "source": "badlands",
+      "starts": [
+        {
+          "pieces": 165,
+          "bounds": [
+            -477,
+            68,
+            3,
+            -349,
+            90,
+            138
+          ],
+          "pieces_md5": "9efeaffe89c2e0c5a4d82a3788999bc8",
+          "id": "minecraft:mineshaft_mesa"
+        }
+      ]
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        -18,
+        29
+      ],
+      "source": "badlands",
+      "starts": [
+        {
+          "pieces": 199,
+          "bounds": [
+            -355,
+            55,
+            379,
+            -220,
+            82,
+            546
+          ],
+          "pieces_md5": "06636a7a6194b3a7032aef11f9f7e883",
+          "id": "minecraft:mineshaft_mesa"
+        }
+      ]
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        -17,
+        -17
+      ],
+      "source": "badlands",
+      "starts": [
+        {
+          "pieces": 115,
+          "bounds": [
+            -313,
+            54,
+            -354,
+            -210,
+            87,
+            -190
+          ],
+          "pieces_md5": "82249958ad7f03ecca5c2de31bc645b4",
+          "id": "minecraft:mineshaft_mesa"
+        }
+      ]
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        -17,
+        -16
+      ],
+      "source": "badlands",
+      "starts": [
+        {
+          "pieces": 132,
+          "bounds": [
+            -321,
+            71,
+            -310,
+            -208,
+            88,
+            -176
+          ],
+          "pieces_md5": "8c095258e49afcae288951779c861273",
+          "id": "minecraft:mineshaft_mesa"
+        }
+      ]
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        -27,
+        5
+      ],
+      "source": "deep_dark",
+      "starts": []
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        -18,
+        29
+      ],
+      "source": "deep_dark",
+      "starts": []
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        -17,
+        -17
+      ],
+      "source": "deep_dark",
+      "starts": []
+    },
+    {
+      "seed": 846692123413862008,
+      "chunk": [
+        -17,
+        -16
+      ],
+      "source": "deep_dark",
+      "starts": []
+    },
+    {
+      "seed": -9223372036854775808,
+      "chunk": [
+        -20,
+        -12
+      ],
+      "source": "overworld",
+      "starts": []
+    },
+    {
+      "seed": -9223372036854775808,
+      "chunk": [
+        -19,
+        -22
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 140,
+          "bounds": [
+            -383,
+            8,
+            -430,
+            -236,
+            29,
+            -265
+          ],
+          "pieces_md5": "34fe78671f8a8a118fdc1bc97fa0e6ce",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": -9223372036854775808,
+      "chunk": [
+        -13,
+        -7
+      ],
+      "source": "overworld",
+      "starts": []
+    },
+    {
+      "seed": -9223372036854775808,
+      "chunk": [
+        -13,
+        27
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 105,
+          "bounds": [
+            -252,
+            -6,
+            377,
+            -120,
+            10,
+            510
+          ],
+          "pieces_md5": "22993cb8f8cf0dbcc881c71b67e4a32e",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": -9223372036854775808,
+      "chunk": [
+        -12,
+        -25
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 176,
+          "bounds": [
+            -281,
+            19,
+            -451,
+            -116,
+            40,
+            -308
+          ],
+          "pieces_md5": "b2529e4d71afaff0512833d5ca9a973c",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": -9223372036854775808,
+      "chunk": [
+        -12,
+        13
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 107,
+          "bounds": [
+            -230,
+            -31,
+            130,
+            -118,
+            -6,
+            267
+          ],
+          "pieces_md5": "05da331375397d82d5f021a54cc8f56d",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": -9223372036854775808,
+      "chunk": [
+        12,
+        -25
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 88,
+          "bounds": [
+            131,
+            10,
+            -441,
+            272,
+            28,
+            -305
+          ],
+          "pieces_md5": "19416185818e2669b2e2cc7a538ac4d8",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": -9223372036854775808,
+      "chunk": [
+        12,
+        -13
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 167,
+          "bounds": [
+            110,
+            -41,
+            -282,
+            256,
+            -17,
+            -113
+          ],
+          "pieces_md5": "2ffcb4c04c5de089a3e0ba9c0f97f2ed",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": -9223372036854775808,
+      "chunk": [
+        13,
+        -27
+      ],
+      "source": "overworld",
+      "starts": []
+    },
+    {
+      "seed": -9223372036854775808,
+      "chunk": [
+        13,
+        7
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 136,
+          "bounds": [
+            172,
+            -59,
+            33,
+            285,
+            -47,
+            161
+          ],
+          "pieces_md5": "1fa918ae130c7e00b27ebecc23750f61",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": -9223372036854775808,
+      "chunk": [
+        19,
+        22
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 153,
+          "bounds": [
+            241,
+            -36,
+            283,
+            405,
+            -18,
+            441
+          ],
+          "pieces_md5": "84acb46bf74f3f596066fe9b6743abf9",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": -9223372036854775808,
+      "chunk": [
+        20,
+        12
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 113,
+          "bounds": [
+            247,
+            35,
+            124,
+            398,
+            52,
+            282
+          ],
+          "pieces_md5": "641d48a1f18167938bce2cd174994fcd",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": -9223372036854775808,
+      "chunk": [
+        27,
+        -32
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 115,
+          "bounds": [
+            368,
+            21,
+            -587,
+            499,
+            43,
+            -428
+          ],
+          "pieces_md5": "91c7e74176ca7dad84436381af8d574a",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": -9223372036854775808,
+      "chunk": [
+        0,
+        0
+      ],
+      "source": "overworld",
+      "starts": []
+    },
+    {
+      "seed": 9223372036854775807,
+      "chunk": [
+        -29,
+        -2
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 67,
+          "bounds": [
+            -551,
+            5,
+            -109,
+            -455,
+            29,
+            11
+          ],
+          "pieces_md5": "98687eb3a315c44b96f4183d37c8d330",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 9223372036854775807,
+      "chunk": [
+        -26,
+        25
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 65,
+          "bounds": [
+            -481,
+            -55,
+            318,
+            -359,
+            -34,
+            443
+          ],
+          "pieces_md5": "e08a88ae7d2fe27e11aacf97fe74320d",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 9223372036854775807,
+      "chunk": [
+        -25,
+        -25
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 76,
+          "bounds": [
+            -421,
+            5,
+            -444,
+            -346,
+            23,
+            -312
+          ],
+          "pieces_md5": "f6dcb3245da39d80823269c8ac429209",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 9223372036854775807,
+      "chunk": [
+        -19,
+        -29
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 118,
+          "bounds": [
+            -346,
+            13,
+            -506,
+            -251,
+            33,
+            -391
+          ],
+          "pieces_md5": "e90603e1c8f638bb1188e70914461fe5",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 9223372036854775807,
+      "chunk": [
+        -13,
+        19
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 70,
+          "bounds": [
+            -259,
+            17,
+            271,
+            -134,
+            38,
+            384
+          ],
+          "pieces_md5": "8dc6a558672dfd93c6c292f3d45def1a",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 9223372036854775807,
+      "chunk": [
+        -12,
+        7
+      ],
+      "source": "overworld",
+      "starts": []
+    },
+    {
+      "seed": 9223372036854775807,
+      "chunk": [
+        -9,
+        18
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 165,
+          "bounds": [
+            -209,
+            -61,
+            228,
+            -80,
+            -40,
+            373
+          ],
+          "pieces_md5": "b3d1870b3ef9d604cf83c176b275850d",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 9223372036854775807,
+      "chunk": [
+        -6,
+        -28
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 146,
+          "bounds": [
+            -148,
+            -20,
+            -535,
+            -51,
+            0,
+            -367
+          ],
+          "pieces_md5": "be1d8e129f68f730af6391b49ef4a029",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 9223372036854775807,
+      "chunk": [
+        -6,
+        -18
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 129,
+          "bounds": [
+            -153,
+            10,
+            -374,
+            -35,
+            41,
+            -202
+          ],
+          "pieces_md5": "e1c6620e1c832828e64818d4c961dc97",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 9223372036854775807,
+      "chunk": [
+        6,
+        18
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 111,
+          "bounds": [
+            59,
+            22,
+            262,
+            180,
+            40,
+            380
+          ],
+          "pieces_md5": "920e133c905911a0acfa561a5a4b783b",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 9223372036854775807,
+      "chunk": [
+        9,
+        -18
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 147,
+          "bounds": [
+            81,
+            20,
+            -375,
+            207,
+            47,
+            -222
+          ],
+          "pieces_md5": "94e650a9fa0391fd56adc1492b6352a4",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 9223372036854775807,
+      "chunk": [
+        12,
+        -7
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 140,
+          "bounds": [
+            150,
+            7,
+            -193,
+            254,
+            28,
+            -29
+          ],
+          "pieces_md5": "8f67c9185e1c1c8aa96264be63c8c65b",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 9223372036854775807,
+      "chunk": [
+        13,
+        -19
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 159,
+          "bounds": [
+            159,
+            -12,
+            -372,
+            266,
+            13,
+            -212
+          ],
+          "pieces_md5": "6490bff71a205452e0f3fd9ef0ee901c",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 9223372036854775807,
+      "chunk": [
+        19,
+        29
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 243,
+          "bounds": [
+            232,
+            -39,
+            370,
+            386,
+            -10,
+            548
+          ],
+          "pieces_md5": "d3916bbda8cf246cca8c7df90ccd96ce",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 9223372036854775807,
+      "chunk": [
+        25,
+        25
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 138,
+          "bounds": [
+            351,
+            -22,
+            332,
+            488,
+            3,
+            453
+          ],
+          "pieces_md5": "0d9adfd3d78ceab0f563c038c5c82f4f",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 9223372036854775807,
+      "chunk": [
+        26,
+        -25
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 65,
+          "bounds": [
+            351,
+            -55,
+            -482,
+            473,
+            -34,
+            -357
+          ],
+          "pieces_md5": "3834521fed1c629253e2a06003a62412",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 9223372036854775807,
+      "chunk": [
+        29,
+        2
+      ],
+      "source": "overworld",
+      "starts": [
+        {
+          "pieces": 113,
+          "bounds": [
+            390,
+            -18,
+            -41,
+            535,
+            2,
+            108
+          ],
+          "pieces_md5": "ecc672fe73ba490a6568e0858e4463f0",
+          "id": "minecraft:mineshaft"
+        }
+      ]
+    },
+    {
+      "seed": 9223372036854775807,
+      "chunk": [
+        0,
+        0
+      ],
+      "source": "overworld",
+      "starts": []
+    }
+  ],
+  "reference_orders": [
+    {
+      "iterated": [
+        [
+          0,
+          0
+        ]
+      ],
+      "inserted": [
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "iterated": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          -2
+        ]
+      ],
+      "inserted": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          -2
+        ]
+      ]
+    },
+    {
+      "iterated": [
+        [
+          0,
+          0
+        ],
+        [
+          5,
+          2
+        ],
+        [
+          9,
+          -1
+        ],
+        [
+          15,
+          -2
+        ],
+        [
+          11,
+          1
+        ],
+        [
+          -8,
+          -2
+        ],
+        [
+          1,
+          -2
+        ],
+        [
+          -10,
+          0
+        ],
+        [
+          -12,
+          2
+        ],
+        [
+          7,
+          -3
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          -4,
+          1
+        ],
+        [
+          -6,
+          3
+        ],
+        [
+          -14,
+          -3
+        ],
+        [
+          13,
+          3
+        ],
+        [
+          -2,
+          -1
+        ]
+      ],
+      "inserted": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          -2
+        ],
+        [
+          -2,
+          -1
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          -4,
+          1
+        ],
+        [
+          5,
+          2
+        ],
+        [
+          -6,
+          3
+        ],
+        [
+          7,
+          -3
+        ],
+        [
+          -8,
+          -2
+        ],
+        [
+          9,
+          -1
+        ],
+        [
+          -10,
+          0
+        ],
+        [
+          11,
+          1
+        ],
+        [
+          -12,
+          2
+        ],
+        [
+          13,
+          3
+        ],
+        [
+          -14,
+          -3
+        ],
+        [
+          15,
+          -2
+        ]
+      ]
+    },
+    {
+      "iterated": [
+        [
+          0,
+          0
+        ],
+        [
+          5,
+          2
+        ],
+        [
+          9,
+          -1
+        ],
+        [
+          15,
+          -2
+        ],
+        [
+          23,
+          -1
+        ],
+        [
+          21,
+          -3
+        ],
+        [
+          19,
+          2
+        ],
+        [
+          11,
+          1
+        ],
+        [
+          -18,
+          1
+        ],
+        [
+          -8,
+          -2
+        ],
+        [
+          1,
+          -2
+        ],
+        [
+          -20,
+          3
+        ],
+        [
+          -10,
+          0
+        ],
+        [
+          -12,
+          2
+        ],
+        [
+          7,
+          -3
+        ],
+        [
+          17,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          -4,
+          1
+        ],
+        [
+          -16,
+          -1
+        ],
+        [
+          -6,
+          3
+        ],
+        [
+          -14,
+          -3
+        ],
+        [
+          13,
+          3
+        ],
+        [
+          -2,
+          -1
+        ],
+        [
+          -22,
+          -2
+        ]
+      ],
+      "inserted": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          -2
+        ],
+        [
+          -2,
+          -1
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          -4,
+          1
+        ],
+        [
+          5,
+          2
+        ],
+        [
+          -6,
+          3
+        ],
+        [
+          7,
+          -3
+        ],
+        [
+          -8,
+          -2
+        ],
+        [
+          9,
+          -1
+        ],
+        [
+          -10,
+          0
+        ],
+        [
+          11,
+          1
+        ],
+        [
+          -12,
+          2
+        ],
+        [
+          13,
+          3
+        ],
+        [
+          -14,
+          -3
+        ],
+        [
+          15,
+          -2
+        ],
+        [
+          -16,
+          -1
+        ],
+        [
+          17,
+          0
+        ],
+        [
+          -18,
+          1
+        ],
+        [
+          19,
+          2
+        ],
+        [
+          -20,
+          3
+        ],
+        [
+          21,
+          -3
+        ],
+        [
+          -22,
+          -2
+        ],
+        [
+          23,
+          -1
+        ]
+      ]
+    },
+    {
+      "iterated": [
+        [
+          0,
+          0
+        ],
+        [
+          5,
+          2
+        ],
+        [
+          9,
+          -1
+        ],
+        [
+          15,
+          -2
+        ],
+        [
+          23,
+          -1
+        ],
+        [
+          11,
+          1
+        ],
+        [
+          -18,
+          1
+        ],
+        [
+          -10,
+          0
+        ],
+        [
+          1,
+          -2
+        ],
+        [
+          -20,
+          3
+        ],
+        [
+          21,
+          -3
+        ],
+        [
+          7,
+          -3
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          -24,
+          0
+        ],
+        [
+          17,
+          0
+        ],
+        [
+          -6,
+          3
+        ],
+        [
+          -14,
+          -3
+        ],
+        [
+          -2,
+          -1
+        ],
+        [
+          -22,
+          -2
+        ],
+        [
+          19,
+          2
+        ],
+        [
+          -8,
+          -2
+        ],
+        [
+          -12,
+          2
+        ],
+        [
+          -4,
+          1
+        ],
+        [
+          -16,
+          -1
+        ],
+        [
+          13,
+          3
+        ]
+      ],
+      "inserted": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          -2
+        ],
+        [
+          -2,
+          -1
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          -4,
+          1
+        ],
+        [
+          5,
+          2
+        ],
+        [
+          -6,
+          3
+        ],
+        [
+          7,
+          -3
+        ],
+        [
+          -8,
+          -2
+        ],
+        [
+          9,
+          -1
+        ],
+        [
+          -10,
+          0
+        ],
+        [
+          11,
+          1
+        ],
+        [
+          -12,
+          2
+        ],
+        [
+          13,
+          3
+        ],
+        [
+          -14,
+          -3
+        ],
+        [
+          15,
+          -2
+        ],
+        [
+          -16,
+          -1
+        ],
+        [
+          17,
+          0
+        ],
+        [
+          -18,
+          1
+        ],
+        [
+          19,
+          2
+        ],
+        [
+          -20,
+          3
+        ],
+        [
+          21,
+          -3
+        ],
+        [
+          -22,
+          -2
+        ],
+        [
+          23,
+          -1
+        ],
+        [
+          -24,
+          0
+        ]
+      ]
+    },
+    {
+      "iterated": [
+        [
+          0,
+          0
+        ],
+        [
+          -42,
+          -3
+        ],
+        [
+          5,
+          2
+        ],
+        [
+          29,
+          -2
+        ],
+        [
+          -28,
+          -3
+        ],
+        [
+          9,
+          -1
+        ],
+        [
+          15,
+          -2
+        ],
+        [
+          -36,
+          -2
+        ],
+        [
+          -30,
+          -1
+        ],
+        [
+          23,
+          -1
+        ],
+        [
+          11,
+          1
+        ],
+        [
+          -18,
+          1
+        ],
+        [
+          -10,
+          0
+        ],
+        [
+          1,
+          -2
+        ],
+        [
+          -20,
+          3
+        ],
+        [
+          21,
+          -3
+        ],
+        [
+          -46,
+          1
+        ],
+        [
+          7,
+          -3
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          -24,
+          0
+        ],
+        [
+          17,
+          0
+        ],
+        [
+          -26,
+          2
+        ],
+        [
+          -6,
+          3
+        ],
+        [
+          -14,
+          -3
+        ],
+        [
+          -2,
+          -1
+        ],
+        [
+          -22,
+          -2
+        ],
+        [
+          35,
+          -3
+        ],
+        [
+          27,
+          3
+        ],
+        [
+          -34,
+          3
+        ],
+        [
+          19,
+          2
+        ],
+        [
+          -40,
+          2
+        ],
+        [
+          -8,
+          -2
+        ],
+        [
+          -38,
+          0
+        ],
+        [
+          -32,
+          1
+        ],
+        [
+          31,
+          0
+        ],
+        [
+          -12,
+          2
+        ],
+        [
+          25,
+          1
+        ],
+        [
+          47,
+          2
+        ],
+        [
+          37,
+          -1
+        ],
+        [
+          -4,
+          1
+        ],
+        [
+          -16,
+          -1
+        ],
+        [
+          43,
+          -2
+        ],
+        [
+          41,
+          3
+        ],
+        [
+          33,
+          2
+        ],
+        [
+          13,
+          3
+        ],
+        [
+          39,
+          1
+        ],
+        [
+          45,
+          0
+        ],
+        [
+          -44,
+          -1
+        ]
+      ],
+      "inserted": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          -2
+        ],
+        [
+          -2,
+          -1
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          -4,
+          1
+        ],
+        [
+          5,
+          2
+        ],
+        [
+          -6,
+          3
+        ],
+        [
+          7,
+          -3
+        ],
+        [
+          -8,
+          -2
+        ],
+        [
+          9,
+          -1
+        ],
+        [
+          -10,
+          0
+        ],
+        [
+          11,
+          1
+        ],
+        [
+          -12,
+          2
+        ],
+        [
+          13,
+          3
+        ],
+        [
+          -14,
+          -3
+        ],
+        [
+          15,
+          -2
+        ],
+        [
+          -16,
+          -1
+        ],
+        [
+          17,
+          0
+        ],
+        [
+          -18,
+          1
+        ],
+        [
+          19,
+          2
+        ],
+        [
+          -20,
+          3
+        ],
+        [
+          21,
+          -3
+        ],
+        [
+          -22,
+          -2
+        ],
+        [
+          23,
+          -1
+        ],
+        [
+          -24,
+          0
+        ],
+        [
+          25,
+          1
+        ],
+        [
+          -26,
+          2
+        ],
+        [
+          27,
+          3
+        ],
+        [
+          -28,
+          -3
+        ],
+        [
+          29,
+          -2
+        ],
+        [
+          -30,
+          -1
+        ],
+        [
+          31,
+          0
+        ],
+        [
+          -32,
+          1
+        ],
+        [
+          33,
+          2
+        ],
+        [
+          -34,
+          3
+        ],
+        [
+          35,
+          -3
+        ],
+        [
+          -36,
+          -2
+        ],
+        [
+          37,
+          -1
+        ],
+        [
+          -38,
+          0
+        ],
+        [
+          39,
+          1
+        ],
+        [
+          -40,
+          2
+        ],
+        [
+          41,
+          3
+        ],
+        [
+          -42,
+          -3
+        ],
+        [
+          43,
+          -2
+        ],
+        [
+          -44,
+          -1
+        ],
+        [
+          45,
+          0
+        ],
+        [
+          -46,
+          1
+        ],
+        [
+          47,
+          2
+        ]
+      ]
+    },
+    {
+      "iterated": [
+        [
+          0,
+          0
+        ],
+        [
+          -94,
+          0
+        ],
+        [
+          -86,
+          -1
+        ],
+        [
+          45,
+          0
+        ],
+        [
+          -90,
+          3
+        ],
+        [
+          9,
+          -1
+        ],
+        [
+          -50,
+          -2
+        ],
+        [
+          85,
+          -2
+        ],
+        [
+          73,
+          0
+        ],
+        [
+          -18,
+          1
+        ],
+        [
+          59,
+          0
+        ],
+        [
+          -30,
+          -1
+        ],
+        [
+          -10,
+          0
+        ],
+        [
+          21,
+          -3
+        ],
+        [
+          -46,
+          1
+        ],
+        [
+          -54,
+          2
+        ],
+        [
+          7,
+          -3
+        ],
+        [
+          -26,
+          2
+        ],
+        [
+          -6,
+          3
+        ],
+        [
+          -14,
+          -3
+        ],
+        [
+          -66,
+          0
+        ],
+        [
+          51,
+          -1
+        ],
+        [
+          63,
+          -3
+        ],
+        [
+          57,
+          -2
+        ],
+        [
+          -56,
+          -3
+        ],
+        [
+          -76,
+          3
+        ],
+        [
+          89,
+          2
+        ],
+        [
+          25,
+          1
+        ],
+        [
+          -92,
+          -2
+        ],
+        [
+          37,
+          -1
+        ],
+        [
+          -62,
+          3
+        ],
+        [
+          13,
+          3
+        ],
+        [
+          -70,
+          -3
+        ],
+        [
+          -28,
+          -3
+        ],
+        [
+          -60,
+          1
+        ],
+        [
+          49,
+          -3
+        ],
+        [
+          -36,
+          -2
+        ],
+        [
+          -58,
+          -1
+        ],
+        [
+          -82,
+          2
+        ],
+        [
+          -24,
+          0
+        ],
+        [
+          97,
+          3
+        ],
+        [
+          -72,
+          -1
+        ],
+        [
+          87,
+          0
+        ],
+        [
+          75,
+          2
+        ],
+        [
+          -2,
+          -1
+        ],
+        [
+          -22,
+          -2
+        ],
+        [
+          99,
+          -2
+        ],
+        [
+          27,
+          3
+        ],
+        [
+          -74,
+          1
+        ],
+        [
+          -40,
+          2
+        ],
+        [
+          -38,
+          0
+        ],
+        [
+          -32,
+          1
+        ],
+        [
+          -96,
+          2
+        ],
+        [
+          47,
+          2
+        ],
+        [
+          -4,
+          1
+        ],
+        [
+          53,
+          1
+        ],
+        [
+          41,
+          3
+        ],
+        [
+          33,
+          2
+        ],
+        [
+          39,
+          1
+        ],
+        [
+          -68,
+          2
+        ],
+        [
+          -42,
+          -3
+        ],
+        [
+          5,
+          2
+        ],
+        [
+          -78,
+          -2
+        ],
+        [
+          29,
+          -2
+        ],
+        [
+          79,
+          -1
+        ],
+        [
+          15,
+          -2
+        ],
+        [
+          -98,
+          -3
+        ],
+        [
+          23,
+          -1
+        ],
+        [
+          11,
+          1
+        ],
+        [
+          65,
+          -1
+        ],
+        [
+          1,
+          -2
+        ],
+        [
+          -20,
+          3
+        ],
+        [
+          67,
+          1
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          77,
+          -3
+        ],
+        [
+          17,
+          0
+        ],
+        [
+          95,
+          1
+        ],
+        [
+          91,
+          -3
+        ],
+        [
+          -84,
+          -3
+        ],
+        [
+          35,
+          -3
+        ],
+        [
+          -48,
+          3
+        ],
+        [
+          -34,
+          3
+        ],
+        [
+          69,
+          3
+        ],
+        [
+          19,
+          2
+        ],
+        [
+          83,
+          3
+        ],
+        [
+          55,
+          3
+        ],
+        [
+          31,
+          0
+        ],
+        [
+          -12,
+          2
+        ],
+        [
+          -88,
+          1
+        ],
+        [
+          43,
+          -2
+        ],
+        [
+          -44,
+          -1
+        ],
+        [
+          93,
+          -1
+        ],
+        [
+          61,
+          2
+        ],
+        [
+          81,
+          1
+        ],
+        [
+          -80,
+          0
+        ],
+        [
+          -8,
+          -2
+        ],
+        [
+          -16,
+          -1
+        ],
+        [
+          -52,
+          0
+        ],
+        [
+          -64,
+          -2
+        ],
+        [
+          71,
+          -2
+        ]
+      ],
+      "inserted": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          -2
+        ],
+        [
+          -2,
+          -1
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          -4,
+          1
+        ],
+        [
+          5,
+          2
+        ],
+        [
+          -6,
+          3
+        ],
+        [
+          7,
+          -3
+        ],
+        [
+          -8,
+          -2
+        ],
+        [
+          9,
+          -1
+        ],
+        [
+          -10,
+          0
+        ],
+        [
+          11,
+          1
+        ],
+        [
+          -12,
+          2
+        ],
+        [
+          13,
+          3
+        ],
+        [
+          -14,
+          -3
+        ],
+        [
+          15,
+          -2
+        ],
+        [
+          -16,
+          -1
+        ],
+        [
+          17,
+          0
+        ],
+        [
+          -18,
+          1
+        ],
+        [
+          19,
+          2
+        ],
+        [
+          -20,
+          3
+        ],
+        [
+          21,
+          -3
+        ],
+        [
+          -22,
+          -2
+        ],
+        [
+          23,
+          -1
+        ],
+        [
+          -24,
+          0
+        ],
+        [
+          25,
+          1
+        ],
+        [
+          -26,
+          2
+        ],
+        [
+          27,
+          3
+        ],
+        [
+          -28,
+          -3
+        ],
+        [
+          29,
+          -2
+        ],
+        [
+          -30,
+          -1
+        ],
+        [
+          31,
+          0
+        ],
+        [
+          -32,
+          1
+        ],
+        [
+          33,
+          2
+        ],
+        [
+          -34,
+          3
+        ],
+        [
+          35,
+          -3
+        ],
+        [
+          -36,
+          -2
+        ],
+        [
+          37,
+          -1
+        ],
+        [
+          -38,
+          0
+        ],
+        [
+          39,
+          1
+        ],
+        [
+          -40,
+          2
+        ],
+        [
+          41,
+          3
+        ],
+        [
+          -42,
+          -3
+        ],
+        [
+          43,
+          -2
+        ],
+        [
+          -44,
+          -1
+        ],
+        [
+          45,
+          0
+        ],
+        [
+          -46,
+          1
+        ],
+        [
+          47,
+          2
+        ],
+        [
+          -48,
+          3
+        ],
+        [
+          49,
+          -3
+        ],
+        [
+          -50,
+          -2
+        ],
+        [
+          51,
+          -1
+        ],
+        [
+          -52,
+          0
+        ],
+        [
+          53,
+          1
+        ],
+        [
+          -54,
+          2
+        ],
+        [
+          55,
+          3
+        ],
+        [
+          -56,
+          -3
+        ],
+        [
+          57,
+          -2
+        ],
+        [
+          -58,
+          -1
+        ],
+        [
+          59,
+          0
+        ],
+        [
+          -60,
+          1
+        ],
+        [
+          61,
+          2
+        ],
+        [
+          -62,
+          3
+        ],
+        [
+          63,
+          -3
+        ],
+        [
+          -64,
+          -2
+        ],
+        [
+          65,
+          -1
+        ],
+        [
+          -66,
+          0
+        ],
+        [
+          67,
+          1
+        ],
+        [
+          -68,
+          2
+        ],
+        [
+          69,
+          3
+        ],
+        [
+          -70,
+          -3
+        ],
+        [
+          71,
+          -2
+        ],
+        [
+          -72,
+          -1
+        ],
+        [
+          73,
+          0
+        ],
+        [
+          -74,
+          1
+        ],
+        [
+          75,
+          2
+        ],
+        [
+          -76,
+          3
+        ],
+        [
+          77,
+          -3
+        ],
+        [
+          -78,
+          -2
+        ],
+        [
+          79,
+          -1
+        ],
+        [
+          -80,
+          0
+        ],
+        [
+          81,
+          1
+        ],
+        [
+          -82,
+          2
+        ],
+        [
+          83,
+          3
+        ],
+        [
+          -84,
+          -3
+        ],
+        [
+          85,
+          -2
+        ],
+        [
+          -86,
+          -1
+        ],
+        [
+          87,
+          0
+        ],
+        [
+          -88,
+          1
+        ],
+        [
+          89,
+          2
+        ],
+        [
+          -90,
+          3
+        ],
+        [
+          91,
+          -3
+        ],
+        [
+          -92,
+          -2
+        ],
+        [
+          93,
+          -1
+        ],
+        [
+          -94,
+          0
+        ],
+        [
+          95,
+          1
+        ],
+        [
+          -96,
+          2
+        ],
+        [
+          97,
+          3
+        ],
+        [
+          -98,
+          -3
+        ],
+        [
+          99,
+          -2
+        ]
+      ]
+    }
+  ]
+}

@@ -1,12 +1,17 @@
-//! Basic entity state and clientbound entity packet encoders for protocol 776.
+//! Entity state and native-checked clientbound entity packets for protocol 775.
 
 use bcore_core::varint::encode_varint;
+use bcore_worldgen::generated_entity::GeneratedEntity;
+use sha2::{Digest, Sha256};
+use std::collections::HashMap;
+use std::sync::atomic::{AtomicI32, Ordering};
+use std::sync::{Arc, Mutex, Weak};
 
 use crate::packet::write_packet;
 
 pub const CB_SPAWN_ENTITY: i32 = 0x01;
 pub const CB_ENTITY_METADATA: i32 = 0x63;
-pub const CB_REMOVE_ENTITIES: i32 = 0x4d; // entity_destroy in protocol_776
+pub const CB_REMOVE_ENTITIES: i32 = 0x4d;
 pub const CB_ENTITY_TELEPORT: i32 = 0x7d;
 
 /// Monotonically allocates positive protocol entity ids.
@@ -47,7 +52,7 @@ pub struct ItemEntity {
     pub position: Position,
     pub owner: Option<[u8; 16]>,
     pub age: i16,
-    /// Minecraft item entity type id (item = 2 in the entity registry).
+    /// Minecraft item entity type id (71 in the 26.1 registry).
     pub entity_type: i32,
 }
 
@@ -58,7 +63,7 @@ impl ItemEntity {
             position,
             owner: None,
             age: 0,
-            entity_type: 2,
+            entity_type: 71,
         }
     }
 }
@@ -73,7 +78,7 @@ impl MobKind {
     pub fn entity_type(self) -> i32 {
         match self {
             Self::Cow => 30,
-            Self::Zombie => 151,
+            Self::Zombie => 150,
         }
     }
 }
@@ -97,10 +102,6 @@ impl MobEntity {
     }
 }
 
-fn angle(value: f32) -> i8 {
-    (value * 256.0 / 360.0) as i8
-}
-
 /// Encode clientbound `spawn_entity`: id, UUID, type, position, velocity,
 /// three angles and object data. UUID is supplied to keep output deterministic.
 pub fn encode_spawn_entity(
@@ -116,7 +117,7 @@ pub fn encode_spawn_entity(
     data.extend_from_slice(&position.x.to_be_bytes());
     data.extend_from_slice(&position.y.to_be_bytes());
     data.extend_from_slice(&position.z.to_be_bytes());
-    data.extend_from_slice(&[0; 6]); // lpVec3 velocity: three i16 values
+    data.push(0); // Native LpVec3 encodes the zero vector with one byte.
     data.extend_from_slice(&[0, 0, 0]); // pitch, yaw, headPitch
     encode_varint(0, &mut data); // objectData
     let mut packet = Vec::new();
@@ -159,7 +160,10 @@ pub fn encode_entity_teleport(
     data.extend_from_slice(&position.x.to_be_bytes());
     data.extend_from_slice(&position.y.to_be_bytes());
     data.extend_from_slice(&position.z.to_be_bytes());
-    data.extend_from_slice(&[angle(yaw) as u8, angle(pitch) as u8]);
+    data.extend_from_slice(&[0; 24]); // delta movement: three f64 values
+    data.extend_from_slice(&yaw.to_be_bytes());
+    data.extend_from_slice(&pitch.to_be_bytes());
+    data.extend_from_slice(&0u32.to_be_bytes()); // no relative fields
     data.push(u8::from(on_ground));
     let mut packet = Vec::new();
     write_packet(&mut packet, CB_ENTITY_TELEPORT, &data);
@@ -175,6 +179,108 @@ pub fn encode_remove_entities(ids: &[i32]) -> Vec<u8> {
     let mut packet = Vec::new();
     write_packet(&mut packet, CB_REMOVE_ENTITIES, &data);
     packet
+}
+
+/// Runtime identity is shared by viewers, independently of feature-placement RNG.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct TrackedEntity {
+    pub id: i32,
+    pub uuid: [u8; 16],
+    pub generated: GeneratedEntity,
+}
+
+static NEXT_GENERATED_ID: AtomicI32 = AtomicI32::new(crate::join::PLAY_LOGIN_ENTITY_ID + 1);
+
+impl TrackedEntity {
+    pub fn new(seed: i64, chunk: (i32, i32), ordinal: usize, generated: GeneratedEntity) -> Self {
+        let id = NEXT_GENERATED_ID
+            .try_update(Ordering::Relaxed, Ordering::Relaxed, |id| id.checked_add(1))
+            .expect("entity id exhausted");
+        let mut digest = Sha256::new();
+        digest.update(b"BCore generated entity identity v1\0");
+        digest.update(seed.to_le_bytes());
+        digest.update(chunk.0.to_le_bytes());
+        digest.update(chunk.1.to_le_bytes());
+        digest.update((ordinal as u64).to_le_bytes());
+        digest.update(generated.type_id().to_le_bytes());
+        for coordinate in generated.block_pos() {
+            digest.update(coordinate.to_le_bytes());
+        }
+        match &generated {
+            GeneratedEntity::ChestMinecart { loot_seed, .. } => {
+                digest.update(loot_seed.to_le_bytes())
+            }
+        }
+        let mut uuid: [u8; 16] = digest.finalize()[..16].try_into().unwrap();
+        uuid[6] = (uuid[6] & 0x0f) | 0x80; // UUID v8: application-defined SHA-256 identity.
+        uuid[8] = (uuid[8] & 0x3f) | 0x80;
+        Self {
+            id,
+            uuid,
+            generated,
+        }
+    }
+
+    pub fn spawn_packet(&self) -> Vec<u8> {
+        let [x, y, z] = self.generated.position();
+        encode_spawn_entity(
+            self.id,
+            self.uuid,
+            self.generated.type_id() as i32,
+            Position { x, y, z },
+        )
+    }
+}
+
+pub(crate) type TrackedEntities = Arc<[TrackedEntity]>;
+
+/// Payloads and active views own the entities; this index holds only weak refs.
+#[derive(Debug, Default)]
+pub(crate) struct EntityTracker {
+    chunks: Mutex<HashMap<(i32, i32), Weak<[TrackedEntity]>>>,
+}
+
+impl EntityTracker {
+    pub fn for_chunk(
+        &self,
+        seed: i64,
+        chunk: (i32, i32),
+        data: &[GeneratedEntity],
+    ) -> TrackedEntities {
+        if data.is_empty() {
+            return Arc::from([]);
+        }
+        let mut chunks = self.chunks.lock().expect("entity tracker lock");
+        if let Some(existing) = chunks.get(&chunk).and_then(Weak::upgrade) {
+            if existing.len() == data.len()
+                && existing
+                    .iter()
+                    .zip(data)
+                    .all(|(old, new)| old.generated == *new)
+            {
+                return existing;
+            }
+        }
+        let tracked: TrackedEntities = data
+            .iter()
+            .cloned()
+            .enumerate()
+            .map(|(index, data)| TrackedEntity::new(seed, chunk, index, data))
+            .collect::<Vec<_>>()
+            .into();
+        if chunks.len() >= 8192 {
+            chunks.retain(|_, entities| entities.strong_count() != 0);
+        }
+        chunks.insert(chunk, Arc::downgrade(&tracked));
+        tracked
+    }
+
+    pub fn prune(&self) {
+        self.chunks
+            .lock()
+            .expect("entity tracker lock")
+            .retain(|_, entities| entities.strong_count() != 0);
+    }
 }
 
 #[cfg(test)]
@@ -208,7 +314,7 @@ mod tests {
         );
         assert_eq!(&b[..1], &[4]);
         assert_eq!(&b[1..17], &[0xab; 16]);
-        assert_eq!(b.len(), 1 + 16 + 2 + 24 + 6 + 3 + 1);
+        assert_eq!(b.len(), 1 + 16 + 2 + 24 + 1 + 3 + 1);
     }
 
     #[test]

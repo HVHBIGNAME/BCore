@@ -42,6 +42,36 @@ fn write_entry(tag: u8, name: &str, out: &mut Vec<u8>) {
     write_nbt_string(name, out);
 }
 
+/// Encode the generated chest/spawner update schema as anonymous NBT.
+/// All numeric fields in this schema are vanilla TAG_Short spawner settings.
+pub fn encode_block_entity_update(entity: &bcore_worldgen::block_entity::BlockEntity) -> Vec<u8> {
+    fn compound(value: &serde_json::Value, out: &mut Vec<u8>) {
+        for (name, value) in value.as_object().expect("block entity compound") {
+            match value {
+                serde_json::Value::Object(_) => {
+                    write_entry(TAG_COMPOUND, name, out);
+                    compound(value, out);
+                }
+                serde_json::Value::String(text) => {
+                    write_entry(TAG_STRING, name, out);
+                    write_nbt_string(text, out);
+                }
+                serde_json::Value::Number(n) => {
+                    let n = i16::try_from(n.as_i64().expect("integer spawner setting"))
+                        .expect("short spawner setting");
+                    write_entry(2, name, out);
+                    out.extend_from_slice(&n.to_be_bytes());
+                }
+                _ => panic!("unsupported generated block entity update field {name}"),
+            }
+        }
+        out.push(TAG_END);
+    }
+    let mut out = vec![TAG_COMPOUND];
+    compound(&entity.update_data(), &mut out);
+    out
+}
+
 /// A minimal chat text component: literal text plus optional colour, italics
 /// and child components.
 ///

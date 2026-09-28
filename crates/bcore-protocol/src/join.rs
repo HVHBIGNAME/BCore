@@ -13,7 +13,6 @@
 
 use std::io::{Cursor, Read, Write};
 use std::net::TcpStream;
-use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use sha2::Digest;
@@ -133,36 +132,6 @@ fn encode_play_login(view: &PlayerView) -> Vec<u8> {
     let mut out = Vec::new();
     write_packet(&mut out, PLAY_LOGIN_ID, &data);
     out
-}
-
-static PROFILE_ID_COUNTER: AtomicU64 = AtomicU64::new(0);
-
-fn splitmix64(mut x: u64) -> u64 {
-    x = x.wrapping_add(0x9e3779b97f4a7c15);
-    let mut z = x;
-    z = (z ^ (z >> 30)).wrapping_mul(0xbf58476d1ce4e5b9);
-    z = (z ^ (z >> 27)).wrapping_mul(0x94d049bb133111eb);
-    z ^ (z >> 31)
-}
-
-/// Generate a random version-4 UUID (the login-success "profile id").
-fn random_uuid_v4() -> [u8; 16] {
-    let nanos = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_nanos() as u64)
-        .unwrap_or(0);
-    let mut state = nanos
-        ^ PROFILE_ID_COUNTER
-            .fetch_add(1, Ordering::Relaxed)
-            .wrapping_mul(0x9e3779b97f4a7c15);
-    let mut bytes = [0u8; 16];
-    for chunk in bytes.chunks_mut(8) {
-        state = splitmix64(state);
-        chunk.copy_from_slice(&state.to_le_bytes());
-    }
-    bytes[6] = (bytes[6] & 0x0f) | 0x40; // version 4
-    bytes[8] = (bytes[8] & 0x3f) | 0x80; // RFC 4122 variant
-    bytes
 }
 
 struct CapturedPackets {

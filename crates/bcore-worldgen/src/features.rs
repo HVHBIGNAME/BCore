@@ -6,6 +6,7 @@
 //! belong to the callback/owner.
 
 use crate::block;
+use crate::mth::sin_f32 as mth_sin;
 use crate::noise::splitmix64;
 use crate::simplex::WorldgenRandom;
 
@@ -41,6 +42,8 @@ pub enum OreKind {
     Tuff,
     Dirt,
     Gravel,
+    Clay,
+    Infested,
 }
 
 /// Place a simple tree at `(x, y, z)`, where `y` is the ground block.
@@ -173,10 +176,25 @@ pub fn place_ore(
     kind: OreKind,
     size: usize,
 ) -> bool {
-    if size == 0 {
-        return false;
+    let positions = ore_positions(rng, ocean_floor, (x, y, z), size);
+    let placed = !positions.is_empty();
+    for (x, y, z) in positions {
+        world_write(x, y, z, ore_state(kind));
     }
-    let state = ore_state(kind);
+    placed
+}
+
+/// Geometry is sampled before replacement predicates consume any random draws.
+pub(crate) fn ore_positions(
+    rng: &mut WorldgenRandom,
+    ocean_floor: &dyn Fn(i32, i32) -> i32,
+    origin: (i32, i32, i32),
+    size: usize,
+) -> Vec<(i32, i32, i32)> {
+    let (x, y, z) = origin;
+    if size == 0 {
+        return Vec::new();
+    }
     // Vanilla keeps these in `float` before widening; the narrower mantissa
     // changes sphere placement by fractions of a block, which is enough to move
     // whole blocks in or out of the vein.
@@ -205,7 +223,7 @@ pub fn place_ore(
     let probe_ok = (x_start..=x_start + size_xz)
         .any(|bx| (z_start..=z_start + size_xz).any(|bz| y_start <= ocean_floor(bx, bz)));
     if !probe_ok {
-        return false;
+        return Vec::new();
     }
 
     // doPlace: generate the sphere centers and radii.
@@ -220,7 +238,7 @@ pub fn place_ore(
         // `((Mth.sin(Mth.PI * step) + 1.0F) * ss + 1.0) / 2.0` — the whole
         // expression is halved, and `Mth.sin` is a 65536-entry lookup table,
         // not libm `sin`.
-        let r = ((mth_sin(std::f32::consts::PI * step as f32) as f64 + 1.0) * ss + 1.0) / 2.0;
+        let r = (f64::from(mth_sin(std::f32::consts::PI * step as f32) + 1.0) * ss + 1.0) / 2.0;
         data[i * 4] = xx;
         data[i * 4 + 1] = yy;
         data[i * 4 + 2] = zz;
@@ -247,7 +265,7 @@ pub fn place_ore(
         }
     }
     // Fill each surviving sphere.
-    let mut placed = 0;
+    let mut positions = Vec::new();
     let mut tested = vec![false; size_xz as usize * size_y as usize * size_xz as usize];
     for i in 0..size {
         let r = data[i * 4 + 3];
@@ -269,6 +287,9 @@ pub fn place_ore(
                 continue;
             }
             for by in y_min..=y_max {
+                if !(crate::MIN_Y..=crate::MAX_Y).contains(&by) {
+                    continue;
+                }
                 let yd = (by as f64 + 0.5 - yy) / r;
                 if xd * xd + yd * yd >= 1.0 {
                     continue;
@@ -281,37 +302,19 @@ pub fn place_ore(
                             + (bz - z_start) as usize * size_xz as usize * size_y as usize;
                         if !tested[bit] {
                             tested[bit] = true;
-                            world_write(bx, by, bz, state);
-                            placed += 1;
+                            positions.push((bx, by, bz));
                         }
                     }
                 }
             }
         }
     }
-    placed > 0
+    positions
 }
 
 #[inline]
 fn lerp(t: f64, a: f64, b: f64) -> f64 {
     a + t * (b - a)
-}
-
-/// Vanilla `Mth.sin` — a 65536-entry lookup table indexed by
-/// `(long)(x * SIN_SCALE) & 0xFFFF`, so it is *not* interchangeable with libm
-/// `sin` at the bit level.
-fn mth_sin(x: f32) -> f32 {
-    const SIN_SCALE: f64 = 10430.378350470453;
-    let idx = ((x as f64 * SIN_SCALE) as i64 & 0xFFFF) as usize;
-    (idx as f64 / SIN_SCALE).sin() as f32
-}
-
-/// Vanilla `Mth.cos`.
-#[allow(dead_code)]
-fn mth_cos(x: f32) -> f32 {
-    const SIN_SCALE: f64 = 10430.378350470453;
-    let idx = (((x as f64 * SIN_SCALE) + 16384.0) as i64 & 0xFFFF) as usize;
-    (idx as f64 / SIN_SCALE).sin() as f32
 }
 
 fn next_range_u64(state: &mut u64, min: i32, max: i32) -> i32 {
@@ -358,16 +361,342 @@ impl OrePlacement {
     }
 }
 
-/// Place the overworld stone blobs and ore veins for one chunk.
-///
-/// Each configured feature gets its own vanilla `FeatureUtils.simpleRandom`
-/// stream.  The callback owns the world lookup/replacement policy: callers
-/// should only replace stone or deepslate, as `OreFeature` does not replace
-/// air, water, or other blocks.
-///
-/// The y ranges are the inclusive bounds of the corresponding vanilla
-/// height-ranges. Both uniform and trapezoid distributions are retained; x/z
-/// are uniformly selected from the 16-block chunk footprint.
+const ORE_PLACEMENTS: &[OrePlacement] = &[
+    OrePlacement {
+        index: 0,
+        kind: OreKind::Dirt,
+        size: 33,
+        count: 7,
+        count_random: 0,
+        rarity: None,
+        min_y: 0,
+        max_y: 160,
+        distribution: HeightDistribution::Uniform,
+    },
+    OrePlacement {
+        index: 1,
+        kind: OreKind::Gravel,
+        size: 33,
+        count: 14,
+        count_random: 0,
+        rarity: None,
+        min_y: -64,
+        max_y: 319,
+        distribution: HeightDistribution::Uniform,
+    },
+    OrePlacement {
+        index: 2,
+        kind: OreKind::Granite,
+        size: 64,
+        count: 1,
+        count_random: 0,
+        rarity: Some(6),
+        min_y: 64,
+        max_y: 128,
+        distribution: HeightDistribution::Uniform,
+    },
+    OrePlacement {
+        index: 3,
+        kind: OreKind::Granite,
+        size: 64,
+        count: 2,
+        count_random: 0,
+        rarity: None,
+        min_y: 0,
+        max_y: 60,
+        distribution: HeightDistribution::Uniform,
+    },
+    OrePlacement {
+        index: 4,
+        kind: OreKind::Diorite,
+        size: 64,
+        count: 1,
+        count_random: 0,
+        rarity: Some(6),
+        min_y: 64,
+        max_y: 128,
+        distribution: HeightDistribution::Uniform,
+    },
+    OrePlacement {
+        index: 5,
+        kind: OreKind::Diorite,
+        size: 64,
+        count: 2,
+        count_random: 0,
+        rarity: None,
+        min_y: 0,
+        max_y: 60,
+        distribution: HeightDistribution::Uniform,
+    },
+    OrePlacement {
+        index: 6,
+        kind: OreKind::Andesite,
+        size: 64,
+        count: 1,
+        count_random: 0,
+        rarity: Some(6),
+        min_y: 64,
+        max_y: 128,
+        distribution: HeightDistribution::Uniform,
+    },
+    OrePlacement {
+        index: 7,
+        kind: OreKind::Andesite,
+        size: 64,
+        count: 2,
+        count_random: 0,
+        rarity: None,
+        min_y: 0,
+        max_y: 60,
+        distribution: HeightDistribution::Uniform,
+    },
+    OrePlacement {
+        index: 8,
+        kind: OreKind::Tuff,
+        size: 64,
+        count: 2,
+        count_random: 0,
+        rarity: None,
+        min_y: -64,
+        max_y: 0,
+        distribution: HeightDistribution::Uniform,
+    },
+    OrePlacement {
+        index: 9,
+        kind: OreKind::Coal,
+        size: 17,
+        count: 30,
+        count_random: 0,
+        rarity: None,
+        min_y: 136,
+        max_y: 319,
+        distribution: HeightDistribution::Uniform,
+    },
+    OrePlacement {
+        index: 10,
+        kind: OreKind::Coal,
+        size: 17,
+        count: 20,
+        count_random: 0,
+        rarity: None,
+        min_y: 0,
+        max_y: 192,
+        distribution: HeightDistribution::Trapezoid,
+    },
+    OrePlacement {
+        index: 11,
+        kind: OreKind::Iron,
+        size: 9,
+        count: 90,
+        count_random: 0,
+        rarity: None,
+        min_y: 80,
+        max_y: 384,
+        distribution: HeightDistribution::Trapezoid,
+    },
+    OrePlacement {
+        index: 12,
+        kind: OreKind::Iron,
+        size: 9,
+        count: 10,
+        count_random: 0,
+        rarity: None,
+        min_y: -24,
+        max_y: 56,
+        distribution: HeightDistribution::Trapezoid,
+    },
+    OrePlacement {
+        index: 13,
+        kind: OreKind::Iron,
+        size: 4,
+        count: 10,
+        count_random: 0,
+        rarity: None,
+        min_y: -64,
+        max_y: 72,
+        distribution: HeightDistribution::Uniform,
+    },
+    OrePlacement {
+        index: 14,
+        kind: OreKind::Gold,
+        size: 9,
+        count: 4,
+        count_random: 0,
+        rarity: None,
+        min_y: -64,
+        max_y: 32,
+        distribution: HeightDistribution::Trapezoid,
+    },
+    OrePlacement {
+        index: 15,
+        kind: OreKind::Gold,
+        size: 9,
+        count: 0,
+        count_random: 1,
+        rarity: None,
+        min_y: -64,
+        max_y: -48,
+        distribution: HeightDistribution::Uniform,
+    },
+    OrePlacement {
+        index: 16,
+        kind: OreKind::Redstone,
+        size: 8,
+        count: 4,
+        count_random: 0,
+        rarity: None,
+        min_y: -64,
+        max_y: 15,
+        distribution: HeightDistribution::Uniform,
+    },
+    OrePlacement {
+        index: 17,
+        kind: OreKind::Redstone,
+        size: 8,
+        count: 8,
+        count_random: 0,
+        rarity: None,
+        min_y: -96,
+        max_y: -32,
+        distribution: HeightDistribution::Trapezoid,
+    },
+    OrePlacement {
+        index: 18,
+        kind: OreKind::Diamond,
+        size: 4,
+        count: 7,
+        count_random: 0,
+        rarity: None,
+        min_y: -144,
+        max_y: 16,
+        distribution: HeightDistribution::Trapezoid,
+    },
+    OrePlacement {
+        index: 19,
+        kind: OreKind::Diamond,
+        size: 8,
+        count: 2,
+        count_random: 0,
+        rarity: None,
+        min_y: -64,
+        max_y: -4,
+        distribution: HeightDistribution::Uniform,
+    },
+    OrePlacement {
+        index: 20,
+        kind: OreKind::Diamond,
+        size: 12,
+        count: 1,
+        count_random: 0,
+        rarity: Some(9),
+        min_y: -144,
+        max_y: 16,
+        distribution: HeightDistribution::Trapezoid,
+    },
+    OrePlacement {
+        index: 21,
+        kind: OreKind::Diamond,
+        size: 8,
+        count: 4,
+        count_random: 0,
+        rarity: None,
+        min_y: -144,
+        max_y: 16,
+        distribution: HeightDistribution::Trapezoid,
+    },
+    OrePlacement {
+        index: 22,
+        kind: OreKind::Lapis,
+        size: 7,
+        count: 2,
+        count_random: 0,
+        rarity: None,
+        min_y: -32,
+        max_y: 32,
+        distribution: HeightDistribution::Trapezoid,
+    },
+    OrePlacement {
+        index: 23,
+        kind: OreKind::Lapis,
+        size: 7,
+        count: 4,
+        count_random: 0,
+        rarity: None,
+        min_y: -64,
+        max_y: 64,
+        distribution: HeightDistribution::Uniform,
+    },
+    OrePlacement {
+        index: 24,
+        kind: OreKind::Copper,
+        size: 20,
+        count: 16,
+        count_random: 0,
+        rarity: None,
+        min_y: -16,
+        max_y: 112,
+        distribution: HeightDistribution::Trapezoid,
+    },
+    OrePlacement {
+        // `ore_copper_large` occupies global index 24 (it exists in dripstone
+        // caves, which shares the step-6 list), so plain `ore_copper` is 25.
+        index: 25,
+        kind: OreKind::Copper,
+        size: 10,
+        count: 16,
+        count_random: 0,
+        rarity: None,
+        min_y: -16,
+        max_y: 112,
+        distribution: HeightDistribution::Trapezoid,
+    },
+];
+
+fn ore_placement(name: &str) -> Option<(i32, OrePlacement)> {
+    let (step, index) = crate::feature_sorter::sorter().within_step_index(name)?;
+    if step == 6 {
+        if let Some(placement) = ORE_PLACEMENTS.iter().find(|f| f.index == index as i32) {
+            return Some((step as i32, *placement));
+        }
+    }
+    let (kind, size, count, min_y, max_y, distribution) = match name {
+        "ore_clay" => (OreKind::Clay, 33, 46, -64, 256, HeightDistribution::Uniform),
+        "ore_gold_extra" => (OreKind::Gold, 9, 50, 32, 256, HeightDistribution::Uniform),
+        "ore_emerald" => (
+            OreKind::Emerald,
+            3,
+            100,
+            -16,
+            480,
+            HeightDistribution::Trapezoid,
+        ),
+        "ore_infested" => (
+            OreKind::Infested,
+            9,
+            14,
+            -64,
+            63,
+            HeightDistribution::Uniform,
+        ),
+        _ => return None,
+    };
+    Some((
+        step as i32,
+        OrePlacement {
+            index: index as i32,
+            count_random: 0,
+            kind,
+            size,
+            count,
+            rarity: None,
+            min_y,
+            max_y,
+            distribution,
+        },
+    ))
+}
+
+/// Legacy geometry-only callback API. Full placement uses `decorate_ores`.
 pub fn place_ore_veins(
     seed: i64,
     chunk_x: i32,
@@ -375,293 +704,13 @@ pub fn place_ore_veins(
     ocean_floor: &dyn Fn(i32, i32) -> i32,
     world_write: &mut dyn FnMut(i32, i32, i32, BlockState),
 ) {
-    const FEATURES: &[OrePlacement] = &[
-        OrePlacement {
-            index: 0,
-            kind: OreKind::Dirt,
-            size: 33,
-            count: 7,
-            count_random: 0,
-            rarity: None,
-            min_y: 0,
-            max_y: 160,
-            distribution: HeightDistribution::Uniform,
-        },
-        OrePlacement {
-            index: 1,
-            kind: OreKind::Gravel,
-            size: 33,
-            count: 14,
-            count_random: 0,
-            rarity: None,
-            min_y: -64,
-            max_y: 319,
-            distribution: HeightDistribution::Uniform,
-        },
-        OrePlacement {
-            index: 2,
-            kind: OreKind::Granite,
-            size: 64,
-            count: 1,
-            count_random: 0,
-            rarity: Some(6),
-            min_y: 64,
-            max_y: 128,
-            distribution: HeightDistribution::Uniform,
-        },
-        OrePlacement {
-            index: 3,
-            kind: OreKind::Granite,
-            size: 64,
-            count: 2,
-            count_random: 0,
-            rarity: None,
-            min_y: 0,
-            max_y: 60,
-            distribution: HeightDistribution::Uniform,
-        },
-        OrePlacement {
-            index: 4,
-            kind: OreKind::Diorite,
-            size: 64,
-            count: 1,
-            count_random: 0,
-            rarity: Some(6),
-            min_y: 64,
-            max_y: 128,
-            distribution: HeightDistribution::Uniform,
-        },
-        OrePlacement {
-            index: 5,
-            kind: OreKind::Diorite,
-            size: 64,
-            count: 2,
-            count_random: 0,
-            rarity: None,
-            min_y: 0,
-            max_y: 60,
-            distribution: HeightDistribution::Uniform,
-        },
-        OrePlacement {
-            index: 6,
-            kind: OreKind::Andesite,
-            size: 64,
-            count: 1,
-            count_random: 0,
-            rarity: Some(6),
-            min_y: 64,
-            max_y: 128,
-            distribution: HeightDistribution::Uniform,
-        },
-        OrePlacement {
-            index: 7,
-            kind: OreKind::Andesite,
-            size: 64,
-            count: 2,
-            count_random: 0,
-            rarity: None,
-            min_y: 0,
-            max_y: 60,
-            distribution: HeightDistribution::Uniform,
-        },
-        OrePlacement {
-            index: 8,
-            kind: OreKind::Tuff,
-            size: 64,
-            count: 2,
-            count_random: 0,
-            rarity: None,
-            min_y: -64,
-            max_y: 0,
-            distribution: HeightDistribution::Uniform,
-        },
-        OrePlacement {
-            index: 9,
-            kind: OreKind::Coal,
-            size: 17,
-            count: 30,
-            count_random: 0,
-            rarity: None,
-            min_y: 136,
-            max_y: 319,
-            distribution: HeightDistribution::Uniform,
-        },
-        OrePlacement {
-            index: 10,
-            kind: OreKind::Coal,
-            size: 17,
-            count: 20,
-            count_random: 0,
-            rarity: None,
-            min_y: 0,
-            max_y: 192,
-            distribution: HeightDistribution::Trapezoid,
-        },
-        OrePlacement {
-            index: 11,
-            kind: OreKind::Iron,
-            size: 9,
-            count: 90,
-            count_random: 0,
-            rarity: None,
-            min_y: 80,
-            max_y: 384,
-            distribution: HeightDistribution::Trapezoid,
-        },
-        OrePlacement {
-            index: 12,
-            kind: OreKind::Iron,
-            size: 9,
-            count: 10,
-            count_random: 0,
-            rarity: None,
-            min_y: -24,
-            max_y: 56,
-            distribution: HeightDistribution::Trapezoid,
-        },
-        OrePlacement {
-            index: 13,
-            kind: OreKind::Iron,
-            size: 4,
-            count: 10,
-            count_random: 0,
-            rarity: None,
-            min_y: -64,
-            max_y: 72,
-            distribution: HeightDistribution::Uniform,
-        },
-        OrePlacement {
-            index: 14,
-            kind: OreKind::Gold,
-            size: 9,
-            count: 4,
-            count_random: 0,
-            rarity: None,
-            min_y: -64,
-            max_y: 32,
-            distribution: HeightDistribution::Trapezoid,
-        },
-        OrePlacement {
-            index: 15,
-            kind: OreKind::Gold,
-            size: 9,
-            count: 0,
-            count_random: 1,
-            rarity: None,
-            min_y: -64,
-            max_y: -48,
-            distribution: HeightDistribution::Uniform,
-        },
-        OrePlacement {
-            index: 16,
-            kind: OreKind::Redstone,
-            size: 8,
-            count: 4,
-            count_random: 0,
-            rarity: None,
-            min_y: -64,
-            max_y: 15,
-            distribution: HeightDistribution::Uniform,
-        },
-        OrePlacement {
-            index: 17,
-            kind: OreKind::Redstone,
-            size: 8,
-            count: 8,
-            count_random: 0,
-            rarity: None,
-            min_y: -96,
-            max_y: -32,
-            distribution: HeightDistribution::Trapezoid,
-        },
-        OrePlacement {
-            index: 18,
-            kind: OreKind::Diamond,
-            size: 4,
-            count: 7,
-            count_random: 0,
-            rarity: None,
-            min_y: -144,
-            max_y: 16,
-            distribution: HeightDistribution::Trapezoid,
-        },
-        OrePlacement {
-            index: 19,
-            kind: OreKind::Diamond,
-            size: 8,
-            count: 2,
-            count_random: 0,
-            rarity: None,
-            min_y: -64,
-            max_y: -4,
-            distribution: HeightDistribution::Uniform,
-        },
-        OrePlacement {
-            index: 20,
-            kind: OreKind::Diamond,
-            size: 12,
-            count: 1,
-            count_random: 0,
-            rarity: Some(9),
-            min_y: -144,
-            max_y: 16,
-            distribution: HeightDistribution::Trapezoid,
-        },
-        OrePlacement {
-            index: 21,
-            kind: OreKind::Diamond,
-            size: 8,
-            count: 4,
-            count_random: 0,
-            rarity: None,
-            min_y: -144,
-            max_y: 16,
-            distribution: HeightDistribution::Trapezoid,
-        },
-        OrePlacement {
-            index: 22,
-            kind: OreKind::Lapis,
-            size: 7,
-            count: 2,
-            count_random: 0,
-            rarity: None,
-            min_y: -32,
-            max_y: 32,
-            distribution: HeightDistribution::Trapezoid,
-        },
-        OrePlacement {
-            index: 23,
-            kind: OreKind::Lapis,
-            size: 7,
-            count: 4,
-            count_random: 0,
-            rarity: None,
-            min_y: -64,
-            max_y: 64,
-            distribution: HeightDistribution::Uniform,
-        },
-        OrePlacement {
-            // `ore_copper_large` occupies global index 24 (it exists in dripstone
-            // caves, which shares the step-6 list), so plain `ore_copper` is 25.
-            index: 25,
-            kind: OreKind::Copper,
-            size: 10,
-            count: 16,
-            count_random: 0,
-            rarity: None,
-            min_y: -16,
-            max_y: 112,
-            distribution: HeightDistribution::Trapezoid,
-        },
-    ];
-
     let base_x = chunk_x.wrapping_mul(16);
     let base_z = chunk_z.wrapping_mul(16);
     // Vanilla ChunkGenerator.applyBiomeDecoration: per feature,
     // `setDecorationSeed(worldSeed, chunkX*16, chunkZ*16)` then
     // `setFeatureSeed(decorationSeed, index, GenerationStep.Decoration.UNDERGROUND_ORES.ordinal())`.
     const STEP_UNDERGROUND_ORES: i32 = 6;
-    for feature in FEATURES {
+    for feature in ORE_PLACEMENTS {
         let mut rng = WorldgenRandom::new(seed);
         let decoration_seed = rng.set_decoration_seed(seed, base_x, base_z);
         rng.set_feature_seed(decoration_seed, feature.index, STEP_UNDERGROUND_ORES);
@@ -694,6 +743,86 @@ pub fn place_ore_veins(
     }
 }
 
+/// Full ore placement against shared mutable pre-feature terrain.
+pub(crate) fn decorate_ores(
+    seed: i64,
+    source: bcore_core::ChunkPos,
+    world: &mut crate::region::FeatureRegion,
+) {
+    let base_x = source.x.wrapping_mul(16);
+    let base_z = source.z.wrapping_mul(16);
+    let mut random = WorldgenRandom::new(seed);
+    let decoration_seed = random.set_decoration_seed(seed, base_x, base_z);
+    let sorter = crate::feature_sorter::sorter();
+    for step in [6, 7] {
+        for (index, name) in
+            (0..).map_while(|index| sorter.feature_name(step, index).map(|name| (index, name)))
+        {
+            if ore_placement(name).is_none() {
+                continue;
+            }
+            random.set_feature_seed(decoration_seed, index as i32, step as i32);
+            place_ore_feature(world, &mut random, source, name, |world, pos| {
+                sorter.feature_in_biome(crate::biome::name(world.biome_at(pos)), name)
+            })
+            .expect("supported ore feature");
+        }
+    }
+}
+
+/// Run one named ore placement after its feature seed has been set. The biome
+/// predicate is evaluated lazily between height sampling and feature placement.
+/// Returns `None` for features that are not implemented here.
+pub fn place_ore_feature<W: crate::ore::OreWorld>(
+    world: &mut W,
+    random: &mut WorldgenRandom,
+    source: bcore_core::ChunkPos,
+    name: &str,
+    accepts_biome: impl Fn(&W, (i32, i32, i32)) -> bool,
+) -> Option<bool> {
+    let name = name.strip_prefix("minecraft:").unwrap_or(name);
+    let (_, feature) = ore_placement(name)?;
+    if feature
+        .rarity
+        .is_some_and(|chance| random.next_float() >= 1.0 / chance as f32)
+    {
+        return Some(false);
+    }
+    let count = feature.count
+        + if feature.count_random > 0 {
+            random.next_int(feature.count_random + 1)
+        } else {
+            0
+        };
+    let config = crate::ore::OreConfig {
+        kind: feature.kind,
+        size: feature.size,
+        discard_on_air_exposure: match name {
+            "ore_coal_lower" | "ore_gold" | "ore_gold_lower" | "ore_diamond"
+            | "ore_diamond_medium" => 0.5,
+            "ore_diamond_large" => 0.7,
+            "ore_diamond_buried" | "ore_lapis_buried" => 1.0,
+            _ => 0.0,
+        },
+    };
+    let mut placed = false;
+    for _ in 0..count {
+        let x = source
+            .x
+            .wrapping_mul(16)
+            .wrapping_add(random.next_int(16) as i32);
+        let z = source
+            .z
+            .wrapping_mul(16)
+            .wrapping_add(random.next_int(16) as i32);
+        let y = feature.height(random);
+        if accepts_biome(world, (x, y, z)) {
+            placed |= crate::ore::place(world, random, (x, y, z), config);
+        }
+    }
+    Some(placed)
+}
+
 /// Vanilla FeatureUtils.simpleRandom seed for a placed feature.
 #[inline]
 pub fn feature_seed(world_seed: i64, chunk_x: i32, chunk_z: i32, salt: i64) -> i64 {
@@ -704,7 +833,7 @@ pub fn feature_seed(world_seed: i64, chunk_x: i32, chunk_z: i32, salt: i64) -> i
 }
 
 #[inline]
-fn ore_state(kind: OreKind) -> BlockState {
+pub(crate) fn ore_state(kind: OreKind) -> BlockState {
     match kind {
         OreKind::Coal => block::COAL_ORE,
         OreKind::Iron => block::IRON_ORE,
@@ -721,6 +850,8 @@ fn ore_state(kind: OreKind) -> BlockState {
         OreKind::Tuff => block::TUFF,
         OreKind::Dirt => block::DIRT,
         OreKind::Gravel => block::GRAVEL,
+        OreKind::Clay => block::CLAY,
+        OreKind::Infested => block::INFESTED_STONE,
     }
 }
 

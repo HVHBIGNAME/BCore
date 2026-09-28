@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
-"""Brute-force the within-step feature index: which index makes BCore's
-in_square positions match vanilla's actual trees at chunk (62,0)?"""
+"""Historical, incomplete placement experiment; NOT a feature-index oracle.
+
+The loop omits selector, tree and decorator RNG draws between attempts.
+Its overlap scores cannot confirm or reject an index or a decoration seed.
+Only the first candidate uses the real placement-stream position; even that
+candidate may fail admission and never produce a trunk.
+"""
 import json, subprocess, sys
 sys.path.insert(0, '.')
 from scripts.vanilla_rng_check import WorldgenRandom, s64, Xoroshiro, upgrade, MASK
+
+print("Incomplete RNG model: overlap scores below do NOT identify the feature index.")
 
 seed = 846692123413862008
 bx, bz = 992, 0

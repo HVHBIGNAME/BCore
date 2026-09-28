@@ -1,0 +1,116 @@
+{
+  "minecraft": "26.1",
+  "jar_sha256": "a7fed6f7d88379349e35ae0c6e9881d4484605132f6f620376a3868eea6cce52",
+  "probe_sha256": "5bd37c2ce14dd06f55188d814d237eeca6e6db79df2f5370e4c463926c2f7b09",
+  "samples": [
+    {
+      "kind": "legacy",
+      "next_i64": 5162380060722682117,
+      "doubles_md5": "d8aa8235198ab0f272d9c69039d357b5",
+      "seed": 0
+    },
+    {
+      "kind": "legacy",
+      "next_i64": -582112421724152063,
+      "doubles_md5": "d5ee44b88446050ec2f01f6bdff38b10",
+      "seed": 1
+    },
+    {
+      "kind": "legacy",
+      "next_i64": -6223561489294969843,
+      "doubles_md5": "708060dfb1ecc2e3cd5e0c3a00562ad1",
+      "seed": -1
+    },
+    {
+      "kind": "legacy",
+      "next_i64": -7712761034782192218,
+      "doubles_md5": "6ba288b1d906ced8951920c7fc4bffeb",
+      "seed": 846692123413862008
+    },
+    {
+      "kind": "legacy",
+      "next_i64": 5162380060722682117,
+      "doubles_md5": "d8aa8235198ab0f272d9c69039d357b5",
+      "seed": -9223372036854775808
+    },
+    {
+      "kind": "legacy",
+      "next_i64": -6223561489294969843,
+      "doubles_md5": "708060dfb1ecc2e3cd5e0c3a00562ad1",
+      "seed": 9223372036854775807
+    },
+    {
+      "kind": "xoroshiro",
+      "next_i64": 4466539419284003166,
+      "doubles_md5": "d10ae407a44cc7811cee47c48e6d972b",
+      "seed": 0
+    },
+    {
+      "kind": "xoroshiro",
+      "next_i64": 1577986747109868278,
+      "doubles_md5": "9447c4959960fa1471c0ede9e4d0b03b",
+      "seed": 1
+    },
+    {
+      "kind": "xoroshiro",
+      "next_i64": 1065314222874090850,
+      "doubles_md5": "78631b107c96a5dd2f840f2f9993cf10",
+      "seed": -1
+    },
+    {
+      "kind": "xoroshiro",
+      "next_i64": 8316451031419074400,
+      "doubles_md5": "b4435e2e50f0436391d2644ca161ab7a",
+      "seed": 846692123413862008
+    },
+    {
+      "kind": "xoroshiro",
+      "next_i64": -7618673592598380405,
+      "doubles_md5": "b7b0cbd03a7ab5a70ebb6718aa839936",
+      "seed": -9223372036854775808
+    },
+    {
+      "kind": "xoroshiro",
+      "next_i64": -5250320934072579089,
+      "doubles_md5": "b61c592260b8536b3454fa458352919d",
+      "seed": 9223372036854775807
+    },
+    {
+      "kind": "worldgen_xoroshiro",
+      "next_i64": 5952442826814296859,
+      "doubles_md5": "132cec711672e0a1cca31d07c44bb999",
+      "seed": 0
+    },
+    {
+      "kind": "worldgen_xoroshiro",
+      "next_i64": 6047727145978628895,
+      "doubles_md5": "8c7b182c2286a8aa3b9be89cf812f6b6",
+      "seed": 1
+    },
+    {
+      "kind": "worldgen_xoroshiro",
+      "next_i64": -5320500114849837136,
+      "doubles_md5": "2d5a8fbeeb143b3e6344c0869484af0f",
+      "seed": -1
+    },
+    {
+      "kind": "worldgen_xoroshiro",
+      "next_i64": 1068856271239145715,
+      "doubles_md5": "7668cf368331d6ebd5ed39f09b82f22f",
+      "seed": 846692123413862008
+    },
+    {
+      "kind": "worldgen_xoroshiro",
+      "next_i64": -2191830341656827291,
+      "doubles_md5": "ae41cfc887b1356c71ffe15a035e0159",
+      "seed": -9223372036854775808
+    },
+    {
+      "kind": "worldgen_xoroshiro",
+      "next_i64": -7210607589412894575,
+      "doubles_md5": "be1c1862e5d22f01c22b68d7f587e723",
+      "seed": 9223372036854775807
+    }
+  ],
+  "draws": 2048
+}

@@ -1,14 +1,16 @@
 {
   "project": "BCore",
   "version": "0.7.0-alpha.1",
-  "updated": "2026-09-13",
+  "updated": "2026-09-28",
   "protocol": 775,
   "parity": {
     "seed": "846692123413862008",
-    "scope": "One seed, three 16×16 Overworld regions, Y=-64..319. Full worldgen parity remains incomplete.",
+    "scope": "Fresh release build, seed 846692123413862008, three 16×16 Overworld regions, Y=-64..319. State match includes air and is not an overall-completion percentage; full worldgen parity remains incomplete.",
     "terrain": "768 / 768 heights",
     "biomes": "4608 / 4608 quart cells",
-    "states": "282673 / 294912 states (95.85%, includes air)",
+    "states": "286647 / 294912 states (97.20%, includes air)",
+    "components": "895 numeric cases / 62649 exact values; 1431 native carver cases; 438 native standing-tree cases; 655 fallen-tree cases; 392 ore-feature cases; 32256 aquifer checks; 27 entity-packet samples",
+    "coverage": "Overworld only. Nether/End, global vegetation scheduling, villages/other structures, fluid ticks and gameplay simulation remain incomplete.",
     "report": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/parity-report.md"
   },
   "categories": [
@@ -34,14 +36,14 @@
         { "name": "Terrain parity across seeds and biomes", "status": "partial" },
         { "name": "3D biome sampling and network palettes", "status": "partial" },
         { "name": "Bundled worldgen assets / offline reference tests", "status": "done" },
-        { "name": "Trees & vegetation (shapes, decorators, borders)", "status": "partial" },
+        { "name": "Region-aware standing trees (13 configs; component fixtures)", "status": "partial" },
+        { "name": "Fallen trees and cross-chunk writes (5 presets; component fixtures)", "status": "partial" },
         { "name": "Leaf litter placement and state properties", "status": "partial" },
-        { "name": "Ores (coal/iron/gold/diamond)", "status": "partial" },
-        { "name": "Caves", "status": "partial" },
-        { "name": "Water & aquifers", "status": "partial" },
-        { "name": "Cross-chunk staged generation", "status": "planned" },
+        { "name": "Ore features and placement streams (392 + 360 native cases)", "status": "partial" },
+        { "name": "Cave/canyon carvers and surface rules (1431 native cases)", "status": "partial" },
+        { "name": "Noise aquifers and fluid decisions (32256 checks)", "status": "partial" },
+        { "name": "Global cross-chunk vegetation/feature scheduling", "status": "planned" },
         { "name": "Nether and End parity", "status": "planned" },
-        { "name": "Structures (villages/dungeons)", "status": "planned" },
         { "name": "Lighting (skylight/blocklight)", "status": "partial" }
       ]
     },
@@ -50,7 +52,7 @@
       "items": [
         { "name": "Chunk sending", "status": "done" },
         { "name": "View distance (configurable)", "status": "done" },
-        { "name": "Streaming on movement (bounded generation lookahead)", "status": "partial" },
+        { "name": "Per-world asynchronous generation queue and bounded lookahead", "status": "done" },
         { "name": "Chunk unloading", "status": "done" },
         { "name": "World save/load (persistence)", "status": "done" },
         { "name": "Region format (.mca) compat", "status": "planned" }
@@ -113,7 +115,8 @@
         { "name": "Day/night cycle (tick loop)", "status": "done" },
         { "name": "TPS 20 (fixed-rate tick)", "status": "done" },
         { "name": "Server console (stdin)", "status": "done" },
-        { "name": "Entities (item + mob base)", "status": "partial" },
+        { "name": "Generated minecart persistence and chunk spawn/unload streaming", "status": "partial" },
+        { "name": "Entity physics, loot unpacking and gameplay simulation", "status": "planned" },
         { "name": "Weather", "status": "planned" },
         { "name": "Respawn & death", "status": "planned" }
       ]

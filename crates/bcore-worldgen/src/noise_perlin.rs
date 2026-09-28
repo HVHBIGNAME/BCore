@@ -95,11 +95,9 @@ impl Xoroshiro {
         self.next_long() >> (64 - bits)
     }
 
-    /// `nextDouble` = `nextBits(53) * 1.110223E-16F`: `nextBits` (a long) is
-    /// promoted to *float*, multiplied by the *float* literal, then widened to
-    /// double on return (same lossy promotion as `BitRandomSource`).
+    /// `XoroshiroRandomSource.nextDouble`: retain all 53 bits before scaling.
     pub fn next_double(&mut self) -> f64 {
-        (self.next_bits(53) as f32 * 1.110223e-16f32) as f64
+        self.next_bits(53) as f64 * (1.0 / (1_u64 << 53) as f64)
     }
 
     pub fn next_float(&mut self) -> f32 {
@@ -162,13 +160,29 @@ impl XoroshiroPositional {
 }
 
 #[inline]
-fn smoothstep(x: f64) -> f64 {
+pub fn smoothstep(x: f64) -> f64 {
     x * x * x * (x * (x * 6.0 - 15.0) + 10.0)
 }
 
 #[inline]
-fn lerp(t: f64, a: f64, b: f64) -> f64 {
+pub fn lerp(t: f64, a: f64, b: f64) -> f64 {
     a + t * (b - a)
+}
+
+#[inline]
+pub fn lerp_f32(t: f32, a: f32, b: f32) -> f32 {
+    a + t * (b - a)
+}
+
+#[inline]
+pub fn clamped_lerp(t: f64, a: f64, b: f64) -> f64 {
+    if t < 0.0 {
+        a
+    } else if t > 1.0 {
+        b
+    } else {
+        lerp(t, a, b)
+    }
 }
 
 #[inline]
@@ -189,7 +203,7 @@ pub struct ImprovedNoise {
 }
 
 impl ImprovedNoise {
-    fn from_random(r: &mut Xoroshiro) -> Self {
+    pub fn from_random(r: &mut Xoroshiro) -> Self {
         let xo = r.next_double() * 256.0;
         let yo = r.next_double() * 256.0;
         let zo = r.next_double() * 256.0;
@@ -261,7 +275,8 @@ impl ImprovedNoise {
             } else {
                 yr
             };
-            (limit / y_scale + 1.0e-7).floor() * y_scale
+            // Native SHIFT_UP_EPSILON is a float widened to double.
+            (limit / y_scale + 1.0e-7_f32 as f64).floor() * y_scale
         } else {
             0.0
         };
@@ -273,7 +288,8 @@ impl ImprovedNoise {
 pub struct PerlinNoise {
     amps: Vec<f64>,
     levels: Vec<Option<ImprovedNoise>>,
-    first: i32,
+    lowest_freq_input_factor: f64,
+    lowest_freq_value_factor: f64,
 }
 
 impl PerlinNoise {
@@ -281,7 +297,7 @@ impl PerlinNoise {
     /// `useNewInitialization = true`: one `forkPositional()` on the parent, then
     /// `ImprovedNoise(positional.fromHashOf("octave_<n>"))` per nonzero amplitude.
     /// Zero amplitudes consume nothing (no `skipOctave` in the new path).
-    fn create(r: &mut Xoroshiro, first: i32, amps: &[f64]) -> Self {
+    pub fn create(r: &mut Xoroshiro, first: i32, amps: &[f64]) -> Self {
         let positional = r.fork_positional();
         let levels = amps
             .iter()
@@ -296,17 +312,18 @@ impl PerlinNoise {
                 }
             })
             .collect();
+        let n = amps.len() as i32;
         Self {
             amps: amps.to_vec(),
             levels,
-            first,
+            lowest_freq_input_factor: 2f64.powi(first),
+            lowest_freq_value_factor: 2f64.powi(n - 1) / (2f64.powi(n) - 1.0),
         }
     }
 
-    fn value(&self, x: f64, y: f64, z: f64) -> f64 {
-        let n = self.amps.len() as i32;
-        let mut factor = 2f64.powi(self.first);
-        let mut value_factor = 2f64.powi(n - 1) / (2f64.powi(n) - 1.0);
+    pub fn value(&self, x: f64, y: f64, z: f64) -> f64 {
+        let mut factor = self.lowest_freq_input_factor;
+        let mut value_factor = self.lowest_freq_value_factor;
         let mut out = 0.0;
         for (i, level) in self.levels.iter().enumerate() {
             if let Some(noise) = level {
@@ -362,10 +379,12 @@ impl PerlinNoise {
             }
             i -= 1;
         }
+        let n = amps.len() as i32;
         Self {
             amps: amps.to_vec(),
             levels,
-            first,
+            lowest_freq_input_factor: 2f64.powi(first),
+            lowest_freq_value_factor: 2f64.powi(n - 1) / (2f64.powi(n) - 1.0),
         }
     }
 }
@@ -376,10 +395,9 @@ fn skip_octave(r: &mut Xoroshiro) {
     }
 }
 
-/// Vanilla `synth.BlendedNoise` (the `old_blended_noise` density function in
-/// 26.2): three legacy PerlinNoise (min/max −15..0, main −7..0) seeded from
-/// `XoroshiroRandomSource(0)` (world-independent), sampled through the
-/// 684.412-scaled limit/main lattice.
+/// Vanilla `synth.BlendedNoise`: three legacy PerlinNoise (min/max −15..0,
+/// main −7..0), seeded by RandomState's `minecraft:terrain` stream and sampled
+/// through the 684.412-scaled limit/main lattice.
 pub struct BlendedNoise {
     min_limit: PerlinNoise,
     max_limit: PerlinNoise,
@@ -472,12 +490,12 @@ impl BlendedNoise {
         }
         let lo = blend_min / 512.0;
         let hi = blend_max / 512.0;
-        (lo + (hi - lo) * factor.clamp(0.0, 1.0)) / 128.0
+        clamped_lerp(factor, lo, hi) / 128.0
     }
 }
 
 #[inline]
-fn wrap(x: f64) -> f64 {
+pub fn wrap(x: f64) -> f64 {
     x - (x / 33554432.0 + 0.5).floor() * 33554432.0
 }
 

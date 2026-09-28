@@ -25,41 +25,75 @@
 //! Persistence failures are **non-fatal**: a read-only world directory degrades
 //! to pure generation (with a one-time warning) rather than dropping players.
 
-use std::collections::HashMap;
-use std::sync::{mpsc, Mutex, OnceLock, RwLock};
+use std::collections::{HashMap, HashSet};
+use std::sync::{mpsc, Arc, Mutex, OnceLock, RwLock};
 use std::thread;
 
 const PAYLOAD_SHARDS: usize = 32;
 const MAX_CACHED_PAYLOADS: usize = 8192;
-type PayloadShard = RwLock<HashMap<(i32, i32), Vec<u8>>>;
+type PayloadShard = RwLock<HashMap<(i32, i32), CachedChunk>>;
 
-type GenerationJob = (i32, i32);
+#[derive(Debug, Clone)]
+pub(crate) struct CachedChunk {
+    pub payload: Arc<Vec<u8>>,
+    pub entities: crate::entity::TrackedEntities,
+}
+
+struct GenerationJob {
+    world: World,
+    position: (i32, i32),
+}
+
+impl GenerationJob {
+    fn send(self, queue: &mpsc::Sender<Self>) {
+        if let Err(error) = queue.send(self) {
+            let job = &error.0;
+            eprintln!(
+                "[bcore] cannot queue chunk {:?} for world seed {}: {error}",
+                job.position,
+                job.world.seed()
+            );
+        }
+    }
+
+    fn run(self) {
+        let (x, z) = self.position;
+        let _ = self.world.chunk_payload(x, z);
+    }
+}
+
+impl Drop for GenerationJob {
+    fn drop(&mut self) {
+        // Release reservations on completion, send failure, queue drop or unwind.
+        self.world
+            .inner
+            .in_flight
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .remove(&self.position);
+    }
+}
+
 static GENERATION_QUEUE: OnceLock<mpsc::Sender<GenerationJob>> = OnceLock::new();
-static GENERATION_IN_FLIGHT: OnceLock<Mutex<std::collections::HashSet<GenerationJob>>> =
-    OnceLock::new();
+
+fn run_generation_queue(queue: mpsc::Receiver<GenerationJob>) {
+    for job in queue {
+        let position = job.position;
+        let seed = job.world.seed();
+        if std::panic::catch_unwind(|| job.run()).is_err() {
+            eprintln!("[bcore] queued chunk {position:?} failed for world seed {seed}");
+        }
+    }
+}
 
 fn generation_queue() -> &'static mpsc::Sender<GenerationJob> {
     GENERATION_QUEUE.get_or_init(|| {
         let (tx, rx) = mpsc::channel::<GenerationJob>();
         // A chunk already uses the Rayon pool. One dispatcher keeps nearest-first
         // jobs from competing with seven other whole-chunk parallel generations.
-        thread::spawn(move || loop {
-            let job = rx.recv();
-            let Ok((x, z)) = job else { break };
-            let _ = shared().chunk_payload(x, z);
-            if let Some(in_flight) = GENERATION_IN_FLIGHT.get() {
-                in_flight
-                    .lock()
-                    .expect("generation in-flight lock")
-                    .remove(&(x, z));
-            }
-        });
+        thread::spawn(move || run_generation_queue(rx));
         tx
     })
-}
-
-fn generation_in_flight() -> &'static Mutex<std::collections::HashSet<GenerationJob>> {
-    GENERATION_IN_FLIGHT.get_or_init(|| Mutex::new(std::collections::HashSet::new()))
 }
 
 fn payload_shard(x: i32, z: i32) -> usize {
@@ -86,15 +120,25 @@ pub enum ChunkOrigin {
     Loaded,
 }
 
-/// A seeded world with a chunk cache and optional disk persistence.
-#[derive(Debug)]
+/// A shared handle to a seeded world, its cache and optional disk persistence.
+///
+/// Clones share the same entity identities and queued work. Each constructor
+/// creates a distinct instance, even when its seed or store matches another.
+#[derive(Debug, Clone)]
 pub struct World {
+    inner: Arc<WorldInner>,
+}
+
+#[derive(Debug)]
+struct WorldInner {
     generator: WorldGenerator,
     store: Option<ChunkStore>,
     /// Encoded `map_chunk` payloads, keyed by chunk position.
     payloads: [PayloadShard; PAYLOAD_SHARDS],
     /// Coalesce concurrent cache misses before loading/generating the same chunk.
     generation_locks: [Mutex<()>; PAYLOAD_SHARDS],
+    in_flight: Mutex<HashSet<(i32, i32)>>,
+    entities: crate::entity::EntityTracker,
     /// Set once the first persistence error has been reported.
     warned: Mutex<bool>,
 }
@@ -102,34 +146,30 @@ pub struct World {
 impl World {
     /// A world that generates terrain and persists it under `world/`.
     pub fn new(seed: i64) -> Self {
-        Self {
-            generator: WorldGenerator::new(seed),
-            store: Some(ChunkStore::new()),
-            payloads: std::array::from_fn(|_| RwLock::new(HashMap::new())),
-            generation_locks: std::array::from_fn(|_| Mutex::new(())),
-            warned: Mutex::new(false),
-        }
+        Self::with_store(seed, ChunkStore::new())
     }
 
     /// A world rooted at a specific directory (used by tests).
     pub fn with_store(seed: i64, store: ChunkStore) -> Self {
-        Self {
-            generator: WorldGenerator::new(seed),
-            store: Some(store),
-            payloads: std::array::from_fn(|_| RwLock::new(HashMap::new())),
-            generation_locks: std::array::from_fn(|_| Mutex::new(())),
-            warned: Mutex::new(false),
-        }
+        Self::with_optional_store(seed, Some(store))
     }
 
     /// A world that never touches the disk (used by tests and benchmarks).
     pub fn in_memory(seed: i64) -> Self {
+        Self::with_optional_store(seed, None)
+    }
+
+    fn with_optional_store(seed: i64, store: Option<ChunkStore>) -> Self {
         Self {
-            generator: WorldGenerator::new(seed),
-            store: None,
-            payloads: std::array::from_fn(|_| RwLock::new(HashMap::new())),
-            generation_locks: std::array::from_fn(|_| Mutex::new(())),
-            warned: Mutex::new(false),
+            inner: Arc::new(WorldInner {
+                generator: WorldGenerator::new(seed),
+                store,
+                payloads: std::array::from_fn(|_| RwLock::new(HashMap::new())),
+                generation_locks: std::array::from_fn(|_| Mutex::new(())),
+                in_flight: Mutex::new(HashSet::new()),
+                entities: Default::default(),
+                warned: Mutex::new(false),
+            }),
         }
     }
 
@@ -138,32 +178,38 @@ impl World {
     pub(crate) fn flat_fixture(positions: impl IntoIterator<Item = (i32, i32)>) -> Self {
         let world = Self::in_memory(0);
         for (x, z) in positions {
-            world.payloads[payload_shard(x, z)]
+            world.inner.payloads[payload_shard(x, z)]
                 .write()
                 .unwrap()
-                .insert((x, z), crate::chunk::flat_chunk_payload(x, z));
+                .insert(
+                    (x, z),
+                    CachedChunk {
+                        payload: Arc::new(crate::chunk::flat_chunk_payload(x, z)),
+                        entities: Arc::from([]),
+                    },
+                );
         }
         world
     }
 
     /// The seed this world generates from.
     pub fn seed(&self) -> i64 {
-        self.generator.seed()
+        self.inner.generator.seed()
     }
 
     /// The generator, for callers that need raw heights (e.g. spawn selection).
     pub fn generator(&self) -> WorldGenerator {
-        self.generator
+        self.inner.generator
     }
 
     /// The chunk store, if this world persists chunks.
     pub fn store(&self) -> Option<&ChunkStore> {
-        self.store.as_ref()
+        self.inner.store.as_ref()
     }
 
     /// Report a persistence problem once, then stay quiet.
     fn warn_once(&self, context: &str, error: &dyn std::fmt::Display) {
-        let mut warned = self.warned.lock().expect("world warn lock");
+        let mut warned = self.inner.warned.lock().expect("world warn lock");
         if !*warned {
             *warned = true;
             eprintln!("[bcore] world persistence disabled for this run: {context}: {error}");
@@ -174,10 +220,10 @@ impl World {
     ///
     /// Returns the column and where it came from.
     pub fn chunk(&self, x: i32, z: i32) -> (ChunkColumn, ChunkOrigin) {
-        let _generation = self.generation_locks[payload_shard(x, z)]
+        let _generation = self.inner.generation_locks[payload_shard(x, z)]
             .lock()
             .expect("chunk generation lock");
-        if let Some(store) = &self.store {
+        if let Some(store) = &self.inner.store {
             match store.load(x, z) {
                 Ok(Some(column)) => return (column, ChunkOrigin::Loaded),
                 Ok(None) => {}
@@ -185,10 +231,13 @@ impl World {
             }
         }
 
-        let generated = self.generator.generate_chunk_vanilla(ChunkPos::new(x, z));
+        let generated = self
+            .inner
+            .generator
+            .generate_chunk_vanilla(ChunkPos::new(x, z));
         let column = ChunkColumn::from_generated(&generated);
 
-        if let Some(store) = &self.store {
+        if let Some(store) = &self.inner.store {
             if let Err(e) = store.save(x, z, &column) {
                 self.warn_once(&format!("cannot write chunk ({x}, {z})"), &e);
             }
@@ -198,30 +247,53 @@ impl World {
 
     /// Generate a chunk without consulting or touching the disk.
     pub fn generate(&self, x: i32, z: i32) -> ChunkColumn {
-        ChunkColumn::from_generated(&self.generator.generate_chunk_vanilla(ChunkPos::new(x, z)))
+        ChunkColumn::from_generated(
+            &self
+                .inner
+                .generator
+                .generate_chunk_vanilla(ChunkPos::new(x, z)),
+        )
     }
 
     /// Return a cached payload without doing world generation.
     pub fn cached_payload(&self, x: i32, z: i32) -> Option<Vec<u8>> {
-        self.payloads[payload_shard(x, z)]
+        self.cached_chunk(x, z)
+            .map(|chunk| chunk.payload.as_ref().clone())
+    }
+
+    pub(crate) fn cached_chunk(&self, x: i32, z: i32) -> Option<CachedChunk> {
+        self.inner.payloads[payload_shard(x, z)]
             .read()
             .expect("world payload shard lock")
             .get(&(x, z))
             .cloned()
     }
 
-    /// Queue generation for a chunk, returning immediately.
+    /// Queue generation in this world, coalescing requests across its clones.
+    /// The queued job keeps the world alive until it completes or is discarded.
     pub fn request_payload(&self, x: i32, z: i32) {
-        if self.cached_payload(x, z).is_some() {
-            return;
+        if let Some(job) = self.reserve_generation(x, z) {
+            job.send(generation_queue());
+        }
+    }
+
+    fn reserve_generation(&self, x: i32, z: i32) -> Option<GenerationJob> {
+        if self.cached_chunk(x, z).is_some() {
+            return None;
         }
         let key = (x, z);
-        let mut pending = generation_in_flight()
+        let mut pending = self
+            .inner
+            .in_flight
             .lock()
             .expect("generation in-flight lock");
-        if pending.insert(key) {
-            let _ = generation_queue().send(key);
+        if !pending.insert(key) {
+            return None;
         }
+        Some(GenerationJob {
+            world: self.clone(),
+            position: key,
+        })
     }
 
     /// Queue generation for all requested chunks without blocking the caller.
@@ -233,33 +305,45 @@ impl World {
 
     /// The encoded `map_chunk` payload for `(x, z)`, cached across calls.
     pub fn chunk_payload(&self, x: i32, z: i32) -> Vec<u8> {
-        let shard = &self.payloads[payload_shard(x, z)];
-        if let Some(hit) = shard.read().expect("world payload shard lock").get(&(x, z)) {
-            return hit.clone();
+        if let Some(hit) = self.cached_chunk(x, z) {
+            return hit.payload.as_ref().clone();
         }
         let (column, _origin) = self.chunk(x, z);
-        let payload = column.encode_payload(x, z);
-        shard
+        self.cache_column(x, z, &column).payload.as_ref().clone()
+    }
+
+    pub(crate) fn cache_column(&self, x: i32, z: i32, column: &ChunkColumn) -> CachedChunk {
+        let payload = Arc::new(column.encode_payload(x, z));
+        let cached = self.inner.payloads[payload_shard(x, z)]
             .write()
             .expect("world payload shard lock")
             .entry((x, z))
-            .or_insert_with(|| payload.clone());
+            .or_insert_with(|| CachedChunk {
+                payload,
+                entities: self
+                    .inner
+                    .entities
+                    .for_chunk(self.seed(), (x, z), column.entities()),
+            })
+            .clone();
         if self.cached_payloads() > MAX_CACHED_PAYLOADS {
             self.clear_cache();
         }
-        payload
+        cached
     }
 
     /// Drop cached payloads (used when a test wants to force a re-read).
     pub fn clear_cache(&self) {
-        for shard in &self.payloads {
+        for shard in &self.inner.payloads {
             shard.write().expect("world payload shard lock").clear();
         }
+        self.inner.entities.prune();
     }
 
     /// How many payloads are currently cached.
     pub fn cached_payloads(&self) -> usize {
-        self.payloads
+        self.inner
+            .payloads
             .iter()
             .map(|shard| shard.read().expect("world payload shard lock").len())
             .sum()
@@ -436,10 +520,16 @@ mod tests {
         // ~0.2s/chunk). The shards and shard function are in scope because this
         // test module is a child of the `world_state` module.
         for i in 0..=MAX_CACHED_PAYLOADS {
-            world.payloads[payload_shard(i as i32, 0)]
+            world.inner.payloads[payload_shard(i as i32, 0)]
                 .write()
                 .expect("shard lock")
-                .insert((i as i32, 0), vec![0u8; 4]);
+                .insert(
+                    (i as i32, 0),
+                    CachedChunk {
+                        payload: Arc::new(vec![0u8; 4]),
+                        entities: Arc::from([]),
+                    },
+                );
         }
         assert!(world.cached_payloads() > MAX_CACHED_PAYLOADS);
         // A cache miss must detect the overflow and clear the whole cache so the
@@ -534,5 +624,260 @@ mod tests {
         let b = shared();
         assert!(std::ptr::eq(a, b));
         assert_eq!(a.seed(), DEFAULT_SEED);
+    }
+}
+
+#[cfg(test)]
+mod queue_tests {
+    use super::*;
+    use bcore_worldgen::generated_entity::GeneratedEntity;
+    use std::sync::atomic::{AtomicU64, Ordering};
+    use std::sync::Barrier;
+    use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+
+    const POSITION: (i32, i32) = (3, -4);
+
+    struct SavedChunk {
+        store: ChunkStore,
+        column: ChunkColumn,
+    }
+
+    impl SavedChunk {
+        fn new(state: u32, loot_seed: i64) -> Self {
+            static NEXT_DIR: AtomicU64 = AtomicU64::new(0);
+            let parent = std::env::temp_dir().join("opencode");
+            std::fs::create_dir_all(&parent).unwrap();
+            let root = parent.join(format!(
+                "bcore-world-queue-{}-{}-{}",
+                std::process::id(),
+                SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .unwrap()
+                    .as_nanos(),
+                NEXT_DIR.fetch_add(1, Ordering::Relaxed)
+            ));
+            std::fs::create_dir(&root).expect("new isolated fixture directory");
+            let store = ChunkStore::at(root);
+            let mut column = ChunkColumn::flat();
+            assert!(column.set(2, 32, 3, state));
+            assert!(column.add_entity(
+                ChunkPos::new(POSITION.0, POSITION.1),
+                GeneratedEntity::ChestMinecart {
+                    block_pos: [POSITION.0 * 16 + 2, 33, POSITION.1 * 16 + 3],
+                    loot_seed,
+                }
+            ));
+            store.save(POSITION.0, POSITION.1, &column).unwrap();
+            Self { store, column }
+        }
+
+        fn world(&self, seed: i64) -> World {
+            World::with_store(seed, self.store.clone())
+        }
+
+        fn assert_cached(&self, world: &World, cached: &CachedChunk) {
+            assert_eq!(
+                *cached.payload,
+                self.column.encode_payload(POSITION.0, POSITION.1)
+            );
+            assert_eq!(cached.entities.len(), self.column.entities().len());
+            for (actual, expected) in cached.entities.iter().zip(self.column.entities()) {
+                assert_eq!(&actual.generated, expected);
+            }
+            let expected =
+                World::in_memory(world.seed()).cache_column(POSITION.0, POSITION.1, &self.column);
+            assert_eq!(cached.entities[0].uuid, expected.entities[0].uuid);
+            assert_eq!(
+                self.store.load(POSITION.0, POSITION.1).unwrap(),
+                Some(self.column.clone())
+            );
+            assert_eq!(self.store.saved_chunks().unwrap(), [POSITION]);
+        }
+    }
+
+    impl Drop for SavedChunk {
+        fn drop(&mut self) {
+            // A failed test may still have queued work; leave its isolated inputs.
+            if !thread::panicking() {
+                std::fs::remove_dir_all(self.store.root())
+                    .expect("remove isolated fixture directory");
+            }
+        }
+    }
+
+    fn wait_cached(world: &World) -> CachedChunk {
+        let deadline = Instant::now() + Duration::from_secs(5);
+        loop {
+            if let Some(cached) = world.cached_chunk(POSITION.0, POSITION.1) {
+                if !world.inner.in_flight.lock().unwrap().contains(&POSITION) {
+                    return cached;
+                }
+            }
+            assert!(
+                Instant::now() < deadline,
+                "queue did not finish for seed {}",
+                world.seed()
+            );
+            thread::sleep(Duration::from_millis(1));
+        }
+    }
+
+    #[test]
+    fn async_requests_use_each_worlds_seed_store_and_entities() {
+        for (first_seed, second_seed) in [(11, 22), (7, 7)] {
+            let first = SavedChunk::new(block::STONE, 41);
+            let second = SavedChunk::new(block::DIRT, 42);
+            let a = first.world(first_seed);
+            let b = second.world(second_seed);
+            let barrier = Barrier::new(2);
+            thread::scope(|scope| {
+                for world in [&a, &b] {
+                    let barrier = &barrier;
+                    scope.spawn(move || {
+                        barrier.wait();
+                        world.request_payloads([POSITION, POSITION]);
+                    });
+                }
+            });
+            let a_cached = wait_cached(&a);
+            let b_cached = wait_cached(&b);
+            assert_eq!((a.seed(), b.seed()), (first_seed, second_seed));
+            first.assert_cached(&a, &a_cached);
+            second.assert_cached(&b, &b_cached);
+            assert_ne!(a_cached.payload, b_cached.payload);
+            assert!(!Arc::ptr_eq(&a_cached.entities, &b_cached.entities));
+            assert_ne!(a_cached.entities[0].id, b_cached.entities[0].id);
+        }
+    }
+
+    #[test]
+    fn equal_seed_and_store_do_not_merge_distinct_instances() {
+        let saved = SavedChunk::new(block::STONE, 43);
+        let a = saved.world(17);
+        let clone = a.clone();
+        let b = saved.world(17);
+        let a_job = a.reserve_generation(POSITION.0, POSITION.1).unwrap();
+        assert!(clone.reserve_generation(POSITION.0, POSITION.1).is_none());
+        let b_job = b.reserve_generation(POSITION.0, POSITION.1).unwrap();
+        a_job.run();
+        b_job.run();
+        let a_cached = wait_cached(&a);
+        let clone_cached = wait_cached(&clone);
+        let b_cached = wait_cached(&b);
+        assert!(Arc::ptr_eq(&a_cached.payload, &clone_cached.payload));
+        assert!(Arc::ptr_eq(&a_cached.entities, &clone_cached.entities));
+        assert!(!Arc::ptr_eq(&a_cached.entities, &b_cached.entities));
+        assert_ne!(a_cached.entities[0].id, b_cached.entities[0].id);
+        assert_eq!(a_cached.entities[0].uuid, b_cached.entities[0].uuid);
+    }
+
+    #[test]
+    fn clones_coalesce_requests_and_preserve_entities_across_eviction() {
+        let saved = SavedChunk::new(block::STONE, 44);
+        let world = saved.world(23);
+        let clone = world.clone();
+        let job = world.reserve_generation(POSITION.0, POSITION.1).unwrap();
+        let barrier = Barrier::new(8);
+        thread::scope(|scope| {
+            for _ in 0..8 {
+                let clone = world.clone();
+                let barrier = &barrier;
+                scope.spawn(move || {
+                    barrier.wait();
+                    clone.request_payloads([POSITION, POSITION]);
+                });
+            }
+        });
+        assert_eq!(world.inner.in_flight.lock().unwrap().len(), 1);
+        assert!(world.cached_chunk(POSITION.0, POSITION.1).is_none());
+        job.send(generation_queue());
+        let original = wait_cached(&world);
+        let copy = clone.cached_chunk(POSITION.0, POSITION.1).unwrap();
+        assert!(Arc::ptr_eq(&original.payload, &copy.payload));
+        assert!(Arc::ptr_eq(&original.entities, &copy.entities));
+        drop(copy);
+        let weak = Arc::downgrade(&original.entities);
+        clone.clear_cache();
+        assert_eq!(world.cached_payloads(), 0);
+        clone.request_payload(POSITION.0, POSITION.1);
+        let restored = wait_cached(&world);
+        saved.assert_cached(&clone, &restored);
+        assert!(Arc::ptr_eq(&original.entities, &restored.entities));
+        assert_eq!(original.entities[0].id, restored.entities[0].id);
+        drop((original, restored));
+        world.clear_cache();
+        assert!(weak.upgrade().is_none());
+    }
+
+    #[test]
+    fn failed_sends_and_discarded_jobs_release_reservations() {
+        let saved = SavedChunk::new(block::STONE, 45);
+        let world = saved.world(29);
+        let (tx, rx) = mpsc::channel();
+        drop(rx);
+        world
+            .reserve_generation(POSITION.0, POSITION.1)
+            .unwrap()
+            .send(&tx);
+        assert!(world.inner.in_flight.lock().unwrap().is_empty());
+        let (tx, rx) = mpsc::channel();
+        world
+            .reserve_generation(POSITION.0, POSITION.1)
+            .unwrap()
+            .send(&tx);
+        assert!(world.inner.in_flight.lock().unwrap().contains(&POSITION));
+        drop(rx);
+        assert!(world.inner.in_flight.lock().unwrap().is_empty());
+        assert!(world.cached_chunk(POSITION.0, POSITION.1).is_none());
+        world.request_payload(POSITION.0, POSITION.1);
+        saved.assert_cached(&world, &wait_cached(&world));
+    }
+
+    #[test]
+    fn queued_job_keeps_world_alive_without_a_reference_cycle() {
+        let saved = SavedChunk::new(block::STONE, 46);
+        let world = saved.world(31);
+        let weak = Arc::downgrade(&world.inner);
+        let (tx, rx) = mpsc::channel();
+        world
+            .reserve_generation(POSITION.0, POSITION.1)
+            .unwrap()
+            .send(&tx);
+        drop(world);
+        assert!(weak.upgrade().is_some());
+        rx.recv_timeout(Duration::from_secs(5)).unwrap().run();
+        assert!(weak.upgrade().is_none());
+        assert_eq!(
+            saved.store.load(POSITION.0, POSITION.1).unwrap(),
+            Some(saved.column.clone())
+        );
+    }
+
+    #[test]
+    fn worker_unwind_releases_reservation_and_continues_other_worlds() {
+        let failed = SavedChunk::new(block::STONE, 47);
+        let healthy = SavedChunk::new(block::DIRT, 48);
+        let a = failed.world(37);
+        let b = healthy.world(41);
+        let bad_job = a.reserve_generation(POSITION.0, POSITION.1).unwrap();
+        let poisoned = std::panic::catch_unwind(|| {
+            let _guard = a.inner.payloads[payload_shard(POSITION.0, POSITION.1)]
+                .write()
+                .unwrap();
+            panic!("inject a poisoned payload shard");
+        });
+        assert!(poisoned.is_err());
+        let (tx, rx) = mpsc::channel();
+        let worker = thread::spawn(move || run_generation_queue(rx));
+        bad_job.send(&tx);
+        b.reserve_generation(POSITION.0, POSITION.1)
+            .unwrap()
+            .send(&tx);
+        drop(tx);
+        worker
+            .join()
+            .expect("dispatcher must survive a failed world job");
+        assert!(a.inner.in_flight.lock().unwrap().is_empty());
+        healthy.assert_cached(&b, &wait_cached(&b));
     }
 }

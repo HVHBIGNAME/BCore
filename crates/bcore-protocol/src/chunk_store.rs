@@ -15,7 +15,7 @@
 //!
 //! ```text
 //! magic:          4 bytes  "BCC1"
-//! version:        u16      = 1
+//! version:        u16      = 3 (versions 1 and 2 are still readable)
 //! flags:          u16      = 0 (reserved)
 //! chunk_x:        i32
 //! chunk_z:        i32
@@ -29,6 +29,13 @@
 //! biome_len:      u32      m distinct biome ids
 //! biome_palette:  m * u32
 //! biomes:         SECTION_COUNT * SECTION_BIOMES entries of u16
+//! block_entities: u32 count; entries: u8 packedXZ, i32 y, u8 kind,
+//!                 kind 1: i64 dungeon loot seed; kind 2: u8 spawner mob
+//!                 (0 skeleton, 1 zombie, 2 spider, 3 cave spider). Absent in v1.
+//! entities:       u32 count; entries: u8 kind (1 chest minecart),
+//!                 u8 packedXZ, i32 y, i64 loot seed. Added in v3.
+//! structures:     u32 byte length, then UTF-8 StructureData JSON (0 = empty).
+//!                 Added in v3; coordinates/bounds are validated on load.
 //! checksum:       u32      FNV-1a over everything above
 //! ```
 //!
@@ -45,7 +52,7 @@ use crate::chunk::{ChunkColumn, MIN_Y, SECTION_BIOMES, SECTION_COUNT, WORLD_HEIG
 /// File magic: BCore Chunk v1.
 pub const MAGIC: &[u8; 4] = b"BCC1";
 /// Format version written into every file.
-pub const FORMAT_VERSION: u16 = 1;
+pub const FORMAT_VERSION: u16 = 3;
 /// Default directory chunks are stored under, relative to the server's cwd.
 pub const DEFAULT_WORLD_DIR: &str = "world";
 
@@ -53,6 +60,7 @@ pub const DEFAULT_WORLD_DIR: &str = "world";
 const COLUMN_ENTRIES: usize = 256 * WORLD_HEIGHT as usize;
 /// Total biome cells in one column.
 const BIOME_ENTRIES: usize = SECTION_COUNT * SECTION_BIOMES;
+const MAX_STRUCTURE_BYTES: usize = 4 * 1024 * 1024;
 
 /// Something went wrong reading or writing a chunk file.
 #[derive(Debug)]
@@ -73,6 +81,14 @@ pub enum ChunkStoreError {
     BadPaletteIndex { index: u32, palette_len: usize },
     /// The index width byte was not 8, 16 or 32.
     BadIndexBits(u8),
+    /// Invalid generated block-entity kind, position, duplicate or state pairing.
+    InvalidBlockEntity,
+    /// Invalid generated entity kind, count or position.
+    InvalidEntity,
+    /// Invalid structure metadata or coordinates.
+    InvalidStructures,
+    /// Unconsumed bytes precede the checksum.
+    TrailingData,
 }
 
 impl std::fmt::Display for ChunkStoreError {
@@ -103,6 +119,10 @@ impl std::fmt::Display for ChunkStoreError {
                 write!(f, "palette index {index} out of range (len {palette_len})")
             }
             Self::BadIndexBits(bits) => write!(f, "invalid index width {bits} (want 8/16/32)"),
+            Self::InvalidBlockEntity => write!(f, "invalid generated block entity"),
+            Self::InvalidEntity => write!(f, "invalid generated entity"),
+            Self::InvalidStructures => write!(f, "invalid structure metadata"),
+            Self::TrailingData => write!(f, "trailing data in chunk file"),
         }
     }
 }
@@ -333,6 +353,61 @@ pub fn encode_chunk(x: i32, z: i32, column: &ChunkColumn) -> Vec<u8> {
         out.extend_from_slice(&index.to_le_bytes());
     }
 
+    use bcore_worldgen::block_entity::{BlockEntity, SpawnerMob};
+    out.extend_from_slice(&(column.block_entities().len() as u32).to_le_bytes());
+    for (&(lx, y, lz), data) in column.block_entities() {
+        out.push(((lx << 4) | lz) as u8);
+        out.extend_from_slice(&y.to_le_bytes());
+        match data {
+            BlockEntity::DungeonChest { loot_seed } => {
+                out.push(1);
+                out.extend_from_slice(&loot_seed.to_le_bytes());
+            }
+            BlockEntity::Spawner { mob } => {
+                out.push(2);
+                out.push(match mob {
+                    SpawnerMob::Skeleton => 0,
+                    SpawnerMob::Zombie => 1,
+                    SpawnerMob::Spider => 2,
+                    SpawnerMob::CaveSpider => 3,
+                });
+            }
+        }
+    }
+
+    use bcore_worldgen::generated_entity::GeneratedEntity;
+    out.extend_from_slice(&(column.entities().len() as u32).to_le_bytes());
+    for entity in column.entities() {
+        let [ex, ey, ez] = entity.block_pos();
+        assert!(
+            ex >> 4 == x && ez >> 4 == z && (MIN_Y..MIN_Y + WORLD_HEIGHT).contains(&ey),
+            "entity must belong to the saved chunk"
+        );
+        match entity {
+            GeneratedEntity::ChestMinecart { loot_seed, .. } => {
+                out.push(1);
+                out.push((((ex & 15) << 4) | (ez & 15)) as u8);
+                out.extend_from_slice(&ey.to_le_bytes());
+                out.extend_from_slice(&loot_seed.to_le_bytes());
+            }
+        }
+    }
+    assert!(
+        column
+            .structures()
+            .valid_for(bcore_core::ChunkPos::new(x, z)),
+        "structure metadata must belong to the saved chunk"
+    );
+    if column.structures().is_empty() {
+        out.extend_from_slice(&0u32.to_le_bytes());
+    } else {
+        let bytes =
+            serde_json::to_vec(column.structures()).expect("serializable structure metadata");
+        assert!(bytes.len() <= MAX_STRUCTURE_BYTES);
+        out.extend_from_slice(&(bytes.len() as u32).to_le_bytes());
+        out.extend_from_slice(&bytes);
+    }
+
     let checksum = fnv1a(&out);
     out.extend_from_slice(&checksum.to_le_bytes());
     out
@@ -424,7 +499,7 @@ pub fn decode_chunk_at(bytes: &[u8]) -> Result<(i32, i32, ChunkColumn), ChunkSto
         at: 4,
     };
     let version = cur.u16()?;
-    if version != FORMAT_VERSION {
+    if !(1..=FORMAT_VERSION).contains(&version) {
         return Err(ChunkStoreError::UnsupportedVersion(version));
     }
     let _flags = cur.u16()?;
@@ -480,7 +555,87 @@ pub fn decode_chunk_at(bytes: &[u8]) -> Result<(i32, i32, ChunkColumn), ChunkSto
         biomes.push(biome);
     }
 
-    let column = ChunkColumn::from_parts(states, biomes);
+    let mut column = ChunkColumn::from_parts(states, biomes);
+    if version >= 2 {
+        use bcore_worldgen::block_entity::{BlockEntity, SpawnerMob};
+        let count = cur.u32()? as usize;
+        if count > COLUMN_ENTRIES {
+            return Err(ChunkStoreError::InvalidBlockEntity);
+        }
+        for _ in 0..count {
+            let xz = cur.u8()?;
+            let (lx, lz) = ((xz >> 4) as usize, (xz & 15) as usize);
+            let y = cur.i32()?;
+            let data = match cur.u8()? {
+                1 => BlockEntity::DungeonChest {
+                    loot_seed: i64::from_le_bytes(cur.take(8)?.try_into().unwrap()),
+                },
+                2 => BlockEntity::Spawner {
+                    mob: match cur.u8()? {
+                        0 => SpawnerMob::Skeleton,
+                        1 => SpawnerMob::Zombie,
+                        2 => SpawnerMob::Spider,
+                        3 => SpawnerMob::CaveSpider,
+                        _ => return Err(ChunkStoreError::InvalidBlockEntity),
+                    },
+                },
+                _ => return Err(ChunkStoreError::InvalidBlockEntity),
+            };
+            if column.block_entities().contains_key(&(lx, y, lz))
+                || !column.set_block_entity(lx, y, lz, data)
+            {
+                return Err(ChunkStoreError::InvalidBlockEntity);
+            }
+        }
+    }
+    if version >= 3 {
+        use bcore_worldgen::generated_entity::GeneratedEntity;
+        let owner = bcore_core::ChunkPos::new(x, z);
+        let count = cur.u32()? as usize;
+        if count > COLUMN_ENTRIES {
+            return Err(ChunkStoreError::InvalidEntity);
+        }
+        for _ in 0..count {
+            let kind = cur.u8()?;
+            if kind != 1 {
+                return Err(ChunkStoreError::InvalidEntity);
+            }
+            let xz = cur.u8()?;
+            let y = cur.i32()?;
+            let loot_seed = i64::from_le_bytes(cur.take(8)?.try_into().unwrap());
+            let ex = x
+                .checked_mul(16)
+                .and_then(|v| v.checked_add(i32::from(xz >> 4)))
+                .ok_or(ChunkStoreError::InvalidEntity)?;
+            let ez = z
+                .checked_mul(16)
+                .and_then(|v| v.checked_add(i32::from(xz & 15)))
+                .ok_or(ChunkStoreError::InvalidEntity)?;
+            if !column.add_entity(
+                owner,
+                GeneratedEntity::ChestMinecart {
+                    block_pos: [ex, y, ez],
+                    loot_seed,
+                },
+            ) {
+                return Err(ChunkStoreError::InvalidEntity);
+            }
+        }
+        let length = cur.u32()? as usize;
+        if length > MAX_STRUCTURE_BYTES {
+            return Err(ChunkStoreError::InvalidStructures);
+        }
+        if length != 0 {
+            let data = serde_json::from_slice(cur.take(length)?)
+                .map_err(|_| ChunkStoreError::InvalidStructures)?;
+            if !column.set_structures(owner, data) {
+                return Err(ChunkStoreError::InvalidStructures);
+            }
+        }
+    }
+    if cur.at != cur.bytes.len() {
+        return Err(ChunkStoreError::TrailingData);
+    }
     Ok((x, z, column))
 }
 
@@ -507,6 +662,106 @@ mod tests {
         let (x, z, decoded) = decode_chunk_at(&encoded).expect("decodes");
         assert_eq!((x, z), (3, -7));
         assert_eq!(decoded, column, "flat column must survive a round trip");
+    }
+
+    #[test]
+    fn legacy_version_one_loads_without_losing_blocks() {
+        let column = ChunkColumn::flat();
+        let mut old = encode_chunk(3, -7, &column);
+        old[4..6].copy_from_slice(&1u16.to_le_bytes());
+        // Remove v2 block entities, v3 entities/structures and the checksum.
+        old.truncate(old.len() - 16);
+        let checksum = fnv1a(&old);
+        old.extend_from_slice(&checksum.to_le_bytes());
+        assert_eq!(decode_chunk_at(&old).unwrap(), (3, -7, column));
+    }
+
+    #[test]
+    fn legacy_version_two_preserves_dungeon_metadata() {
+        use bcore_worldgen::{block_entity::BlockEntity, dungeon};
+        let mut column = ChunkColumn::flat();
+        column.set(3, 20, 4, dungeon::CHEST);
+        column.set_block_entity(
+            3,
+            20,
+            4,
+            BlockEntity::DungeonChest {
+                loot_seed: i64::MIN,
+            },
+        );
+        let mut old = encode_chunk(-2, 3, &column);
+        old[4..6].copy_from_slice(&2u16.to_le_bytes());
+        old.truncate(old.len() - 12);
+        old.extend_from_slice(&fnv1a(&old).to_le_bytes());
+        assert_eq!(decode_chunk_at(&old).unwrap(), (-2, 3, column));
+    }
+
+    #[test]
+    fn generated_entity_kinds_positions_and_structure_metadata_are_validated() {
+        use bcore_worldgen::generated_entity::GeneratedEntity;
+        let mut column = ChunkColumn::flat();
+        assert!(column.add_entity(
+            bcore_core::ChunkPos::new(-2, 3),
+            GeneratedEntity::ChestMinecart {
+                block_pos: [-31, 20, 50],
+                loot_seed: i64::MIN
+            }
+        ));
+        let bytes = encode_chunk(-2, 3, &column);
+        assert_eq!(decode_chunk(&bytes).unwrap(), column);
+        let entity = bytes.len() - 4 - 4 - 14;
+        for (offset, value) in [(entity, 255), (entity + 2, 0xFF)] {
+            let mut invalid = bytes.clone();
+            if offset == entity + 2 {
+                invalid[offset..offset + 4].copy_from_slice(&i32::MAX.to_le_bytes());
+            } else {
+                invalid[offset] = value;
+            }
+            let checksum = invalid.len() - 4;
+            let hash = fnv1a(&invalid[..checksum]);
+            invalid[checksum..].copy_from_slice(&hash.to_le_bytes());
+            assert!(matches!(
+                decode_chunk(&invalid),
+                Err(ChunkStoreError::InvalidEntity)
+            ));
+        }
+        let mut invalid = encode_chunk(0, 0, &ChunkColumn::flat());
+        invalid.truncate(invalid.len() - 8);
+        let bad = br#"{"mineshaft_start":{"mine_type":"Normal","pieces":[]},"references":[]}"#;
+        invalid.extend_from_slice(&(bad.len() as u32).to_le_bytes());
+        invalid.extend_from_slice(bad);
+        invalid.extend_from_slice(&fnv1a(&invalid).to_le_bytes());
+        assert!(matches!(
+            decode_chunk(&invalid),
+            Err(ChunkStoreError::InvalidStructures)
+        ));
+    }
+
+    #[test]
+    fn invalid_block_entity_kinds_and_trailing_bytes_are_rejected() {
+        use bcore_worldgen::{block_entity::BlockEntity, dungeon};
+        let mut column = ChunkColumn::flat();
+        column.set(1, 32, 2, dungeon::CHEST);
+        column.set_block_entity(1, 32, 2, BlockEntity::DungeonChest { loot_seed: -1 });
+        let mut bytes = encode_chunk(0, 0, &column);
+        let kind = bytes.len() - 4 - 8 - 8 - 1;
+        bytes[kind] = 255;
+        let end = bytes.len() - 4;
+        let checksum = fnv1a(&bytes[..end]);
+        bytes[end..].copy_from_slice(&checksum.to_le_bytes());
+        assert!(matches!(
+            decode_chunk(&bytes),
+            Err(ChunkStoreError::InvalidBlockEntity)
+        ));
+        let mut bytes = encode_chunk(0, 0, &ChunkColumn::flat());
+        bytes.truncate(bytes.len() - 4);
+        bytes.push(1);
+        let checksum = fnv1a(&bytes);
+        bytes.extend_from_slice(&checksum.to_le_bytes());
+        assert!(matches!(
+            decode_chunk(&bytes),
+            Err(ChunkStoreError::TrailingData)
+        ));
     }
 
     #[test]
@@ -673,8 +928,12 @@ mod tests {
         let header = 4 + 2 + 2 + 4 + 4 + 4 + 4; // magic, version, flags, x, z, min_y, height
         let blocks = 4 + 4 * 4 + 1 + COLUMN_ENTRIES; // len, palette, index_bits, indices
         let biomes = 4 + 4 + BIOME_ENTRIES * 2; // len, 1-entry palette, indices
+        let entities = 4 + 4 + 4; // empty block entities, entities and structures
         let checksum = 4;
-        assert_eq!(encoded.len(), header + blocks + biomes + checksum);
+        assert_eq!(
+            encoded.len(),
+            header + blocks + biomes + entities + checksum
+        );
         // Sanity: a whole flat column stays well under 200 KB.
         assert!(encoded.len() < 200 * 1024, "{} bytes", encoded.len());
     }

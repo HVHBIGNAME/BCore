@@ -1,0 +1,182 @@
+{
+  "minecraft": "26.1",
+  "protocol": 775,
+  "jar_sha256": "a7fed6f7d88379349e35ae0c6e9881d4484605132f6f620376a3868eea6cce52",
+  "inspection": {
+    "java": "Temurin-25.0.4.1+1-LTS",
+    "javac_javap": "21.0.11",
+    "source": "C:/Users/Pisun4ik/AppData/Local/Temp/opencode/bcore-fallen-probe/FallenTreeInspector.java",
+    "source_sha256": "3cc9728bb1a87a23dc6cbc58c83d4d6ab8d16ffa93e8333dd6c6411604110d5e",
+    "tree_reference_sha256": "47f021860550c9d1006c050fa48345ab3f2c09ec472c8a172a79d509ae74b670",
+    "fallen_tree_reference_sha256": "b65b0d5f534fb4975d101eba8bae0b93e2746918b27041ab19e02a335ba62716",
+    "method": "Native resource bytes, Block.getId and recursively expanded replaceable_by_trees tag; javap -c -p for FallenTreeFeature, Feature.markAboveForPostProcessing, TreeFeature.validTreePos, TreeDecorator.Context, TrunkVineDecorator, AttachedToLogsDecorator, Direction.Plane, Vec3i, Util.shuffle and WeightedStateProvider. No third-party implementation sources."
+  },
+  "resource_prefix": "data/minecraft/worldgen/configured_feature/",
+  "resource_sha256": {
+    "fallen_oak_tree.json": "25b41f9ce2b1f20de3d0d8def6991ceeea45cf17b3da7e542119a1acf6274976",
+    "fallen_birch_tree.json": "6d322e227051ac0663797f9cf6e2eab0f30adfd646f95756cdaaa6bf052e92ae",
+    "fallen_super_birch_tree.json": "b616f46c608a3b4e519d321a34a1d62d2c949e779c1eb27b64883eb515559db2",
+    "fallen_jungle_tree.json": "46895d9daf5adaf7d60c8856342beecdee58d4f74e7d5046d653f2323b31868f",
+    "fallen_spruce_tree.json": "987d1fa77a69336dc3bce3daca64ef24744cecbf724706e057e5ebb24e965d1b"
+  },
+  "pillar_state_ids_xyz": {
+    "minecraft:oak_log": [136, 137, 138],
+    "minecraft:birch_log": [142, 143, 144],
+    "minecraft:jungle_log": [145, 146, 147],
+    "minecraft:spruce_log": [139, 140, 141]
+  },
+  "state_ids": {
+    "minecraft:red_mushroom": 2337,
+    "minecraft:brown_mushroom": 2336
+  },
+  "single_face_vine_state_ids": {
+    "east": 8373,
+    "west": 8388,
+    "south": 8385,
+    "north": 8381
+  },
+  "replaceable_by_trees_ranges_exclusive_end": [
+    [86, 102], [252, 560], [2248, 2257], [2321, 2336],
+    [8358, 8518], [12915, 12927], [14809, 14811], [20960, 20962],
+    [21031, 21032], [27846, 27862], [27919, 27921], [29704, 29866],
+    [29868, 29870], [29872, 29873]
+  ],
+  "region_properties": {
+    "source": "C:/Users/Pisun4ik/AppData/Local/Temp/opencode/bcore-fallen-probe/FallenRegionProperties.java",
+    "source_sha256": "8b1b1f441db142c18a4de881909ed90595373f53b4ad0e53feba05840235f1fe",
+    "build_dir": "target/fallen-reference",
+    "support_reference": "mineshaft_blocks_26_1.json",
+    "support_reference_sha256": "d7f379a22ee77372de261c4d4d0448788bdaf1c5d3c412563dd511ece6228079",
+    "state_count": 29873,
+    "positions": [[0,65,0],[-17,-63,16],[29999984,319,-29999985]],
+    "up_full_matches": 89619,
+    "support_context": "BlockGetter rejects all calls except getBlockEntity, which returns null. All native UP/FULL results equal the existing predicate table at all three positions.",
+    "postprocess_context": "BlockGetter rejects every call. getPostProcessPos is translation-invariant at the three positions for every state. Null means no request; arrays are XYZ offsets. WorldGenRegion skips this query when flags & 16 != 0.",
+    "postprocess_ranges_exclusive_end": [
+      [0,2336,null],
+      [2336,2338,[0,0,0]],
+      [2338,6998,null],
+      [6998,6999,[0,1,0]],
+      [6999,14845,null],
+      [14845,14846,[0,1,0]],
+      [14846,29873,null]
+    ]
+  },
+  "configured_features": {
+    "fallen_oak_tree": {
+      "type": "minecraft:fallen_tree",
+      "config": {
+        "log_decorators": [{
+          "type": "minecraft:attached_to_logs",
+          "block_provider": {
+            "type": "minecraft:weighted_state_provider",
+            "entries": [
+              {"data": {"Name": "minecraft:red_mushroom"}, "weight": 2},
+              {"data": {"Name": "minecraft:brown_mushroom"}, "weight": 1}
+            ]
+          },
+          "directions": ["up"],
+          "probability": 0.1
+        }],
+        "log_length": {"type": "minecraft:uniform", "max_inclusive": 7, "min_inclusive": 4},
+        "stump_decorators": [{"type": "minecraft:trunk_vine"}],
+        "trunk_provider": {
+          "type": "minecraft:simple_state_provider",
+          "state": {"Name": "minecraft:oak_log", "Properties": {"axis": "y"}}
+        }
+      }
+    },
+    "fallen_birch_tree": {
+      "type": "minecraft:fallen_tree",
+      "config": {
+        "log_decorators": [{
+          "type": "minecraft:attached_to_logs",
+          "block_provider": {
+            "type": "minecraft:weighted_state_provider",
+            "entries": [
+              {"data": {"Name": "minecraft:red_mushroom"}, "weight": 2},
+              {"data": {"Name": "minecraft:brown_mushroom"}, "weight": 1}
+            ]
+          },
+          "directions": ["up"],
+          "probability": 0.1
+        }],
+        "log_length": {"type": "minecraft:uniform", "max_inclusive": 8, "min_inclusive": 5},
+        "stump_decorators": [],
+        "trunk_provider": {
+          "type": "minecraft:simple_state_provider",
+          "state": {"Name": "minecraft:birch_log", "Properties": {"axis": "y"}}
+        }
+      }
+    },
+    "fallen_super_birch_tree": {
+      "type": "minecraft:fallen_tree",
+      "config": {
+        "log_decorators": [{
+          "type": "minecraft:attached_to_logs",
+          "block_provider": {
+            "type": "minecraft:weighted_state_provider",
+            "entries": [
+              {"data": {"Name": "minecraft:red_mushroom"}, "weight": 2},
+              {"data": {"Name": "minecraft:brown_mushroom"}, "weight": 1}
+            ]
+          },
+          "directions": ["up"],
+          "probability": 0.1
+        }],
+        "log_length": {"type": "minecraft:uniform", "max_inclusive": 15, "min_inclusive": 5},
+        "stump_decorators": [],
+        "trunk_provider": {
+          "type": "minecraft:simple_state_provider",
+          "state": {"Name": "minecraft:birch_log", "Properties": {"axis": "y"}}
+        }
+      }
+    },
+    "fallen_jungle_tree": {
+      "type": "minecraft:fallen_tree",
+      "config": {
+        "log_decorators": [{
+          "type": "minecraft:attached_to_logs",
+          "block_provider": {
+            "type": "minecraft:weighted_state_provider",
+            "entries": [
+              {"data": {"Name": "minecraft:red_mushroom"}, "weight": 2},
+              {"data": {"Name": "minecraft:brown_mushroom"}, "weight": 1}
+            ]
+          },
+          "directions": ["up"],
+          "probability": 0.1
+        }],
+        "log_length": {"type": "minecraft:uniform", "max_inclusive": 11, "min_inclusive": 4},
+        "stump_decorators": [{"type": "minecraft:trunk_vine"}],
+        "trunk_provider": {
+          "type": "minecraft:simple_state_provider",
+          "state": {"Name": "minecraft:jungle_log", "Properties": {"axis": "y"}}
+        }
+      }
+    },
+    "fallen_spruce_tree": {
+      "type": "minecraft:fallen_tree",
+      "config": {
+        "log_decorators": [{
+          "type": "minecraft:attached_to_logs",
+          "block_provider": {
+            "type": "minecraft:weighted_state_provider",
+            "entries": [
+              {"data": {"Name": "minecraft:red_mushroom"}, "weight": 2},
+              {"data": {"Name": "minecraft:brown_mushroom"}, "weight": 1}
+            ]
+          },
+          "directions": ["up"],
+          "probability": 0.1
+        }],
+        "log_length": {"type": "minecraft:uniform", "max_inclusive": 10, "min_inclusive": 6},
+        "stump_decorators": [],
+        "trunk_provider": {
+          "type": "minecraft:simple_state_provider",
+          "state": {"Name": "minecraft:spruce_log", "Properties": {"axis": "y"}}
+        }
+      }
+    }
+  }
+}

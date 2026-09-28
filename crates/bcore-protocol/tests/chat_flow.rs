@@ -15,11 +15,12 @@
 //! Payloads are parsed, not just counted: chat text is decoded out of the NBT
 //! content so a silently-empty message would fail.
 
-use std::io::{Cursor, Read, Write};
-use std::net::{SocketAddr, TcpListener, TcpStream};
+use std::io::{self, Cursor, Read, Write};
+use std::net::{Shutdown, SocketAddr, TcpListener, TcpStream};
 use std::time::{Duration, Instant};
 
 use bcore_core::varint::{decode_varint, encode_varint};
+use bcore_core::PROTOCOL_VERSION;
 use bcore_protocol::chat::{
     CB_PLAYER_CHAT, CB_PROFILELESS_CHAT, CB_SYSTEM_CHAT, SB_CHAT_COMMAND, SB_CHAT_MESSAGE,
 };
@@ -27,7 +28,9 @@ use bcore_protocol::commands::CB_DECLARE_COMMANDS;
 use bcore_protocol::gameplay::{
     CB_ABILITIES, CB_GAME_STATE_CHANGE, CB_UPDATE_HEALTH, CB_UPDATE_TIME,
 };
-use bcore_protocol::packet::{read_frame, read_string, read_varint, write_packet, write_string};
+use bcore_protocol::packet::{
+    read_frame, read_string, read_varint, write_packet, write_string, PacketError,
+};
 use bcore_protocol::server;
 use bcore_protocol::shared::new_shared_server;
 use bcore_protocol::world::{set_view_distance_for_tests, CB_POSITION};
@@ -45,6 +48,7 @@ struct Packet {
 
 struct Client {
     stream: TcpStream,
+    pending: Vec<u8>,
     seen: Vec<Packet>,
 }
 
@@ -58,9 +62,9 @@ impl Client {
             .set_read_timeout(Some(Duration::from_secs(10)))
             .expect("timeout");
 
-        // Handshake -> login (protocol 776).
+        // Handshake -> login using the server's advertised protocol.
         let mut hs = Vec::new();
-        encode_varint(776, &mut hs);
+        encode_varint(PROTOCOL_VERSION, &mut hs);
         write_string("127.0.0.1", &mut hs);
         hs.extend_from_slice(&addr.port().to_be_bytes());
         encode_varint(2, &mut hs);
@@ -96,6 +100,7 @@ impl Client {
 
         let mut client = Client {
             stream,
+            pending: Vec::new(),
             seen: Vec::new(),
         };
         // Read until the join chunk batch is done, confirming the teleport.
@@ -108,6 +113,50 @@ impl Client {
         client
     }
 
+    fn read_packet_until(&mut self, deadline: Instant) -> Result<Option<Packet>, PacketError> {
+        let mut incoming = [0; 16 * 1024];
+        loop {
+            // Parsing a cursor keeps partial headers/bodies intact across TCP timeouts.
+            let mut input = Cursor::new(self.pending.as_slice());
+            match read_frame(&mut input) {
+                Ok((id, data)) => {
+                    let consumed = input.position() as usize;
+                    self.pending.drain(..consumed);
+                    return Ok(Some(Packet { id, data }));
+                }
+                Err(PacketError::Io(error)) if error.kind() == io::ErrorKind::UnexpectedEof => {}
+                Err(error) => return Err(error),
+            }
+
+            let remaining = deadline.saturating_duration_since(Instant::now());
+            if remaining.is_zero() {
+                return Ok(None);
+            }
+            self.stream.set_read_timeout(Some(remaining))?;
+            match self.stream.read(&mut incoming) {
+                Ok(0) => {
+                    return Err(io::Error::new(
+                        io::ErrorKind::UnexpectedEof,
+                        format!(
+                            "connection closed with {} buffered bytes",
+                            self.pending.len()
+                        ),
+                    )
+                    .into());
+                }
+                Ok(count) => self.pending.extend_from_slice(&incoming[..count]),
+                Err(error)
+                    if matches!(
+                        error.kind(),
+                        io::ErrorKind::WouldBlock
+                            | io::ErrorKind::TimedOut
+                            | io::ErrorKind::Interrupted
+                    ) => {}
+                Err(error) => return Err(error.into()),
+            }
+        }
+    }
+
     /// Read packets until `done` is satisfied or the deadline passes.
     fn pump_until(&mut self, budget: Duration, done: impl Fn(&[Packet]) -> bool) -> bool {
         let deadline = Instant::now() + budget;
@@ -115,32 +164,27 @@ impl Client {
             return true;
         }
         while Instant::now() < deadline {
-            let remaining = deadline.saturating_duration_since(Instant::now());
-            self.stream
-                .set_read_timeout(Some(remaining.max(Duration::from_millis(50))))
-                .expect("timeout");
-            match read_frame(&mut self.stream) {
-                Ok((id, data)) => {
-                    // Keep the connection healthy: confirm teleports so the
-                    // server does not consider the client stuck.
-                    if id == CB_POSITION {
-                        if let Ok((_, n)) = decode_varint(&data) {
-                            let tid = data[..n].to_vec();
-                            send(&mut self.stream, SB_TELEPORT_CONFIRM, &tid);
-                        }
-                    }
-                    self.seen.push(Packet { id, data });
-                    if done(&self.seen) {
-                        return true;
-                    }
-                }
-                Err(_) => break,
+            let Some(packet) = self
+                .read_packet_until(deadline)
+                .expect("read clientbound frame")
+            else {
+                break;
+            };
+            // Keep the connection healthy: confirm teleports so the server
+            // does not consider the client stuck.
+            if packet.id == CB_POSITION {
+                let (_, n) = decode_varint(&packet.data).expect("teleport id");
+                send(&mut self.stream, SB_TELEPORT_CONFIRM, &packet.data[..n]);
+            }
+            self.seen.push(packet);
+            if done(&self.seen) {
+                return true;
             }
         }
         done(&self.seen)
     }
 
-    /// Drain whatever is already buffered, without waiting for anything new.
+    /// Collect packets for the budget, retaining any incomplete frame for the next pump.
     fn drain(&mut self, budget: Duration) {
         self.pump_until(budget, |_| false);
     }
@@ -276,6 +320,83 @@ fn start_server_with_ops(ops: &[&str]) -> SocketAddr {
     }
     std::thread::spawn(move || server::run_with_state(listener, server));
     addr
+}
+
+fn connected_client() -> (Client, TcpStream) {
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let stream = TcpStream::connect(listener.local_addr().unwrap()).unwrap();
+    let (peer, _) = listener.accept().unwrap();
+    stream.set_nodelay(true).unwrap();
+    peer.set_nodelay(true).unwrap();
+    (
+        Client {
+            stream,
+            pending: Vec::new(),
+            seen: Vec::new(),
+        },
+        peer,
+    )
+}
+
+#[test]
+fn client_pumps_preserve_partial_frames_across_deadlines() {
+    let (mut client, mut peer) = connected_client();
+    let data = vec![0x80; 300];
+    let mut frame = Vec::new();
+    write_packet(&mut frame, CB_SYSTEM_CHAT, &data);
+    let (_, header_len) = decode_varint(&frame).unwrap();
+    assert!(header_len > 1);
+
+    // The sender supplies the next fragment only after the preceding pump expires.
+    peer.write_all(&frame[..1]).unwrap();
+    client.drain(Duration::from_millis(20));
+    assert!(
+        client.seen.is_empty(),
+        "an incomplete header is not a packet"
+    );
+    client.clear();
+
+    let split = header_len + 8;
+    peer.write_all(&frame[1..split]).unwrap();
+    client.drain(Duration::from_millis(20));
+    assert!(client.seen.is_empty(), "an incomplete body is not a packet");
+    client.clear();
+
+    let mut tail = frame[split..].to_vec();
+    write_packet(&mut tail, CB_CHUNK_BATCH_FINISHED, &[1]);
+    peer.write_all(&tail).unwrap();
+    assert!(client.pump_until(Duration::from_secs(1), |seen| !seen.is_empty()));
+    assert_eq!(client.ids(), [CB_SYSTEM_CHAT]);
+    assert_eq!(client.seen[0].data, data);
+    client.clear();
+    assert!(client.pump_until(Duration::from_secs(1), |seen| !seen.is_empty()));
+    assert_eq!(client.ids(), [CB_CHUNK_BATCH_FINISHED]);
+    assert_eq!(client.seen[0].data, [1]);
+}
+
+#[test]
+#[should_panic(expected = "read clientbound frame: VarInt(TooBig)")]
+fn client_pump_reports_malformed_length() {
+    let (mut client, mut peer) = connected_client();
+    peer.write_all(&[0x80; 5]).unwrap();
+    client.pump_until(Duration::from_secs(1), |_| false);
+}
+
+#[test]
+#[should_panic(expected = "read clientbound frame: VarInt(Eof)")]
+fn client_pump_reports_a_complete_frame_without_a_packet_id() {
+    let (mut client, mut peer) = connected_client();
+    peer.write_all(&[0]).unwrap();
+    client.pump_until(Duration::from_secs(1), |_| false);
+}
+
+#[test]
+#[should_panic(expected = "UnexpectedEof")]
+fn client_pump_reports_a_truncated_frame_when_the_peer_closes() {
+    let (mut client, mut peer) = connected_client();
+    peer.write_all(&[5, CB_SYSTEM_CHAT as u8]).unwrap();
+    peer.shutdown(Shutdown::Write).unwrap();
+    client.pump_until(Duration::from_secs(1), |_| false);
 }
 
 #[test]

@@ -1,0 +1,205 @@
+{
+  "minecraft": "26.1",
+  "jar_sha256": "a7fed6f7d88379349e35ae0c6e9881d4484605132f6f620376a3868eea6cce52",
+  "probe_sha256": "c90d816234a35eed608d91eae58a04ec1a17167ac2a5cde9ee7018b06a5f6294",
+  "samples": [
+    {
+      "zoom_seed": 8794265229978523055,
+      "quart_coordinates_md5": "f6b223b521899293251fbaf42f25ad8e",
+      "seed": 0,
+      "center": [
+        0,
+        0,
+        0
+      ],
+      "radius": 8
+    },
+    {
+      "zoom_seed": 8794265229978523055,
+      "quart_coordinates_md5": "e64eb493264af66564acb03c839f67b4",
+      "seed": 0,
+      "center": [
+        -32,
+        -64,
+        16
+      ],
+      "radius": 8
+    },
+    {
+      "zoom_seed": 8794265229978523055,
+      "quart_coordinates_md5": "fc82da8569bc0803cc533e7ab7c23fbf",
+      "seed": 0,
+      "center": [
+        29999984,
+        304,
+        -29999984
+      ],
+      "radius": 8
+    },
+    {
+      "zoom_seed": -6467378160175308932,
+      "quart_coordinates_md5": "f1e2d437f1b77c7a9c14928b5a16b71d",
+      "seed": 1,
+      "center": [
+        0,
+        0,
+        0
+      ],
+      "radius": 8
+    },
+    {
+      "zoom_seed": -6467378160175308932,
+      "quart_coordinates_md5": "e6c8af8eb7d72ce657364ae25705db16",
+      "seed": 1,
+      "center": [
+        -32,
+        -64,
+        16
+      ],
+      "radius": 8
+    },
+    {
+      "zoom_seed": -6467378160175308932,
+      "quart_coordinates_md5": "bef79724c0ea3b23f24d5ad61737362f",
+      "seed": 1,
+      "center": [
+        29999984,
+        304,
+        -29999984
+      ],
+      "radius": 8
+    },
+    {
+      "zoom_seed": 6759447113877070610,
+      "quart_coordinates_md5": "bfe9ec5b42616ffa1b42c7ced143a971",
+      "seed": -1,
+      "center": [
+        0,
+        0,
+        0
+      ],
+      "radius": 8
+    },
+    {
+      "zoom_seed": 6759447113877070610,
+      "quart_coordinates_md5": "814e84826f391898a4618113b9f9d1a7",
+      "seed": -1,
+      "center": [
+        -32,
+        -64,
+        16
+      ],
+      "radius": 8
+    },
+    {
+      "zoom_seed": 6759447113877070610,
+      "quart_coordinates_md5": "9e159cc850a664381badf2d5b03a4731",
+      "seed": -1,
+      "center": [
+        29999984,
+        304,
+        -29999984
+      ],
+      "radius": 8
+    },
+    {
+      "zoom_seed": -1328540181389140506,
+      "quart_coordinates_md5": "c73ba963b77fce1f999a2af8abb4835c",
+      "seed": 846692123413862008,
+      "center": [
+        0,
+        0,
+        0
+      ],
+      "radius": 8
+    },
+    {
+      "zoom_seed": -1328540181389140506,
+      "quart_coordinates_md5": "dd7997d8af78f7b8e45198af3d72cfbb",
+      "seed": 846692123413862008,
+      "center": [
+        -32,
+        -64,
+        16
+      ],
+      "radius": 8
+    },
+    {
+      "zoom_seed": -1328540181389140506,
+      "quart_coordinates_md5": "120aa249ab48372314aa05deb188e9a5",
+      "seed": 846692123413862008,
+      "center": [
+        29999984,
+        304,
+        -29999984
+      ],
+      "radius": 8
+    },
+    {
+      "zoom_seed": 6374347445474471398,
+      "quart_coordinates_md5": "497467843f2ea1ab4de24a6b016839e2",
+      "seed": -9223372036854775808,
+      "center": [
+        0,
+        0,
+        0
+      ],
+      "radius": 8
+    },
+    {
+      "zoom_seed": 6374347445474471398,
+      "quart_coordinates_md5": "88e619d2e96236ea0b969dc90a9089fb",
+      "seed": -9223372036854775808,
+      "center": [
+        -32,
+        -64,
+        16
+      ],
+      "radius": 8
+    },
+    {
+      "zoom_seed": 6374347445474471398,
+      "quart_coordinates_md5": "19d602a3498e7c8d4ca36b9c3d16eb75",
+      "seed": -9223372036854775808,
+      "center": [
+        29999984,
+        304,
+        -29999984
+      ],
+      "radius": 8
+    },
+    {
+      "zoom_seed": 7179146226492139882,
+      "quart_coordinates_md5": "653cb5e0b94e5af5f3d84abc2077b4cc",
+      "seed": 9223372036854775807,
+      "center": [
+        0,
+        0,
+        0
+      ],
+      "radius": 8
+    },
+    {
+      "zoom_seed": 7179146226492139882,
+      "quart_coordinates_md5": "8552d81bb738f99c6fa14e712a28a1c7",
+      "seed": 9223372036854775807,
+      "center": [
+        -32,
+        -64,
+        16
+      ],
+      "radius": 8
+    },
+    {
+      "zoom_seed": 7179146226492139882,
+      "quart_coordinates_md5": "8d77c12d258e34308499904df85b4917",
+      "seed": 9223372036854775807,
+      "center": [
+        29999984,
+        304,
+        -29999984
+      ],
+      "radius": 8
+    }
+  ]
+}

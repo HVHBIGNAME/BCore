@@ -1,0 +1,6782 @@
+{
+  "minecraft": "26.1",
+  "jar_sha256": "a7fed6f7d88379349e35ae0c6e9881d4484605132f6f620376a3868eea6cce52",
+  "probe_sha256": "64223f992aa357357ddbb4ef9ab49d575db5e5345e80664a73ab3ff4ab67748c",
+  "tags": {
+    "base_stone_overworld": [
+      1,
+      2,
+      4,
+      6,
+      23452,
+      27923,
+      27924,
+      27925
+    ],
+    "deepslate_ore_replaceables": [
+      23452,
+      27923,
+      27924,
+      27925
+    ],
+    "stone_ore_replaceables": [
+      1,
+      2,
+      4,
+      6
+    ]
+  },
+  "configurations": {
+    "ore_coal": {
+      "discard_chance_on_air_exposure": 0.0,
+      "size": 17
+    },
+    "ore_coal_buried": {
+      "discard_chance_on_air_exposure": 0.5,
+      "size": 17
+    },
+    "ore_copper_large": {
+      "discard_chance_on_air_exposure": 0.0,
+      "size": 20
+    },
+    "ore_diamond_buried": {
+      "discard_chance_on_air_exposure": 1.0,
+      "size": 8
+    },
+    "ore_dirt": {
+      "discard_chance_on_air_exposure": 0.0,
+      "size": 33
+    },
+    "ore_granite": {
+      "discard_chance_on_air_exposure": 0.0,
+      "size": 64
+    },
+    "ore_iron": {
+      "discard_chance_on_air_exposure": 0.0,
+      "size": 9
+    }
+  },
+  "cave_air_state": 15293,
+  "samples": [
+    {
+      "next_i64": -7231073811478475635,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "574c9981e0640d7826e836a09e1840c5",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 25,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": -7231073811478475635,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "99b7ae061252a0b2fdf8ff5693761b59",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 25,
+      "terrain": "deepslate"
+    },
+    {
+      "next_i64": -7231073811478475635,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "99b7ae061252a0b2fdf8ff5693761b59",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 25,
+      "terrain": "deepslate_x"
+    },
+    {
+      "next_i64": -7231073811478475635,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "99b7ae061252a0b2fdf8ff5693761b59",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 25,
+      "terrain": "deepslate_z"
+    },
+    {
+      "next_i64": -7231073811478475635,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "99b7ae061252a0b2fdf8ff5693761b59",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 25,
+      "terrain": "tuff"
+    },
+    {
+      "next_i64": -7231073811478475635,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "26c156ee59a15508bb9398af1d1daf0c",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 16,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": -7231073811478475635,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "26c156ee59a15508bb9398af1d1daf0c",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 16,
+      "terrain": "cave_air"
+    },
+    {
+      "next_i64": -7231073811478475635,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "26c156ee59a15508bb9398af1d1daf0c",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 16,
+      "terrain": "water"
+    },
+    {
+      "next_i64": -7231073811478475635,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "26c156ee59a15508bb9398af1d1daf0c",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 16,
+      "terrain": "bedrock"
+    },
+    {
+      "next_i64": 2160572956399813066,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "air"
+    },
+    {
+      "next_i64": -7231073811478475635,
+      "seed": 0,
+      "origin": [
+        -1,
+        -63,
+        16
+      ],
+      "writes_md5": "3ee7f40e4f360a4b038cd1e71f381d6f",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 12,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 2160572956399813066,
+      "seed": 0,
+      "origin": [
+        8,
+        90,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": -7231073811478475635,
+      "seed": 0,
+      "origin": [
+        8,
+        319,
+        8
+      ],
+      "writes_md5": "c0d298031c6248afcecabf8c7a24074a",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 25,
+      "terrain": "ceiling"
+    },
+    {
+      "next_i64": 4545946505979985130,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "f1fbfbc39ef9f84ea0895e3fde61b676",
+      "attempts": 3,
+      "kind": "ore_coal",
+      "placed": [
+        true,
+        true,
+        true
+      ],
+      "changed_blocks": 36,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 6086335880776478666,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "5e163faefce0c47c7905b93e8ba65074",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 22,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 6086335880776478666,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "243daa69a0b04274106b6964f613d391",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 22,
+      "terrain": "deepslate"
+    },
+    {
+      "next_i64": 6086335880776478666,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "243daa69a0b04274106b6964f613d391",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 22,
+      "terrain": "deepslate_x"
+    },
+    {
+      "next_i64": 6086335880776478666,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "243daa69a0b04274106b6964f613d391",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 22,
+      "terrain": "deepslate_z"
+    },
+    {
+      "next_i64": 6086335880776478666,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "243daa69a0b04274106b6964f613d391",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 22,
+      "terrain": "tuff"
+    },
+    {
+      "next_i64": 6086335880776478666,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "3725c8441bc70fc0d7aa3bf64bbe19d3",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 12,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 6086335880776478666,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "3725c8441bc70fc0d7aa3bf64bbe19d3",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 12,
+      "terrain": "cave_air"
+    },
+    {
+      "next_i64": 6086335880776478666,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "3725c8441bc70fc0d7aa3bf64bbe19d3",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 12,
+      "terrain": "water"
+    },
+    {
+      "next_i64": 6086335880776478666,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "3725c8441bc70fc0d7aa3bf64bbe19d3",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 12,
+      "terrain": "bedrock"
+    },
+    {
+      "next_i64": 890086653485818398,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "air"
+    },
+    {
+      "next_i64": 6086335880776478666,
+      "seed": 1,
+      "origin": [
+        -1,
+        -63,
+        16
+      ],
+      "writes_md5": "f17abbe188302605cb773ef745390f04",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 15,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 890086653485818398,
+      "seed": 1,
+      "origin": [
+        8,
+        90,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 6086335880776478666,
+      "seed": 1,
+      "origin": [
+        8,
+        319,
+        8
+      ],
+      "writes_md5": "0a733e004d30cfeeb62bf8c0e7174d13",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 22,
+      "terrain": "ceiling"
+    },
+    {
+      "next_i64": -4399079438087468748,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "e241a30069544cf61e6672be112d47e8",
+      "attempts": 3,
+      "kind": "ore_coal",
+      "placed": [
+        true,
+        true,
+        true
+      ],
+      "changed_blocks": 37,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": -1244440546221745932,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "8b4573e11a23b933d5db786da3bad4f8",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 26,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": -1244440546221745932,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "879bbcb7cda56f1af6ae416ad73a1243",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 26,
+      "terrain": "deepslate"
+    },
+    {
+      "next_i64": -1244440546221745932,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "879bbcb7cda56f1af6ae416ad73a1243",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 26,
+      "terrain": "deepslate_x"
+    },
+    {
+      "next_i64": -1244440546221745932,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "879bbcb7cda56f1af6ae416ad73a1243",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 26,
+      "terrain": "deepslate_z"
+    },
+    {
+      "next_i64": -1244440546221745932,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "879bbcb7cda56f1af6ae416ad73a1243",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 26,
+      "terrain": "tuff"
+    },
+    {
+      "next_i64": -1244440546221745932,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d39214120eaa35eb2311ce2834a6b38a",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 22,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": -1244440546221745932,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d39214120eaa35eb2311ce2834a6b38a",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 22,
+      "terrain": "cave_air"
+    },
+    {
+      "next_i64": -1244440546221745932,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d39214120eaa35eb2311ce2834a6b38a",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 22,
+      "terrain": "water"
+    },
+    {
+      "next_i64": -1244440546221745932,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d39214120eaa35eb2311ce2834a6b38a",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 22,
+      "terrain": "bedrock"
+    },
+    {
+      "next_i64": 7539103415640023479,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "air"
+    },
+    {
+      "next_i64": -1244440546221745932,
+      "seed": 17,
+      "origin": [
+        -1,
+        -63,
+        16
+      ],
+      "writes_md5": "0eaa7548763a0b29776aa510658e454b",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 26,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 7539103415640023479,
+      "seed": 17,
+      "origin": [
+        8,
+        90,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": -1244440546221745932,
+      "seed": 17,
+      "origin": [
+        8,
+        319,
+        8
+      ],
+      "writes_md5": "dbf1e11b7c3b0ef877225981f844b016",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 26,
+      "terrain": "ceiling"
+    },
+    {
+      "next_i64": -5135252105012717134,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "8016e289663891970cdfd3a2df77d814",
+      "attempts": 3,
+      "kind": "ore_coal",
+      "placed": [
+        true,
+        true,
+        true
+      ],
+      "changed_blocks": 40,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 4218460201331267139,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "6024bde16de5233c54232b3cadfedfb7",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 16,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 4218460201331267139,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "10a7d51f367d2a46186708071d4ece3e",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 16,
+      "terrain": "deepslate"
+    },
+    {
+      "next_i64": 4218460201331267139,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "10a7d51f367d2a46186708071d4ece3e",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 16,
+      "terrain": "deepslate_x"
+    },
+    {
+      "next_i64": 4218460201331267139,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "10a7d51f367d2a46186708071d4ece3e",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 16,
+      "terrain": "deepslate_z"
+    },
+    {
+      "next_i64": 4218460201331267139,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "10a7d51f367d2a46186708071d4ece3e",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 16,
+      "terrain": "tuff"
+    },
+    {
+      "next_i64": 4218460201331267139,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "3f457b7ed59d5c51a5597fb654593940",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 12,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 4218460201331267139,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "3f457b7ed59d5c51a5597fb654593940",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 12,
+      "terrain": "cave_air"
+    },
+    {
+      "next_i64": 4218460201331267139,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "3f457b7ed59d5c51a5597fb654593940",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 12,
+      "terrain": "water"
+    },
+    {
+      "next_i64": 4218460201331267139,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "3f457b7ed59d5c51a5597fb654593940",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 12,
+      "terrain": "bedrock"
+    },
+    {
+      "next_i64": 4888889476028865537,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "air"
+    },
+    {
+      "next_i64": 4218460201331267139,
+      "seed": 42,
+      "origin": [
+        -1,
+        -63,
+        16
+      ],
+      "writes_md5": "4839421146a08849a5dc7316f1c6a86e",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 4,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 4888889476028865537,
+      "seed": 42,
+      "origin": [
+        8,
+        90,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 4218460201331267139,
+      "seed": 42,
+      "origin": [
+        8,
+        319,
+        8
+      ],
+      "writes_md5": "e362a7f8b79dfc061ddc958720ff19e7",
+      "attempts": 1,
+      "kind": "ore_coal",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 16,
+      "terrain": "ceiling"
+    },
+    {
+      "next_i64": 6853066296942360801,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "61d01505fc5566fad9f0843abbf57f31",
+      "attempts": 3,
+      "kind": "ore_coal",
+      "placed": [
+        true,
+        true,
+        true
+      ],
+      "changed_blocks": 27,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": -205294915220115309,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "574c9981e0640d7826e836a09e1840c5",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 25,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": -205294915220115309,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "99b7ae061252a0b2fdf8ff5693761b59",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 25,
+      "terrain": "deepslate"
+    },
+    {
+      "next_i64": -205294915220115309,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "99b7ae061252a0b2fdf8ff5693761b59",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 25,
+      "terrain": "deepslate_x"
+    },
+    {
+      "next_i64": -205294915220115309,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "99b7ae061252a0b2fdf8ff5693761b59",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 25,
+      "terrain": "deepslate_z"
+    },
+    {
+      "next_i64": -205294915220115309,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "99b7ae061252a0b2fdf8ff5693761b59",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 25,
+      "terrain": "tuff"
+    },
+    {
+      "next_i64": -1639398322752026006,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "90def7ca836a22c42c2f57a8b323a847",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 10,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": -1639398322752026006,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "90def7ca836a22c42c2f57a8b323a847",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 10,
+      "terrain": "cave_air"
+    },
+    {
+      "next_i64": -1639398322752026006,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "26c156ee59a15508bb9398af1d1daf0c",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 16,
+      "terrain": "water"
+    },
+    {
+      "next_i64": -1639398322752026006,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "26c156ee59a15508bb9398af1d1daf0c",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 16,
+      "terrain": "bedrock"
+    },
+    {
+      "next_i64": 2160572956399813066,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "air"
+    },
+    {
+      "next_i64": 5230330888031781622,
+      "seed": 0,
+      "origin": [
+        -1,
+        -63,
+        16
+      ],
+      "writes_md5": "36cad59a05daf6982d6f7533be5b23e2",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 6,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 2160572956399813066,
+      "seed": 0,
+      "origin": [
+        8,
+        90,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": -205294915220115309,
+      "seed": 0,
+      "origin": [
+        8,
+        319,
+        8
+      ],
+      "writes_md5": "83fd0094168311fb03d1c1d7527856f3",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 24,
+      "terrain": "ceiling"
+    },
+    {
+      "next_i64": -1659925560632101860,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "a86a46a70d778002bf38222923dfb7dc",
+      "attempts": 3,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true,
+        true,
+        true
+      ],
+      "changed_blocks": 23,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": -2021115833460311457,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "5e163faefce0c47c7905b93e8ba65074",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 22,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": -2021115833460311457,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "243daa69a0b04274106b6964f613d391",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 22,
+      "terrain": "deepslate"
+    },
+    {
+      "next_i64": -2021115833460311457,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "243daa69a0b04274106b6964f613d391",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 22,
+      "terrain": "deepslate_x"
+    },
+    {
+      "next_i64": -2021115833460311457,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "243daa69a0b04274106b6964f613d391",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 22,
+      "terrain": "deepslate_z"
+    },
+    {
+      "next_i64": -2021115833460311457,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "243daa69a0b04274106b6964f613d391",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 22,
+      "terrain": "tuff"
+    },
+    {
+      "next_i64": -349978317051283949,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d2bfb8a298049806e1ed17aee8257d6f",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 5,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": -349978317051283949,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d2bfb8a298049806e1ed17aee8257d6f",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 5,
+      "terrain": "cave_air"
+    },
+    {
+      "next_i64": -349978317051283949,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "3725c8441bc70fc0d7aa3bf64bbe19d3",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 12,
+      "terrain": "water"
+    },
+    {
+      "next_i64": -349978317051283949,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "3725c8441bc70fc0d7aa3bf64bbe19d3",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 12,
+      "terrain": "bedrock"
+    },
+    {
+      "next_i64": 890086653485818398,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "air"
+    },
+    {
+      "next_i64": -7026675817553040882,
+      "seed": 1,
+      "origin": [
+        -1,
+        -63,
+        16
+      ],
+      "writes_md5": "8b34959297001519648f845e91ba1afc",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 9,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 890086653485818398,
+      "seed": 1,
+      "origin": [
+        8,
+        90,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": -2021115833460311457,
+      "seed": 1,
+      "origin": [
+        8,
+        319,
+        8
+      ],
+      "writes_md5": "861e85a97089d1e7e127811edae8975a",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 20,
+      "terrain": "ceiling"
+    },
+    {
+      "next_i64": -4548103950462627724,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "ded9fdf4862d8705086e4a44d5aeda4b",
+      "attempts": 3,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true,
+        true,
+        true
+      ],
+      "changed_blocks": 17,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": -8817743390543960344,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "8b4573e11a23b933d5db786da3bad4f8",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 26,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": -8817743390543960344,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "879bbcb7cda56f1af6ae416ad73a1243",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 26,
+      "terrain": "deepslate"
+    },
+    {
+      "next_i64": -8817743390543960344,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "879bbcb7cda56f1af6ae416ad73a1243",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 26,
+      "terrain": "deepslate_x"
+    },
+    {
+      "next_i64": -8817743390543960344,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "879bbcb7cda56f1af6ae416ad73a1243",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 26,
+      "terrain": "deepslate_z"
+    },
+    {
+      "next_i64": -8817743390543960344,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "879bbcb7cda56f1af6ae416ad73a1243",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 26,
+      "terrain": "tuff"
+    },
+    {
+      "next_i64": 8998188130951164789,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "84ab7329c147f791e4b91089a128e5f5",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 18,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 8998188130951164789,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "84ab7329c147f791e4b91089a128e5f5",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 18,
+      "terrain": "cave_air"
+    },
+    {
+      "next_i64": 8998188130951164789,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d39214120eaa35eb2311ce2834a6b38a",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 22,
+      "terrain": "water"
+    },
+    {
+      "next_i64": 8998188130951164789,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d39214120eaa35eb2311ce2834a6b38a",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 22,
+      "terrain": "bedrock"
+    },
+    {
+      "next_i64": 7539103415640023479,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "air"
+    },
+    {
+      "next_i64": -8817743390543960344,
+      "seed": 17,
+      "origin": [
+        -1,
+        -63,
+        16
+      ],
+      "writes_md5": "feb5eee5a62e1b649b4ac42da8992dac",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 20,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 7539103415640023479,
+      "seed": 17,
+      "origin": [
+        8,
+        90,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": -8817743390543960344,
+      "seed": 17,
+      "origin": [
+        8,
+        319,
+        8
+      ],
+      "writes_md5": "06270a0f61b849f4818320cc7d88d6aa",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 21,
+      "terrain": "ceiling"
+    },
+    {
+      "next_i64": 7337084573743595231,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "992adeff1ea532656dc0b78788001d7b",
+      "attempts": 3,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true,
+        true,
+        true
+      ],
+      "changed_blocks": 33,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": -8952783047034934492,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "6024bde16de5233c54232b3cadfedfb7",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 16,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": -8952783047034934492,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "10a7d51f367d2a46186708071d4ece3e",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 16,
+      "terrain": "deepslate"
+    },
+    {
+      "next_i64": -8952783047034934492,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "10a7d51f367d2a46186708071d4ece3e",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 16,
+      "terrain": "deepslate_x"
+    },
+    {
+      "next_i64": -8952783047034934492,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "10a7d51f367d2a46186708071d4ece3e",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 16,
+      "terrain": "deepslate_z"
+    },
+    {
+      "next_i64": -8952783047034934492,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "10a7d51f367d2a46186708071d4ece3e",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 16,
+      "terrain": "tuff"
+    },
+    {
+      "next_i64": 650149490905293146,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "18fdb4733f596b7be001edda13951128",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 9,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 650149490905293146,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "18fdb4733f596b7be001edda13951128",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 9,
+      "terrain": "cave_air"
+    },
+    {
+      "next_i64": 650149490905293146,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "3f457b7ed59d5c51a5597fb654593940",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 12,
+      "terrain": "water"
+    },
+    {
+      "next_i64": 650149490905293146,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "3f457b7ed59d5c51a5597fb654593940",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 12,
+      "terrain": "bedrock"
+    },
+    {
+      "next_i64": 4888889476028865537,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "air"
+    },
+    {
+      "next_i64": -7292365199593658294,
+      "seed": 42,
+      "origin": [
+        -1,
+        -63,
+        16
+      ],
+      "writes_md5": "045497f48c74ac51331a62ebd62a83c3",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 2,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 4888889476028865537,
+      "seed": 42,
+      "origin": [
+        8,
+        90,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": -8952783047034934492,
+      "seed": 42,
+      "origin": [
+        8,
+        319,
+        8
+      ],
+      "writes_md5": "e362a7f8b79dfc061ddc958720ff19e7",
+      "attempts": 1,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 16,
+      "terrain": "ceiling"
+    },
+    {
+      "next_i64": -5403374118964356378,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d59565f665ba5f2e300483035c40c072",
+      "attempts": 3,
+      "kind": "ore_coal_buried",
+      "placed": [
+        true,
+        true,
+        true
+      ],
+      "changed_blocks": 22,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 8002586925651943506,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "954f11b62641e63eaadd9b63c443c6f2",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 4,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 8002586925651943506,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "622d1e1e5bf21b12d07a10e23612207b",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 4,
+      "terrain": "deepslate"
+    },
+    {
+      "next_i64": 8002586925651943506,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "622d1e1e5bf21b12d07a10e23612207b",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 4,
+      "terrain": "deepslate_x"
+    },
+    {
+      "next_i64": 8002586925651943506,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "622d1e1e5bf21b12d07a10e23612207b",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 4,
+      "terrain": "deepslate_z"
+    },
+    {
+      "next_i64": 8002586925651943506,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "622d1e1e5bf21b12d07a10e23612207b",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 4,
+      "terrain": "tuff"
+    },
+    {
+      "next_i64": 8002586925651943506,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 8002586925651943506,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "cave_air"
+    },
+    {
+      "next_i64": 8002586925651943506,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "cfd3c27e52e2d724fcf3aac204981790",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 2,
+      "terrain": "water"
+    },
+    {
+      "next_i64": 8002586925651943506,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "cfd3c27e52e2d724fcf3aac204981790",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 2,
+      "terrain": "bedrock"
+    },
+    {
+      "next_i64": 2160572956399813066,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "air"
+    },
+    {
+      "next_i64": 8002586925651943506,
+      "seed": 0,
+      "origin": [
+        -1,
+        -63,
+        16
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 2160572956399813066,
+      "seed": 0,
+      "origin": [
+        8,
+        90,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 8002586925651943506,
+      "seed": 0,
+      "origin": [
+        8,
+        319,
+        8
+      ],
+      "writes_md5": "73ff4dc3f62b6a2b4f1fa2269418c451",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 4,
+      "terrain": "ceiling"
+    },
+    {
+      "next_i64": -6092521985069438571,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 3,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        false,
+        false,
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 8941470319221018073,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "b292d35f69178ccac8e2f65f650ae3de",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 4,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 8941470319221018073,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "1bd6537ed8c3de4f0731488b48b607b9",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 4,
+      "terrain": "deepslate"
+    },
+    {
+      "next_i64": 8941470319221018073,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "1bd6537ed8c3de4f0731488b48b607b9",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 4,
+      "terrain": "deepslate_x"
+    },
+    {
+      "next_i64": 8941470319221018073,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "1bd6537ed8c3de4f0731488b48b607b9",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 4,
+      "terrain": "deepslate_z"
+    },
+    {
+      "next_i64": 8941470319221018073,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "1bd6537ed8c3de4f0731488b48b607b9",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 4,
+      "terrain": "tuff"
+    },
+    {
+      "next_i64": 8941470319221018073,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 8941470319221018073,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "cave_air"
+    },
+    {
+      "next_i64": 8941470319221018073,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "66d26588d0afb38f7f92ce4d5330d8e4",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 2,
+      "terrain": "water"
+    },
+    {
+      "next_i64": 8941470319221018073,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "66d26588d0afb38f7f92ce4d5330d8e4",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 2,
+      "terrain": "bedrock"
+    },
+    {
+      "next_i64": 890086653485818398,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "air"
+    },
+    {
+      "next_i64": 8941470319221018073,
+      "seed": 1,
+      "origin": [
+        -1,
+        -63,
+        16
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 890086653485818398,
+      "seed": 1,
+      "origin": [
+        8,
+        90,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 8941470319221018073,
+      "seed": 1,
+      "origin": [
+        8,
+        319,
+        8
+      ],
+      "writes_md5": "4970533788b59c3b3aa57f0e851f2275",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 4,
+      "terrain": "ceiling"
+    },
+    {
+      "next_i64": 2121718455283185743,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 3,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        false,
+        false,
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": -2005254569410437265,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "a266e4bf76feafc79c30577474537595",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 8,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": -2005254569410437265,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "3f4b186e84889215504fb3d78c04b8f5",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 8,
+      "terrain": "deepslate"
+    },
+    {
+      "next_i64": -2005254569410437265,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "3f4b186e84889215504fb3d78c04b8f5",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 8,
+      "terrain": "deepslate_x"
+    },
+    {
+      "next_i64": -2005254569410437265,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "3f4b186e84889215504fb3d78c04b8f5",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 8,
+      "terrain": "deepslate_z"
+    },
+    {
+      "next_i64": -2005254569410437265,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "3f4b186e84889215504fb3d78c04b8f5",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 8,
+      "terrain": "tuff"
+    },
+    {
+      "next_i64": -2005254569410437265,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": -2005254569410437265,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "cave_air"
+    },
+    {
+      "next_i64": -2005254569410437265,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "17e97bddc89a681ee05923db5f923a9a",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 4,
+      "terrain": "water"
+    },
+    {
+      "next_i64": -2005254569410437265,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "17e97bddc89a681ee05923db5f923a9a",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 4,
+      "terrain": "bedrock"
+    },
+    {
+      "next_i64": 7539103415640023479,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "air"
+    },
+    {
+      "next_i64": -2005254569410437265,
+      "seed": 17,
+      "origin": [
+        -1,
+        -63,
+        16
+      ],
+      "writes_md5": "5a26b594fb69c71bc30b6654f0f01b68",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 4,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 7539103415640023479,
+      "seed": 17,
+      "origin": [
+        8,
+        90,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": -2005254569410437265,
+      "seed": 17,
+      "origin": [
+        8,
+        319,
+        8
+      ],
+      "writes_md5": "4970533788b59c3b3aa57f0e851f2275",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 4,
+      "terrain": "ceiling"
+    },
+    {
+      "next_i64": 962141955881906519,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 3,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        false,
+        false,
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 8296740667292563995,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "de144fb4753940683281175bcc7bf697",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 5,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 8296740667292563995,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "c5f3a353d6d4c26b2d90b8bd9759f163",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 5,
+      "terrain": "deepslate"
+    },
+    {
+      "next_i64": 8296740667292563995,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "c5f3a353d6d4c26b2d90b8bd9759f163",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 5,
+      "terrain": "deepslate_x"
+    },
+    {
+      "next_i64": 8296740667292563995,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "c5f3a353d6d4c26b2d90b8bd9759f163",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 5,
+      "terrain": "deepslate_z"
+    },
+    {
+      "next_i64": 8296740667292563995,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "c5f3a353d6d4c26b2d90b8bd9759f163",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 5,
+      "terrain": "tuff"
+    },
+    {
+      "next_i64": 8296740667292563995,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 8296740667292563995,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "cave_air"
+    },
+    {
+      "next_i64": 8296740667292563995,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "08f98e37035d871372d0bc6c22a05ffe",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 2,
+      "terrain": "water"
+    },
+    {
+      "next_i64": 8296740667292563995,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "08f98e37035d871372d0bc6c22a05ffe",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 2,
+      "terrain": "bedrock"
+    },
+    {
+      "next_i64": 4888889476028865537,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "air"
+    },
+    {
+      "next_i64": 8296740667292563995,
+      "seed": 42,
+      "origin": [
+        -1,
+        -63,
+        16
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 4888889476028865537,
+      "seed": 42,
+      "origin": [
+        8,
+        90,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 8296740667292563995,
+      "seed": 42,
+      "origin": [
+        8,
+        319,
+        8
+      ],
+      "writes_md5": "303d927be819ae4b2c008574a8ec3f63",
+      "attempts": 1,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 5,
+      "terrain": "ceiling"
+    },
+    {
+      "next_i64": 5529669419386146685,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 3,
+      "kind": "ore_diamond_buried",
+      "placed": [
+        false,
+        false,
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 1944304528918655456,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "16307ed771ca03d9516935c472de9821",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 5,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 1944304528918655456,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "2b8f7ffa001035c5312b0d98640592ae",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 5,
+      "terrain": "deepslate"
+    },
+    {
+      "next_i64": 1944304528918655456,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "2b8f7ffa001035c5312b0d98640592ae",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 5,
+      "terrain": "deepslate_x"
+    },
+    {
+      "next_i64": 1944304528918655456,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "2b8f7ffa001035c5312b0d98640592ae",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 5,
+      "terrain": "deepslate_z"
+    },
+    {
+      "next_i64": 1944304528918655456,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "2b8f7ffa001035c5312b0d98640592ae",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 5,
+      "terrain": "tuff"
+    },
+    {
+      "next_i64": 1944304528918655456,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "b125f6e4b83b48becdbfd6f01693e736",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 2,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 1944304528918655456,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "b125f6e4b83b48becdbfd6f01693e736",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 2,
+      "terrain": "cave_air"
+    },
+    {
+      "next_i64": 1944304528918655456,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "b125f6e4b83b48becdbfd6f01693e736",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 2,
+      "terrain": "water"
+    },
+    {
+      "next_i64": 1944304528918655456,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "b125f6e4b83b48becdbfd6f01693e736",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 2,
+      "terrain": "bedrock"
+    },
+    {
+      "next_i64": 2160572956399813066,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "air"
+    },
+    {
+      "next_i64": 1944304528918655456,
+      "seed": 0,
+      "origin": [
+        -1,
+        -63,
+        16
+      ],
+      "writes_md5": "197b0e1a284bd75fa7b9b9f3338c5d75",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 3,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 2160572956399813066,
+      "seed": 0,
+      "origin": [
+        8,
+        90,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 1944304528918655456,
+      "seed": 0,
+      "origin": [
+        8,
+        319,
+        8
+      ],
+      "writes_md5": "246fa32ccbb708f7851be06d93fdcae8",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 5,
+      "terrain": "ceiling"
+    },
+    {
+      "next_i64": -4603680941637987070,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "20dd7497229d5e615646c867e97ebcf9",
+      "attempts": 3,
+      "kind": "ore_iron",
+      "placed": [
+        true,
+        true,
+        true
+      ],
+      "changed_blocks": 5,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": -2836008975413456842,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "b406e95bec297fbb1cfe15e8a7df75b7",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 4,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": -2836008975413456842,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "5b3649184918551ea1edc3aa70137685",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 4,
+      "terrain": "deepslate"
+    },
+    {
+      "next_i64": -2836008975413456842,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "5b3649184918551ea1edc3aa70137685",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 4,
+      "terrain": "deepslate_x"
+    },
+    {
+      "next_i64": -2836008975413456842,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "5b3649184918551ea1edc3aa70137685",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 4,
+      "terrain": "deepslate_z"
+    },
+    {
+      "next_i64": -2836008975413456842,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "5b3649184918551ea1edc3aa70137685",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 4,
+      "terrain": "tuff"
+    },
+    {
+      "next_i64": -2836008975413456842,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "ea9f7341fd08d98354e2f4d980642229",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 2,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": -2836008975413456842,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "ea9f7341fd08d98354e2f4d980642229",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 2,
+      "terrain": "cave_air"
+    },
+    {
+      "next_i64": -2836008975413456842,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "ea9f7341fd08d98354e2f4d980642229",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 2,
+      "terrain": "water"
+    },
+    {
+      "next_i64": -2836008975413456842,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "ea9f7341fd08d98354e2f4d980642229",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 2,
+      "terrain": "bedrock"
+    },
+    {
+      "next_i64": 890086653485818398,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "air"
+    },
+    {
+      "next_i64": -2836008975413456842,
+      "seed": 1,
+      "origin": [
+        -1,
+        -63,
+        16
+      ],
+      "writes_md5": "299340b99be37692798d394986ad22bb",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 4,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 890086653485818398,
+      "seed": 1,
+      "origin": [
+        8,
+        90,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": -2836008975413456842,
+      "seed": 1,
+      "origin": [
+        8,
+        319,
+        8
+      ],
+      "writes_md5": "5461a2897b10e3a7a963b6c73f6f6677",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 4,
+      "terrain": "ceiling"
+    },
+    {
+      "next_i64": -8563805166825208959,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "81f039c759567b4c58993459eee76cb5",
+      "attempts": 3,
+      "kind": "ore_iron",
+      "placed": [
+        true,
+        true,
+        true
+      ],
+      "changed_blocks": 8,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 5084502382696322916,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "f364c4133d8acf8983aeff55d387cde8",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 10,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 5084502382696322916,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "9718bee3ba3c0a9befb9c694674291af",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 10,
+      "terrain": "deepslate"
+    },
+    {
+      "next_i64": 5084502382696322916,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "9718bee3ba3c0a9befb9c694674291af",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 10,
+      "terrain": "deepslate_x"
+    },
+    {
+      "next_i64": 5084502382696322916,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "9718bee3ba3c0a9befb9c694674291af",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 10,
+      "terrain": "deepslate_z"
+    },
+    {
+      "next_i64": 5084502382696322916,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "9718bee3ba3c0a9befb9c694674291af",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 10,
+      "terrain": "tuff"
+    },
+    {
+      "next_i64": 5084502382696322916,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d22ddaa9b54114bcc2de1e817fe83196",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 6,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 5084502382696322916,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d22ddaa9b54114bcc2de1e817fe83196",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 6,
+      "terrain": "cave_air"
+    },
+    {
+      "next_i64": 5084502382696322916,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d22ddaa9b54114bcc2de1e817fe83196",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 6,
+      "terrain": "water"
+    },
+    {
+      "next_i64": 5084502382696322916,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d22ddaa9b54114bcc2de1e817fe83196",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 6,
+      "terrain": "bedrock"
+    },
+    {
+      "next_i64": 7539103415640023479,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "air"
+    },
+    {
+      "next_i64": 5084502382696322916,
+      "seed": 17,
+      "origin": [
+        -1,
+        -63,
+        16
+      ],
+      "writes_md5": "41cb75e349fa1862646d79817422e3f8",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 10,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 7539103415640023479,
+      "seed": 17,
+      "origin": [
+        8,
+        90,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 5084502382696322916,
+      "seed": 17,
+      "origin": [
+        8,
+        319,
+        8
+      ],
+      "writes_md5": "3b5f8afbf72e4f6568484d501c5c695d",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 10,
+      "terrain": "ceiling"
+    },
+    {
+      "next_i64": -8817743390543960344,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "4cba35d7859351549f5969492cef8b6c",
+      "attempts": 3,
+      "kind": "ore_iron",
+      "placed": [
+        true,
+        true,
+        false
+      ],
+      "changed_blocks": 7,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 8111380309050520991,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "2c0452c5c0f668a52188d69c4c60e5f9",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 6,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 8111380309050520991,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "37beb9a0f63a5aeda1c897c0e956f35e",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 6,
+      "terrain": "deepslate"
+    },
+    {
+      "next_i64": 8111380309050520991,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "37beb9a0f63a5aeda1c897c0e956f35e",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 6,
+      "terrain": "deepslate_x"
+    },
+    {
+      "next_i64": 8111380309050520991,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "37beb9a0f63a5aeda1c897c0e956f35e",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 6,
+      "terrain": "deepslate_z"
+    },
+    {
+      "next_i64": 8111380309050520991,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "37beb9a0f63a5aeda1c897c0e956f35e",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 6,
+      "terrain": "tuff"
+    },
+    {
+      "next_i64": 8111380309050520991,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "3de7ae85cbc6951e2816a02fc2574785",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 3,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 8111380309050520991,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "3de7ae85cbc6951e2816a02fc2574785",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 3,
+      "terrain": "cave_air"
+    },
+    {
+      "next_i64": 8111380309050520991,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "3de7ae85cbc6951e2816a02fc2574785",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 3,
+      "terrain": "water"
+    },
+    {
+      "next_i64": 8111380309050520991,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "3de7ae85cbc6951e2816a02fc2574785",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 3,
+      "terrain": "bedrock"
+    },
+    {
+      "next_i64": 4888889476028865537,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "air"
+    },
+    {
+      "next_i64": 8111380309050520991,
+      "seed": 42,
+      "origin": [
+        -1,
+        -63,
+        16
+      ],
+      "writes_md5": "b83570ce83eef4432149e35c60b87fef",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 1,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 4888889476028865537,
+      "seed": 42,
+      "origin": [
+        8,
+        90,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 8111380309050520991,
+      "seed": 42,
+      "origin": [
+        8,
+        319,
+        8
+      ],
+      "writes_md5": "7afd087a4a76a8f7e04374b51fee3604",
+      "attempts": 1,
+      "kind": "ore_iron",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 6,
+      "terrain": "ceiling"
+    },
+    {
+      "next_i64": 4179665338846497264,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "446c7b29bf7e7c347b88d16f7245fe4b",
+      "attempts": 3,
+      "kind": "ore_iron",
+      "placed": [
+        true,
+        true,
+        true
+      ],
+      "changed_blocks": 7,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 2686635388485118468,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "db62581ef3ffad6af8d7c4a3eb48b6ab",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 40,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 2686635388485118468,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "29d78714b2a149b8452185e624f94e55",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 40,
+      "terrain": "deepslate"
+    },
+    {
+      "next_i64": 2686635388485118468,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "29d78714b2a149b8452185e624f94e55",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 40,
+      "terrain": "deepslate_x"
+    },
+    {
+      "next_i64": 2686635388485118468,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "29d78714b2a149b8452185e624f94e55",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 40,
+      "terrain": "deepslate_z"
+    },
+    {
+      "next_i64": 2686635388485118468,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "29d78714b2a149b8452185e624f94e55",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 40,
+      "terrain": "tuff"
+    },
+    {
+      "next_i64": 2686635388485118468,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "5338bb38a00a124ef0b50fe723261729",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 27,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 2686635388485118468,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "5338bb38a00a124ef0b50fe723261729",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 27,
+      "terrain": "cave_air"
+    },
+    {
+      "next_i64": 2686635388485118468,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "5338bb38a00a124ef0b50fe723261729",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 27,
+      "terrain": "water"
+    },
+    {
+      "next_i64": 2686635388485118468,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "5338bb38a00a124ef0b50fe723261729",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 27,
+      "terrain": "bedrock"
+    },
+    {
+      "next_i64": 2160572956399813066,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "air"
+    },
+    {
+      "next_i64": 2686635388485118468,
+      "seed": 0,
+      "origin": [
+        -1,
+        -63,
+        16
+      ],
+      "writes_md5": "1a3a57ce464751ce7a9b8b80ddc29345",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 21,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 2160572956399813066,
+      "seed": 0,
+      "origin": [
+        8,
+        90,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 2686635388485118468,
+      "seed": 0,
+      "origin": [
+        8,
+        319,
+        8
+      ],
+      "writes_md5": "0c8f528c08cbe564ff0d0150634465bd",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 40,
+      "terrain": "ceiling"
+    },
+    {
+      "next_i64": -4708555966986340094,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "09d02470f5f8a04e31e59999d3e62588",
+      "attempts": 3,
+      "kind": "ore_copper_large",
+      "placed": [
+        true,
+        true,
+        true
+      ],
+      "changed_blocks": 42,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 7063849193801080833,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "356138d0a65a61889813d1c4ec5bb086",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 28,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 7063849193801080833,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d35695991410b560e51f6f92fbb846dd",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 28,
+      "terrain": "deepslate"
+    },
+    {
+      "next_i64": 7063849193801080833,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d35695991410b560e51f6f92fbb846dd",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 28,
+      "terrain": "deepslate_x"
+    },
+    {
+      "next_i64": 7063849193801080833,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d35695991410b560e51f6f92fbb846dd",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 28,
+      "terrain": "deepslate_z"
+    },
+    {
+      "next_i64": 7063849193801080833,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d35695991410b560e51f6f92fbb846dd",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 28,
+      "terrain": "tuff"
+    },
+    {
+      "next_i64": 7063849193801080833,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "22ea663df2dfc208e610e1e2fc163e07",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 16,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 7063849193801080833,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "22ea663df2dfc208e610e1e2fc163e07",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 16,
+      "terrain": "cave_air"
+    },
+    {
+      "next_i64": 7063849193801080833,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "22ea663df2dfc208e610e1e2fc163e07",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 16,
+      "terrain": "water"
+    },
+    {
+      "next_i64": 7063849193801080833,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "22ea663df2dfc208e610e1e2fc163e07",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 16,
+      "terrain": "bedrock"
+    },
+    {
+      "next_i64": 890086653485818398,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "air"
+    },
+    {
+      "next_i64": 7063849193801080833,
+      "seed": 1,
+      "origin": [
+        -1,
+        -63,
+        16
+      ],
+      "writes_md5": "12a83088fa12e59fe5e5cbd9755430b8",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 21,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 890086653485818398,
+      "seed": 1,
+      "origin": [
+        8,
+        90,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 7063849193801080833,
+      "seed": 1,
+      "origin": [
+        8,
+        319,
+        8
+      ],
+      "writes_md5": "e1a6240ca0c1ce7584837a68a24bbe88",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 28,
+      "terrain": "ceiling"
+    },
+    {
+      "next_i64": 8212663903517057476,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "ff5e657a3b68703dc13e770d38670ad5",
+      "attempts": 3,
+      "kind": "ore_copper_large",
+      "placed": [
+        true,
+        true,
+        true
+      ],
+      "changed_blocks": 50,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 4219241621442041366,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "2978da5bc7c94c99186815d77915d14b",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 36,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 4219241621442041366,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "abd8bf853a8afa277c10502304dbe9f8",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 36,
+      "terrain": "deepslate"
+    },
+    {
+      "next_i64": 4219241621442041366,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "abd8bf853a8afa277c10502304dbe9f8",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 36,
+      "terrain": "deepslate_x"
+    },
+    {
+      "next_i64": 4219241621442041366,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "abd8bf853a8afa277c10502304dbe9f8",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 36,
+      "terrain": "deepslate_z"
+    },
+    {
+      "next_i64": 4219241621442041366,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "abd8bf853a8afa277c10502304dbe9f8",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 36,
+      "terrain": "tuff"
+    },
+    {
+      "next_i64": 4219241621442041366,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "c5d1a29efa60de53ed2a2971fd83b948",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 28,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 4219241621442041366,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "c5d1a29efa60de53ed2a2971fd83b948",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 28,
+      "terrain": "cave_air"
+    },
+    {
+      "next_i64": 4219241621442041366,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "c5d1a29efa60de53ed2a2971fd83b948",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 28,
+      "terrain": "water"
+    },
+    {
+      "next_i64": 4219241621442041366,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "c5d1a29efa60de53ed2a2971fd83b948",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 28,
+      "terrain": "bedrock"
+    },
+    {
+      "next_i64": 7539103415640023479,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "air"
+    },
+    {
+      "next_i64": 4219241621442041366,
+      "seed": 17,
+      "origin": [
+        -1,
+        -63,
+        16
+      ],
+      "writes_md5": "d8fc0325939923057497d13b9b48bb47",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 34,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 7539103415640023479,
+      "seed": 17,
+      "origin": [
+        8,
+        90,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 4219241621442041366,
+      "seed": 17,
+      "origin": [
+        8,
+        319,
+        8
+      ],
+      "writes_md5": "dc059ff4d869f0e7af8986de2ee048f5",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 34,
+      "terrain": "ceiling"
+    },
+    {
+      "next_i64": -8100113828976321265,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "0e0427347de40b8f1f78ef49b85d25f5",
+      "attempts": 3,
+      "kind": "ore_copper_large",
+      "placed": [
+        true,
+        true,
+        true
+      ],
+      "changed_blocks": 53,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": -3798526540345491631,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "265aee7ac76ff27627d326be5344ae61",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 24,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": -3798526540345491631,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "b3747c2a689633234cbda7467ab834d9",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 24,
+      "terrain": "deepslate"
+    },
+    {
+      "next_i64": -3798526540345491631,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "b3747c2a689633234cbda7467ab834d9",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 24,
+      "terrain": "deepslate_x"
+    },
+    {
+      "next_i64": -3798526540345491631,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "b3747c2a689633234cbda7467ab834d9",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 24,
+      "terrain": "deepslate_z"
+    },
+    {
+      "next_i64": -3798526540345491631,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "b3747c2a689633234cbda7467ab834d9",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 24,
+      "terrain": "tuff"
+    },
+    {
+      "next_i64": -3798526540345491631,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "0b235bf7b729a6fbaffb7b4fae747efe",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 18,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": -3798526540345491631,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "0b235bf7b729a6fbaffb7b4fae747efe",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 18,
+      "terrain": "cave_air"
+    },
+    {
+      "next_i64": -3798526540345491631,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "0b235bf7b729a6fbaffb7b4fae747efe",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 18,
+      "terrain": "water"
+    },
+    {
+      "next_i64": -3798526540345491631,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "0b235bf7b729a6fbaffb7b4fae747efe",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 18,
+      "terrain": "bedrock"
+    },
+    {
+      "next_i64": 4888889476028865537,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "air"
+    },
+    {
+      "next_i64": -3798526540345491631,
+      "seed": 42,
+      "origin": [
+        -1,
+        -63,
+        16
+      ],
+      "writes_md5": "cf33c1752393292b75807a8829a2ecb5",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 6,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 4888889476028865537,
+      "seed": 42,
+      "origin": [
+        8,
+        90,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": -3798526540345491631,
+      "seed": 42,
+      "origin": [
+        8,
+        319,
+        8
+      ],
+      "writes_md5": "6631f5eefa913562b4d440d57f0d7cf3",
+      "attempts": 1,
+      "kind": "ore_copper_large",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 24,
+      "terrain": "ceiling"
+    },
+    {
+      "next_i64": 3907566776494775984,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "4fd151882b37edac6356f48a74428428",
+      "attempts": 3,
+      "kind": "ore_copper_large",
+      "placed": [
+        true,
+        true,
+        true
+      ],
+      "changed_blocks": 38,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": -39950550259861172,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "0675e31a04e3add99d14f977878543e3",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 722,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": -39950550259861172,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "0675e31a04e3add99d14f977878543e3",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 722,
+      "terrain": "deepslate"
+    },
+    {
+      "next_i64": -39950550259861172,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "0675e31a04e3add99d14f977878543e3",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 722,
+      "terrain": "deepslate_x"
+    },
+    {
+      "next_i64": -39950550259861172,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "0675e31a04e3add99d14f977878543e3",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 722,
+      "terrain": "deepslate_z"
+    },
+    {
+      "next_i64": -39950550259861172,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "0675e31a04e3add99d14f977878543e3",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 722,
+      "terrain": "tuff"
+    },
+    {
+      "next_i64": -39950550259861172,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "23187e72decfe90152bc4792074e0c13",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 637,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": -39950550259861172,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "23187e72decfe90152bc4792074e0c13",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 637,
+      "terrain": "cave_air"
+    },
+    {
+      "next_i64": -39950550259861172,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "23187e72decfe90152bc4792074e0c13",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 637,
+      "terrain": "water"
+    },
+    {
+      "next_i64": -39950550259861172,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "23187e72decfe90152bc4792074e0c13",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 637,
+      "terrain": "bedrock"
+    },
+    {
+      "next_i64": 2160572956399813066,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "air"
+    },
+    {
+      "next_i64": -39950550259861172,
+      "seed": 0,
+      "origin": [
+        -1,
+        -63,
+        16
+      ],
+      "writes_md5": "1ade65323bc92ed482bcb9aa715693cd",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 361,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 2160572956399813066,
+      "seed": 0,
+      "origin": [
+        8,
+        90,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": -39950550259861172,
+      "seed": 0,
+      "origin": [
+        8,
+        319,
+        8
+      ],
+      "writes_md5": "3e75b4896fe9b4da2141cf19aaac62e8",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 601,
+      "terrain": "ceiling"
+    },
+    {
+      "next_i64": 5712667774494826156,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "3dbecf27f870a99f53f67e1a5536b69a",
+      "attempts": 3,
+      "kind": "ore_granite",
+      "placed": [
+        true,
+        true,
+        true
+      ],
+      "changed_blocks": 865,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 7164252735989337601,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "e1c44f6cf5bc7c1346bb229794e7ff88",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 668,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 7164252735989337601,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "e1c44f6cf5bc7c1346bb229794e7ff88",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 668,
+      "terrain": "deepslate"
+    },
+    {
+      "next_i64": 7164252735989337601,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "e1c44f6cf5bc7c1346bb229794e7ff88",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 668,
+      "terrain": "deepslate_x"
+    },
+    {
+      "next_i64": 7164252735989337601,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "e1c44f6cf5bc7c1346bb229794e7ff88",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 668,
+      "terrain": "deepslate_z"
+    },
+    {
+      "next_i64": 7164252735989337601,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "e1c44f6cf5bc7c1346bb229794e7ff88",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 668,
+      "terrain": "tuff"
+    },
+    {
+      "next_i64": 7164252735989337601,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "75abc33daac1e428b8843af9b436fee6",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 553,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 7164252735989337601,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "75abc33daac1e428b8843af9b436fee6",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 553,
+      "terrain": "cave_air"
+    },
+    {
+      "next_i64": 7164252735989337601,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "75abc33daac1e428b8843af9b436fee6",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 553,
+      "terrain": "water"
+    },
+    {
+      "next_i64": 7164252735989337601,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "75abc33daac1e428b8843af9b436fee6",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 553,
+      "terrain": "bedrock"
+    },
+    {
+      "next_i64": 890086653485818398,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "air"
+    },
+    {
+      "next_i64": 7164252735989337601,
+      "seed": 1,
+      "origin": [
+        -1,
+        -63,
+        16
+      ],
+      "writes_md5": "c3ef49bbabfc1d56dd49213e07c23d3b",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 397,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 890086653485818398,
+      "seed": 1,
+      "origin": [
+        8,
+        90,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 7164252735989337601,
+      "seed": 1,
+      "origin": [
+        8,
+        319,
+        8
+      ],
+      "writes_md5": "0a1dd4d8aee333cc753f69fec70af531",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 510,
+      "terrain": "ceiling"
+    },
+    {
+      "next_i64": -2950320953034738185,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "8784c348cae22db307b989a91ad98c18",
+      "attempts": 3,
+      "kind": "ore_granite",
+      "placed": [
+        true,
+        true,
+        true
+      ],
+      "changed_blocks": 952,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": -5794059911428003233,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "afd2842eaa70e36a9931bd21a2830337",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 676,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": -5794059911428003233,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "afd2842eaa70e36a9931bd21a2830337",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 676,
+      "terrain": "deepslate"
+    },
+    {
+      "next_i64": -5794059911428003233,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "afd2842eaa70e36a9931bd21a2830337",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 676,
+      "terrain": "deepslate_x"
+    },
+    {
+      "next_i64": -5794059911428003233,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "afd2842eaa70e36a9931bd21a2830337",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 676,
+      "terrain": "deepslate_z"
+    },
+    {
+      "next_i64": -5794059911428003233,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "afd2842eaa70e36a9931bd21a2830337",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 676,
+      "terrain": "tuff"
+    },
+    {
+      "next_i64": -5794059911428003233,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "ce284df1ab5ce07e702f0550e989109e",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 626,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": -5794059911428003233,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "ce284df1ab5ce07e702f0550e989109e",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 626,
+      "terrain": "cave_air"
+    },
+    {
+      "next_i64": -5794059911428003233,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "ce284df1ab5ce07e702f0550e989109e",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 626,
+      "terrain": "water"
+    },
+    {
+      "next_i64": -5794059911428003233,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "ce284df1ab5ce07e702f0550e989109e",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 626,
+      "terrain": "bedrock"
+    },
+    {
+      "next_i64": 7539103415640023479,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "air"
+    },
+    {
+      "next_i64": -5794059911428003233,
+      "seed": 17,
+      "origin": [
+        -1,
+        -63,
+        16
+      ],
+      "writes_md5": "4e9dc66f82c16d6a8bb88cc1a3ac72d8",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 464,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 7539103415640023479,
+      "seed": 17,
+      "origin": [
+        8,
+        90,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": -5794059911428003233,
+      "seed": 17,
+      "origin": [
+        8,
+        319,
+        8
+      ],
+      "writes_md5": "5ac37e91b36289efa9c9406473e27779",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 464,
+      "terrain": "ceiling"
+    },
+    {
+      "next_i64": -1415240294639053933,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "3711ae13d34f020baa46a9addfafce6a",
+      "attempts": 3,
+      "kind": "ore_granite",
+      "placed": [
+        true,
+        true,
+        true
+      ],
+      "changed_blocks": 903,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 6429370151894559533,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "6d66cf50a59866f662b022cf2a229589",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 666,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 6429370151894559533,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "6d66cf50a59866f662b022cf2a229589",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 666,
+      "terrain": "deepslate"
+    },
+    {
+      "next_i64": 6429370151894559533,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "6d66cf50a59866f662b022cf2a229589",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 666,
+      "terrain": "deepslate_x"
+    },
+    {
+      "next_i64": 6429370151894559533,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "6d66cf50a59866f662b022cf2a229589",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 666,
+      "terrain": "deepslate_z"
+    },
+    {
+      "next_i64": 6429370151894559533,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "6d66cf50a59866f662b022cf2a229589",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 666,
+      "terrain": "tuff"
+    },
+    {
+      "next_i64": 6429370151894559533,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "3e4ab1effe6f2abfb0df9bb436b97c12",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 598,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 6429370151894559533,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "3e4ab1effe6f2abfb0df9bb436b97c12",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 598,
+      "terrain": "cave_air"
+    },
+    {
+      "next_i64": 6429370151894559533,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "3e4ab1effe6f2abfb0df9bb436b97c12",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 598,
+      "terrain": "water"
+    },
+    {
+      "next_i64": 6429370151894559533,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "3e4ab1effe6f2abfb0df9bb436b97c12",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 598,
+      "terrain": "bedrock"
+    },
+    {
+      "next_i64": 4888889476028865537,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "air"
+    },
+    {
+      "next_i64": 6429370151894559533,
+      "seed": 42,
+      "origin": [
+        -1,
+        -63,
+        16
+      ],
+      "writes_md5": "d5d6390efb7a596427e93714ea467735",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 276,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 4888889476028865537,
+      "seed": 42,
+      "origin": [
+        8,
+        90,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 6429370151894559533,
+      "seed": 42,
+      "origin": [
+        8,
+        319,
+        8
+      ],
+      "writes_md5": "539dec6a9272758125fd62b3c7aaada3",
+      "attempts": 1,
+      "kind": "ore_granite",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 596,
+      "terrain": "ceiling"
+    },
+    {
+      "next_i64": 5049887413816367112,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "7f19361f6ce182dba7c21d469128b953",
+      "attempts": 3,
+      "kind": "ore_granite",
+      "placed": [
+        true,
+        true,
+        true
+      ],
+      "changed_blocks": 1073,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": -2138370668357692538,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "254924abe7e880fc21d280f90656d462",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 119,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": -2138370668357692538,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "254924abe7e880fc21d280f90656d462",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 119,
+      "terrain": "deepslate"
+    },
+    {
+      "next_i64": -2138370668357692538,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "254924abe7e880fc21d280f90656d462",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 119,
+      "terrain": "deepslate_x"
+    },
+    {
+      "next_i64": -2138370668357692538,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "254924abe7e880fc21d280f90656d462",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 119,
+      "terrain": "deepslate_z"
+    },
+    {
+      "next_i64": -2138370668357692538,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "254924abe7e880fc21d280f90656d462",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 119,
+      "terrain": "tuff"
+    },
+    {
+      "next_i64": -2138370668357692538,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "9d22c896132da760fc6559cc37952ac1",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 92,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": -2138370668357692538,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "9d22c896132da760fc6559cc37952ac1",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 92,
+      "terrain": "cave_air"
+    },
+    {
+      "next_i64": -2138370668357692538,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "9d22c896132da760fc6559cc37952ac1",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 92,
+      "terrain": "water"
+    },
+    {
+      "next_i64": -2138370668357692538,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "9d22c896132da760fc6559cc37952ac1",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 92,
+      "terrain": "bedrock"
+    },
+    {
+      "next_i64": 2160572956399813066,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "air"
+    },
+    {
+      "next_i64": -2138370668357692538,
+      "seed": 0,
+      "origin": [
+        -1,
+        -63,
+        16
+      ],
+      "writes_md5": "321df3541d00898239ddffb8e4a1f3bb",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 61,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 2160572956399813066,
+      "seed": 0,
+      "origin": [
+        8,
+        90,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": -2138370668357692538,
+      "seed": 0,
+      "origin": [
+        8,
+        319,
+        8
+      ],
+      "writes_md5": "ff51fd4e55ab6c1c7881d08a9e821a83",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 116,
+      "terrain": "ceiling"
+    },
+    {
+      "next_i64": -5696024951592588681,
+      "seed": 0,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "fc0b31a2e7712d7da8a5fb7e54710064",
+      "attempts": 3,
+      "kind": "ore_dirt",
+      "placed": [
+        true,
+        true,
+        true
+      ],
+      "changed_blocks": 183,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 2658880117764603838,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "846dc679d000b6f240bdbefb8974ff7d",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 116,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 2658880117764603838,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "846dc679d000b6f240bdbefb8974ff7d",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 116,
+      "terrain": "deepslate"
+    },
+    {
+      "next_i64": 2658880117764603838,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "846dc679d000b6f240bdbefb8974ff7d",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 116,
+      "terrain": "deepslate_x"
+    },
+    {
+      "next_i64": 2658880117764603838,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "846dc679d000b6f240bdbefb8974ff7d",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 116,
+      "terrain": "deepslate_z"
+    },
+    {
+      "next_i64": 2658880117764603838,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "846dc679d000b6f240bdbefb8974ff7d",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 116,
+      "terrain": "tuff"
+    },
+    {
+      "next_i64": 2658880117764603838,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "51f1b65c963927550427dd3a242033e9",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 78,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 2658880117764603838,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "51f1b65c963927550427dd3a242033e9",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 78,
+      "terrain": "cave_air"
+    },
+    {
+      "next_i64": 2658880117764603838,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "51f1b65c963927550427dd3a242033e9",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 78,
+      "terrain": "water"
+    },
+    {
+      "next_i64": 2658880117764603838,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "51f1b65c963927550427dd3a242033e9",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 78,
+      "terrain": "bedrock"
+    },
+    {
+      "next_i64": 890086653485818398,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "air"
+    },
+    {
+      "next_i64": 2658880117764603838,
+      "seed": 1,
+      "origin": [
+        -1,
+        -63,
+        16
+      ],
+      "writes_md5": "c038a312ab7252e09089b664b54692ba",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 77,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 890086653485818398,
+      "seed": 1,
+      "origin": [
+        8,
+        90,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 2658880117764603838,
+      "seed": 1,
+      "origin": [
+        8,
+        319,
+        8
+      ],
+      "writes_md5": "8ca99eaae3bdf34a78f298f7468881e4",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 106,
+      "terrain": "ceiling"
+    },
+    {
+      "next_i64": 7037094801464591764,
+      "seed": 1,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "8fc0338f1ebf2aa30b607bc8b78815ba",
+      "attempts": 3,
+      "kind": "ore_dirt",
+      "placed": [
+        true,
+        true,
+        true
+      ],
+      "changed_blocks": 149,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": -8551215449301967390,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "17d353cb6e92c629b9a3eda73240a2e1",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 120,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": -8551215449301967390,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "17d353cb6e92c629b9a3eda73240a2e1",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 120,
+      "terrain": "deepslate"
+    },
+    {
+      "next_i64": -8551215449301967390,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "17d353cb6e92c629b9a3eda73240a2e1",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 120,
+      "terrain": "deepslate_x"
+    },
+    {
+      "next_i64": -8551215449301967390,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "17d353cb6e92c629b9a3eda73240a2e1",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 120,
+      "terrain": "deepslate_z"
+    },
+    {
+      "next_i64": -8551215449301967390,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "17d353cb6e92c629b9a3eda73240a2e1",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 120,
+      "terrain": "tuff"
+    },
+    {
+      "next_i64": -8551215449301967390,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "94bf2e25ee49c7dc32a2cb87ad45b1e7",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 102,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": -8551215449301967390,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "94bf2e25ee49c7dc32a2cb87ad45b1e7",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 102,
+      "terrain": "cave_air"
+    },
+    {
+      "next_i64": -8551215449301967390,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "94bf2e25ee49c7dc32a2cb87ad45b1e7",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 102,
+      "terrain": "water"
+    },
+    {
+      "next_i64": -8551215449301967390,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "94bf2e25ee49c7dc32a2cb87ad45b1e7",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 102,
+      "terrain": "bedrock"
+    },
+    {
+      "next_i64": 7539103415640023479,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "air"
+    },
+    {
+      "next_i64": -8551215449301967390,
+      "seed": 17,
+      "origin": [
+        -1,
+        -63,
+        16
+      ],
+      "writes_md5": "7ae36272258a18b4c49236dbb50e65c7",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 97,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 7539103415640023479,
+      "seed": 17,
+      "origin": [
+        8,
+        90,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": -8551215449301967390,
+      "seed": 17,
+      "origin": [
+        8,
+        319,
+        8
+      ],
+      "writes_md5": "d4056977c49cff4d7e40571bd0fb63b9",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 97,
+      "terrain": "ceiling"
+    },
+    {
+      "next_i64": -6136218471074341078,
+      "seed": 17,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "a2356db7343ac84d3fd4de165204d245",
+      "attempts": 3,
+      "kind": "ore_dirt",
+      "placed": [
+        true,
+        true,
+        true
+      ],
+      "changed_blocks": 166,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 4094066185312401327,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "e0460993b1a4a2e32cf4b945bf425abb",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 103,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 4094066185312401327,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "e0460993b1a4a2e32cf4b945bf425abb",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 103,
+      "terrain": "deepslate"
+    },
+    {
+      "next_i64": 4094066185312401327,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "e0460993b1a4a2e32cf4b945bf425abb",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 103,
+      "terrain": "deepslate_x"
+    },
+    {
+      "next_i64": 4094066185312401327,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "e0460993b1a4a2e32cf4b945bf425abb",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 103,
+      "terrain": "deepslate_z"
+    },
+    {
+      "next_i64": 4094066185312401327,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "e0460993b1a4a2e32cf4b945bf425abb",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 103,
+      "terrain": "tuff"
+    },
+    {
+      "next_i64": 4094066185312401327,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "151eaf1061b92ecceaa7a7330e7305f8",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 83,
+      "terrain": "cave"
+    },
+    {
+      "next_i64": 4094066185312401327,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "151eaf1061b92ecceaa7a7330e7305f8",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 83,
+      "terrain": "cave_air"
+    },
+    {
+      "next_i64": 4094066185312401327,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "151eaf1061b92ecceaa7a7330e7305f8",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 83,
+      "terrain": "water"
+    },
+    {
+      "next_i64": 4094066185312401327,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "151eaf1061b92ecceaa7a7330e7305f8",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 83,
+      "terrain": "bedrock"
+    },
+    {
+      "next_i64": 4888889476028865537,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "air"
+    },
+    {
+      "next_i64": 4094066185312401327,
+      "seed": 42,
+      "origin": [
+        -1,
+        -63,
+        16
+      ],
+      "writes_md5": "aed2a4a80c273b38920321f3d81fb846",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 32,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 4888889476028865537,
+      "seed": 42,
+      "origin": [
+        8,
+        90,
+        8
+      ],
+      "writes_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        false
+      ],
+      "changed_blocks": 0,
+      "terrain": "stone"
+    },
+    {
+      "next_i64": 4094066185312401327,
+      "seed": 42,
+      "origin": [
+        8,
+        319,
+        8
+      ],
+      "writes_md5": "9ea672f342e02977e604a182c3df2b9a",
+      "attempts": 1,
+      "kind": "ore_dirt",
+      "placed": [
+        true
+      ],
+      "changed_blocks": 103,
+      "terrain": "ceiling"
+    },
+    {
+      "next_i64": 5515899910069612039,
+      "seed": 42,
+      "origin": [
+        8,
+        32,
+        8
+      ],
+      "writes_md5": "3987191bf048bdb57a38ec41387a4404",
+      "attempts": 3,
+      "kind": "ore_dirt",
+      "placed": [
+        true,
+        true,
+        true
+      ],
+      "changed_blocks": 152,
+      "terrain": "cave"
+    }
+  ]
+}

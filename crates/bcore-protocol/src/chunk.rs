@@ -374,6 +374,10 @@ fn write_light_arrays(out: &mut Vec<u8>, arrays: &[Vec<u8>]) {
 pub struct ChunkColumn {
     states: Vec<u32>,
     biomes: Vec<u32>,
+    block_entities:
+        std::collections::BTreeMap<(usize, i32, usize), bcore_worldgen::block_entity::BlockEntity>,
+    entities: Vec<bcore_worldgen::generated_entity::GeneratedEntity>,
+    structures: bcore_worldgen::structure::mineshaft::region::StructureData,
 }
 
 impl ChunkColumn {
@@ -382,6 +386,9 @@ impl ChunkColumn {
         Self {
             states: vec![block_state::AIR; COLUMNS * WORLD_HEIGHT as usize],
             biomes: vec![biome; SECTION_COUNT * SECTION_BIOMES],
+            block_entities: std::collections::BTreeMap::new(),
+            entities: Vec::new(),
+            structures: Default::default(),
         }
     }
 
@@ -415,7 +422,13 @@ impl ChunkColumn {
             SECTION_COUNT * SECTION_BIOMES,
             "biome count must be one full column"
         );
-        Self { states, biomes }
+        Self {
+            states,
+            biomes,
+            block_entities: std::collections::BTreeMap::new(),
+            entities: Vec::new(),
+            structures: Default::default(),
+        }
     }
 
     /// Convert a generated chunk into an encodable column.
@@ -437,7 +450,11 @@ impl ChunkColumn {
                 }
             }
         }
-        Self::from_parts(states, biomes)
+        let mut column = Self::from_parts(states, biomes);
+        column.block_entities = chunk.block_entities().clone();
+        column.entities = chunk.entities().to_vec();
+        column.structures = chunk.structures().clone();
+        column
     }
 
     #[inline]
@@ -460,6 +477,13 @@ impl ChunkColumn {
         match Self::index(x, y, z) {
             Some(i) => {
                 self.states[i] = state;
+                if self
+                    .block_entities
+                    .get(&(x, y, z))
+                    .is_some_and(|data| !data.matches_state(state))
+                {
+                    self.block_entities.remove(&(x, y, z));
+                }
                 true
             }
             None => false,
@@ -469,6 +493,63 @@ impl ChunkColumn {
     /// Every block state in wire order (`x` fastest, then `z`, then `y`).
     pub fn states(&self) -> &[u32] {
         &self.states
+    }
+
+    pub fn block_entities(
+        &self,
+    ) -> &std::collections::BTreeMap<(usize, i32, usize), bcore_worldgen::block_entity::BlockEntity>
+    {
+        &self.block_entities
+    }
+
+    pub fn set_block_entity(
+        &mut self,
+        x: usize,
+        y: i32,
+        z: usize,
+        data: bcore_worldgen::block_entity::BlockEntity,
+    ) -> bool {
+        if !self
+            .get(x, y, z)
+            .is_some_and(|state| data.matches_state(state))
+        {
+            return false;
+        }
+        self.block_entities.insert((x, y, z), data);
+        true
+    }
+
+    pub fn entities(&self) -> &[bcore_worldgen::generated_entity::GeneratedEntity] {
+        &self.entities
+    }
+
+    pub fn add_entity(
+        &mut self,
+        owner: bcore_core::ChunkPos,
+        entity: bcore_worldgen::generated_entity::GeneratedEntity,
+    ) -> bool {
+        let [x, y, z] = entity.block_pos();
+        if x >> 4 != owner.x || z >> 4 != owner.z || !(MIN_Y..=MAX_Y).contains(&y) {
+            return false;
+        }
+        self.entities.push(entity);
+        true
+    }
+
+    pub fn structures(&self) -> &bcore_worldgen::structure::mineshaft::region::StructureData {
+        &self.structures
+    }
+
+    pub fn set_structures(
+        &mut self,
+        owner: bcore_core::ChunkPos,
+        data: bcore_worldgen::structure::mineshaft::region::StructureData,
+    ) -> bool {
+        if !data.valid_for(owner) {
+            return false;
+        }
+        self.structures = data;
+        true
     }
 
     /// Every biome cell, one per 4x4x4 region, in wire order.
@@ -506,7 +587,7 @@ impl ChunkColumn {
 
     /// Highest non-air Y at `(x, z)`, or `None` for an empty column.
     pub fn surface_y(&self, x: usize, z: usize) -> Option<i32> {
-        self.column_top(x, z, |state| state != block_state::AIR)
+        self.column_top(x, z, |state| !bcore_worldgen::is_air(state))
     }
 
     /// Highest Y at `(x, z)` whose state satisfies `keep`.
@@ -553,18 +634,22 @@ impl ChunkColumn {
 
     /// `WORLD_SURFACE`: the highest non-air block, plants and leaves included.
     pub fn heightmap(&self) -> [u16; COLUMNS] {
-        self.heightmap_for(|state| state != block_state::AIR)
+        self.heightmap_for(|state| !bcore_worldgen::is_air(state))
     }
 
     /// `MOTION_BLOCKING`: highest block that blocks motion or holds a fluid.
     pub fn heightmap_motion_blocking(&self) -> [u16; COLUMNS] {
-        self.heightmap_for(|state| state != block_state::AIR && !Self::is_passable_plant(state))
+        self.heightmap_for(|state| {
+            !bcore_worldgen::is_air(state) && !Self::is_passable_plant(state)
+        })
     }
 
     /// `MOTION_BLOCKING_NO_LEAVES`: as above, but leaves do not count.
     pub fn heightmap_motion_blocking_no_leaves(&self) -> [u16; COLUMNS] {
         self.heightmap_for(|state| {
-            state != block_state::AIR && !Self::is_passable_plant(state) && !Self::is_leaves(state)
+            !bcore_worldgen::is_air(state)
+                && !Self::is_passable_plant(state)
+                && !Self::is_leaves(state)
         })
     }
 
@@ -586,7 +671,7 @@ impl ChunkColumn {
         let mut fluid_count = 0i16;
         let mut last: Option<(u32, u16)> = None;
         for (i, &state) in states.iter().enumerate() {
-            if state != block_state::AIR {
+            if !bcore_worldgen::is_air(state) {
                 block_count += 1;
             }
             if Self::is_fluid(state) {
@@ -687,11 +772,11 @@ impl ChunkColumn {
             }
             let slice = &self.states[level * COLUMNS..(level + 1) * COLUMNS];
             // Whole-level fast path: an all-air level cannot be any column's top.
-            if slice.iter().all(|&s| s == block_state::AIR) {
+            if slice.iter().all(|&s| bcore_worldgen::is_air(s)) {
                 continue;
             }
             for (i, &state) in slice.iter().enumerate() {
-                if out[i].is_none() && state != block_state::AIR {
+                if out[i].is_none() && !bcore_worldgen::is_air(state) {
                     out[i] = Some(MIN_Y + level as i32);
                     remaining -= 1;
                 }
@@ -754,7 +839,13 @@ impl ChunkColumn {
         encode_varint(sections.len() as i32, &mut out);
         out.extend_from_slice(&sections);
 
-        encode_varint(0, &mut out); // blockEntities
+        encode_varint(self.block_entities.len() as i32, &mut out);
+        for (&(lx, y, lz), data) in &self.block_entities {
+            out.push(((lx << 4) | lz) as u8);
+            out.extend_from_slice(&(y as i16).to_be_bytes());
+            encode_varint(data.type_id() as i32, &mut out);
+            out.extend_from_slice(&crate::nbt::encode_block_entity_update(data));
+        }
 
         let surfaces = self.surfaces();
         let (sky_bits, empty_sky_bits) = self.lit_sections_from(&surfaces);

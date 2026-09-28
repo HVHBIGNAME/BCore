@@ -1,32 +1,15 @@
 #![forbid(unsafe_code)]
-//! Deterministic, seed-based realistic world generation for BCore.
+//! Deterministic world generation for BCore, targeting Minecraft Java 26.1.
 //!
-//! # Design
+//! [`WorldGenerator::generate_chunk_vanilla`] evaluates bundled density and
+//! biome data, fills aquifers, applies surface rules and carvers, then places
+//! ores and vegetation. Ore placement shares mutable neighbour chunks backed
+//! by an immutable, bounded terrain cache. Vegetation remains chunk-local;
+//! structures and complete feature-stage dependencies are still incomplete.
 //!
-//! Generation is a pure function of `(seed, block position)`. Nothing depends on
-//! the order chunks are visited, no global mutable state is touched and no
-//! `rand`/clock/`HashMap` iteration is involved, so a given `(seed, chunkX,
-//! chunkZ)` always produces byte-identical blocks. That is what makes chunk
-//! persistence and the parity tests meaningful.
-//!
-//! The pipeline per column `(x, z)`:
-//!
-//! 1. **Climate** — two low-frequency noise fields (`continent`, `weirdness`)
-//!    plus `temperature`/`humidity` pick a [`Biome`].
-//! 2. **Height** — fractal value noise (4 octaves) is shaped by the biome's
-//!    base height and amplitude, giving a `heightmap` in `MIN_Y..=MAX_Y`.
-//! 3. **Fill** — bedrock floor, stone/deepslate at depth, the biome's soil and
-//!    surface blocks, then water up to [`SEA_LEVEL`] wherever the terrain is
-//!    lower.
-//! 4. **Caves** — a 3D noise "tunnel" field carves air below the surface, with a
-//!    ceiling guard so the surface is never breached.
-//! 5. **Ores** — per-block 3D noise thresholds gated by depth bands.
-//! 6. **Features** — trees and surface plants, keyed on a per-position hash so
-//!    neighbouring chunks agree without needing to see each other.
-//!
-//! Trees are placed with a **2-chunk margin**: a tree whose trunk sits in a
-//! neighbouring chunk still writes the leaves that overhang into this one, so
-//! chunk borders never cut a canopy in half.
+//! [`WorldGenerator::generate_chunk`] is the older procedural prototype.
+//! Native component fixtures and captured-region tests document the current
+//! coverage; passing those samples does not imply complete vanilla parity.
 
 use bcore_core::ChunkPos;
 use rayon::prelude::*;
@@ -35,20 +18,30 @@ use std::sync::OnceLock;
 pub mod aquifer;
 mod assets;
 pub mod biome;
+pub mod biome_zoom;
+pub mod block_entity;
 pub mod carver;
 pub mod decoration;
 pub mod density;
+pub mod dungeon;
 pub mod feature_sorter;
 pub mod features;
+pub mod generated_entity;
+mod heightmap;
+pub mod mth;
 pub mod noise;
 pub mod noise_perlin;
+pub mod ore;
 pub mod random;
+mod region;
 pub mod simplex;
 pub mod structure;
 pub mod surface;
 pub mod surface_rules;
+mod terrain_cache;
 pub mod tree;
 
+pub use heightmap::is_air;
 pub use noise::{fbm2, fbm3, hash_2d, splitmix64, value_noise_2d, value_noise_3d};
 
 /// Width and depth of a chunk column in blocks.
@@ -146,6 +139,10 @@ pub mod block {
     pub const DEEPSLATE_DIAMOND_ORE: u32 = 5308;
     pub const DEEPSLATE_LAPIS_ORE: u32 = 564;
     pub const DEEPSLATE_EMERALD_ORE: u32 = 9574;
+    pub const CLAY: u32 = 6946;
+    pub const COBBLESTONE: u32 = 14;
+    pub const INFESTED_STONE: u32 = 7760;
+    pub const INFESTED_DEEPSLATE: u32 = 29574;
     pub const DEEPSLATE: u32 = 27924;
 }
 
@@ -305,6 +302,10 @@ pub struct GeneratedChunk {
     noise_biomes: Option<Vec<biome::BiomeId>>,
     /// Terrain height (topmost solid terrain Y, before features) per `(x, z)`.
     heights: Vec<i32>,
+    block_entities: std::collections::BTreeMap<(usize, i32, usize), block_entity::BlockEntity>,
+    entities: Vec<generated_entity::GeneratedEntity>,
+    structures: structure::mineshaft::region::StructureData,
+    postprocessing: Vec<(usize, i32, usize)>,
 }
 
 impl GeneratedChunk {
@@ -315,6 +316,10 @@ impl GeneratedChunk {
             biomes: vec![Biome::Plains; CHUNK_SIZE * CHUNK_SIZE],
             noise_biomes: None,
             heights: vec![MIN_Y; CHUNK_SIZE * CHUNK_SIZE],
+            block_entities: std::collections::BTreeMap::new(),
+            entities: Vec::new(),
+            structures: Default::default(),
+            postprocessing: Vec::new(),
         }
     }
 
@@ -338,6 +343,13 @@ impl GeneratedChunk {
         match Self::index(x, y, z) {
             Some(i) => {
                 self.states[i] = state;
+                if self
+                    .block_entities
+                    .get(&(x, y, z))
+                    .is_some_and(|data| !data.matches_state(state))
+                {
+                    self.block_entities.remove(&(x, y, z));
+                }
                 true
             }
             None => false,
@@ -347,6 +359,20 @@ impl GeneratedChunk {
     /// Every block state in wire order (`x`, then `z`, then `y`).
     pub fn states(&self) -> &[u32] {
         &self.states
+    }
+
+    pub fn block_entities(
+        &self,
+    ) -> &std::collections::BTreeMap<(usize, i32, usize), block_entity::BlockEntity> {
+        &self.block_entities
+    }
+
+    pub fn entities(&self) -> &[generated_entity::GeneratedEntity] {
+        &self.entities
+    }
+
+    pub fn structures(&self) -> &structure::mineshaft::region::StructureData {
+        &self.structures
     }
 
     /// The surface biome at a chunk-local `(x, z)`.
@@ -371,7 +397,7 @@ impl GeneratedChunk {
     pub fn surface_y(&self, x: usize, z: usize) -> Option<i32> {
         (MIN_Y..=MAX_Y)
             .rev()
-            .find(|&y| self.get(x, y, z).is_some_and(|state| state != block::AIR))
+            .find(|&y| self.get(x, y, z).is_some_and(|state| !is_air(state)))
     }
 
     /// Only write into air, so features never carve terrain.
@@ -714,11 +740,131 @@ impl WorldGenerator {
 
     // ---- generation ------------------------------------------------------
 
+    /// Unzoomed biome query used by native structure-start admission.
+    pub fn noise_biome_vanilla(self, [x, y, z]: [i32; 3]) -> biome::BiomeId {
+        density::clear_density_caches();
+        let graph = VanillaGraph::load().expect("complete vanilla worldgen assets");
+        let ctx = density::EvalContext {
+            seed: self.seed,
+            mode: density::EvaluationMode::Raw,
+            ..Default::default()
+        };
+        let result = graph.noise_biome_at(x >> 2, y >> 2, z >> 2, &ctx);
+        density::clear_density_caches();
+        result
+    }
+
+    /// First free WORLD_SURFACE_WG height from the noise column, before surface
+    /// rules, carvers and features. Fluids and aquifer barriers count as terrain.
+    pub fn base_height_vanilla(self, x: i32, z: i32) -> i32 {
+        density::clear_density_caches();
+        let graph = VanillaGraph::load().expect("complete vanilla worldgen assets");
+        let ctx = density::EvalContext {
+            seed: self.seed,
+            ..Default::default()
+        }
+        .with_noise_bounds(x.div_euclid(4) * 4, z.div_euclid(4) * 4, 1);
+        let mut aquifer = aquifer::Aquifer::new(self.seed, graph, ctx);
+        let result = (MIN_Y..=MAX_Y)
+            .rev()
+            .find(|&y| {
+                let d = density::evaluate(&graph.final_density, x as f64, y as f64, z as f64, &ctx);
+                !is_air(aquifer.substance(x, y, z, d))
+            })
+            .map_or(MIN_Y, |y| y + 1);
+        density::clear_density_caches();
+        result
+    }
+
+    /// Build one terrain column: density scan, biome lookup, aquifer fill and surface rules.
+    fn build_column(
+        seed: i64,
+        graph: &VanillaGraph,
+        ctx: &density::EvalContext,
+        wx: i32,
+        wz: i32,
+    ) -> VanillaColumn {
+        let mut top = MIN_Y;
+        // Fixed-size scratch avoids two heap allocations per column. The
+        // indexed layout and scalar evaluation order are unchanged.
+        let mut densities = [0.0f64; WORLD_HEIGHT as usize];
+        for y in MIN_Y..=MAX_Y {
+            let d = density::evaluate(&graph.final_density, wx as f64, y as f64, wz as f64, ctx);
+            densities[(y - MIN_Y) as usize] = d;
+            if d > 0.0 {
+                top = y;
+            }
+        }
+        let biome_id =
+            graph.noise_biome_at(wx.div_euclid(4), top.div_euclid(4), wz.div_euclid(4), ctx);
+        let biome = biome_from_id(biome_id);
+        let mut states = vec![block::AIR; WORLD_HEIGHT as usize];
+        let mut aquifer = aquifer::Aquifer::new(seed, graph, *ctx);
+        let mut stone_depth_above = 0i32;
+        let mut water_height = i32::MIN;
+        let surface_depth = surface_depth(seed, wx, wz);
+        // Vanilla `NoiseChunk.preliminarySurfaceLevel(x, z)` = floor of the
+        // `find_top_surface` density function at (x, 0, z); the surface rule
+        // and aquifer both rely on this, not the raw terrain top.
+        let preliminary_surface_level = graph
+            .preliminary_surface_level
+            .as_ref()
+            .map(|f| density::evaluate(f, wx as f64, 0., wz as f64, ctx).floor() as i32)
+            .unwrap_or(top);
+        for y in (MIN_Y..=MAX_Y).rev() {
+            let density_value = densities[(y - MIN_Y) as usize];
+            // Vanilla `NoiseChunk.getInterpolatedState()`: the aquifer returns
+            // null (solid) for density > 0 *or* a pressure barrier; anything
+            // else is a fluid/air. We encode "solid" as `STONE` and treat every
+            // other result as the final block.
+            let substance = aquifer.substance(wx, y, wz, density_value);
+            let idx = (y - MIN_Y) as usize;
+            if substance == block::STONE {
+                // Vanilla increments `stoneAboveDepth` *before* applying the
+                // rule, so the topmost solid block is depth 1 (not 0).
+                stone_depth_above += 1;
+                let default_state = block::STONE;
+                let ctx = surface_rules::SurfaceContext {
+                    biome: biome_id,
+                    stone_depth_above,
+                    stone_depth_below: 0,
+                    water_height,
+                    surface_depth,
+                    preliminary_surface_level,
+                    sea_level: SEA_LEVEL,
+                    x: wx,
+                    y,
+                    z: wz,
+                    seed,
+                    noise: Some(density::noise_registry()),
+                };
+                states[idx] = graph
+                    .surface_rule
+                    .as_ref()
+                    .and_then(|r| r.evaluate(&ctx))
+                    .unwrap_or(default_state);
+            } else if substance == block::WATER || substance == block::LAVA {
+                // Vanilla records `waterHeight = y + 1` on the first fluid
+                // block (top of the water) and does *not* reset stone depth.
+                if water_height == i32::MIN {
+                    water_height = y + 1;
+                }
+                states[idx] = substance;
+            } else {
+                // Air resets both stone depth and water height.
+                states[idx] = substance;
+                stone_depth_above = 0;
+                water_height = i32::MIN;
+            }
+        }
+        VanillaColumn { top, biome, states }
+    }
+
     /// Generate a chunk using the staged vanilla data-driven pipeline.
     ///
     /// Vanilla assets are bundled in the binary. Invalid explicit overrides fail
     /// at initialization instead of silently selecting the prototype generator.
-    pub fn generate_chunk_vanilla(self, pos: ChunkPos) -> GeneratedChunk {
+    pub(crate) fn generate_chunk_before_features(self, pos: ChunkPos) -> GeneratedChunk {
         let started = std::time::Instant::now();
         let graph = VanillaGraph::load().expect("complete vanilla worldgen assets");
         // Density caches are per-chunk: reset them so memory stays bounded to a
@@ -728,7 +874,8 @@ impl WorldGenerator {
         let ctx = density::EvalContext {
             seed: self.seed,
             ..Default::default()
-        };
+        }
+        .with_noise_bounds(pos.x * CHUNK_SIZE as i32, pos.z * CHUNK_SIZE as i32, 4);
 
         // Chunk-pyramid scheduler. Dependency radii are deliberately explicit:
         // future structure/light implementations can request these neighborhoods
@@ -751,100 +898,15 @@ impl WorldGenerator {
                 density::clear_density_caches();
                 let x = column_index % CHUNK_SIZE;
                 let z = column_index / CHUNK_SIZE;
-                let wx = base_x + x as i32;
-                let wz = base_z + z as i32;
-                let mut top = MIN_Y;
-                // Fixed-size scratch avoids two heap allocations per column. The
-                // indexed layout and scalar evaluation order are unchanged.
-                let mut densities = [0.0f64; WORLD_HEIGHT as usize];
-                for y in MIN_Y..=MAX_Y {
-                    let d = density::evaluate(
-                        &graph.final_density,
-                        wx as f64,
-                        y as f64,
-                        wz as f64,
-                        &ctx,
-                    );
-                    densities[(y - MIN_Y) as usize] = d;
-                    if d > 0.0 {
-                        top = y;
-                    }
-                }
-                let biome_id = graph.noise_biome_at(
-                    wx.div_euclid(4),
-                    top.div_euclid(4),
-                    wz.div_euclid(4),
-                    &ctx,
-                );
-                let biome = biome_from_id(biome_id);
-                let mut states = vec![block::AIR; WORLD_HEIGHT as usize];
-                let mut aquifer = aquifer::Aquifer::new(
+                let column = Self::build_column(
                     self.seed,
-                    top,
-                    biome_is_water(biome_id),
-                    density::noise_registry(),
-                    graph.preliminary_surface_level.as_ref(),
-                    ctx,
+                    graph,
+                    &ctx,
+                    base_x + x as i32,
+                    base_z + z as i32,
                 );
-                let mut stone_depth_above = 0i32;
-                let mut water_height = i32::MIN;
-                let surface_depth = surface_depth(self.seed, wx, wz);
-                // Vanilla `NoiseChunk.preliminarySurfaceLevel(x, z)` = floor of the
-                // `find_top_surface` density function at (x, 0, z); the surface rule
-                // and aquifer both rely on this, not the raw terrain top.
-                let preliminary_surface_level = graph
-                    .preliminary_surface_level
-                    .as_ref()
-                    .map(|f| density::evaluate(f, wx as f64, 0., wz as f64, &ctx).floor() as i32)
-                    .unwrap_or(top);
-                for y in (MIN_Y..=MAX_Y).rev() {
-                    let density_value = densities[(y - MIN_Y) as usize];
-                    // Vanilla `NoiseChunk.getInterpolatedState()`: the aquifer returns
-                    // null (solid) for density > 0 *or* a pressure barrier; anything
-                    // else is a fluid/air. We encode "solid" as `STONE` and treat every
-                    // other result as the final block.
-                    let substance = aquifer.substance(wx, y, wz, density_value);
-                    let idx = (y - MIN_Y) as usize;
-                    if substance == block::STONE {
-                        // Vanilla increments `stoneAboveDepth` *before* applying the
-                        // rule, so the topmost solid block is depth 1 (not 0).
-                        stone_depth_above += 1;
-                        let default_state = block::STONE;
-                        let ctx = surface_rules::SurfaceContext {
-                            biome: biome_id,
-                            stone_depth_above,
-                            stone_depth_below: 0,
-                            water_height,
-                            surface_depth,
-                            preliminary_surface_level,
-                            sea_level: SEA_LEVEL,
-                            x: wx,
-                            y,
-                            z: wz,
-                            seed: self.seed,
-                            noise: Some(density::noise_registry()),
-                        };
-                        states[idx] = graph
-                            .surface_rule
-                            .as_ref()
-                            .and_then(|r| r.evaluate(&ctx))
-                            .unwrap_or(default_state);
-                    } else if substance == block::WATER || substance == block::LAVA {
-                        // Vanilla records `waterHeight = y + 1` on the first fluid
-                        // block (top of the water) and does *not* reset stone depth.
-                        if water_height == i32::MIN {
-                            water_height = y + 1;
-                        }
-                        states[idx] = substance;
-                    } else {
-                        // Air resets both stone depth and water height.
-                        states[idx] = substance;
-                        stone_depth_above = 0;
-                        water_height = i32::MIN;
-                    }
-                }
                 density::clear_density_caches();
-                VanillaColumn { top, biome, states }
+                column
             })
             .collect();
 
@@ -876,101 +938,30 @@ impl WorldGenerator {
         // Vanilla carvers run after surface and before underground ores.
         carver::apply(self.seed, pos, &mut chunk, &graph, ctx);
 
-        // Vanilla UNDERGROUND_ORES step: `OreFeature` replaces blocks matching the
-        // configured target. The stone *blobs* (granite/diorite/andesite/tuff/dirt/
-        // gravel) target `base_stone_overworld` (stone + granite + diorite + andesite
-        // + tuff + deepslate), while the metal ores target `stone_ore_replaceables`
-        // (stone + granite + diorite + andesite) and `deepslate_ore_replaceables`
-        // (deepslate). This lets a later blob overwrite an earlier one.
-        // Vanilla `applyBiomeDecoration` runs once per chunk; ore veins extend
-        // ±8-10 blocks around their origin, so the 8 neighbouring chunks'
-        // UNDERGROUND_ORES placements also spill into this chunk's borders.
-        // Decorate the 3×3, writing only the target chunk's cells.
-        let ore_chunk = &mut chunk;
-        // Edge-extrapolated OCEAN_FLOOR_WG top used by OreFeature.place.
-        // (A copied height table avoids borrowing `ore_chunk` twice.)
-        let heights = ore_chunk.heights.clone();
-        let ocean_floor = move |wx: i32, wz: i32| {
-            let lx = (wx - base_x).clamp(0, CHUNK_SIZE as i32 - 1) as usize;
-            let lz = (wz - base_z).clamp(0, CHUNK_SIZE as i32 - 1) as usize;
-            heights[lz * CHUNK_SIZE + lx]
-        };
-        let mut write = |wx: i32, y: i32, wz: i32, state: u32| {
-            let lx = wx - base_x;
-            let lz = wz - base_z;
-            if !(0..CHUNK_SIZE as i32).contains(&lx)
-                || !(0..CHUNK_SIZE as i32).contains(&lz)
-                || y < MIN_Y
-                || y > MAX_Y
-            {
-                return;
-            }
-            let idx = (y - MIN_Y) as usize * column_count + lz as usize * CHUNK_SIZE + lx as usize;
-            let cur = ore_chunk.states[idx];
-            let is_base_stone = matches!(
-                state,
-                block::GRANITE
-                    | block::DIORITE
-                    | block::ANDESITE
-                    | block::TUFF
-                    | block::DIRT
-                    | block::GRAVEL
-            );
-            if is_base_stone {
-                // base_stone_overworld: stone, granite, diorite, andesite, tuff, deepslate.
-                if matches!(
-                    cur,
-                    block::STONE
-                        | block::DEEPSLATE
-                        | block::GRANITE
-                        | block::DIORITE
-                        | block::ANDESITE
-                        | block::TUFF
-                ) {
-                    ore_chunk.states[idx] = state;
-                }
-            } else if matches!(
-                cur,
-                block::STONE | block::GRANITE | block::DIORITE | block::ANDESITE
-            ) {
-                // stone_ore_replaceables → the plain ore state.
-                ore_chunk.states[idx] = state;
-            } else if cur == block::DEEPSLATE {
-                // deepslate_ore_replaceables → the deepslate variant.
-                ore_chunk.states[idx] = match state {
-                    block::COAL_ORE => block::DEEPSLATE_COAL_ORE,
-                    block::IRON_ORE => block::DEEPSLATE_IRON_ORE,
-                    block::COPPER_ORE => block::DEEPSLATE_COPPER_ORE,
-                    block::GOLD_ORE => block::DEEPSLATE_GOLD_ORE,
-                    block::REDSTONE_ORE => block::DEEPSLATE_REDSTONE_ORE,
-                    block::DIAMOND_ORE => block::DEEPSLATE_DIAMOND_ORE,
-                    block::LAPIS_ORE => block::DEEPSLATE_LAPIS_ORE,
-                    9573 => block::DEEPSLATE_EMERALD_ORE,
-                    other => other,
-                };
-            }
-        };
-        for dx in -1..=1 {
-            for dz in -1..=1 {
-                features::place_ore_veins(
-                    self.seed,
-                    pos.x + dx,
-                    pos.z + dz,
-                    &ocean_floor,
-                    &mut write,
-                );
-            }
-        }
-        self.decorate_vanilla(&mut chunk);
         if std::env::var_os("BCORE_WORLDGEN_TIMINGS").is_some() {
             eprintln!(
-                "chunk {pos:?}: terrain={terrain_done:?} biomes={:?} features={:?}",
+                "chunk {pos:?}: terrain={terrain_done:?} biomes={:?} carvers={:?}",
                 biomes_done - terrain_done,
                 started.elapsed() - biomes_done
             );
         }
         density::clear_density_caches();
         chunk
+    }
+
+    /// Generate terrain/carvers, mineshafts and features in a shared region.
+    pub fn generate_chunk_vanilla(self, pos: ChunkPos) -> GeneratedChunk {
+        let center = terrain_cache::get(self, pos);
+        let mut region = region::FeatureRegion::new(self, center);
+        let sources: Vec<_> = (-1..=1)
+            .flat_map(|dx| (-1..=1).map(move |dz| ChunkPos::new(pos.x + dx, pos.z + dz)))
+            .collect();
+        region.place_mineshafts(sources.iter().copied());
+        for source in sources {
+            dungeon::decorate(self.seed, source, &mut region);
+            features::decorate_ores(self.seed, source, &mut region);
+        }
+        region.finish_chunk(pos)
     }
 
     /// Add post-surface trees and ground cover using vanilla feature seeds.
@@ -1418,13 +1409,6 @@ fn biome_from_id(id: biome::BiomeId) -> Biome {
         _ => Biome::Plains,
     }
 }
-fn biome_is_water(id: biome::BiomeId) -> bool {
-    matches!(
-        id,
-        biome::ids::OCEAN | biome::ids::FROZEN_OCEAN | biome::ids::RIVER
-    )
-}
-
 /// Radius (in chunks) of the dependency neighborhood for each generation stage.
 ///
 /// The current data-driven generator has no structure or light placement yet, but

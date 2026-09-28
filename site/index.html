@@ -67,6 +67,8 @@
   li:first-child { border-top: 0; }
   .name { flex: 1; }
   .parity p { margin: 8px 0; }
+  .parity .accuracy { color: var(--accent); font-size: 1.12rem; font-weight: 700; }
+  .parity .caveat, .parity .components { color: var(--muted); font-size: 0.9rem; }
   a { color: var(--accent); }
   .badge {
     font-size: 0.72rem;
@@ -144,7 +146,10 @@
       measured.innerHTML = `<h2>Measured vanilla 26.1 parity</h2>` +
         `<p class="sub">${escapeHtml(p.scope)}</p>` +
         `<p>Seed: <code>${escapeHtml(p.seed)}</code> · protocol ${data.protocol}</p>` +
-        `<p>Terrain: ${escapeHtml(p.terrain)}<br>Biomes: ${escapeHtml(p.biomes)}<br>Blocks: ${escapeHtml(p.states)}</p>` +
+        `<p>Terrain: ${escapeHtml(p.terrain)}<br>Biomes: ${escapeHtml(p.biomes)}</p>` +
+        `<p class="accuracy">Exact block-state matches: ${escapeHtml(p.states)}</p>` +
+        `<p class="caveat">This is a three-region sample match, including air—not a percentage of generator features implemented.</p>` +
+        `<p class="components">Component evidence: ${escapeHtml(p.components)}<br>Coverage gaps: ${escapeHtml(p.coverage)}</p>` +
         `<a href="${escapeHtml(p.report)}">Method, regressions and remaining work</a>`;
       container.appendChild(measured);
     }

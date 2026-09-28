@@ -257,6 +257,31 @@ pub fn sorter() -> &'static FeatureSorter {
 mod tests {
     use super::sorter;
     #[test]
+    fn all_overworld_feature_indices_match_native_sorter() {
+        let data: serde_json::Value =
+            serde_json::from_str(include_str!("../data/feature_order_26_1.json")).unwrap();
+        let possible: Vec<_> = data["possible_biomes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|b| b.as_str().unwrap().strip_prefix("minecraft:").unwrap())
+            .collect();
+        assert_eq!(possible, super::POSSIBLE_BIOMES);
+        let steps = data["steps"].as_array().unwrap();
+        assert_eq!(sorter().step_count(), steps.len());
+        for (step, features) in steps.iter().enumerate() {
+            let features = features.as_array().unwrap();
+            assert_eq!(sorter().step(step).unwrap().features.len(), features.len());
+            for (index, name) in features.iter().enumerate() {
+                assert_eq!(
+                    sorter().within_step_index(name.as_str().unwrap()),
+                    Some((step, index)),
+                    "{name}"
+                );
+            }
+        }
+    }
+    #[test]
     fn within_step_indices_match_vanilla_anchors() {
         let s = sorter();
         for (name, expected) in [
