@@ -15,9 +15,17 @@ use crate::block;
 use crate::random::WorldgenRandom;
 use crate::GeneratedChunk;
 
+mod extra_data;
+mod extra_foliage;
+mod extra_trunks;
 pub mod fallen;
 mod fancy;
 pub mod standing;
+pub use extra_foliage::ExtraFoliage;
+pub use extra_trunks::ExtraTrunk;
+
+#[cfg(test)]
+mod extra_tests;
 
 /// The draws used by tree providers, shape placers and decorators. Implementations
 /// borrow the caller's current feature stream; adapting never forks or reseeds it.
@@ -108,6 +116,7 @@ struct TreePlacement<'a> {
     logs: Vec<LocalPos>,
     bounds: Option<(LocalPos, LocalPos)>,
     foliage_count: usize,
+    foliage_positions: Vec<LocalPos>,
 }
 
 impl<'a> TreePlacement<'a> {
@@ -117,6 +126,7 @@ impl<'a> TreePlacement<'a> {
             logs: Vec::new(),
             bounds: None,
             foliage_count: 0,
+            foliage_positions: Vec::new(),
         }
     }
 
@@ -128,6 +138,7 @@ impl<'a> TreePlacement<'a> {
             self.logs.push((x, y, z));
         } else if is_leaves(state) {
             self.foliage_count += 1;
+            self.foliage_positions.push((x, y, z));
         }
         let (min, max) = self.bounds.get_or_insert(((x, y, z), (x, y, z)));
         *min = (min.0.min(x), min.1.min(y), min.2.min(z));
@@ -229,7 +240,43 @@ trait ShapeSink {
     fn free_state(&self, state: u32) -> bool;
     fn log(&mut self, pos: fallen::Pos, state: u32) -> bool;
     fn leaf(&mut self, pos: fallen::Pos, state: u32) -> bool;
-    fn below_trunk(&mut self, pos: fallen::Pos);
+    fn below_trunk<R: TreeRandom + ?Sized>(&mut self, random: &mut R, pos: fallen::Pos);
+    fn loggable_state(&self, state: u32) -> bool {
+        self.valid_state(state)
+    }
+    fn air_or_leaves(&self, state: u32) -> bool {
+        crate::heightmap::is_air(state) || is_leaves(state)
+    }
+    fn ignore_vines(&self) -> bool {
+        true
+    }
+    fn leaf_is_set(&self, pos: fallen::Pos) -> bool;
+    fn provided_leaf<R: TreeRandom + ?Sized>(
+        &mut self,
+        random: &mut R,
+        pos: fallen::Pos,
+        state: u32,
+    ) -> bool {
+        let _ = random;
+        self.leaf(pos, state)
+    }
+    fn trunk_origin<R: TreeRandom + ?Sized>(
+        &self,
+        random: &mut R,
+        origin: fallen::Pos,
+    ) -> fallen::Pos {
+        let _ = random;
+        origin
+    }
+    fn roots<R: TreeRandom + ?Sized>(
+        &mut self,
+        random: &mut R,
+        origin: fallen::Pos,
+        trunk: fallen::Pos,
+    ) -> bool {
+        let _ = (random, origin, trunk);
+        true
+    }
 }
 
 impl ShapeSink for TreePlacement<'_> {
@@ -257,7 +304,7 @@ impl ShapeSink for TreePlacement<'_> {
         self.log(pos, state)
     }
 
-    fn below_trunk(&mut self, (x, y, z): fallen::Pos) {
+    fn below_trunk<R: TreeRandom + ?Sized>(&mut self, _random: &mut R, (x, y, z): fallen::Pos) {
         let Some((x, z)) = local_coords(self, x, z) else {
             return;
         };
@@ -268,6 +315,10 @@ impl ShapeSink for TreePlacement<'_> {
             self.set(x, y, z, block::DIRT);
             self.logs.push((x, y, z));
         }
+    }
+
+    fn leaf_is_set(&self, (x, y, z): fallen::Pos) -> bool {
+        local_coords(self, x, z).is_some_and(|(x, z)| self.foliage_positions.contains(&(x, y, z)))
     }
 }
 
@@ -291,8 +342,14 @@ impl IntProvider {
 }
 
 /// Vanilla trunk placers, carrying the vanilla `base_height`/`height_rand_a`/`height_rand_b`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TrunkPlacer {
+    Extended {
+        base_height: i32,
+        height_rand_a: i32,
+        height_rand_b: i32,
+        placer: &'static ExtraTrunk,
+    },
     /// `minecraft:straight_trunk_placer`.
     Straight {
         base_height: i32,
@@ -352,6 +409,11 @@ impl TrunkPlacer {
                 height_rand_a,
                 height_rand_b,
                 ..
+            }
+            | Self::Extended {
+                height_rand_a,
+                height_rand_b,
+                ..
             } => (height_rand_a, height_rand_b),
         }
     }
@@ -363,13 +425,19 @@ impl TrunkPlacer {
             | Self::Forking { base_height, .. }
             | Self::DarkOak { base_height, .. }
             | Self::Giant { base_height, .. } => base_height,
+            Self::Extended { base_height, .. } => base_height,
         }
     }
 }
 
 /// Vanilla foliage placers — the subset needed by the common overworld trees.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum FoliagePlacer {
+    Extended {
+        radius: IntProvider,
+        offset: IntProvider,
+        placer: &'static ExtraFoliage,
+    },
     /// `minecraft:blob_foliage_placer` — oak, birch, jungle.
     Blob {
         radius: IntProvider,
@@ -1067,21 +1135,28 @@ fn grow_shape<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
     let trunk_height = tree_height - foliage_height;
     let leaf_radius = sample_foliage_radius(random, config.foliage, trunk_height);
 
-    let (ox, oy, oz) = origin;
-    if oy + tree_height + 1 > crate::MAX_Y + 1 || oy < crate::MIN_Y + 1 {
+    let trunk_origin = placement.trunk_origin(random, origin);
+    let (ox, oy, oz) = trunk_origin;
+    if origin.1.max(oy) + tree_height + 1 > crate::MAX_Y + 1 || origin.1.min(oy) < crate::MIN_Y + 1
+    {
         return false;
     }
 
-    let free_height = free_tree_height(config.minimum_size, origin, tree_height, |pos| {
-        placement
-            .state(pos)
-            .is_none_or(|state| placement.free_state(state))
+    let free_height = free_tree_height(config.minimum_size, trunk_origin, tree_height, |pos| {
+        placement.state(pos).is_none_or(|state| {
+            placement.free_state(state)
+                && (placement.ignore_vines() || !(8358..=8389).contains(&state))
+        })
     });
     if free_height < tree_height
         && config
             .min_clipped_height
             .is_none_or(|minimum| free_height < minimum)
     {
+        return false;
+    }
+
+    if !placement.roots(random, origin, trunk_origin) {
         return false;
     }
 
@@ -1189,6 +1264,7 @@ fn sample_foliage_height<R: TreeRandom + ?Sized>(
     tree_height: i32,
 ) -> i32 {
     match foliage {
+        FoliagePlacer::Extended { placer, .. } => placer.height(random),
         FoliagePlacer::Blob { height, .. } => height.sample(random),
         FoliagePlacer::Spruce { trunk_height, .. } => {
             (tree_height - trunk_height.sample(random)).max(4)
@@ -1207,6 +1283,7 @@ fn sample_foliage_radius<R: TreeRandom + ?Sized>(
     trunk_height: i32,
 ) -> i32 {
     match foliage {
+        FoliagePlacer::Extended { radius, .. } => radius.sample(random),
         FoliagePlacer::Blob { radius, .. }
         | FoliagePlacer::Spruce { radius, .. }
         | FoliagePlacer::Acacia { radius, .. }
@@ -1225,6 +1302,7 @@ fn sample_foliage_radius<R: TreeRandom + ?Sized>(
 /// Vanilla `FoliagePlacer.foliageOffset`.
 fn sample_foliage_offset<R: TreeRandom + ?Sized>(random: &mut R, foliage: FoliagePlacer) -> i32 {
     match foliage {
+        FoliagePlacer::Extended { offset, .. } => offset.sample(random),
         FoliagePlacer::Blob { offset, .. }
         | FoliagePlacer::Spruce { offset, .. }
         | FoliagePlacer::Pine { offset, .. }
@@ -1246,7 +1324,7 @@ fn place_trunk<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
     let (ox, oy, oz) = origin;
     match config.trunk {
         TrunkPlacer::Straight { .. } => {
-            place_below_trunk_block(chunk, config, (ox, oy - 1, oz));
+            place_below_trunk_block(chunk, random, config, (ox, oy - 1, oz));
             for y in 0..height {
                 place_log(chunk, config, (ox, oy + y, oz));
             }
@@ -1258,26 +1336,14 @@ fn place_trunk<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
                 double_trunk: false,
             });
         }
-        TrunkPlacer::Giant { .. } | TrunkPlacer::DarkOak { .. } => {
-            for y in 0..height {
-                for dx in 0..2 {
-                    for dz in 0..2 {
-                        place_log(chunk, config, (ox + dx, oy + y, oz + dz));
-                    }
-                }
-            }
-            for dx in 0..2 {
-                for dz in 0..2 {
-                    place_below_trunk_block(chunk, config, (ox + dx, oy - 1, oz + dz));
-                }
-            }
-            attachments.push(FoliageAttachment {
-                x: ox,
-                y: oy + height - 1,
-                z: oz,
-                radius_offset: 0,
-                double_trunk: true,
-            });
+        TrunkPlacer::Giant { .. } => {
+            extra_trunks::giant(chunk, random, config, origin, height, attachments)
+        }
+        TrunkPlacer::DarkOak { .. } => {
+            extra_trunks::dark_oak(chunk, random, config, origin, height, attachments)
+        }
+        TrunkPlacer::Extended { placer, .. } => {
+            extra_trunks::place(placer, chunk, random, config, origin, height, attachments)
         }
         TrunkPlacer::Forking { .. } => {
             place_forking_trunk(chunk, random, config, origin, height, attachments);
@@ -1298,7 +1364,7 @@ fn place_forking_trunk<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
     attachments: &mut Vec<FoliageAttachment>,
 ) {
     let (ox, oy, oz) = origin;
-    place_below_trunk_block(chunk, config, (ox, oy - 1, oz));
+    place_below_trunk_block(chunk, random, config, (ox, oy - 1, oz));
     let mut x = ox;
     let mut z = oz;
     let direction = random.next_i32_bounded(4);
@@ -1365,6 +1431,19 @@ fn create_foliage<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
     leaf_radius: i32,
 ) {
     match config.foliage {
+        FoliagePlacer::Extended { placer, .. } => {
+            let offset = sample_foliage_offset(random, config.foliage);
+            extra_foliage::place(
+                placer,
+                chunk,
+                random,
+                config,
+                attachment,
+                foliage_height,
+                leaf_radius,
+                offset,
+            );
+        }
         FoliagePlacer::Blob { .. } => {
             let offset = sample_foliage_offset(random, config.foliage);
             for y in (offset - foliage_height..=offset).rev() {
@@ -1450,16 +1529,15 @@ fn create_foliage<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
                 y: attachment.y + offset,
                 ..*attachment
             };
-            let (inner, outer, top) = if attachment.double_trunk {
-                (leaf_radius + 2, leaf_radius + 3, leaf_radius)
+            place_leaves_row(chunk, random, config, &base, leaf_radius + 2, -1);
+            if attachment.double_trunk {
+                place_leaves_row(chunk, random, config, &base, leaf_radius + 3, 0);
+                place_leaves_row(chunk, random, config, &base, leaf_radius + 2, 1);
+                if random.next_bool() {
+                    place_leaves_row(chunk, random, config, &base, leaf_radius, 2);
+                }
             } else {
-                (leaf_radius + 2, leaf_radius + 2, leaf_radius)
-            };
-            place_leaves_row(chunk, random, config, &base, inner, -1);
-            place_leaves_row(chunk, random, config, &base, outer, 0);
-            place_leaves_row(chunk, random, config, &base, inner, 1);
-            if random.next_bool() {
-                place_leaves_row(chunk, random, config, &base, top, 2);
+                place_leaves_row(chunk, random, config, &base, leaf_radius + 1, 0);
             }
         }
     }
@@ -1490,6 +1568,7 @@ fn place_leaves_row<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
             }
             try_place_leaf(
                 chunk,
+                random,
                 config,
                 (attachment.x + dx, attachment.y + y, attachment.z + dz),
             );
@@ -1512,6 +1591,7 @@ fn should_skip_location<R: TreeRandom + ?Sized>(
     }
     let (dx, dz) = signed_distances(dx, dz, attachment.double_trunk);
     match foliage {
+        FoliagePlacer::Extended { placer, .. } => placer.skip(random, dx, y, dz, current_radius),
         // NOTE: the short-circuit matters — vanilla only draws the coin flip
         // when the (dx, dz) corner test passes.
         FoliagePlacer::Blob { .. } => {
@@ -1573,8 +1653,9 @@ fn dark_oak_should_skip_location(
 }
 
 /// Vanilla `TreeFeature.tryPlaceLeaf`.
-fn try_place_leaf<P: ShapeSink + ?Sized>(
+fn try_place_leaf<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
     chunk: &mut P,
+    random: &mut R,
     config: &TreeConfig,
     pos: (i32, i32, i32),
 ) -> bool {
@@ -1584,7 +1665,7 @@ fn try_place_leaf<P: ShapeSink + ?Sized>(
     if !chunk.valid_state(state) {
         return false;
     }
-    chunk.leaf(pos, config.leaves)
+    chunk.provided_leaf(random, pos, config.leaves)
 }
 
 /// Vanilla `TreeFeature.placeLog`.
@@ -1592,19 +1673,20 @@ fn place_log<P: ShapeSink + ?Sized>(chunk: &mut P, config: &TreeConfig, pos: fal
     let Some(state) = chunk.state(pos) else {
         return false;
     };
-    if !chunk.valid_state(state) {
+    if !chunk.loggable_state(state) {
         return false;
     }
     chunk.log(pos, config.log)
 }
 
 /// Vanilla `TrunkPlacer.placeBelowTrunkBlock` (the supportive dirt).
-fn place_below_trunk_block<P: ShapeSink + ?Sized>(
+fn place_below_trunk_block<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
     chunk: &mut P,
+    random: &mut R,
     _config: &TreeConfig,
     pos: (i32, i32, i32),
 ) {
-    chunk.below_trunk(pos);
+    chunk.below_trunk(random, pos);
 }
 
 fn local_coords(chunk: &GeneratedChunk, x: i32, z: i32) -> Option<(usize, usize)> {

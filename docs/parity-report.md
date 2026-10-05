@@ -3,6 +3,226 @@
 **Worldgen parity is incomplete.** Component checks and the whole-chunk snapshot
 below have different coverage; neither establishes all-world/all-dimension parity.
 
+Latest complete workspace verification: **628 passed, 0 failed, 4 ignored** in
+release, including **371 worldgen and 248 protocol** tests. The earlier 514-pass
+checkpoint remains recorded under [Regression suites](#regression-suites).
+
+## Native-history integration — 2026-10-04
+
+The actual-server oracle now compares matching bootstrap/request histories, with
+frozen BCore source/binary hashes and strict native terminal/stage/blob validation.
+The historical region percentage below remains tied to its older executable.
+
+- Trial-chamber generation was stopping at the decorated-pot update-tag handoff,
+  so a neighbouring source never reached its andesite placement. Native load/full/
+  update capture covers **80 cases**, including every trial template pot payload,
+  all 16 block states and malformed/default codec boundaries. Independent JVM
+  repetition matched. The fix preserves ordered sherds, partial list decoding,
+  loot-vs-item semantics, numeric widths and custom-only client update tags.
+- The corrected **8-request trial history** matches blocks, quart biomes, source
+  order and scored light. All nine dependency chunks also match immediately before
+  and after the previously missing andesite feature, including both RNG witnesses
+  and WG heightmaps. **10 structure-runtime tests** and **12 protocol structure/
+  sculk/NBT tests** passed; the latter includes all 80 pot round trips.
+- The pot-fix binary completed **49 requests in nine expanded histories**: origin,
+  distant regions, seeds 0/42, bootstrap, adjacent/reversed requests, trail ruins
+  and LIGHT-prefix requests. Block states, biomes, source order and scored light
+  have zero differences. Native deferred `DUMMY` sculk tags remain distinct from
+  BCore's eager saved defaults before native materialization: **16 field differences
+  in the origin FEATURES snapshot and 80 across LIGHT-prefix snapshots**. Those
+  differences remain visible in the metadata comparator; FULL samples materialize
+  the entities and their payloads match.
+- Buried treasure, swamp huts and jungle pyramids are connected to retained
+  starts/references, native structure-slot order and source-clipped placement.
+  The production adapter passes the six real native admission anchors and 216
+  reference-membership comparisons. All **107 native piece snapshots** preserve
+  mutable flags and cached reference boxes through `.bcc` storage. Witch/cat
+  requests are retained explicitly; factory/finalization is still pending.
+- A new 12-request actual-server history spans the three scattered families;
+  **4805 native blobs** verify with no in-flight stages. Treasure/hut samples match
+  blocks, biomes, metadata and scored light. Jungle adjacency exposed tree-edge
+  callbacks on cobblestone stairs and bamboo. The native stair corpus has **58
+  types / 10212 updates**; bamboo has **9360 updates** and support predicates checked
+  over all 29873 states. Both were independently repeated. Their implementations
+  preserve native world-read, state-update and tick-request ordering.
+
+The final frozen binary completed **69 requests across 11 histories** (the expanded
+57-request wave plus the 12 scattered requests): zero block-state, quart-biome,
+source-order or scored-light differences. Structure starts/references and ordered
+postprocessing also match. Deferred `DUMMY` tags account for the remaining scored
+BE differences before materialization (including seven fields at the jungle
+FEATURES boundary); WG presence still differs after native FULL conversion.
+
+Verification completed with all three edge-callback tests passing and the full
+workspace command:
+
+```text
+cargo test --workspace --release --locked --no-fail-fast -j 1 -- --test-threads=2
+```
+
+Saved result: `target/generation-checks-20261001/tests-1791086807931819700.{json,log}`.
+The preceding attempts remain preserved: one exceeded the initial one-hour limit,
+and one hit Windows' lock on an already-running test executable. The final run
+used serialized verification and the larger time allowance; it completed normally.
+
+Evidence directories under `target/`:
+
+- `full-parity-20261003/trial-andesite-trace-1791082183184295100/`
+- `full-parity-20261003/andesite-trace-comparison-01.json`
+- `full-parity-20261002/native-history/pot-integrated-1791082607744111900/`
+- `full-parity-20261003/scattered-history-native-1791083227866856600/`
+- `full-parity-20261003/scattered-history-verified-01.json`
+- `full-parity-20261003/scattered-runtime-1791086089277161100/`
+- `full-parity-20261002/native-history/structures-integrated-1791086810008684800/`
+
+SPAWN/FULL runtime conversion, deferred block-entity materialization, tick-container
+lifecycle, remaining structure/features and saved-holder hydration are incomplete.
+Native FULL removes WG maps; the current unconverted BCore chunks retain them.
+The spawner component independently covers all 19 overworld CREATURE finalizers,
+but its runtime/environment/entity-storage hookup remains required.
+
+## Shared-context snapshot — 2026-10-02
+
+The freshly built release diagnostic now uses one `GenerationWorld` for all chunk
+coordinates intersecting each captured region, in lexicographic request order.
+This run used **four Rayon workers**, the same seed and the three saved vanilla
+captures described below. [parity-live-generation.json](parity-live-generation.json)
+records the executable/capture hashes, differences and actual source coverage.
+
+| Centre | Terrain heights | 3D biome cells | Exact block states | Change from historical snapshot | Lowest-log proxy V / B / intersection |
+|---|---:|---:|---:|---:|---:|
+| (0,0) | 256/256 | 1536/1536 | 92242/98304 | −592 | 12 / 8 / 1 |
+| (1000,0) | 256/256 | 1536/1536 | 96618/98304 | −413 | 16 / 11 / 2 |
+| (-2000,3000) | 256/256 | 1536/1536 | 97187/98304 | +405 | 13 / 9 / 5 |
+
+Combined exact-state match is **286047/294912 = 96.99% including air**:
+**600 fewer matches** than the historical 97.20% checkpoint. This is a regression
+in that integration metric. Component parity and successful source execution do
+not establish correct placement under the live server's native request history.
+All **768 terrain heights and 4608 quart-cell biomes** still match.
+
+The three diagnostic invocations requested **8 chunks** and recorded **40 distinct
+FEATURES sources**, **2197 completed placed streams** and **138 missing streams**.
+Completed streams may legitimately place no blocks. All eight targets finished
+their supported incoming-source attempts; **none has complete native coverage**.
+The missing placed operations in this sample are `amethyst_geode`,
+`underwater_magma`, `freeze_top_layer`, and, in neighbouring source palettes of
+the second region, `bamboo_light` and `vines`. Coverage also names missing
+non-mineshaft structures, density adaptation, noise ore veins and final stages.
+
+### Integration fixes and focused regressions
+
+- Biome admission now bridges BCore wire/save IDs to the native catalog by
+  resource-key identity. **13932 biome/feature memberships**, including shifted
+  IDs, and a real swamp-seagrass placement regression verify this boundary.
+- Glow lichen uses the native-supported multiface predicate for cache-null shapes:
+  **65 proven states / 195 native observations**, with **114 contextual states**
+  still explicitly unsupported. **10 cave and 6 sculk reference tests passed**.
+- The tall-mangrove write-order failure and ancient-city inventory-NBT fixture
+  failure are resolved. The release **extra-tree, generation and terrain filters
+  passed all 30 tests**; the exported **jigsaw reference suite passed all 5**.
+- Extra trees now have **688 native cases across 24 variants**, replayed on both
+  caller-owned RNG backends. **35 tree tests passed**, including four native
+  HashSet collision-bin traces with **1152 operations**. A fresh Java run reproduced
+  the original configured-tree fixture and catalog; the collision probe records
+  its separate source/helper hashes. Natural pale-oak callbacks, contextual edge
+  effects and Java identity-hash ties remain outside this coverage.
+- The jigsaw suite checks **70 native cases**: 24 assemblies / **2527 pieces**
+  (ancient city and five village variants), 28 template placements, 12 transforms
+  and 6 city-placement cases. The corrected native probe initializes item data
+  components before inventory decoding; it also exposed and verified the Rust
+  correction to omit `LootTableSeed` when a saved fixed inventory has no loot table.
+  The city cases include **203367 writes and 6384 postprocessing marks** in
+  controlled worlds. Runtime starts/references, density adaptation and the generic
+  template block-entity/entity handoff are still required.
+- NOISE caches now live for a Rayon job's fixed graph/context rather than being
+  discarded after every column. Four terrain regressions verify cold-column
+  equality, density bits, seed/context isolation, worker/unwind cleanup and bounded
+  retained capacity. Numerical behavior is checked before reporting a speedup.
+
+### Density-cache measurements
+
+Release measurements on a 16-logical-worker host used explicit one/four-worker
+Rayon pools and excluded compilation. The 7×7 workload requested every chunk in
+`[-3,3]` in Z-then-X order through one `GenerationWorld`, seed
+`846692123413862008`; it excluded protocol encoding and disk I/O.
+
+| Workload | Workers | Before | After |
+|---|---:|---:|---:|
+| NOISE phase, 25 chunks, seed 1234 | 4 | 17.324 s | 4.282 s |
+| Entire phase diagnostic, same dependency envelope | 4 | 19.239 s | 5.077 s |
+| Direct FULL request, seed 1234, (0,0) | 1 | 40.863 s | 8.270 s |
+| 49 adjacent FULL requests | 4 | 127.612 s | 44.561 s |
+
+The before runs overlapped other work, so the observed ratios are **indicative,
+not controlled causal benchmarks**. The independently counted 64-column probe
+produces **24576 bit-identical density values** with **24576 → 1536 corner
+evaluations**. Actual Rayon job sizes vary; this is not a 16× end-to-end claim.
+
+The complete one-worker FULL result (chunk plus coverage) matched its 423248-byte
+baseline byte-for-byte, SHA-256
+`6fd7500e1579e170786a68260f28af2f2ea9fb856da2216fed38313ca0e7991e`.
+The aggregate fingerprint of all 49 grid results also remained unchanged:
+`959869bb0fc00dd377f0d11d9c550762e783d65b699733829c5193d3244013d1`.
+Repeated FULL requests reused existing work. Fifteen focused terrain/numerical/
+reference tests passed, including the 62649-value numeric oracle and saved
+height/biome references. NOISE remains the largest measured phase; peak memory
+and default 16-worker scaling were not measured.
+
+## Live generation integration — 2026-10-01
+
+`GenerationWorld` now retains source work and neighbouring effects across requests.
+Server `World`, its clones and queued jobs use this shared context, as does each
+multi-coordinate `dump_chunk` invocation. Diagnostic output includes stage/source
+coverage; `World::try_generate` exposes the same coverage to server callers.
+
+The runtime checks caught two integration failures: a stale base-feature catalog
+without `shape_ranges`, and a missing Gaussian-cache delegate that aborted sources
+at `pointed_dripstone`. The catalog was recaptured from the pinned JAR, and placement
+now uses the cave RNG's retained cache. **7 base-feature tests and 10 generation
+tests passed**, including mixed forest/dripstone sources and repeated/concurrent
+generation.
+
+Typed sculk block entities and unconsumed postprocessing marks now survive
+`GeneratedChunk` → `ChunkColumn` → `.bcc` v4. **106 native-compatible sculk states**
+round-trip with exact typed data and empty client updates. **17 targeted protocol
+tests passed** across generation context, sculk effects, tree effects, dungeon data
+and queued entity delivery. See [tree-effects.md](tree-effects.md) for the format.
+
+This is a live integration milestone, not FULL completion. Persisted holder
+history, saved-neighbour hydration, native multi-task schedule matching, remaining
+feature/structure kernels, lighting, spawning and tick execution remain incomplete.
+[feature-scheduling.md](feature-scheduling.md#current-bcore-runtime) describes the
+current runtime and its boundaries. The older snapshot below retains its historical
+binary/capture provenance.
+
+## Tree effects, tick containers and dependencies — 2026-09-29
+
+- `finish_chunk` now transfers staged hive snapshots and raw tick requests into
+  owning region chunks. The returned chunk preserves them through **`.bcc` v4**;
+  readers accept v1–v4. Hive type **34** sends empty client update NBT (`0a00`),
+  while occupants and requests remain server-side.
+- **100 native hive samples / 48 states** and **22 native tick-container traces**
+  cover generated metadata and chunk-local queue semantics. Eight Rust tick tests
+  also check preparation, conversions, ordering, filters and priority handling.
+  [tree-effects.md](tree-effects.md) records the contracts and reproduction commands.
+- The [native dependency graph](feature-scheduling.md) covers **12 statuses,
+  24 generation/loading steps and 156 task-layer radius queries**. Metadata does
+  not establish a global source order; shared status-aware chunks and native
+  multi-task schedule captures remain prerequisites for global vegetation hookup.
+- Independent native `--verify` passed for the hive, tick and graph fixtures.
+  An additional **18 actual WorldGenRegion rewrite traces** caught and verified the
+  fix for losing occupants on same-state hive writes, including staged data.
+  **28 region, 8 tick-container, 18 storage and 21 protocol integration tests passed**
+  in this follow-up. The latest saved full worldgen run records **182 passed /
+  2 ignored**. That checkpoint had no confirmed complete post-change protocol run; see
+  [regression suites](#regression-suites).
+
+The tick helpers currently have fixture-test callers. Runtime handoff, clock and
+sub-order allocation, cross-chunk dispatch and actual gameplay ticks still need
+implementation. Target-local finalization still drops the other region-owned
+chunk copies; owning-chunk transfer alone does not solve cross-request scheduling.
+
 ## Numerical/component update — 2026-09-25
 
 - The primary inner loop is now **62,649 bit-exact Java/Rust values in 895 cases**,
@@ -29,8 +249,8 @@ below have different coverage; neither establishes all-world/all-dimension parit
   **462 s**). An interrupted attempt is not counted as a completed pass.
 - Workspace release build, formatting and diff checks passed at that earlier
   stage. The three unused login UUID helpers have since been removed; the targeted
-  streaming run at that point emitted **no compile warnings**. Final post-change
-  full-suite totals are pending.
+  streaming run at that point emitted **no compile warnings**. Later results are
+  recorded under [regression suites](#regression-suites).
 
 The bundle is pinned to the actual 26.1 JAR. A previous extracted datapack contained
 26.2 density/climate data, including `sulfur_caves`. `bundle_worldgen.py` now reads
@@ -74,9 +294,10 @@ Runtime IDs come from a process-wide atomic allocator starting at **393**, above
 the reserved local-player ID **392**. Cache entries and active views share `Arc`
 entity records through a pruned weak index. A UUIDv8 hash of the world seed, owning
 chunk, row ordinal, type, initial position and loot seed reconstructs identity
-from unchanged `.bcc` v3 generated data, independently of placement RNG. This
-contract is for immutable **GENERATED / pre-gameplay** records; persistent mutable
-entity identity, motion and inventory state remain future work.
+from unchanged ordered generated data (the layout introduced in `.bcc` v3),
+independently of placement RNG. This contract is for immutable **GENERATED /
+pre-gameplay** records; persistent mutable entity identity, motion and inventory
+state remain future work.
 
 The confirmed native packet fixture now contains **27 samples** from
 `scripts/EntityPacketReference.java` and
@@ -93,8 +314,8 @@ The initial **seven lifecycle unit tests passed**, covering spawn ordering,
 duplicate suppression, unload, same-chunk teleport, multiple viewers/cache eviction,
 UUID reconstruction and duplicate row ordinals, concurrent cache publication,
 and failed-write state. The latest confirmed targeted **`world::` run passed
-26 tests**, including **four new adoption regressions**; final post-change suite
-totals still await a complete run.
+26 tests**, including **four new adoption regressions**. The newer complete
+protocol run passed **234 tests**, including these lifecycle checks.
 
 The coordinate-only `mark_loaded` API was replaced by an opaque, non-Clone
 `ChunkDeliveryState`. `previous.into_delivery_state()` consumes the old view;
@@ -113,18 +334,17 @@ World-specific queue routing is now fixed. `World` wraps `Arc<WorldInner>`;
 `GenerationJob` retains the requesting world, with per-world in-flight reservations
 and RAII cleanup on completion, discard, send failure or unwind. One dispatcher
 services the queue. **Six queue tests and 26 world tests passed** in targeted runs;
-the newest combined protocol run remains pending.
+the later 234-test protocol result includes the complete library and integrations.
 
-## Whole-chunk snapshot
+## Historical whole-chunk snapshot
 
-Re-run on 2026-09-25 after the numerical and mineshaft changes. The three exact
-state counts remain unchanged; `parity-results.json` records the new executable
-hash. This is an integration check on these captures, not evidence that numerical
+The checked-in `parity-results.json` records the executable-specific snapshot
+below. Its three exact-state counts match the earlier numerical/mineshaft
+checkpoint; the executable hash below comes from that JSON. This is an integration
+check on these captures, not evidence that numerical
 rounding errors are harmless on other coordinates/seeds. Later targeted entity,
-fallen-tree and carver checks do not replace this executable-specific snapshot.
-Final integrated suite totals and a snapshot after the latest queue, surface and
-standing-tree changes **await confirmation**; the following counts and
-hash remain the earlier numerical/mineshaft snapshot.
+tree-effect and tick-container checks do not refresh this snapshot or establish
+results for a newer executable.
 
 - Seed: `846692123413862008`; protocol: **775** (intentional development target).
 - Regions centred at `(0,0)`, `(1000,0)`, `(-2000,3000)`.
@@ -136,9 +356,9 @@ hash remain the earlier numerical/mineshaft snapshot.
   heights and 4,608 quart-cell biomes plus hashes of the source captures.
 - Raw measurements and binary/capture hashes: [parity-results.json](parity-results.json).
 - Recorded snapshot's `dump_chunk` executable SHA-256:
-  `14efc60844e9bfe76b4472d91791f70c7686bf1df991d465b989ac39f653b9d9`.
+  `8c4f15bbc4c2da665fd41c9d901520a2201081def0410f6aca9ee1523fb02c6d`.
 
-## Results
+### Results
 
 | Centre | Terrain heights | 3D biome cells | Exact block states | Lowest-log proxy V / B / intersection |
 |---|---:|---:|---:|---:|
@@ -152,12 +372,12 @@ State comparison includes properties; biome comparison uses names, since the
 transitional BCore registry capture and vanilla 26.1 assign some different IDs.
 The lowest-log proxy counts branches and fallen logs too; it is not a tree census.
 
-### Latest underground-generation changes
+### Underground-generation checkpoint
 
 The ore region and aquifer corrections add **964, 299, 1770** matching states
 relative to the preceding double-precision baseline: **+3033 total**. Of these,
-the aquifer correction adds **836** in the third region. The current comparison
-still has **8265 differing states**, including vegetation, cave features and
+the aquifer correction adds **836** in the third region. That comparison
+had **8265 differing states**, including vegetation, cave features and
 structures. The following component checks do not imply complete world parity:
 
 - `ores_26_1.json`: **392** native configured OreFeature cases, checking target
@@ -295,8 +515,9 @@ room's chest/spawner data across chunk boundaries and immutable-cache isolation.
 
 Chunk packets now include chest/spawner entries and anonymous update NBT;
 server-only loot seeds are retained on disk, not sent in chest update data.
-The `.bcc` writer now uses format version **3** and the reader accepts versions
-**1, 2 and 3**. Version 3 also stores generated minecarts and structure metadata.
+The `.bcc` writer now uses format version **4** and the reader accepts versions
+**1–4**. Generated minecarts and structure metadata retain their v3 layout; v4 adds
+[hives and raw tick requests](tree-effects.md#deferred-requests-and-bcc-v4).
 Removing a container removes its metadata. Native `cave_air`/`void_air`
 are treated as air in heightmaps, lighting surfaces and section block counts.
 
@@ -366,16 +587,18 @@ under **explicit fixed source plans**. Each target replays the complete supplied
 plan; this does not supply the native global source scheduler. Jungle variants and
 context-dependent edge effects remain explicitly unsupported.
 
-The targeted tree result is **45 passed**: 5 standing-region, 18 tree,
-4 decoration, 5 fallen-region, 4 bounded-vegetation-region and 9 fallen-reference
-tests. The older **37 standing**, **655 fallen** and **504 bounded placement-driver
-cases** remain preserved. The historical driver is archived at
+At the standing-tree checkpoint, the targeted result was **45 passed**:
+5 standing-region, 18 tree, 4 decoration, 5 fallen-region, 4 bounded-vegetation-region
+and 9 fallen-reference tests. The older **37 standing**, **655 fallen** and
+**504 bounded placement-driver cases** remain preserved. The historical driver is archived at
 `scripts/vegetation-bounded/VegetationReference.java`; the root
 `scripts/VegetationReference.java` now probes full standing trees/selectors.
 
-Global region vegetation is **not hooked up**. Hive NBT and tick requests remain
-region-owned in `TreeEffects`; `finish_chunk` asserts that they must be transferred
-before finalization. Persistence, tick execution and native full-source scheduling
+Global region vegetation is **not hooked up**. Staged hive snapshots and tick
+requests now transfer into their owning chunks during `finish_chunk`, with the
+returned chunk retained through `.bcc` v4 save/load and queued loading. Transfer,
+retry and replacement behavior are covered in [tree-effects.md](tree-effects.md).
+Native full-source scheduling, cross-request ownership and runtime tick execution
 remain pending.
 
 ### Corrections to the previous report
@@ -624,23 +847,21 @@ The full objective and remaining acceptance checks are tracked in
 
 ## Remaining work, in order
 
-1. A real staged generation region for cross-chunk tree/ore reads and writes.
-   Region-aware standing/fallen kernels and fixed-plan replays are implemented;
-   the documented ChunkPyramid is not a functioning native dependency scheduler.
-2. Hook region vegetation into that schedule, transfer/persist `TreeEffects`, and
-   complete remaining jungle variants, contextual edge effects and tick execution.
-
-   Fallen trees pass **655 native cases** both in isolation and through the live
-   `FeatureRegion` adapter. Global region vegetation remains unhooked.
-   An earlier partial experiment omitted decorators and shared-region reads and
-   changed sample matches by `-1, 0, 0`; that experiment was removed.
-3. Complete global feature admission and verify R-tree equal-distance behavior.
-   Region-aware tree selectors already use biome zoom. Matching these
-   4,608 cells does not establish full biome-selection parity on other seeds.
+1. Persist and restore the live holder graph, stage claims and unreturned neighbour
+   effects. Add saved-neighbour hydration and bounded eviction to the implemented
+   shared generation context and `.bcc` column snapshots.
+2. Capture native multi-task execution and compare complete regions under matched
+   request histories. The live source driver already runs standing/fallen trees,
+   ores and supported features; fixed-plan fixtures and the static dependency
+   graph do not establish native global source order.
+3. Complete the source operations named by coverage and contextual edge effects;
+   integrate tick containers with runtime time, ownership and callbacks. The
+   resource-key biome bridge is verified, but 4,608 matching quart cells do not
+   establish full biome-selection parity on other seeds or all R-tree ties.
 4. Extend the real overworld carver/surface resolver to custom heights, retrogen,
    nonempty blending and complete mixed-feature regions. Complete remaining
-   structures, including ancient cities, which explain some deep-dark differences
-   at the origin.
+   structures, including runtime ancient-city admission, references, terrain
+   adaptation and generated-data handoff beyond the verified jigsaw component.
 5. Generated-entity gameplay: minecart motion, loot unpacking/inventory interaction,
    persistent mutable-entity state and spawner simulation.
 6. Additional seeds, ocean/mountain/biome-boundary samples, Nether and End.
@@ -741,23 +962,82 @@ cargo test --release --locked -p bcore-worldgen --lib region::vegetation_tests
 cargo test --release --locked -p bcore-worldgen --test fallen_tree_reference
 ```
 
-These are fixture/fixed-plan checks. Global region-vegetation scheduling and
-`TreeEffects` persistence are not enabled by running them.
+These are fixture/fixed-plan checks. Owning-chunk effect transfer and persistence
+are implemented; global region-vegetation scheduling and runtime tick execution
+remain pending. For the new `beehive` and `tick` probes and their Rust checks, see
+[tree-effects.md](tree-effects.md#verification-and-reproduction). The
+[`feature_dependency` probe](feature-scheduling.md#provenance-and-reproduction)
+verifies the native graph metadata independently.
 
 ### Regression suites
+
+The **2026-10-02 full workspace run completed with exit code 0: 514 passed,
+0 failed, 4 ignored**, in **1169.156 s**, including compilation. It used Windows,
+four Rayon workers, two Cargo build jobs and four test threads:
+
+```powershell
+$env:RAYON_NUM_THREADS = '4'
+cargo test --workspace --release --locked --no-fail-fast -j 2 -- --test-threads=4
+```
+
+| Package | Passed | Failed | Ignored |
+|---|---:|---:|---:|
+| bcore-worldgen | 271 | 0 | 3 |
+| bcore-protocol | 234 | 0 | 0 |
+| bcore-core | 6 | 0 | 0 |
+| bcore-plugin | 3 | 0 | 0 |
+| bcore-plugin-java | 0 | 0 | 1 |
+
+The existing ignored checks are two worldgen benchmarks, the larger externally
+captured `parity_fixture_matches_bcore` suite, and the JVM/plugin-jar end-to-end
+test. They are not passing coverage. All selected unit/integration/doc-test
+targets completed, including **162 protocol library tests (87.47 s)**,
+**15 persistence tests (215.35 s)** and **11 terrain-encoding tests (500.30 s)**.
+Persistence includes the 7×7 round trip; terrain encoding includes all 64 dispersed
+fluid-test chunks. The worldgen library passed **206 tests / 2 ignored**;
+the package total adds its integration suites, including the fixed tree/jigsaw
+regressions and native numerical/surface/cave/sculk references.
+
+Saved command, status and full output:
+`target/generation-checks-20261001/tests-1790908713123380300.{json,log}`.
+The earlier two-worker attempt reached its external **1200 s** deadline during
+terrain encoding; it was not counted as a completed pass. The successful runner
+allowed **3600 s**. Workspace release build, `cargo fmt --all --check`, report
+JSON/binary/capture-hash validation and `git diff --check` also passed.
+
+#### Earlier checkpoints
 
 These commands run the current sources. The **123 / 2** worldgen result and
 **178-pass** protocol breakdown above belong to the earlier numerical/pre-streaming
 baseline. Run the slow protocol targets separately and allow an outer timeout
-longer than the measured 462 s terrain run (for example, 900 s). Record each
+longer than the recorded **595.40 s** terrain run (for example, 900 s). Record each
 completed test summary before reporting an aggregate.
 
-Newest confirmed component results: **13 carver tests (0.25 s)**, the **45-test
-tree group** detailed above, **six queue tests**, **26 protocol world tests**, and
-the 27-sample native packet reference. The fresh worldgen suite passed **163 tests
-with 2 ignored** and the fresh snapshot is recorded above. Earlier Mth/fallen-adapter
-totals retain their stage labels; the complete post-change protocol suite remains
-pending.
+The saved `target/worldgen-merged-check.log` records the **163 passed / 2 ignored**
+checkpoint. `target/worldgen-tree-effects-final.log` records **182 passed /
+2 ignored**, including eight tick-container tests and native hive rewrite checks.
+The follow-up passed the **28 region, 8 tick-container,
+18 storage and 21 protocol integration tests** listed in
+[tree-effects.md](tree-effects.md#verification-and-reproduction). These targeted
+results are not an additional full-suite aggregate.
+
+For protocol, `target/protocol-merged-check.log` completed with a failing
+`chat_flow::help_and_list_reply_on_system_chat` test. The later
+`target/protocol-final.log` records **160 library, 12 chat, 5 flat-format,
+3 vanilla-chunk and 15 persistence passes**, including that chat test, but ends
+during `chunk_terrain` without its result. It does not establish a completed
+all-green run. The subsequent v4 storage/integration checks passed; the complete
+234-test protocol result is recorded above. The earlier published commit `4d8569f`
+completed GitHub CI successfully (run `36428955481`); that is the pre-v4 baseline.
+
+The earlier merged workspace release build and formatting checks passed. Its quality scan
+reported no errors or auto-fixable findings after cleanup; 19 non-auto-fixable
+warnings remain, primarily existing type/function complexity, large modules and
+plugin API documentation. No lint rules were disabled.
+
+Earlier **13 carver (0.25 s)**, **45 tree**, **six queue** and **26 world** test
+results retain their checkpoint labels, as do the Mth/fallen-adapter measurements.
+The whole-chunk table remains tied to the executable hash recorded above.
 
 ```powershell
 cargo test --release --locked -p bcore-worldgen --no-fail-fast -- --test-threads=4
@@ -767,6 +1047,8 @@ cargo test --release --locked -p bcore-protocol --test chunk_persistence -- --te
 cargo test --release --locked -p bcore-protocol --test chunk_terrain -- --test-threads=4
 cargo test --release --locked -p bcore-protocol --test dungeon_block_entities
 cargo test --release --locked -p bcore-protocol --test mineshaft_entities
+cargo test --release --locked -p bcore-protocol --test tree_effects
+cargo test --release --locked -p bcore-protocol --test queued_entity_delivery
 ```
 
 The native packet and targeted lifecycle checks are also documented in

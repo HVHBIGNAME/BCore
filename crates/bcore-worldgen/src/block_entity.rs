@@ -22,8 +22,17 @@ impl SpawnerMob {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BlockEntity {
-    DungeonChest { loot_seed: i64 },
-    Spawner { mob: SpawnerMob },
+    DungeonChest {
+        loot_seed: i64,
+    },
+    Spawner {
+        mob: SpawnerMob,
+    },
+    /// Generated nectarless bees, in native occupant order. Native codecs accept
+    /// any i32 age and do not impose the gameplay admission limit on saved lists.
+    Beehive {
+        ticks_in_hive: Vec<i32>,
+    },
 }
 
 impl BlockEntity {
@@ -31,6 +40,7 @@ impl BlockEntity {
         match self {
             Self::DungeonChest { .. } => 1,
             Self::Spawner { .. } => 9,
+            Self::Beehive { .. } => 34,
         }
     }
 
@@ -38,12 +48,13 @@ impl BlockEntity {
         match self {
             Self::DungeonChest { .. } => crate::dungeon::state_flags(state) & 16 != 0,
             Self::Spawner { .. } => crate::dungeon::state_flags(state) & 32 != 0,
+            Self::Beehive { .. } => (21768..21816).contains(&state),
         }
     }
 
     pub fn update_data(&self) -> Value {
         match self {
-            Self::DungeonChest { .. } => json!({}),
+            Self::DungeonChest { .. } | Self::Beehive { .. } => json!({}),
             Self::Spawner { mob } => json!({
                 "Delay": 20, "MaxNearbyEntities": 6, "MaxSpawnDelay": 800, "MinSpawnDelay": 200,
                 "RequiredPlayerRange": 16, "SpawnCount": 4, "SpawnRange": 4,
@@ -65,6 +76,19 @@ impl BlockEntity {
             Self::Spawner { .. } => {
                 data["SpawnPotentials"] = json!([]);
                 "minecraft:mob_spawner"
+            }
+            Self::Beehive { ticks_in_hive } => {
+                data["bees"] = ticks_in_hive
+                    .iter()
+                    .map(|ticks| {
+                        json!({
+                            "ticks_in_hive": ticks,
+                            "entity_data": {"id": "minecraft:bee"},
+                            "min_ticks_in_hive": 600,
+                        })
+                    })
+                    .collect();
+                "minecraft:beehive"
             }
         };
         data["components"] = json!({});

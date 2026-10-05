@@ -3,6 +3,7 @@
 use std::collections::BTreeMap;
 
 use super::{
+    extra_data,
     fallen::{self, FallenTreeWorld, Pos},
     grow_shape, ShapeSink, TreeConfig, TreeRandom, TrunkPlacer,
 };
@@ -10,6 +11,13 @@ use crate::{block, heightmap::is_air, MAX_Y, MIN_Y};
 
 #[path = "standing_blocks.rs"]
 mod blocks;
+#[path = "extra_decorators.rs"]
+mod extra_decorators;
+#[path = "extra_roots.rs"]
+mod extra_roots;
+#[path = "positions.rs"]
+mod positions;
+use positions::Positions;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct UnsupportedShape {
@@ -28,8 +36,7 @@ impl std::fmt::Display for UnsupportedShape {
 }
 impl std::error::Error for UnsupportedShape {}
 
-/// Requests remain owned by their absolute chunk coordinates until the pipeline
-/// transfers them to generated-chunk block entities and scheduled-tick storage.
+/// Staged effects, transferred by FeatureRegion into their owning chunks.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct TreeEffects {
     pub beehives: BTreeMap<Pos, Vec<i32>>,
@@ -40,23 +47,12 @@ pub struct TreeEffects {
 impl TreeEffects {
     /// Native generated-nest metadata, before occupants tick or gather nectar.
     pub fn beehive_data(&self, (x, y, z): Pos) -> Option<serde_json::Value> {
-        use serde_json::json;
-        let bees: Vec<_> = self
-            .beehives
-            .get(&(x, y, z))?
-            .iter()
-            .map(|&ticks| {
-                json!({
-                    "ticks_in_hive": ticks,
-                    "entity_data": {"id": "minecraft:bee"},
-                    "min_ticks_in_hive": 600,
-                })
-            })
-            .collect();
-        Some(json!({
-            "components": {}, "x": x, "y": y, "z": z,
-            "id": "minecraft:beehive", "bees": bees,
-        }))
+        Some(
+            crate::block_entity::BlockEntity::Beehive {
+                ticks_in_hive: self.beehives.get(&(x, y, z))?.clone(),
+            }
+            .full_data((x, y, z)),
+        )
     }
 }
 
@@ -66,6 +62,29 @@ pub trait StandingTreeWorld: FallenTreeWorld {
     fn store_bee(&mut self, pos: Pos, ticks_in_hive: i32);
     fn schedule_tree_tick(&mut self, request: [i32; 6]);
 
+    /// Native getRawBrightness(pos, 0), needed by mushroom survival checks.
+    fn tree_raw_brightness(&self, _pos: Pos) -> Option<i32> {
+        None
+    }
+
+    /// Nested configured features (not reseeded), e.g. pale_moss_patch.
+    fn place_tree_subfeature<R: TreeRandom + ?Sized>(
+        &mut self,
+        _random: &mut R,
+        _name: &'static str,
+        pos: Pos,
+    ) -> Result<bool, UnsupportedShape> {
+        Err(UnsupportedShape {
+            pos,
+            state: self.get_block(pos),
+        })
+    }
+
+    /// Write with flags 19 and create/preserve the native heart block entity.
+    fn set_creaking_heart(&mut self, pos: Pos, state: u32) -> Result<bool, UnsupportedShape> {
+        Err(UnsupportedShape { pos, state })
+    }
+
     fn motion_no_leaves_height(&self, x: i32, z: i32) -> i32 {
         (MIN_Y..=MAX_Y)
             .rev()
@@ -74,8 +93,15 @@ pub trait StandingTreeWorld: FallenTreeWorld {
     }
 }
 
-/// Only native configurations whose complete body is implemented here are exposed.
+/// Resolve pinned tree geometry. Placement can require additional world callbacks
+/// for contextual survival, nested features or block entities.
 pub fn config_for(name: &str) -> Option<TreeConfig> {
+    legacy_config_for(name).or_else(|| {
+        extra_data::tree(name.strip_prefix("minecraft:").unwrap_or(name)).map(|d| d.shape)
+    })
+}
+
+fn legacy_config_for(name: &str) -> Option<TreeConfig> {
     Some(match name.strip_prefix("minecraft:").unwrap_or(name) {
         "oak" => super::OAK,
         "birch" => super::BIRCH,
@@ -111,64 +137,13 @@ pub(crate) fn bee_nest_state() -> u32 {
     blocks::bee_nest_state()
 }
 
-#[derive(Clone)]
-struct Positions {
-    buckets: Vec<Vec<Pos>>,
-    len: usize,
-}
-impl Positions {
-    fn new() -> Self {
-        Self {
-            buckets: vec![Vec::new(); 16],
-            len: 0,
-        }
-    }
-    fn hash((x, y, z): Pos) -> usize {
-        let h = y
-            .wrapping_add(z.wrapping_mul(31))
-            .wrapping_mul(31)
-            .wrapping_add(x) as u32;
-        (h ^ (h >> 16)) as usize
-    }
-    fn insert(&mut self, pos: Pos) {
-        let index = Self::hash(pos) & (self.buckets.len() - 1);
-        if self.buckets[index].contains(&pos) {
-            return;
-        }
-        self.buckets[index].push(pos);
-        self.len += 1;
-        // HashMap.treeifyBin grows small tables on the ninth colliding entry,
-        // even if removals kept the overall set below its load threshold.
-        if self.len > self.buckets.len() * 3 / 4
-            || (self.buckets[index].len() > 8 && self.buckets.len() < 64)
-        {
-            let size = self.buckets.len() * 2;
-            let old = std::mem::replace(&mut self.buckets, vec![Vec::new(); size]);
-            for p in old.into_iter().flatten() {
-                self.buckets[Self::hash(p) & (size - 1)].push(p);
-            }
-        }
-    }
-    fn iter(&self) -> impl Iterator<Item = Pos> + '_ {
-        self.buckets.iter().flatten().copied()
-    }
-    fn pop(&mut self) -> Option<Pos> {
-        let bucket = self.buckets.iter_mut().find(|b| !b.is_empty())?;
-        self.len -= 1;
-        Some(bucket.remove(0))
-    }
-    fn sorted_y(&self) -> Vec<Pos> {
-        let mut positions: Vec<_> = self.iter().collect();
-        positions.sort_by_key(|p| p.1);
-        positions
-    }
-}
-
 struct Placement<'a, W: ?Sized> {
     world: &'a mut W,
     logs: Positions,
     leaves: Positions,
     decorations: Positions,
+    roots: Positions,
+    definition: Option<&'static extra_data::TreeDefinition>,
 }
 
 impl<W: StandingTreeWorld + ?Sized> ShapeSink for Placement<'_, W> {
@@ -179,7 +154,20 @@ impl<W: StandingTreeWorld + ?Sized> ShapeSink for Placement<'_, W> {
         fallen::valid_tree_state(state)
     }
     fn free_state(&self, state: u32) -> bool {
-        self.valid_state(state) || blocks::get(state).distance == 0
+        self.loggable_state(state) || extra_data::tagged(state, "minecraft:logs")
+    }
+    fn loggable_state(&self, state: u32) -> bool {
+        self.valid_state(state)
+            || self
+                .definition
+                .and_then(|d| d.grow_through.as_deref())
+                .is_some_and(|tag| extra_data::tagged(state, tag))
+    }
+    fn air_or_leaves(&self, state: u32) -> bool {
+        is_air(state) || extra_data::tagged(state, "minecraft:leaves")
+    }
+    fn ignore_vines(&self) -> bool {
+        self.definition.is_none_or(|d| d.ignore_vines)
     }
     fn log(&mut self, pos: Pos, state: u32) -> bool {
         self.logs.insert(pos);
@@ -198,10 +186,45 @@ impl<W: StandingTreeWorld + ?Sized> ShapeSink for Placement<'_, W> {
         self.world.set_block(pos, state, 19);
         true
     }
-    fn below_trunk(&mut self, pos: Pos) {
-        if !crate::heightmap::protected_below_trunk(self.world.get_block(pos)) {
+    fn below_trunk<R: TreeRandom + ?Sized>(&mut self, random: &mut R, pos: Pos) {
+        if let Some(definition) = self.definition {
+            if let Some(state) = definition.below.sample(self.world, random, pos) {
+                self.log(pos, state);
+            }
+        } else if !crate::heightmap::protected_below_trunk(self.world.get_block(pos)) {
             self.log(pos, block::DIRT);
         }
+    }
+
+    fn leaf_is_set(&self, pos: Pos) -> bool {
+        self.leaves.contains(pos)
+    }
+    fn provided_leaf<R: TreeRandom + ?Sized>(
+        &mut self,
+        random: &mut R,
+        pos: Pos,
+        default: u32,
+    ) -> bool {
+        if blocks::get(self.world.get_block(pos)).flags & 32 != 0 {
+            return false;
+        }
+        let state = self.definition.map_or(default, |d| {
+            d.foliage
+                .sample(self.world, random, pos)
+                .expect("foliage provider state")
+        });
+        self.leaf(pos, state)
+    }
+    fn trunk_origin<R: TreeRandom + ?Sized>(&self, random: &mut R, origin: Pos) -> Pos {
+        let offset = self.definition.and_then(|d| d.roots).map_or(0, |root| {
+            extra_data::int_provider(&root["trunk_offset_y"]).sample(random)
+        });
+        (origin.0, origin.1 + offset, origin.2)
+    }
+    fn roots<R: TreeRandom + ?Sized>(&mut self, random: &mut R, origin: Pos, trunk: Pos) -> bool {
+        self.definition
+            .and_then(|d| d.roots)
+            .is_none_or(|root| extra_roots::place(self, random, origin, trunk, root))
     }
 }
 
@@ -220,7 +243,8 @@ impl<W: StandingTreeWorld + ?Sized> Placement<'_, W> {
         let y = if let Some(lowest) = leaves.first() {
             (lowest.1 - 1).max(logs[0].1 + 1)
         } else {
-            (logs[0].1 + 1 + random.next_i32_bounded(3)).min(logs.last().unwrap().1)
+            (logs[0].1 + 1 + random.next_i32_bounded(3))
+                .min(logs.last().expect("nonempty trunk positions").1)
         };
         let mut candidates = Vec::new();
         for (x, ly, z) in logs.into_iter().filter(|p| p.1 == y) {
@@ -288,7 +312,8 @@ impl<W: StandingTreeWorld + ?Sized> Placement<'_, W> {
             .logs
             .iter()
             .chain(self.leaves.iter())
-            .chain(self.decorations.iter());
+            .chain(self.decorations.iter())
+            .chain(self.roots.iter());
         let first = points.next().expect("nonempty tree");
         let (mut min, mut max) = (first, first);
         for (x, y, z) in points {
@@ -296,7 +321,7 @@ impl<W: StandingTreeWorld + ?Sized> Placement<'_, W> {
             max = (max.0.max(x), max.1.max(y), max.2.max(z));
         }
         let mut voxel = Voxel::new(min, max);
-        for pos in self.decorations.iter() {
+        for pos in self.decorations.iter().chain(self.roots.iter()) {
             voxel.fill(pos);
         }
         let mut pending: [Positions; 7] = std::array::from_fn(|_| Positions::new());
@@ -311,7 +336,9 @@ impl<W: StandingTreeWorld + ?Sized> Placement<'_, W> {
             if distance == 7 {
                 break;
             }
-            let pos = pending[distance].pop().unwrap();
+            let pos = pending[distance]
+                .pop()
+                .expect("nonempty leaf-distance bucket");
             if distance > 0 {
                 let state = self.world.get_block(pos);
                 let previous = blocks::get(state).distance;
@@ -451,7 +478,14 @@ pub fn place<W: StandingTreeWorld + ?Sized, R: TreeRandom + ?Sized>(
     name: &str,
     origin: Pos,
 ) -> Result<Option<bool>, UnsupportedShape> {
-    let Some(config) = config_for(name) else {
+    let name = name.strip_prefix("minecraft:").unwrap_or(name);
+    let legacy = legacy_config_for(name);
+    let definition = if legacy.is_none() {
+        extra_data::tree(name)
+    } else {
+        None
+    };
+    let Some(config) = legacy.or_else(|| definition.map(|d| d.shape)) else {
         return Ok(None);
     };
     let mut placement = Placement {
@@ -459,18 +493,24 @@ pub fn place<W: StandingTreeWorld + ?Sized, R: TreeRandom + ?Sized>(
         logs: Positions::new(),
         leaves: Positions::new(),
         decorations: Positions::new(),
+        roots: Positions::new(),
+        definition,
     };
     if !grow_shape(&mut placement, random, &config, origin)
         || (placement.logs.len == 0 && placement.leaves.len == 0)
     {
         return Ok(Some(false));
     }
-    if let Some(chance) = config.beehive_probability {
-        placement.beehive(random, chance);
-    }
-    if config.leaf_litter {
-        placement.litter(random, 4, 96, 3);
-        placement.litter(random, 2, 150, 4);
+    if let Some(definition) = definition {
+        extra_decorators::place(&mut placement, random, definition.decorators)?;
+    } else {
+        if let Some(chance) = config.beehive_probability {
+            placement.beehive(random, chance);
+        }
+        if config.leaf_litter {
+            placement.litter(random, 4, 96, 3);
+            placement.litter(random, 2, 150, 4);
+        }
     }
     let voxel = placement.update_leaves();
     voxel.update_edges(placement.world)?;

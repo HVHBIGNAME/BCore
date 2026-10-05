@@ -164,12 +164,16 @@ pub enum DensityFunction {
     Unknown,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum EvaluationMode {
     /// DensityFunction.compute(SinglePointContext): marker nodes delegate.
     Raw,
-    /// NoiseChunk's interpolation and cache wrappers.
+    /// NoiseChunk's cell-cache fill phase (Mth.lerp3, X/Y/Z). This includes the
+    /// final-density + Beardifier cache used by the aquifer and base-height scan.
     NoiseChunk,
+    /// Live updateForY/X/Z phase, used by the noise ore-vein material functions.
+    /// CacheAllInCell still computes its contents in the cell-cache fill phase.
+    NoiseChunkMaterial,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -224,17 +228,19 @@ impl EvalContext {
         self
     }
 }
+type PointCacheKey = (usize, i64, EvaluationMode, u64, u64, u64);
+
 thread_local! {
-    static CACHE_ALL_IN_CELL: RefCell<HashMap<(usize, i64, u64, u64, u64), f64>> = RefCell::new(HashMap::new());
-    static CACHE_2D: RefCell<HashMap<(usize, i64, i64, i64), f64>> = RefCell::new(HashMap::new());
-    static FLAT_CACHE: RefCell<HashMap<usize, (i64, u64, u64, u64, f64)>> = RefCell::new(HashMap::new());
+    static CACHE_ALL_IN_CELL: RefCell<HashMap<PointCacheKey, f64>> = RefCell::new(HashMap::new());
+    static CACHE_2D: RefCell<HashMap<(usize, i64, EvaluationMode, i64, i64), f64>> = RefCell::new(HashMap::new());
+    static FLAT_CACHE: RefCell<HashMap<usize, (i64, EvaluationMode, u64, u64, u64, f64)>> = RefCell::new(HashMap::new());
     // CacheOnce is keyed by the complete evaluation coordinate.  The previous
     // implementation intentionally bypassed this cache because a pointer-only
     // key returned a value from a different column/height.  Vanilla's cache
     // node may be sampled repeatedly at the same point by interpolated nodes;
     // retaining the full key is both safe and bit-for-bit transparent.
-    static CACHE_ONCE: RefCell<HashMap<(usize, i64, u64, u64, u64), f64>> = RefCell::new(HashMap::new());
-    static INTERPOLATED_CORNERS: RefCell<HashMap<(usize, i64, u64, u64, u64), [f64; 8]>> = RefCell::new(HashMap::new());
+    static CACHE_ONCE: RefCell<HashMap<PointCacheKey, f64>> = RefCell::new(HashMap::new());
+    static INTERPOLATED_CORNERS: RefCell<HashMap<PointCacheKey, [f64; 8]>> = RefCell::new(HashMap::new());
 }
 
 /// Drop every per-thread density cache. The worldgen calls this once per chunk
@@ -279,11 +285,27 @@ pub fn density_cache_capacity() -> usize {
         + INTERPOLATED_CORNERS.with(|c| c.borrow().capacity())
 }
 
+#[cfg(test)]
+pub(crate) fn density_cache_entries() -> [usize; 5] {
+    [
+        CACHE_ALL_IN_CELL.with(|c| c.borrow().len()),
+        CACHE_2D.with(|c| c.borrow().len()),
+        FLAT_CACHE.with(|c| c.borrow().len()),
+        CACHE_ONCE.with(|c| c.borrow().len()),
+        INTERPOLATED_CORNERS.with(|c| c.borrow().len()),
+    ]
+}
+
 fn cache_all_in_cell(a: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContext) -> f64 {
     // Native caches every block in the cell, not a single cell-corner value.
+    let ctx = &EvalContext {
+        mode: EvaluationMode::NoiseChunk,
+        ..*ctx
+    };
     let key = (
         a as *const DensityFunction as usize,
         ctx.seed,
+        ctx.mode,
         x.to_bits(),
         y.to_bits(),
         z.to_bits(),
@@ -302,6 +324,7 @@ fn cache_2d(a: &DensityFunction, x: f64, z: f64, ctx: &EvalContext) -> f64 {
     let key = (
         a as *const DensityFunction as usize,
         ctx.seed,
+        ctx.mode,
         x.to_bits() as i64,
         z.to_bits() as i64,
     );
@@ -328,13 +351,19 @@ fn flat_cache(a: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContext) ->
     }
     let x = (qx * 4) as f64;
     let z = (qz * 4) as f64;
-    let key = (ctx.seed, x.to_bits(), 0.0f64.to_bits(), z.to_bits());
+    let key = (
+        ctx.seed,
+        ctx.mode,
+        x.to_bits(),
+        0.0f64.to_bits(),
+        z.to_bits(),
+    );
     if let Some(value) = FLAT_CACHE.with(|cache| {
         cache
             .borrow()
             .get(&(a as *const DensityFunction as usize))
-            .filter(|entry| (entry.0, entry.1, entry.2, entry.3) == key)
-            .map(|entry| entry.4)
+            .filter(|entry| (entry.0, entry.1, entry.2, entry.3, entry.4) == key)
+            .map(|entry| entry.5)
     }) {
         return value;
     }
@@ -342,7 +371,7 @@ fn flat_cache(a: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContext) ->
     FLAT_CACHE.with(|cache| {
         cache.borrow_mut().insert(
             a as *const DensityFunction as usize,
-            (key.0, key.1, key.2, key.3, value),
+            (key.0, key.1, key.2, key.3, key.4, value),
         );
     });
     value
@@ -352,6 +381,7 @@ fn cache_once(a: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContext) ->
     let key = (
         a as *const DensityFunction as usize,
         ctx.seed,
+        ctx.mode,
         x.to_bits(),
         y.to_bits(),
         z.to_bits(),
@@ -604,6 +634,7 @@ fn interpolate(inner: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContex
     let key = (
         inner as *const DensityFunction as usize,
         ctx.seed,
+        ctx.mode,
         x0.to_bits(),
         y0.to_bits(),
         z0.to_bits(),
@@ -629,6 +660,17 @@ fn interpolate(inner: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContex
         corners
     };
     let [c000, c100, c010, c110, c001, c101, c011, c111] = corners;
+    if ctx.mode == EvaluationMode::NoiseChunkMaterial {
+        // Material interpolators retain the scalar updateForY, updateForX,
+        // updateForZ result. Reusing lerp3's X/Y/Z changes low bits.
+        let y00 = c000 + (c010 - c000) * sy;
+        let y10 = c100 + (c110 - c100) * sy;
+        let y01 = c001 + (c011 - c001) * sy;
+        let y11 = c101 + (c111 - c101) * sy;
+        let z0v = y00 + (y10 - y00) * sx;
+        let z1v = y01 + (y11 - y01) * sx;
+        return z0v + (z1v - z0v) * sz;
+    }
     let x00 = c000 + (c100 - c000) * sx;
     let x10 = c010 + (c110 - c010) * sx;
     let x01 = c001 + (c101 - c001) * sx;

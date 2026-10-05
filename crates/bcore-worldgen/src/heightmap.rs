@@ -1,4 +1,4 @@
-//! Live placement heights and sapling support, using extracted 26.1 predicates.
+//! Native placement predicates and the separate WG/final heightmap lifetimes.
 use std::sync::OnceLock;
 
 use crate::{GeneratedChunk, MAX_Y, MIN_Y};
@@ -44,11 +44,68 @@ pub const fn is_air(state: u32) -> bool {
     matches!(state, 0 | 15292 | 15293)
 }
 
+pub(crate) fn blocks_motion(state: u32) -> bool {
+    state_flags()[state as usize] & BLOCKS_MOTION != 0
+}
+
 /// Heights name the first free Y above the relevant block; an empty map is MIN_Y.
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) struct PlacementHeights {
     pub world_surface: i32,
     pub ocean_floor: i32,
+}
+
+/// First-free WG heights, updated through CARVERS and retained during decoration.
+/// Native ProtoChunk switches to the final heightmap set once its persisted
+/// status reaches CARVERS; later feature writes must not change these two maps.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct WorldgenHeightmaps {
+    pub world_surface: Vec<i32>,
+    pub ocean_floor: Vec<i32>,
+    frozen: bool,
+}
+
+impl WorldgenHeightmaps {
+    pub(crate) fn capture(chunk: &GeneratedChunk, frozen: bool) -> Self {
+        let mut world_surface = Vec::with_capacity(256);
+        let mut ocean_floor = Vec::with_capacity(256);
+        for z in 0..16 {
+            for x in 0..16 {
+                let heights = placement_heights(chunk, x, z);
+                world_surface.push(heights.world_surface);
+                ocean_floor.push(heights.ocean_floor);
+            }
+        }
+        Self {
+            world_surface,
+            ocean_floor,
+            frozen,
+        }
+    }
+
+    pub(crate) fn update(&mut self, states: &[u32], x: usize, y: i32, z: usize, state: u32) {
+        if self.frozen {
+            return;
+        }
+        let flags = state_flags();
+        let index = z * 16 + x;
+        for (mask, heights) in [
+            (NOT_AIR, &mut self.world_surface),
+            (BLOCKS_MOTION, &mut self.ocean_floor),
+        ] {
+            if flags[state as usize] & mask != 0 {
+                heights[index] = heights[index].max(y + 1);
+            } else if y == heights[index] - 1 {
+                heights[index] = (MIN_Y..y)
+                    .rev()
+                    .find(|&lower| {
+                        let block = states[(lower - MIN_Y) as usize * 256 + index];
+                        flags[block as usize] & mask != 0
+                    })
+                    .map_or(MIN_Y, |lower| lower + 1);
+            }
+        }
+    }
 }
 
 pub(crate) fn placement_heights(chunk: &GeneratedChunk, x: usize, z: usize) -> PlacementHeights {
@@ -123,5 +180,81 @@ mod tests {
         chunk.set(8, 48, 8, block::AIR);
         assert_eq!(placement_heights(&chunk, 8, 8).ocean_floor, 41);
         assert_eq!(chunk.height_at(8, 8), MIN_Y);
+    }
+
+    #[test]
+    fn wg_update_boundary_matches_the_captured_native_status_sets() {
+        let data: serde_json::Value =
+            serde_json::from_str(include_str!("../data/feature_dependencies_26_1.json")).unwrap();
+        for status in data["statuses"].as_array().unwrap() {
+            let index = status["index"].as_u64().unwrap() as usize;
+            let updates_wg = status["heightmaps_after"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|name| name == "WORLD_SURFACE_WG");
+            assert_eq!(
+                updates_wg,
+                index < crate::generation::ChunkStatus::Carvers.index()
+            );
+        }
+    }
+
+    #[test]
+    fn initialized_wg_maps_follow_pre_carvers_writes_and_removals() {
+        let mut chunk = GeneratedChunk::new(ChunkPos::new(0, 0));
+        chunk.set(8, 40, 8, block::DIRT);
+        chunk.capture_worldgen_heightmaps(false);
+        chunk.set(8, 48, 8, block::WATER);
+        assert_eq!(chunk.worldgen_heightmaps().unwrap().world_surface[136], 49);
+        assert_eq!(chunk.worldgen_heightmaps().unwrap().ocean_floor[136], 41);
+        chunk.set(8, 45, 8, block::OAK_LEAVES);
+        assert_eq!(chunk.worldgen_heightmaps().unwrap().ocean_floor[136], 46);
+        chunk.set(8, 45, 8, block::AIR);
+        chunk.set(8, 48, 8, block::AIR);
+        assert_eq!(chunk.worldgen_heightmaps().unwrap().world_surface[136], 41);
+        assert_eq!(chunk.worldgen_heightmaps().unwrap().ocean_floor[136], 41);
+        chunk.set(8, 40, 8, block::AIR);
+        assert_eq!(chunk.worldgen_heightmaps().unwrap().ocean_floor[136], MIN_Y);
+    }
+
+    #[test]
+    fn feature_region_keeps_wg_heights_separate_from_live_decoration() {
+        use crate::feature_world::{FeatureHeightmap, FeatureWorld};
+        use crate::generation::ChunkStatus;
+        use crate::ore::OreWorld;
+        use crate::region::FeatureRegion;
+
+        let pos = ChunkPos::new(0, 0);
+        let mut region = FeatureRegion::shared(crate::WorldGenerator::new(0));
+        let chunk = region.owned_chunk_mut(pos);
+        chunk.set(15, 125, 6, block::GRASS_BLOCK);
+        chunk.capture_worldgen_heightmaps(true);
+        region.begin_source(
+            pos,
+            ChunkStatus::Features,
+            [((0, 0), ChunkStatus::Carvers)].into(),
+        );
+        assert!(region.set_feature_block((15, 132, 6), block::OAK_LEAVES, 2));
+        // This 126/133 distinction is the captured patch_grass_forest witness.
+        assert_eq!(
+            region.feature_height(FeatureHeightmap::WorldSurfaceWg, 15, 6),
+            126
+        );
+        assert_eq!(
+            region.feature_height(FeatureHeightmap::WorldSurface, 15, 6),
+            133
+        );
+        assert_eq!(region.ocean_floor_wg(15, 6), 126);
+        assert_eq!(
+            region.feature_height(FeatureHeightmap::OceanFloor, 15, 6),
+            133
+        );
+        assert!(region.set_feature_block((15, 125, 6), block::AIR, 2));
+        assert_eq!(
+            region.feature_height(FeatureHeightmap::WorldSurfaceWg, 15, 6),
+            126
+        );
+        region.end_source();
     }
 }

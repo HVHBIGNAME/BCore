@@ -75,7 +75,7 @@ pub(super) fn place_trunk<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
     let (ox, oy, oz) = origin;
     let total_height = height + 2;
     let trunk_top = oy + (total_height as f64 * 0.618).floor() as i32;
-    place_below_trunk_block(chunk, config, (ox, oy - 1, oz));
+    place_below_trunk_block(chunk, random, config, (ox, oy - 1, oz));
     let mut clusters = vec![((ox, oy + total_height - 5, oz), trunk_top)];
     // Vanilla's min(1, floor(1.382 + (height / 13)^2)) is one for tree heights.
     for layer in (0..=total_height - 5).rev() {

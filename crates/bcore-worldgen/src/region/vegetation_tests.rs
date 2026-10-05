@@ -101,6 +101,8 @@ fn fixture_region(sample: &Sample) -> (FeatureRegion, Chunks) {
         biome_zoom: crate::biome_zoom::BiomeZoom::new(sample.seed),
         chunks: RefCell::new(chunks.clone()),
         tree_effects: Default::default(),
+        light_updates: Vec::new(),
+        access: Default::default(),
     };
     (region, chunks)
 }

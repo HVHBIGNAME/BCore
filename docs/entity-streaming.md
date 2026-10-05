@@ -14,10 +14,12 @@ native type ID is **25**, and its loot table is
 `minecraft:chests/abandoned_mineshaft`. Generation and native fixtures compare this
 pre-gameplay data independently of entity UUIDs.
 
-`ChunkColumn` retains the ordered generated-entity rows. The existing `.bcc` v3
-format stores their kind, owning-chunk position and loot seed, alongside block
-entities and structure metadata. The reader still accepts v1, v2 and v3. Streaming
-adds no persisted UUID or runtime-ID field to v3.
+`ChunkColumn` retains the ordered generated-entity rows. Their kind, owning-chunk
+position and loot seed use the layout introduced in `.bcc` v3, alongside block
+entities and structure metadata. The current writer emits **v4** and the reader
+accepts **v1–v4**. V4 adds [hive occupants and deferred tick requests](tree-effects.md)
+while retaining the v3 entity layout. Streaming adds no persisted UUID or runtime-ID
+field.
 
 `TrackedEntity` in `crates/bcore-protocol/src/entity.rs` supplies two identities:
 
@@ -63,7 +65,8 @@ The job's RAII cleanup releases its reservation on completion, send failure,
 discard or unwind, and the dispatcher continues after a failed job. The owning
 handle keeps the world alive until the job is released. **Six queue tests passed**,
 covering world/seed/store isolation, clone coalescing, ownership and failure cleanup.
-The separate **26 world/lifecycle tests passed**; the newest combined run is pending.
+The separate **26 world/lifecycle tests passed**. The complete **2026-10-02 protocol
+run passed 234 tests**, including these queue and lifecycle checks.
 
 ## Packet ordering and delivery state
 
@@ -182,8 +185,9 @@ than hiding it under the save-directory rule.
 
 The old unused login UUID helpers were removed; the earlier targeted streaming
 run had no compile warnings. The **178-pass protocol baseline predates these
-changes**. The six queue tests and 26 world tests are targeted results; final
-combined suite totals remain pending. Historical measurements are retained in
+changes**. The six queue tests and 26 world tests are targeted results; the newer
+complete suite passed **234 protocol tests** within a **514-pass / 4-ignored**
+workspace run. Historical measurements and current reproduction details are in
 [parity-report.md](parity-report.md).
 
 ## Reproduce
@@ -216,13 +220,16 @@ regression commands and slow-target timings are in
 ## Remaining scope
 
 Minecart motion/ticking, loot unpacking, inventory interaction, mutable-entity
-persistence and spawner simulation remain incomplete. New standing-tree fixtures
-verify hive NBT and tick requests in region-owned `TreeEffects`; those effects are
-not yet persisted or streamed. `finish_chunk` asserts that they must be transferred
-before finalization.
+persistence and spawner simulation remain incomplete. `finish_chunk` now transfers
+staged hive snapshots and raw tick requests into their owning region chunks.
+The returned chunk carries them through `.bcc` v4 save/load and queued loading;
+hive entries send empty client update NBT while occupants and requests remain
+server-side. [Tree effects and tick preparation](tree-effects.md) records the
+native evidence, transfer/retry behavior and targeted persistence checks.
 
 Native packet and lifecycle checks do not establish locations in complete
-mixed-feature regions. The full generation schedule, global region-vegetation
-hookup, other structures and dimensions remain tracked in
-[worldgen-parity-plan.md](worldgen-parity-plan.md). Final combined suite totals and
-the post-change snapshot await confirmation.
+mixed-feature regions. Shared live generation and region vegetation are connected;
+native source-history matching, persisted generation holders, other structures,
+dimensions and runtime tick execution remain tracked in
+[worldgen-parity-plan.md](worldgen-parity-plan.md). Recorded suite and snapshot
+provenance are in [parity-report.md](parity-report.md).

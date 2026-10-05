@@ -5,6 +5,9 @@ edition = "2021"
 license = "MIT"
 description = "BCore deterministic, seed-based world generation"
 
+[features]
+diagnostics = []
+
 [dependencies]
 bcore-core = { path = "../bcore-core" }
 rayon = "1.12.0"

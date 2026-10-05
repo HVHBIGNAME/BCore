@@ -69,6 +69,13 @@
   .parity p { margin: 8px 0; }
   .parity .accuracy { color: var(--accent); font-size: 1.12rem; font-weight: 700; }
   .parity .caveat, .parity .components { color: var(--muted); font-size: 0.9rem; }
+  .checkpoint-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+  .checkpoint-stat { padding: 14px; border: 1px solid var(--border); border-radius: 8px; }
+  .checkpoint-stat strong { display: block; color: #50e3c2; font-size: 1.8rem; }
+  .checkpoint-stat span { color: var(--muted); font-size: 0.82rem; }
+  .chart { display: block; width: 100%; height: auto; margin: 18px 0; }
+  .chart-link { display: block; }
+  @media (max-width: 540px) { .checkpoint-grid { grid-template-columns: 1fr; } }
   a { color: var(--accent); }
   .badge {
     font-size: 0.72rem;
@@ -139,11 +146,29 @@
 
     const container = document.getElementById('categories');
     container.innerHTML = '';
+    if (data.checkpoint) {
+      const c = data.checkpoint;
+      const latest = document.createElement('section');
+      latest.className = 'category parity';
+      latest.innerHTML = `<h2>Latest verified checkpoint</h2>` +
+        `<div class="checkpoint-grid">` +
+        `<div class="checkpoint-stat"><strong>${c.tests_passed}</strong><span>tests passed · ${c.tests_failed} failed · ${c.tests_ignored} ignored</span></div>` +
+        `<div class="checkpoint-stat"><strong>${c.requests} / ${c.histories}</strong><span>native requests / matched histories</span></div>` +
+        `<div class="checkpoint-stat"><strong>${c.light_scored_requests}</strong><span>matching scored light snapshots</span></div></div>` +
+        `<p>Zero block-state, biome and source-order differences in these histories.</p>` +
+        `<p class="caveat">Full parity remains incomplete: ${c.remaining_nbt_field_differences} deferred-NBT field differences and ${c.remaining_wg_presence_differences} WG-presence differences remain across repeated snapshots. SPAWN/FULL runtime integration is next.</p>` +
+        `<p><a href="${escapeHtml(c.report)}">Detailed report</a> · <a href="${escapeHtml(c.data)}">Published evidence</a></p>`;
+      container.appendChild(latest);
+      const plots = document.createElement('section');
+      plots.innerHTML = `<a class="chart-link" href="${escapeHtml(c.report)}"><img class="chart" src="assets/generation-accuracy.svg" alt="Matched-history accuracy and the separately preserved historical region sample" width="1000" height="614" loading="lazy" /></a>` +
+        `<a class="chart-link" href="https://github.com/HVHBIGNAME/BCore/blob/main/docs/performance.md"><img class="chart" src="assets/performance.svg" alt="Measured BCore versus Vanilla NOISE-kernel throughput at one, two and four workers; this is not a complete-server benchmark" width="1000" height="576" loading="lazy" /></a>`;
+      container.appendChild(plots);
+    }
     if (data.parity) {
       const p = data.parity;
       const measured = document.createElement('section');
       measured.className = 'category parity';
-      measured.innerHTML = `<h2>Measured vanilla 26.1 parity</h2>` +
+      measured.innerHTML = `<h2>Historical three-region snapshot</h2>` +
         `<p class="sub">${escapeHtml(p.scope)}</p>` +
         `<p>Seed: <code>${escapeHtml(p.seed)}</code> · protocol ${data.protocol}</p>` +
         `<p>Terrain: ${escapeHtml(p.terrain)}<br>Biomes: ${escapeHtml(p.biomes)}</p>` +

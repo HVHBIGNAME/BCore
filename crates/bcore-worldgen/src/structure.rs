@@ -1,6 +1,12 @@
 //! First structure-generation scaffold: deterministic village starts and a house.
+pub mod jigsaw;
 pub mod mineshaft;
 pub mod placement;
+pub mod pool_alias;
+pub mod processors;
+pub mod scattered;
+pub mod template;
+pub mod template_pool;
 
 use crate::{block, GeneratedChunk, CHUNK_SIZE, MAX_Y, MIN_Y, SEA_LEVEL};
 use bcore_core::ChunkPos;

@@ -1,47 +1,67 @@
 #![forbid(unsafe_code)]
 //! Deterministic world generation for BCore, targeting Minecraft Java 26.1.
 //!
-//! [`WorldGenerator::generate_chunk_vanilla`] evaluates bundled density and
-//! biome data, fills aquifers, applies surface rules and carvers, then places
-//! ores and vegetation. Ore placement shares mutable neighbour chunks backed
-//! by an immutable, bounded terrain cache. Vegetation remains chunk-local;
-//! structures and complete feature-stage dependencies are still incomplete.
+//! [`GenerationWorld`] retains status claims, structure starts and mutable
+//! feature neighbours across requests. Its results include explicit coverage
+//! of the implemented generation stages and missing feature operations.
 //!
 //! [`WorldGenerator::generate_chunk`] is the older procedural prototype.
 //! Native component fixtures and captured-region tests document the current
 //! coverage; passing those samples does not imply complete vanilla parity.
 
 use bcore_core::ChunkPos;
-use rayon::prelude::*;
 use std::sync::OnceLock;
 
 pub mod aquifer;
 mod assets;
+pub mod base_features;
+pub mod beardifier;
 pub mod biome;
 pub mod biome_zoom;
 pub mod block_entity;
+pub mod block_predicate;
 pub mod carver;
 pub mod decoration;
 pub mod density;
+#[cfg(test)]
+mod density_materials_tests;
+pub mod dripstone;
 pub mod dungeon;
 pub mod feature_sorter;
+pub mod feature_world;
 pub mod features;
 pub mod generated_entity;
+pub mod generation;
+pub mod geode;
 mod heightmap;
+pub mod lighting;
+pub mod lush_caves;
+pub mod misc_features;
 pub mod mth;
 pub mod noise;
 pub mod noise_perlin;
 pub mod ore;
+pub mod ore_vein;
+pub mod placement;
 pub mod random;
 mod region;
+pub mod sculk;
 pub mod simplex;
+pub mod spawn;
 pub mod structure;
 pub mod surface;
+pub mod surface_builder;
+#[cfg(test)]
+mod surface_builder_pipeline_tests;
 pub mod surface_rules;
+#[cfg(test)]
 mod terrain_cache;
+pub mod tick_queue;
+pub mod tick_request;
 pub mod tree;
 
-pub use heightmap::is_air;
+pub use generation::{GenerationCoverage, GenerationError, GenerationResult, GenerationWorld};
+pub use heightmap::{is_air, WorldgenHeightmaps};
 pub use noise::{fbm2, fbm3, hash_2d, splitmix64, value_noise_2d, value_noise_3d};
 
 /// Width and depth of a chunk column in blocks.
@@ -66,20 +86,6 @@ pub const MIN_SURFACE: i32 = 40;
 pub const MAX_SURFACE: i32 = 140;
 /// Deepslate replaces stone below this Y.
 pub const DEEPSLATE_Y: i32 = 0;
-
-/// Vanilla `SurfaceSystem.getSurfaceDepth` for the overworld.
-fn surface_depth(seed: i64, x: i32, z: i32) -> i32 {
-    let noise =
-        noise_perlin::NormalNoise::for_world(seed, "minecraft:surface", -6, &[1.0, 1.0, 1.0]);
-    // `noiseRandom = rootPositional.fromHashOf("minecraft:surface").forkPositional()`,
-    // then `noiseRandom.at(x, 0, z).nextDouble()` — the named factory, not the root.
-    let mut root = noise_perlin::Xoroshiro::new(seed);
-    let positional = root.fork_positional();
-    let mut named = positional.from_hash_of("minecraft:surface");
-    let named_factory = named.fork_positional();
-    let mut random = named_factory.at(x, 0, z);
-    (noise.get_value(x as f64, 0.0, z as f64) * 2.75 + 3.0 + random.next_double() * 0.25) as i32
-}
 
 /// Network block-state ids for the blocks the generator places.
 ///
@@ -108,6 +114,8 @@ pub mod block {
     pub const IRON_ORE: u32 = 131;
     pub const COAL_ORE: u32 = 133;
     pub const COPPER_ORE: u32 = 25313;
+    pub const RAW_COPPER_BLOCK: u32 = 29578;
+    pub const RAW_IRON_BLOCK: u32 = 29577;
     pub const OAK_LOG: u32 = 137;
     pub const OAK_PLANKS: u32 = 15;
     pub const OAK_LEAVES: u32 = 279;
@@ -302,13 +310,33 @@ pub struct GeneratedChunk {
     noise_biomes: Option<Vec<biome::BiomeId>>,
     /// Terrain height (topmost solid terrain Y, before features) per `(x, z)`.
     heights: Vec<i32>,
+    worldgen_heightmaps: Option<WorldgenHeightmaps>,
+    light: Option<lighting::ChunkLight>,
     block_entities: std::collections::BTreeMap<(usize, i32, usize), block_entity::BlockEntity>,
+    feature_block_entities:
+        std::collections::BTreeMap<(usize, i32, usize), generation::FeatureBlockEntity>,
     entities: Vec<generated_entity::GeneratedEntity>,
+    structure_entities: Vec<generation::StructureEntityRequest>,
     structures: structure::mineshaft::region::StructureData,
     postprocessing: Vec<(usize, i32, usize)>,
+    tick_requests: Vec<tick_request::TickRequest>,
 }
 
 impl GeneratedChunk {
+    /// Retained WORLD_SURFACE_WG/OCEAN_FLOOR_WG maps from the native stage boundary.
+    pub fn worldgen_heightmaps(&self) -> Option<&WorldgenHeightmaps> {
+        self.worldgen_heightmaps.as_ref()
+    }
+
+    /// Retained native light layers from the shared generation light engine.
+    pub fn light(&self) -> Option<&lighting::ChunkLight> {
+        self.light.as_ref()
+    }
+
+    pub(crate) fn capture_worldgen_heightmaps(&mut self, frozen: bool) {
+        self.worldgen_heightmaps = Some(WorldgenHeightmaps::capture(self, frozen));
+    }
+
     fn new(pos: ChunkPos) -> Self {
         Self {
             pos,
@@ -316,16 +344,21 @@ impl GeneratedChunk {
             biomes: vec![Biome::Plains; CHUNK_SIZE * CHUNK_SIZE],
             noise_biomes: None,
             heights: vec![MIN_Y; CHUNK_SIZE * CHUNK_SIZE],
+            worldgen_heightmaps: None,
+            light: None,
             block_entities: std::collections::BTreeMap::new(),
+            feature_block_entities: std::collections::BTreeMap::new(),
             entities: Vec::new(),
+            structure_entities: Vec::new(),
             structures: Default::default(),
             postprocessing: Vec::new(),
+            tick_requests: Vec::new(),
         }
     }
 
     #[inline]
     fn index(x: usize, y: i32, z: usize) -> Option<usize> {
-        if x >= CHUNK_SIZE || z >= CHUNK_SIZE || y < MIN_Y || y > MAX_Y {
+        if x >= CHUNK_SIZE || z >= CHUNK_SIZE || !(MIN_Y..=MAX_Y).contains(&y) {
             return None;
         }
         Some((y - MIN_Y) as usize * (CHUNK_SIZE * CHUNK_SIZE) + z * CHUNK_SIZE + x)
@@ -343,12 +376,22 @@ impl GeneratedChunk {
         match Self::index(x, y, z) {
             Some(i) => {
                 self.states[i] = state;
+                if let Some(heightmaps) = &mut self.worldgen_heightmaps {
+                    heightmaps.update(&self.states, x, y, z, state);
+                }
                 if self
                     .block_entities
                     .get(&(x, y, z))
                     .is_some_and(|data| !data.matches_state(state))
                 {
                     self.block_entities.remove(&(x, y, z));
+                }
+                if self
+                    .feature_block_entities
+                    .get(&(x, y, z))
+                    .is_some_and(|data| !data.matches_state(state))
+                {
+                    self.feature_block_entities.remove(&(x, y, z));
                 }
                 true
             }
@@ -367,8 +410,56 @@ impl GeneratedChunk {
         &self.block_entities
     }
 
+    /// Generated typed entities (currently sculk) in addition to `block_entities`.
+    pub fn feature_block_entities(
+        &self,
+    ) -> &std::collections::BTreeMap<(usize, i32, usize), generation::FeatureBlockEntity> {
+        &self.feature_block_entities
+    }
+
+    /// Attach generated data only to a compatible block in this chunk.
+    pub fn set_block_entity(
+        &mut self,
+        x: usize,
+        y: i32,
+        z: usize,
+        data: block_entity::BlockEntity,
+    ) -> bool {
+        if !self
+            .get(x, y, z)
+            .is_some_and(|state| data.matches_state(state))
+        {
+            return false;
+        }
+        self.block_entities.insert((x, y, z), data);
+        true
+    }
+
     pub fn entities(&self) -> &[generated_entity::GeneratedEntity] {
         &self.entities
+    }
+
+    /// Pending native structure entity factory/finalization requests.
+    pub fn structure_entities(&self) -> &[generation::StructureEntityRequest] {
+        &self.structure_entities
+    }
+
+    pub fn tick_requests(&self) -> &[tick_request::TickRequest] {
+        &self.tick_requests
+    }
+
+    /// Unconsumed proto-chunk marks, in insertion order (including duplicates).
+    pub fn postprocessing_positions(&self) -> &[(usize, i32, usize)] {
+        &self.postprocessing
+    }
+
+    /// Retain an unexecuted request in its owning chunk, including duplicates.
+    pub fn add_tick_request(&mut self, request: tick_request::TickRequest) -> bool {
+        if !request.valid_for(self.pos) {
+            return false;
+        }
+        self.tick_requests.push(request);
+        true
     }
 
     pub fn structures(&self) -> &structure::mineshaft::region::StructureData {
@@ -491,8 +582,6 @@ impl WorldGenerator {
             ],
         }
     }
-
-    // ---- climate ---------------------------------------------------------
 
     /// Large-scale land/sea signal: negative is ocean, positive is inland.
     pub fn continent(self, x: i32, z: i32) -> f64 {
@@ -623,8 +712,6 @@ impl WorldGenerator {
         )
     }
 
-    // ---- height ----------------------------------------------------------
-
     /// Terrain surface height at an absolute block column.
     ///
     /// Blends the climate biome's base height with 4 octaves of fractal noise,
@@ -661,8 +748,6 @@ impl WorldGenerator {
         (height.round() as i32).clamp(MIN_SURFACE, MAX_SURFACE)
     }
 
-    // ---- caves -----------------------------------------------------------
-
     /// Whether the solid block at an absolute position is carved into a cave.
     ///
     /// Two independent 3D noise fields are thresholded near zero; where both are
@@ -694,8 +779,6 @@ impl WorldGenerator {
         // Never open a cave straight into open water.
         y < SEA_LEVEL - 2 || y < surface - 8
     }
-
-    // ---- ores ------------------------------------------------------------
 
     /// The ore that replaces stone at an absolute position, if any.
     ///
@@ -738,8 +821,6 @@ impl WorldGenerator {
         None
     }
 
-    // ---- generation ------------------------------------------------------
-
     /// Unzoomed biome query used by native structure-start admission.
     pub fn noise_biome_vanilla(self, [x, y, z]: [i32; 3]) -> biome::BiomeId {
         density::clear_density_caches();
@@ -749,7 +830,11 @@ impl WorldGenerator {
             mode: density::EvaluationMode::Raw,
             ..Default::default()
         };
-        let result = graph.noise_biome_at(x >> 2, y >> 2, z >> 2, &ctx);
+        let result =
+            graph
+                .parameters
+                .sampler()
+                .find(graph.climate_at(x >> 2, y >> 2, z >> 2, &ctx));
         density::clear_density_caches();
         result
     }
@@ -757,6 +842,25 @@ impl WorldGenerator {
     /// First free WORLD_SURFACE_WG height from the noise column, before surface
     /// rules, carvers and features. Fluids and aquifer barriers count as terrain.
     pub fn base_height_vanilla(self, x: i32, z: i32) -> i32 {
+        self.base_height_for_vanilla(feature_world::FeatureHeightmap::WorldSurfaceWg, x, z)
+    }
+
+    pub(crate) fn base_height_for_vanilla(
+        self,
+        kind: feature_world::FeatureHeightmap,
+        x: i32,
+        z: i32,
+    ) -> i32 {
+        use feature_world::FeatureHeightmap;
+        let predicate: fn(u32) -> bool = match kind {
+            FeatureHeightmap::WorldSurfaceWg | FeatureHeightmap::WorldSurface => {
+                |state| !is_air(state)
+            }
+            FeatureHeightmap::OceanFloorWg | FeatureHeightmap::OceanFloor => {
+                heightmap::blocks_motion
+            }
+            _ => panic!("unsupported native base heightmap {kind:?}"),
+        };
         density::clear_density_caches();
         let graph = VanillaGraph::load().expect("complete vanilla worldgen assets");
         let ctx = density::EvalContext {
@@ -769,27 +873,46 @@ impl WorldGenerator {
             .rev()
             .find(|&y| {
                 let d = density::evaluate(&graph.final_density, x as f64, y as f64, z as f64, &ctx);
-                !is_air(aquifer.substance(x, y, z, d))
+                predicate(aquifer.substance(x, y, z, d))
             })
             .map_or(MIN_Y, |y| y + 1);
         density::clear_density_caches();
         result
     }
 
-    /// Build one terrain column: density scan, biome lookup, aquifer fill and surface rules.
-    fn build_column(
+    /// Density and aquifer filling, before the separately scheduled surface pass.
+    fn build_noise_column(
         seed: i64,
         graph: &VanillaGraph,
         ctx: &density::EvalContext,
         wx: i32,
         wz: i32,
     ) -> VanillaColumn {
+        Self::build_noise_column_with_structures(
+            seed,
+            graph,
+            ctx,
+            wx,
+            wz,
+            &beardifier::Beardifier::default(),
+        )
+    }
+
+    fn build_noise_column_with_structures(
+        seed: i64,
+        graph: &VanillaGraph,
+        ctx: &density::EvalContext,
+        wx: i32,
+        wz: i32,
+        beardifier: &beardifier::Beardifier,
+    ) -> VanillaColumn {
         let mut top = MIN_Y;
         // Fixed-size scratch avoids two heap allocations per column. The
         // indexed layout and scalar evaluation order are unchanged.
         let mut densities = [0.0f64; WORLD_HEIGHT as usize];
         for y in MIN_Y..=MAX_Y {
-            let d = density::evaluate(&graph.final_density, wx as f64, y as f64, wz as f64, ctx);
+            let d = density::evaluate(&graph.final_density, wx as f64, y as f64, wz as f64, ctx)
+                + beardifier.compute(wx, y, wz);
             densities[(y - MIN_Y) as usize] = d;
             if d > 0.0 {
                 top = y;
@@ -800,17 +923,8 @@ impl WorldGenerator {
         let biome = biome_from_id(biome_id);
         let mut states = vec![block::AIR; WORLD_HEIGHT as usize];
         let mut aquifer = aquifer::Aquifer::new(seed, graph, *ctx);
-        let mut stone_depth_above = 0i32;
-        let mut water_height = i32::MIN;
-        let surface_depth = surface_depth(seed, wx, wz);
-        // Vanilla `NoiseChunk.preliminarySurfaceLevel(x, z)` = floor of the
-        // `find_top_surface` density function at (x, 0, z); the surface rule
-        // and aquifer both rely on this, not the raw terrain top.
-        let preliminary_surface_level = graph
-            .preliminary_surface_level
-            .as_ref()
-            .map(|f| density::evaluate(f, wx as f64, 0., wz as f64, ctx).floor() as i32)
-            .unwrap_or(top);
+        let ore = ore_vein::OreVeinifier::new(seed);
+        let mut fluid_postprocessing = Vec::new();
         for y in (MIN_Y..=MAX_Y).rev() {
             let density_value = densities[(y - MIN_Y) as usize];
             // Vanilla `NoiseChunk.getInterpolatedState()`: the aquifer returns
@@ -819,154 +933,54 @@ impl WorldGenerator {
             // other result as the final block.
             let substance = aquifer.substance(wx, y, wz, density_value);
             let idx = (y - MIN_Y) as usize;
-            if substance == block::STONE {
-                // Vanilla increments `stoneAboveDepth` *before* applying the
-                // rule, so the topmost solid block is depth 1 (not 0).
-                stone_depth_above += 1;
-                let default_state = block::STONE;
-                let ctx = surface_rules::SurfaceContext {
-                    biome: biome_id,
-                    stone_depth_above,
-                    stone_depth_below: 0,
-                    water_height,
-                    surface_depth,
-                    preliminary_surface_level,
-                    sea_level: SEA_LEVEL,
-                    x: wx,
-                    y,
-                    z: wz,
-                    seed,
-                    noise: Some(density::noise_registry()),
-                };
-                states[idx] = graph
-                    .surface_rule
+            states[idx] = if substance == block::STONE {
+                graph
+                    .ore_veins
                     .as_ref()
-                    .and_then(|r| r.evaluate(&ctx))
-                    .unwrap_or(default_state);
-            } else if substance == block::WATER || substance == block::LAVA {
-                // Vanilla records `waterHeight = y + 1` on the first fluid
-                // block (top of the water) and does *not* reset stone depth.
-                if water_height == i32::MIN {
-                    water_height = y + 1;
-                }
-                states[idx] = substance;
+                    .and_then(|functions| functions.calculate(&ore, (wx, y, wz), ctx))
+                    .unwrap_or(block::STONE)
             } else {
-                // Air resets both stone depth and water height.
-                states[idx] = substance;
-                stone_depth_above = 0;
-                water_height = i32::MIN;
+                substance
+            };
+            if matches!(substance, block::WATER | block::LAVA)
+                && aquifer.should_schedule_fluid_update()
+            {
+                fluid_postprocessing.push(y);
             }
         }
-        VanillaColumn { top, biome, states }
+        VanillaColumn {
+            top,
+            biome,
+            states,
+            fluid_postprocessing,
+        }
     }
 
     /// Generate a chunk using the staged vanilla data-driven pipeline.
     ///
     /// Vanilla assets are bundled in the binary. Invalid explicit overrides fail
     /// at initialization instead of silently selecting the prototype generator.
+    #[cfg(test)]
     pub(crate) fn generate_chunk_before_features(self, pos: ChunkPos) -> GeneratedChunk {
-        let started = std::time::Instant::now();
-        let graph = VanillaGraph::load().expect("complete vanilla worldgen assets");
-        // Density caches are per-chunk: reset them so memory stays bounded to a
-        // single chunk rather than growing across the whole world.
-        density::clear_density_caches();
-        // The graph is seed-independent; only evaluation state varies per world.
-        let ctx = density::EvalContext {
-            seed: self.seed,
-            ..Default::default()
-        }
-        .with_noise_bounds(pos.x * CHUNK_SIZE as i32, pos.z * CHUNK_SIZE as i32, 4);
-
-        // Chunk-pyramid scheduler. Dependency radii are deliberately explicit:
-        // future structure/light implementations can request these neighborhoods
-        // without changing the deterministic terrain stages below.
-        let pyramid = ChunkPyramid::VANILLA;
-        let _ready_dependency_radii = pyramid.stages();
-        // structure_starts (23x23), biomes (7x7), noise (5x5), surface (3x3),
-        // caves/features/light (chunk-local for this implementation) are no-op
-        // scheduling barriers until their vanilla data is implemented.
-
-        let base_x = pos.x * CHUNK_SIZE as i32;
-        let base_z = pos.z * CHUNK_SIZE as i32;
-        let column_count = CHUNK_SIZE * CHUNK_SIZE;
-
-        // Each worker owns and clears its column caches; clearing only the calling
-        // thread leaves the Rayon workers retaining samples from previous chunks.
-        let columns: Vec<VanillaColumn> = (0..column_count)
-            .into_par_iter()
-            .map(|column_index| {
-                density::clear_density_caches();
-                let x = column_index % CHUNK_SIZE;
-                let z = column_index / CHUNK_SIZE;
-                let column = Self::build_column(
-                    self.seed,
-                    graph,
-                    &ctx,
-                    base_x + x as i32,
-                    base_z + z as i32,
-                );
-                density::clear_density_caches();
-                column
-            })
-            .collect();
-
-        let terrain_done = started.elapsed();
         let mut chunk = GeneratedChunk::new(pos);
-        let mut noise_biomes = Vec::with_capacity(1536);
-        for qy in MIN_Y / 4..=MAX_Y / 4 {
-            for qz in 0..4 {
-                for qx in 0..4 {
-                    noise_biomes.push(graph.noise_biome_at(
-                        pos.x * 4 + qx,
-                        qy,
-                        pos.z * 4 + qz,
-                        &ctx,
-                    ));
-                }
-            }
-        }
-        chunk.noise_biomes = Some(noise_biomes);
-        let biomes_done = started.elapsed();
-        for (column_index, column) in columns.into_iter().enumerate() {
-            chunk.heights[column_index] = column.top;
-            chunk.biomes[column_index] = column.biome;
-            for (y_offset, state) in column.states.into_iter().enumerate() {
-                chunk.states[y_offset * column_count + column_index] = state;
-            }
-        }
-
-        // Vanilla carvers run after surface and before underground ores.
-        carver::apply(self.seed, pos, &mut chunk, &graph, ctx);
-
-        if std::env::var_os("BCORE_WORLDGEN_TIMINGS").is_some() {
-            eprintln!(
-                "chunk {pos:?}: terrain={terrain_done:?} biomes={:?} carvers={:?}",
-                biomes_done - terrain_done,
-                started.elapsed() - biomes_done
-            );
-        }
-        density::clear_density_caches();
+        let graph = VanillaGraph::load()
+            .expect("complete vanilla worldgen assets")
+            .fork();
+        self.generate_biomes(&mut chunk, &graph);
+        self.generate_noise(&mut chunk, &graph);
+        self.generate_surface(&mut chunk, &graph);
+        self.generate_carvers(&mut chunk, &graph);
         chunk
     }
 
-    /// Generate terrain/carvers, mineshafts and features in a shared region.
+    /// One-shot compatibility entry point. Retain a [`GenerationWorld`] for live
+    /// worlds so adjacent requests share writes, source work and coverage.
+    #[deprecated(note = "retain GenerationWorld and inspect GenerationResult::coverage")]
     pub fn generate_chunk_vanilla(self, pos: ChunkPos) -> GeneratedChunk {
-        let center = terrain_cache::get(self, pos);
-        let mut region = region::FeatureRegion::new(self, center);
-        let sources: Vec<_> = (-1..=1)
-            .flat_map(|dx| (-1..=1).map(move |dz| ChunkPos::new(pos.x + dx, pos.z + dz)))
-            .collect();
-        region.place_mineshafts(sources.iter().copied());
-        for source in sources {
-            dungeon::decorate(self.seed, source, &mut region);
-            features::decorate_ores(self.seed, source, &mut region);
-        }
-        region.finish_chunk(pos)
-    }
-
-    /// Add post-surface trees and ground cover using vanilla feature seeds.
-    fn decorate_vanilla(self, chunk: &mut GeneratedChunk) {
-        decoration::decorate(self.seed, chunk);
+        GenerationWorld::new(self.seed)
+            .generate_chunk(pos)
+            .expect("chunk generation failed")
+            .chunk
     }
 
     /*
@@ -1212,8 +1226,6 @@ impl WorldGenerator {
         }
     }
 
-    // ---- features --------------------------------------------------------
-
     /// Place trees and surface plants.
     ///
     /// Trunks are considered for a 2-chunk-wide margin around this chunk so a
@@ -1409,61 +1421,33 @@ fn biome_from_id(id: biome::BiomeId) -> Biome {
         _ => Biome::Plains,
     }
 }
-/// Radius (in chunks) of the dependency neighborhood for each generation stage.
-///
-/// The current data-driven generator has no structure or light placement yet, but
-/// keeping this schedule explicit makes those stages composable without changing
-/// the order-independent terrain result.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-struct ChunkPyramid {
-    structure_starts: u8,
-    biomes: u8,
-    noise: u8,
-    surface: u8,
-    caves: u8,
-    features: u8,
-    light: u8,
-}
-
-impl ChunkPyramid {
-    const VANILLA: Self = Self {
-        structure_starts: 11, // 23 x 23
-        biomes: 3,            // 7 x 7
-        noise: 2,             // 5 x 5
-        surface: 1,           // 3 x 3
-        caves: 0,
-        features: 0,
-        light: 0,
-    };
-
-    #[inline]
-    fn stages(self) -> [u8; 7] {
-        [
-            self.structure_starts,
-            self.biomes,
-            self.noise,
-            self.surface,
-            self.caves,
-            self.features,
-            self.light,
-        ]
-    }
-}
-
 struct VanillaColumn {
     top: i32,
     biome: Biome,
     states: Vec<u32>,
+    fluid_postprocessing: Vec<i32>,
 }
 
 pub(crate) struct VanillaGraph {
+    parameters: biome::ParameterList,
+    data: std::sync::Arc<VanillaGraphData>,
+}
+
+impl std::ops::Deref for VanillaGraph {
+    type Target = VanillaGraphData;
+    fn deref(&self) -> &Self::Target {
+        &self.data
+    }
+}
+
+pub(crate) struct VanillaGraphData {
     pub(crate) final_density: density::DensityFunction,
+    ore_veins: Option<ore_vein::VeinFunctions>,
     pub(crate) preliminary_surface_level: Option<density::DensityFunction>,
     // Exposed in the graph for cave probes and parity diagnostics.  These are
     noodle: Option<density::DensityFunction>,
     cave_cheese: Option<density::DensityFunction>,
     entrances: Option<density::DensityFunction>,
-    parameters: Vec<(biome::BiomeId, biome::BiomeParameters)>,
     temperature: Option<density::DensityFunction>,
     humidity: Option<density::DensityFunction>,
     continentalness: Option<density::DensityFunction>,
@@ -1473,6 +1457,13 @@ pub(crate) struct VanillaGraph {
     surface_rule: Option<surface_rules::SurfaceRule>,
 }
 impl VanillaGraph {
+    fn fork(&self) -> Self {
+        Self {
+            parameters: biome::ParameterList::new(self.parameters.values().to_vec()),
+            data: self.data.clone(),
+        }
+    }
+
     fn noise_biome_at(
         &self,
         qx: i32,
@@ -1480,6 +1471,10 @@ impl VanillaGraph {
         qz: i32,
         ctx: &density::EvalContext,
     ) -> biome::BiomeId {
+        self.parameters.find(self.climate_at(qx, qy, qz, ctx))
+    }
+
+    fn climate_at(&self, qx: i32, qy: i32, qz: i32, ctx: &density::EvalContext) -> [f64; 6] {
         let climate = |f: &Option<density::DensityFunction>| {
             density::evaluate(
                 f.as_ref().expect("climate router function"),
@@ -1489,15 +1484,14 @@ impl VanillaGraph {
                 ctx,
             )
         };
-        biome::biome_at(
-            &self.parameters,
+        [
             climate(&self.temperature),
             climate(&self.humidity),
             climate(&self.continentalness),
             climate(&self.erosion),
             climate(&self.depth),
             climate(&self.weirdness),
-        )
+        ]
     }
 
     fn load() -> Option<&'static Self> {
@@ -1530,10 +1524,17 @@ impl VanillaGraph {
                 .and_then(|value| density::parse_json(&value.to_string()).ok())
         };
         let load_cave = |name: &str| load(&format!("caves/{name}"));
-        let parameters = biome::parse_parameters(
-            &assets::load("biome_parameters/overworld.json").expect("overworld biome parameters"),
-        )
-        .expect("valid biome parameters");
+        let parameters = if std::env::var_os("BCORE_DATAPACK").is_some() {
+            biome::ParameterList::new(
+                biome::parse_parameters(
+                    &assets::load("biome_parameters/overworld.json")
+                        .expect("overworld biome parameters"),
+                )
+                .expect("valid biome parameters"),
+            )
+        } else {
+            biome::ParameterList::overworld()
+        };
         let surface_rule = settings_value
             .get("surface_rule")
             .map(surface_rules::SurfaceRule::parse);
@@ -1543,19 +1544,33 @@ impl VanillaGraph {
             .cloned()
             .and_then(|v| density::parse_json(&v.to_string()).ok());
         Some(Self {
-            final_density,
-            preliminary_surface_level: preliminary,
-            noodle: load_cave("noodle"),
-            cave_cheese: load("sloped_cheese"),
-            entrances: load_cave("entrances"),
             parameters,
-            temperature: router_temperature,
-            humidity: router_humidity,
-            continentalness: load("continents"),
-            erosion: load("erosion"),
-            weirdness: load("ridges"),
-            depth: load("depth"),
-            surface_rule,
+            data: std::sync::Arc::new(VanillaGraphData {
+                final_density,
+                ore_veins: if settings_value["ore_veins_enabled"]
+                    .as_bool()
+                    .unwrap_or(false)
+                {
+                    Some(ore_vein::VeinFunctions {
+                        toggle: router_density("vein_toggle")?,
+                        ridged: router_density("vein_ridged")?,
+                        gap: router_density("vein_gap")?,
+                    })
+                } else {
+                    None
+                },
+                preliminary_surface_level: preliminary,
+                noodle: load_cave("noodle"),
+                cave_cheese: load("sloped_cheese"),
+                entrances: load_cave("entrances"),
+                temperature: router_temperature,
+                humidity: router_humidity,
+                continentalness: load("continents"),
+                erosion: load("erosion"),
+                weirdness: load("ridges"),
+                depth: load("depth"),
+                surface_rule,
+            }),
         })
     }
 }
@@ -1569,9 +1584,9 @@ mod tests {
     fn density_caches_stay_bounded_across_many_chunks() {
         // Generation runs on this test thread, so the thread-local density
         // caches accumulate here and are observable via density_cache_capacity().
-        let generator = WorldGenerator::new(SEED);
+        let generator = GenerationWorld::new(SEED);
         for i in 0..12 {
-            let _ = generator.generate_chunk_vanilla(ChunkPos::new(i, i));
+            let _ = generator.generate_chunk(ChunkPos::new(i, i)).unwrap();
         }
         let capacity = crate::density::density_cache_capacity();
         assert!(
@@ -1585,11 +1600,12 @@ mod tests {
     fn benchmark_vanilla_graph_cache() {
         use std::time::Instant;
         let pos = ChunkPos::new(-34, 3);
+        let world = GenerationWorld::new(1234);
         let cold = Instant::now();
-        let first = WorldGenerator::new(1234).generate_chunk_vanilla(pos);
+        let first = world.generate_chunk(pos).unwrap().chunk;
         let cold_elapsed = cold.elapsed();
         let warm = Instant::now();
-        let second = WorldGenerator::new(1234).generate_chunk_vanilla(pos);
+        let second = world.generate_chunk(pos).unwrap().chunk;
         let warm_elapsed = warm.elapsed();
         assert_eq!(first, second);
         println!("vanilla graph cache: cold={cold_elapsed:?}, warm={warm_elapsed:?}");

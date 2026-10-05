@@ -16,34 +16,6 @@ pub trait DungeonWorld: OreWorld {
     fn set_block_entity(&mut self, pos: (i32, i32, i32), data: BlockEntity);
 }
 
-pub(crate) fn decorate(
-    seed: i64,
-    source: crate::ChunkPos,
-    world: &mut crate::region::FeatureRegion,
-) {
-    let mut random = WorldgenRandom::new(seed);
-    let (x, z) = (source.x * 16, source.z * 16);
-    let decoration_seed = random.set_decoration_seed(seed, x, z);
-    let sorter = crate::feature_sorter::sorter();
-    for (name, count, min_y, max_y) in [
-        ("monster_room", 10, 0, 319),
-        ("monster_room_deep", 4, -58, -1),
-    ] {
-        let (step, index) = sorter
-            .within_step_index(name)
-            .expect("dungeon placement index");
-        random.set_feature_seed(decoration_seed, index as i32, step as i32);
-        for _ in 0..count {
-            let px = x + random.next_int(16) as i32;
-            let pz = z + random.next_int(16) as i32;
-            let py = min_y + random.next_int((max_y - min_y + 1) as usize) as i32;
-            if sorter.feature_in_biome(crate::biome::name(world.biome_at((px, py, pz))), name) {
-                place(world, &mut random, (px, py, pz));
-            }
-        }
-    }
-}
-
 pub(crate) fn state_flags(state: u32) -> u8 {
     static FLAGS: OnceLock<Vec<u8>> = OnceLock::new();
     let flags = FLAGS.get_or_init(|| {

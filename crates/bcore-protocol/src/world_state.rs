@@ -17,10 +17,9 @@
 //!        +-- otherwise           --> generate, save, encode, cache
 //! ```
 //!
-//! Because generation is a pure function of `(seed, x, z)` and saving happens
-//! immediately, the three paths are interchangeable: a chunk loaded from disk is
-//! byte-identical to the one that would have been generated. That is what
-//! `tests/chunk_persistence.rs` asserts.
+//! Fresh generation shares status claims, structure starts and neighbouring
+//! feature writes for the lifetime of this world. The store round-trips returned
+//! columns exactly; the generation history itself is currently in-memory.
 //!
 //! Persistence failures are **non-fatal**: a read-only world directory degrades
 //! to pure generation (with a one-time warning) rather than dropping players.
@@ -103,7 +102,10 @@ fn payload_shard(x: i32, z: i32) -> usize {
 }
 
 use bcore_core::ChunkPos;
-use bcore_worldgen::{block, WorldGenerator};
+use bcore_worldgen::{
+    block, generation::ChunkProgress, GenerationCoverage, GenerationError, GenerationWorld,
+    WorldGenerator,
+};
 
 use crate::chunk::ChunkColumn;
 use crate::chunk_store::ChunkStore;
@@ -132,6 +134,7 @@ pub struct World {
 #[derive(Debug)]
 struct WorldInner {
     generator: WorldGenerator,
+    generation: GenerationWorld,
     store: Option<ChunkStore>,
     /// Encoded `map_chunk` payloads, keyed by chunk position.
     payloads: [PayloadShard; PAYLOAD_SHARDS],
@@ -141,6 +144,7 @@ struct WorldInner {
     entities: crate::entity::EntityTracker,
     /// Set once the first persistence error has been reported.
     warned: Mutex<bool>,
+    warned_generation: OnceLock<()>,
 }
 
 impl World {
@@ -163,12 +167,14 @@ impl World {
         Self {
             inner: Arc::new(WorldInner {
                 generator: WorldGenerator::new(seed),
+                generation: GenerationWorld::new(seed),
                 store,
                 payloads: std::array::from_fn(|_| RwLock::new(HashMap::new())),
                 generation_locks: std::array::from_fn(|_| Mutex::new(())),
                 in_flight: Mutex::new(HashSet::new()),
                 entities: Default::default(),
                 warned: Mutex::new(false),
+                warned_generation: OnceLock::new(),
             }),
         }
     }
@@ -220,39 +226,78 @@ impl World {
     ///
     /// Returns the column and where it came from.
     pub fn chunk(&self, x: i32, z: i32) -> (ChunkColumn, ChunkOrigin) {
+        self.try_chunk(x, z).unwrap_or_else(|error| {
+            panic!(
+                "cannot load or generate chunk ({x}, {z}) for seed {}: {error}",
+                self.seed()
+            )
+        })
+    }
+
+    /// Load or generate, releasing the shard lock before returning a generation error.
+    pub fn try_chunk(&self, x: i32, z: i32) -> Result<(ChunkColumn, ChunkOrigin), GenerationError> {
         let _generation = self.inner.generation_locks[payload_shard(x, z)]
             .lock()
             .expect("chunk generation lock");
         if let Some(store) = &self.inner.store {
             match store.load(x, z) {
-                Ok(Some(column)) => return (column, ChunkOrigin::Loaded),
+                Ok(Some(column)) => return Ok((column, ChunkOrigin::Loaded)),
                 Ok(None) => {}
                 Err(e) => self.warn_once(&format!("cannot read chunk ({x}, {z})"), &e),
             }
         }
 
-        let generated = self
-            .inner
-            .generator
-            .generate_chunk_vanilla(ChunkPos::new(x, z));
-        let column = ChunkColumn::from_generated(&generated);
+        let (column, _) = self.try_generate(x, z)?;
 
         if let Some(store) = &self.inner.store {
             if let Err(e) = store.save(x, z, &column) {
                 self.warn_once(&format!("cannot write chunk ({x}, {z})"), &e);
             }
         }
-        (column, ChunkOrigin::Generated)
+        Ok((column, ChunkOrigin::Generated))
     }
 
     /// Generate a chunk without consulting or touching the disk.
     pub fn generate(&self, x: i32, z: i32) -> ChunkColumn {
-        ChunkColumn::from_generated(
-            &self
-                .inner
-                .generator
-                .generate_chunk_vanilla(ChunkPos::new(x, z)),
-        )
+        self.try_generate(x, z)
+            .unwrap_or_else(|error| {
+                panic!(
+                    "cannot generate chunk ({x}, {z}) for seed {}: {error}",
+                    self.seed()
+                )
+            })
+            .0
+    }
+
+    /// Generate using this world's retained history and return its actual coverage.
+    pub fn try_generate(
+        &self,
+        x: i32,
+        z: i32,
+    ) -> Result<(ChunkColumn, GenerationCoverage), GenerationError> {
+        let result = self.inner.generation.generate_chunk(ChunkPos::new(x, z))?;
+        if !result.coverage.is_complete() {
+            self.inner.warned_generation.get_or_init(|| {
+                eprintln!(
+                    "[bcore] world seed {} has partial native generation coverage at ({x}, {z}): \
+                     {} missing feature streams, {} missing stage entries; \
+                     World::try_generate returns the detailed coverage",
+                    self.seed(),
+                    result.coverage.missing_features().count(),
+                    result.coverage.missing_stages.len(),
+                );
+            });
+        }
+        Ok((ChunkColumn::from_generated(&result.chunk), result.coverage))
+    }
+
+    /// Live generation claims; a column served only from disk has no live history.
+    pub fn generation_progress(
+        &self,
+        x: i32,
+        z: i32,
+    ) -> Result<Option<ChunkProgress>, GenerationError> {
+        self.inner.generation.progress(ChunkPos::new(x, z))
     }
 
     /// Return a cached payload without doing world generation.
@@ -544,7 +589,7 @@ mod tests {
         assert!(world.store().is_none());
         let (_, origin) = world.chunk(0, 0);
         assert_eq!(origin, ChunkOrigin::Generated);
-        // A second call regenerates rather than loading, since nothing is saved.
+        // A second call reuses the live generated data without loading a file.
         let (_, origin) = world.chunk(0, 0);
         assert_eq!(origin, ChunkOrigin::Generated);
     }
@@ -607,9 +652,7 @@ mod tests {
         let cz = (z as i32).div_euclid(16);
         let lx = (x as i32).rem_euclid(16) as usize;
         let lz = (z as i32).rem_euclid(16) as usize;
-        let chunk = world
-            .generator()
-            .generate_chunk_vanilla(ChunkPos::new(cx, cz));
+        let chunk = world.generate(cx, cz);
         let surface = chunk.surface_y(lx, lz).expect("spawn has a surface");
         let state = chunk.get(lx, surface, lz).expect("surface block");
         println!("land spawn: x={x} y={y} z={z}, surface_y={surface}, state={state}");
@@ -879,5 +922,35 @@ mod queue_tests {
             .expect("dispatcher must survive a failed world job");
         assert!(a.inner.in_flight.lock().unwrap().is_empty());
         healthy.assert_cached(&b, &wait_cached(&b));
+    }
+
+    #[test]
+    fn rejected_generation_does_not_poison_other_positions_in_the_same_world_shard() {
+        let saved = SavedChunk::new(block::STONE, 49);
+        let world = saved.world(43);
+        let invalid_x = (0..1024)
+            .map(|offset| i32::MAX - offset)
+            .find(|&x| payload_shard(x, POSITION.1) == payload_shard(POSITION.0, POSITION.1))
+            .unwrap();
+        let (tx, rx) = mpsc::channel();
+        let worker = thread::spawn(move || run_generation_queue(rx));
+        world
+            .reserve_generation(invalid_x, POSITION.1)
+            .unwrap()
+            .send(&tx);
+        world
+            .reserve_generation(POSITION.0, POSITION.1)
+            .unwrap()
+            .send(&tx);
+        drop(tx);
+        worker
+            .join()
+            .expect("dispatcher must survive a rejected coordinate");
+        assert!(world.inner.in_flight.lock().unwrap().is_empty());
+        assert!(world
+            .generation_progress(invalid_x, POSITION.1)
+            .unwrap()
+            .is_none());
+        saved.assert_cached(&world, &wait_cached(&world));
     }
 }

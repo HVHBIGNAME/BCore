@@ -14,15 +14,55 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
 
+# Dependencies follow TreeReference.java in this order for fixture provenance.
+PROBES = {
+    "tree": (),
+    "heightmap": ("HeightmapReference.java",),
+    "fallen": ("FallenTreeReference.java",),
+    "structure": ("StructureReference.java",),
+    "random": ("RandomReference.java",),
+    "ore": ("OreReference.java",),
+    "ore_placement": ("OreReference.java", "FeatureOrderReference.java", "OrePlacementReference.java"),
+    "biome_zoom": ("BiomeZoomReference.java",),
+    "aquifer": ("OreReference.java", "AquiferReference.java"),
+    "feature_order": ("FeatureOrderReference.java",),
+    "monster_room": ("MonsterRoomReference.java",),
+    "mineshaft": ("MineshaftReference.java",),
+    "mineshaft_blocks": ("OreReference.java", "NativeEntityLevel.java", "MineshaftBlockReference.java"),
+    "mineshaft_start": ("OreReference.java", "NativeWorldgenRegistries.java", "MineshaftStartReference.java"),
+    "mineshaft_region": ("OreReference.java", "NativeEntityLevel.java", "MineshaftBlockReference.java",
+                         "NativeWorldgenRegistries.java", "MineshaftStartReference.java", "MineshaftRegionReference.java"),
+    "worldgen_data": ("NativeWorldgenRegistries.java", "WorldgenDataReference.java"),
+    "numeric": ("NativeWorldgenRegistries.java", "NumericReference.java"),
+    "entity_packet": ("NativeEntityLevel.java", "EntityPacketReference.java"),
+    "carver": ("OreReference.java", "NativeWorldgenRegistries.java", "NativeEntityLevel.java", "CarverReference.java"),
+    "mth": ("MthReference.java",),
+    "vegetation": ("OreReference.java", "NativeWorldgenRegistries.java", "vegetation-bounded/VegetationReference.java"),
+    "standing": ("OreReference.java", "NativeWorldgenRegistries.java", "VegetationReference.java"),
+    "standing_blocks": ("OreReference.java", "NativeWorldgenRegistries.java", "VegetationReference.java"),
+    "beehive": ("NativeWorldgenRegistries.java", "BeehiveReference.java"),
+    "tree_effect": ("NativeEntityLevel.java", "NativeWorldgenRegistries.java", "TreeEffectReference.java"),
+    "tick": ("TickReference.java",),
+    "feature_dependency": ("FeatureDependencyReference.java",),
+}
 
-def main():
+SUMMARIES = {
+    "numeric": lambda ref: f"{sum(len(s['bits']) for s in ref['samples'])} numeric values in {len(ref['samples'])} cases",
+    "worldgen_data": lambda ref: f"{len(ref['parameters']['biomes'])} climate rows and {len(ref['biome_registry'])} native biome ids",
+    "standing_blocks": lambda ref: f"{ref['state_count']} native standing-tree block states",
+    "feature_order": lambda ref: f"{sum(map(len, ref['steps']))} feature slots in {len(ref['steps'])} steps for {len(ref['possible_biomes'])} biomes",
+    "feature_dependency": lambda ref: f"{len(ref['statuses'])} native chunk statuses and their stage dependencies",
+}
+
+
+def parse_args():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--java", required=True, type=Path)
     parser.add_argument("--javac", default="javac")
     parser.add_argument("--vanilla", type=Path, default=ROOT / "target/vanilla-775")
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--build-dir", type=Path, help="isolated Java build directory for parallel probes")
-    parser.add_argument("--probe", choices=["tree", "heightmap", "fallen", "structure", "random", "ore", "ore_placement", "biome_zoom", "aquifer", "feature_order", "monster_room", "mineshaft", "mineshaft_blocks", "mineshaft_start", "mineshaft_region", "worldgen_data", "numeric", "entity_packet", "carver", "mth", "vegetation", "standing", "standing_blocks"], default="tree")
+    parser.add_argument("--probe", choices=PROBES, default="tree")
     parser.add_argument("--input", type=Path, help="numeric probe requests (omit for the standard matrix)")
     parser.add_argument("--verify", type=Path, help="compare the result with a checked-in fixture")
     args = parser.parse_args()
@@ -31,73 +71,15 @@ def main():
     jar = args.vanilla / "versions/26.1/server-26.1.jar"
     if not jar.is_file():
         parser.error(f"missing 26.1 server JAR: {jar}")
+    return args
+
+
+def capture(args):
+    jar = args.vanilla / "versions/26.1/server-26.1.jar"
     build = (args.build_dir or ROOT / "target/tree-reference").resolve()
     build.mkdir(parents=True, exist_ok=True)
-    source = ROOT / "scripts/TreeReference.java"
-    sources = [source]
-    main_class = "TreeReference"
-    if args.probe == "heightmap":
-        main_class = "HeightmapReference"
-        sources.append(ROOT / "scripts/HeightmapReference.java")
-    elif args.probe == "fallen":
-        main_class = "FallenTreeReference"
-        sources.append(ROOT / "scripts/FallenTreeReference.java")
-    elif args.probe == "structure":
-        main_class = "StructureReference"
-        sources.append(ROOT / "scripts/StructureReference.java")
-    elif args.probe == "random":
-        main_class = "RandomReference"
-        sources.append(ROOT / "scripts/RandomReference.java")
-    elif args.probe == "ore":
-        main_class = "OreReference"
-        sources.append(ROOT / "scripts/OreReference.java")
-    elif args.probe == "ore_placement":
-        main_class = "OrePlacementReference"
-        sources.extend([ROOT / "scripts/OreReference.java", ROOT / "scripts/FeatureOrderReference.java", ROOT / "scripts/OrePlacementReference.java"])
-    elif args.probe == "biome_zoom":
-        main_class = "BiomeZoomReference"
-        sources.append(ROOT / "scripts/BiomeZoomReference.java")
-    elif args.probe == "aquifer":
-        main_class = "AquiferReference"
-        sources.extend([ROOT / "scripts/OreReference.java", ROOT / "scripts/AquiferReference.java"])
-    elif args.probe == "feature_order":
-        main_class = "FeatureOrderReference"
-        sources.append(ROOT / "scripts/FeatureOrderReference.java")
-    elif args.probe == "monster_room":
-        main_class = "MonsterRoomReference"
-        sources.append(ROOT / "scripts/MonsterRoomReference.java")
-    elif args.probe == "mineshaft":
-        main_class = "MineshaftReference"
-        sources.append(ROOT / "scripts/MineshaftReference.java")
-    elif args.probe == "mineshaft_blocks":
-        main_class = "MineshaftBlockReference"
-        sources.extend([ROOT / "scripts/OreReference.java",ROOT / "scripts/NativeEntityLevel.java",ROOT / "scripts/MineshaftBlockReference.java"])
-    elif args.probe == "mineshaft_start":
-        main_class = "MineshaftStartReference"
-        sources.extend([ROOT / "scripts/OreReference.java",ROOT / "scripts/NativeWorldgenRegistries.java",ROOT / "scripts/MineshaftStartReference.java"])
-    elif args.probe == "worldgen_data":
-        main_class = "WorldgenDataReference"
-        sources.extend([ROOT / "scripts/NativeWorldgenRegistries.java",ROOT / "scripts/WorldgenDataReference.java"])
-    elif args.probe == "mineshaft_region":
-        main_class = "MineshaftRegionReference"
-        sources.extend([ROOT / "scripts/OreReference.java",ROOT / "scripts/NativeEntityLevel.java",ROOT / "scripts/MineshaftBlockReference.java",ROOT / "scripts/NativeWorldgenRegistries.java",ROOT / "scripts/MineshaftStartReference.java",ROOT / "scripts/MineshaftRegionReference.java"])
-    elif args.probe == "numeric":
-        main_class = "NumericReference"
-        sources.extend([ROOT / "scripts/NativeWorldgenRegistries.java", ROOT / "scripts/NumericReference.java"])
-    elif args.probe == "entity_packet":
-        main_class = "EntityPacketReference"
-        sources.extend([ROOT / "scripts/NativeEntityLevel.java", ROOT / "scripts/EntityPacketReference.java"])
-    elif args.probe == "carver":
-        main_class = "CarverReference"
-        sources.extend([ROOT / "scripts/OreReference.java", ROOT / "scripts/NativeWorldgenRegistries.java", ROOT / "scripts/NativeEntityLevel.java", ROOT / "scripts/CarverReference.java"])
-    elif args.probe == "mth":
-        main_class = "MthReference"
-        sources.append(ROOT / "scripts/MthReference.java")
-    elif args.probe in ("vegetation", "standing", "standing_blocks"):
-        main_class = "VegetationReference"
-        vegetation_source = (ROOT / "scripts/vegetation-bounded/VegetationReference.java"
-                             if args.probe == "vegetation" else ROOT / "scripts/VegetationReference.java")
-        sources.extend([ROOT / "scripts/OreReference.java", ROOT / "scripts/NativeWorldgenRegistries.java", vegetation_source])
+    sources = [ROOT / "scripts" / source for source in ("TreeReference.java", *PROBES[args.probe])]
+    main_class = sources[-1].stem
     subprocess.run([args.javac, "-d", str(build), *map(str, sources)], check=True)
     classpath = os.pathsep.join(map(str, [build, jar, *sorted((args.vanilla / "libraries").rglob("*.jar"))]))
     probe_args = []
@@ -130,27 +112,24 @@ def main():
         reference["samples"] = payload
     else:
         reference.update(payload)
+    return reference
+
+
+def summarize(probe, reference):
+    if formatter := SUMMARIES.get(probe):
+        return formatter(reference)
+    return f"{len(reference['samples'])} native {probe} samples"
+
+
+def main():
+    args = parse_args()
+    reference = capture(args)
     if args.verify:
         expected = json.loads(args.verify.read_text(encoding="utf-8"))
         if reference != expected:
             raise ValueError(f"JAR output differs from {args.verify}")
     args.output.write_text(json.dumps(reference, indent=2) + "\n", encoding="utf-8")
-    if args.probe == "numeric":
-        count = sum(len(sample["bits"]) for sample in reference["samples"])
-        print(f"{'Verified' if args.verify else 'Captured'} {count} numeric values in {len(reference['samples'])} cases to {args.output}")
-    elif args.probe == "worldgen_data":
-        print(f"Captured {len(reference['parameters']['biomes'])} climate rows and {len(reference['biome_registry'])} native biome ids to {args.output}")
-    elif args.probe == "standing_blocks":
-        print(f"{'Verified' if args.verify else 'Captured'} {reference['state_count']} native standing-tree block states to {args.output}")
-    elif args.verify and args.probe == "feature_order":
-        count = sum(map(len, reference["steps"]))
-        print(f"Verified {count} feature slots in {len(reference['steps'])} steps for {len(reference['possible_biomes'])} biomes against {args.verify}")
-    elif args.verify:
-        print(f"Verified {len(reference['samples'])} samples against {args.verify}")
-    elif args.probe in ("ore", "ore_placement", "aquifer", "monster_room", "mineshaft", "mineshaft_blocks", "mineshaft_start", "mineshaft_region", "entity_packet", "carver", "mth", "vegetation", "standing"):
-        print(f"Captured {len(reference['samples'])} native {args.probe} samples to {args.output}")
-    else:
-        print(json.dumps(reference, indent=2) if args.probe == "tree" else json.dumps(reference))
+    print(f"{'Verified' if args.verify else 'Captured'} {summarize(args.probe, reference)} to {args.output}")
 
 
 if __name__ == "__main__":

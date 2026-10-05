@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="614" viewBox="0 0 1000 614" role="img" aria-labelledby="title desc">
+<title id="title">BCore generation accuracy and remaining differences</title>
+<desc id="desc">69 matching block and biome snapshots. 31 scored light snapshots match. Historical three-region block match 96.99%. 103 NBT field and 52 WG-presence differences remain.</desc>
+<defs><linearGradient id="background" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#13243a"/><stop offset="1" stop-color="#0b1220"/></linearGradient><pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32,0 H0 V32" fill="none" stroke="#547294" stroke-opacity=".12"/></pattern></defs>
+<g font-family="Segoe UI, Ubuntu, Arial, sans-serif">
+<rect x="1" y="1" width="998" height="612" rx="20" fill="url(#background)" stroke="#26374e" />
+<text x="36" y="46" font-size="28" fill="#e8f0fc" font-weight="650" text-anchor="start" >Generation accuracy</text>
+<text x="36" y="73" font-size="14" fill="#a7bad2" font-weight="400" text-anchor="start" >Measured outputs, with the sample boundaries kept visible.</text>
+<rect x="30" y="96" width="455" height="351" rx="12" fill="#111e31" stroke="#26374e" />
+<rect x="503" y="96" width="467" height="351" rx="12" fill="#111e31" stroke="#26374e" />
+<text x="50" y="125" font-size="12" fill="#50e3c2" font-weight="600" text-anchor="start" letter-spacing="1">LATEST / MATCHED NATIVE HISTORIES</text>
+<text x="50" y="160" font-size="40" fill="#50e3c2" font-weight="700" text-anchor="start" >0</text>
+<text x="87" y="157" font-size="19" fill="#e8f0fc" font-weight="600" text-anchor="start" >block-state differences</text>
+<text x="50" y="184" font-size="12" fill="#a7bad2" font-weight="400" text-anchor="start" >6,782,976 observations · repeated snapshots included</text>
+<text x="50" y="216" font-size="14" fill="#e8f0fc" font-weight="400" text-anchor="start" >Block snapshots</text>
+<text x="463" y="216" font-size="14" fill="#50e3c2" font-weight="600" text-anchor="end" >69/69</text>
+<rect x="50" y="225" width="411" height="7" rx="3" fill="#26374e" stroke="none" />
+<rect x="50" y="225" width="411.0" height="7" rx="3" fill="#50e3c2" stroke="none" />
+<text x="50" y="268" font-size="14" fill="#e8f0fc" font-weight="400" text-anchor="start" >Quart-biome snapshots</text>
+<text x="463" y="268" font-size="14" fill="#50e3c2" font-weight="600" text-anchor="end" >69/69</text>
+<rect x="50" y="277" width="411" height="7" rx="3" fill="#26374e" stroke="none" />
+<rect x="50" y="277" width="411.0" height="7" rx="3" fill="#50e3c2" stroke="none" />
+<text x="50" y="320" font-size="14" fill="#e8f0fc" font-weight="400" text-anchor="start" >Source execution order</text>
+<text x="463" y="320" font-size="14" fill="#50e3c2" font-weight="600" text-anchor="end" >69/69</text>
+<rect x="50" y="329" width="411" height="7" rx="3" fill="#26374e" stroke="none" />
+<rect x="50" y="329" width="411.0" height="7" rx="3" fill="#50e3c2" stroke="none" />
+<text x="50" y="372" font-size="14" fill="#e8f0fc" font-weight="400" text-anchor="start" >Scored light snapshots</text>
+<text x="463" y="372" font-size="14" fill="#50e3c2" font-weight="600" text-anchor="end" >31/31</text>
+<rect x="50" y="381" width="411" height="7" rx="3" fill="#26374e" stroke="none" />
+<rect x="50" y="381" width="411.0" height="7" rx="3" fill="#50e3c2" stroke="none" />
+<text x="50" y="424" font-size="12" fill="#a7bad2" font-weight="400" text-anchor="start" >Structures + ordered postprocessing: zero differences</text>
+<text x="525" y="125" font-size="12" fill="#73aaff" font-weight="600" text-anchor="start" letter-spacing=".7">HISTORICAL / 2026-10-02 REGION SAMPLE</text>
+<text x="525" y="163" font-size="14" fill="#e8f0fc" font-weight="400" text-anchor="start" >Centre (0, 0)</text>
+<text x="944" y="163" font-size="15" fill="#73aaff" font-weight="600" text-anchor="end" >93.83%</text>
+<rect x="525" y="175" width="417" height="10" rx="5" fill="#26374e" stroke="none" />
+<rect x="525" y="175" width="391.29" height="10" rx="5" fill="#73aaff" stroke="none" />
+<text x="525" y="235" font-size="14" fill="#e8f0fc" font-weight="400" text-anchor="start" >Centre (1000, 0)</text>
+<text x="944" y="235" font-size="15" fill="#73aaff" font-weight="600" text-anchor="end" >98.28%</text>
+<rect x="525" y="247" width="417" height="10" rx="5" fill="#26374e" stroke="none" />
+<rect x="525" y="247" width="409.85" height="10" rx="5" fill="#73aaff" stroke="none" />
+<text x="525" y="307" font-size="14" fill="#e8f0fc" font-weight="400" text-anchor="start" >Centre (-2000, 3000)</text>
+<text x="944" y="307" font-size="15" fill="#73aaff" font-weight="600" text-anchor="end" >98.86%</text>
+<rect x="525" y="319" width="417" height="10" rx="5" fill="#26374e" stroke="none" />
+<rect x="525" y="319" width="412.26" height="10" rx="5" fill="#73aaff" stroke="none" />
+<text x="525" y="389" font-size="30" fill="#73aaff" font-weight="700" text-anchor="start" >96.99%</text>
+<text x="653" y="386" font-size="14" fill="#e8f0fc" font-weight="400" text-anchor="start" >286,047 / 294,912 states</text>
+<text x="525" y="421" font-size="12" fill="#a7bad2" font-weight="400" text-anchor="start" >Includes air. Older executable + unmatched capture history.</text>
+<rect x="30" y="466" width="940" height="93" rx="12" fill="#272536" stroke="#5c4d39" />
+<text x="50" y="493" font-size="16" fill="#f5c36c" font-weight="650" text-anchor="start" >What is still different?</text>
+<text x="50" y="518" font-size="13" fill="#a7bad2" font-weight="400" text-anchor="start" >103 deferred-NBT field differences · 52 WG-presence differences across repeated snapshots.</text>
+<text x="50" y="541" font-size="13" fill="#a7bad2" font-weight="400" text-anchor="start" >SPAWN / FULL conversion, ticking, other features and dimensions remain incomplete.</text>
+<text x="36" y="589" font-size="12" fill="#a7bad2" font-weight="400" text-anchor="start" >These are different evaluation scopes — neither is a percentage of the whole generator implemented.</text>
+</g></svg>

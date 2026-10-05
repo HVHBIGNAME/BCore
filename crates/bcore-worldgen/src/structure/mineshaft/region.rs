@@ -14,14 +14,68 @@ type Key = (i32, i32);
 pub struct StructureData {
     pub mineshaft_start: Option<MineshaftLayout>,
     pub references: Vec<([i32; 2], MineType)>,
+    #[serde(default)]
+    pub jigsaw_starts: BTreeMap<String, crate::structure::jigsaw::JigsawStart>,
+    /// Per-structure native LongOpenHashSet iteration order.
+    #[serde(default)]
+    pub jigsaw_references: BTreeMap<String, Vec<[i32; 2]>>,
+    #[serde(default)]
+    pub scattered_starts: BTreeMap<String, crate::structure::scattered::ScatteredStart>,
+    #[serde(default)]
+    pub scattered_references: BTreeMap<String, Vec<[i32; 2]>>,
 }
 
 impl StructureData {
     pub fn is_empty(&self) -> bool {
-        self.mineshaft_start.is_none() && self.references.is_empty()
+        self.mineshaft_start.is_none()
+            && self.references.is_empty()
+            && self.jigsaw_starts.is_empty()
+            && self.jigsaw_references.is_empty()
+            && self.scattered_starts.is_empty()
+            && self.scattered_references.is_empty()
     }
 
     pub fn valid_for(&self, owner: ChunkPos) -> bool {
+        use crate::structure::scattered::ScatteredKind;
+        if self.scattered_starts.len() > ScatteredKind::ALL.len()
+            || self.scattered_references.len() > ScatteredKind::ALL.len()
+            || self
+                .scattered_starts
+                .iter()
+                .any(|(name, start)| !start.valid_for(name, owner))
+            || self.scattered_references.iter().any(|(name, sources)| {
+                let mut unique = BTreeSet::new();
+                !ScatteredKind::ALL.iter().any(|kind| kind.name() == name)
+                    || sources.len() > 289
+                    || sources.iter().any(|p| {
+                        (i64::from(p[0]) - i64::from(owner.x)).abs() > 8
+                            || (i64::from(p[1]) - i64::from(owner.z)).abs() > 8
+                            || !unique.insert(*p)
+                    })
+            })
+        {
+            return false;
+        }
+        let assets = crate::structure::template_pool::StructureAssets::bundled();
+        if self.jigsaw_starts.len() > assets.structure_metadata.len()
+            || self.jigsaw_references.len() > assets.structure_metadata.len()
+            || self
+                .jigsaw_starts
+                .iter()
+                .any(|(name, start)| !start.valid_for(name, owner))
+            || self.jigsaw_references.iter().any(|(name, references)| {
+                let mut unique = BTreeSet::new();
+                !assets.structure_metadata.contains_key(name)
+                    || references.len() > 289
+                    || references.iter().any(|p| {
+                        (i64::from(p[0]) - i64::from(owner.x)).abs() > 8
+                            || (i64::from(p[1]) - i64::from(owner.z)).abs() > 8
+                            || !unique.insert(*p)
+                    })
+            })
+        {
+            return false;
+        }
         let mut unique = BTreeSet::new();
         if self.references.len() > 289
             || self.references.iter().any(|(p, _)| {
@@ -86,6 +140,12 @@ impl StructureData {
                 "Children": start.pieces.iter().map(|p| p.save_data(start.mine_type)).collect::<Vec<_>>()
             }));
         }
+        for (name, start) in &self.jigsaw_starts {
+            starts.insert(name.clone(), start.to_nbt(name, pos).to_json());
+        }
+        for (name, start) in &self.scattered_starts {
+            starts.insert(name.clone(), start.to_nbt().to_json());
+        }
         let mut references = serde_json::Map::new();
         for mine_type in [MineType::Normal, MineType::Mesa] {
             let values: Vec<_> = self
@@ -96,6 +156,21 @@ impl StructureData {
                 .collect();
             if !values.is_empty() {
                 references.insert(mine_type.name().to_owned(), json!(values));
+            }
+        }
+        for (name, sources) in self
+            .jigsaw_references
+            .iter()
+            .chain(&self.scattered_references)
+        {
+            if !sources.is_empty() {
+                references.insert(
+                    name.clone(),
+                    json!(sources
+                        .iter()
+                        .map(|&[x, z]| pack((x, z)) as i64)
+                        .collect::<Vec<_>>()),
+                );
             }
         }
         json!({"starts": starts, "references": references})
@@ -221,6 +296,7 @@ impl RegionPlan {
                 .flatten()
                 .map(|&((x, z), ty)| ([x, z], ty))
                 .collect(),
+            ..Default::default()
         }
     }
 }

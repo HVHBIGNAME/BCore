@@ -1,4 +1,6 @@
-//! Bounded cache of immutable terrain/carver results, before feature writes.
+//! Immutable terrain cache for isolated component fixtures only.
+//! Live generation retains mutable chunks in GenerationWorld and never consults
+//! this cache when satisfying a source's status dependencies.
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex, OnceLock};
 

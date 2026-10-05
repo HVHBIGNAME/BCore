@@ -218,7 +218,8 @@ conversion. NaN converts to a zero index before masking.
 through `OnceLock`. Carvers and the ore-radius Mth calls now use this shared
 lookup. At the lookup-integration stage, **10 carver tests, 3 Mth tests and 2 ore
 tests passed**. These are targeted results, separate from the historical
-**62,649-value / 895-case** numeric lab matrix and the pending full-suite totals.
+**62,649-value / 895-case** numeric lab matrix and the
+[recorded regression suites](parity-report.md#regression-suites).
 
 ### Per-call microbenchmark
 
@@ -264,8 +265,10 @@ removal; see [entity-streaming.md](entity-streaming.md) for its verification and
 immutable pre-gameplay scope. [parity-report.md](parity-report.md) records the
 completed world-specific queue, real carver surface resolver (**1,431 native
 cases; 13 tests passed**) and region-aware standing trees (**438 native cases**).
-Global region-vegetation scheduling and transfer/persistence of tree effects remain
-pending. The fresh three-region snapshot is recorded in the parity report.
+Owning-chunk [tree-effect transfer and `.bcc` v4 persistence](tree-effects.md) are
+implemented, alongside tested chunk-local tick containers. Global region-vegetation
+scheduling and runtime tick execution remain pending. The three-region snapshot
+and its executable provenance are recorded in the parity report.
 
 Full region scheduling, remaining features and structures, other dimensions,
 minecart motion, loot/inventory interaction and spawner simulation remain tracked in

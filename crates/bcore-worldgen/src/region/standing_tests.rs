@@ -2,6 +2,7 @@ use super::FeatureRegion;
 use crate::{
     decoration::{self, TreeFeatureWorld, TreeHeightmap, UnsupportedTree},
     simplex::WorldgenRandom,
+    tick_request::TickTarget,
     tree::{
         fallen::{FallenTreeWorld, Pos},
         standing::{self, StandingTreeWorld},
@@ -105,6 +106,8 @@ fn region(sample: &Sample) -> (FeatureRegion, Chunks) {
             biome_zoom: crate::biome_zoom::BiomeZoom::new(sample.seed),
             chunks: RefCell::new(chunks.clone()),
             tree_effects: Default::default(),
+            light_updates: Vec::new(),
+            access: Default::default(),
         },
         chunks,
     )
@@ -345,6 +348,64 @@ fn assert_effects(sample: &Sample, region: &FeatureRegion) {
     }
 }
 
+fn assert_chunk_effects(sample: &Sample, chunk: &GeneratedChunk) {
+    let expected_ticks: Vec<_> = sample
+        .tick_requests
+        .iter()
+        .copied()
+        .filter(|p| p[0] >> 4 == chunk.pos.x && p[2] >> 4 == chunk.pos.z)
+        .collect();
+    let actual_ticks: Vec<_> = chunk
+        .tick_requests()
+        .iter()
+        .map(|request| {
+            assert!(request.valid_for(chunk.pos));
+            let [x, y, z] = request.block_pos;
+            let (value, fluid) = match request.target {
+                TickTarget::Block(value) => (value as i32, 0),
+                TickTarget::Fluid(value) => (value as i32, 1),
+            };
+            [x, y, z, value, request.delay, fluid]
+        })
+        .collect();
+    assert_eq!(
+        actual_ticks, expected_ticks,
+        "stored native requests {:?}: {} {} {}",
+        chunk.pos, sample.kind, sample.seed, sample.scenario
+    );
+    let expected_bees: BTreeMap<_, _> = sample
+        .block_entities
+        .iter()
+        .filter(|entity| entity.pos[0] >> 4 == chunk.pos.x && entity.pos[2] >> 4 == chunk.pos.z)
+        .map(|entity| (entity.pos, entity.data.clone()))
+        .collect();
+    let actual_bees: BTreeMap<_, _> = chunk
+        .block_entities()
+        .iter()
+        .map(|(&(x, y, z), data)| {
+            let pos = [chunk.pos.x * 16 + x as i32, y, chunk.pos.z * 16 + z as i32];
+            assert_eq!(data.type_id(), 34);
+            assert_eq!(data.update_data(), serde_json::json!({}));
+            (pos, data.full_data(pos.into()))
+        })
+        .collect();
+    assert_eq!(
+        actual_bees, expected_bees,
+        "stored native bee NBT {:?}: {} {} {}",
+        chunk.pos, sample.kind, sample.seed, sample.scenario
+    );
+}
+
+fn effect_target(sample: &Sample) -> ChunkPos {
+    let [x, _, z] = sample
+        .block_entities
+        .first()
+        .map(|entity| entity.pos)
+        .or_else(|| sample.tick_requests.first().map(|p| [p[0], p[1], p[2]]))
+        .unwrap_or(sample.origin);
+    ChunkPos::new(x >> 4, z >> 4)
+}
+
 fn expected_chunks(sample: &Sample, bases: &Chunks) -> Chunks {
     let mut expected = bases.clone();
     for &[x, y, z, state] in &sample.writes {
@@ -415,10 +476,27 @@ fn complete_native_standing_and_mixed_selectors_match_live_region() {
         let expected = expected_chunks(sample, &bases);
         run::<WorldgenRandom>(sample, &mut region);
         assert_chunks(sample, &region, &expected);
+        region.transfer_tree_effects().unwrap();
+        assert_eq!(region.tree_effects, Default::default());
+        for (&pos, chunk) in region.chunks.borrow().iter() {
+            assert_chunk_effects(sample, chunk);
+            assert_eq!(chunk.states(), expected[&pos].states());
+            assert_eq!(chunk.postprocessing, expected[&pos].postprocessing);
+        }
+        let transferred = region.chunks.borrow().clone();
+        region.transfer_tree_effects().unwrap();
+        for (&pos, chunk) in region.chunks.borrow().iter() {
+            assert!(
+                Arc::ptr_eq(chunk, &transferred[&pos]),
+                "empty retransfer cloned {pos:?}"
+            );
+        }
         *region.chunks.get_mut() = bases.clone();
         region.tree_effects = Default::default();
         run::<crate::random::WorldgenRandom>(sample, &mut region);
         assert_chunks(sample, &region, &expected);
+        let finalized = region.finish_chunk(effect_target(sample));
+        assert_chunk_effects(sample, &finalized);
         for &pos in bases.keys() {
             assert_eq!(
                 bases[&pos].as_ref(),
@@ -428,7 +506,7 @@ fn complete_native_standing_and_mixed_selectors_match_live_region() {
         }
     }
     println!(
-        "Verified {} complete native standing/placed-tree samples on both RNG backends",
+        "Verified {} complete native standing/placed-tree samples on both RNG backends, with owning-chunk transfer, idempotent retransfer and finalization",
         reference.samples.len()
     );
 }
@@ -603,12 +681,14 @@ fn fixed_source_plan_replays_complete_stream_for_each_requested_target() {
             replay_sources(sample, &mut actual);
             assert_chunks(sample, &actual, &expected);
             assert_effects(sample, &actual);
+            let finalized = actual.finish_chunk(ChunkPos::new(cx, cz));
+            assert_chunk_effects(sample, &finalized);
             incoming += usize::from(!sample.sources.contains(&[cx, cz]));
             checked += 1;
         }
     }
     assert!(incoming > 0, "no independently requested incoming target");
-    println!("Verified {checked} independent target requests, including {incoming} incoming-only targets, with the complete fixed source plans");
+    println!("Verified {checked} independent finalized targets, including {incoming} incoming-only targets, with complete source plans and stored native effects");
 }
 
 #[test]
@@ -620,7 +700,7 @@ fn unsupported_configurations_and_edge_effects_remain_explicit() {
     let mut control = WorldgenRandom::new(42);
     random.next_int(31);
     control.next_int(31);
-    for name in ["minecraft:jungle_tree", "mega_jungle_tree", "unknown_tree"] {
+    for name in ["minecraft:unknown_tree", "unknown_tree"] {
         assert_eq!(
             standing::place(&mut region, &mut random, name, sample.origin.into()),
             Ok(None)
@@ -654,21 +734,22 @@ fn unsupported_configurations_and_edge_effects_remain_explicit() {
 }
 
 #[test]
-#[should_panic(expected = "transfer standing-tree bee/tick effects before finishing the region")]
-fn finalization_requires_transfer_of_standing_tree_effects() {
+fn native_beehive_metadata_survives_finalization_and_noop_postprocessing() {
     let reference = reference();
-    let sample = &reference.samples[0];
-    let (mut region, _) = region(sample);
-    assert_eq!(
-        standing::place(
-            &mut region,
-            &mut WorldgenRandom::new(sample.seed),
-            &sample.kind,
-            sample.origin.into()
-        )
-        .unwrap(),
-        Some(true)
-    );
-    assert!(!region.tree_effects.tick_requests.is_empty());
-    region.finish_chunk(ChunkPos::new(sample.origin[0] >> 4, sample.origin[2] >> 4));
+    let sample = reference
+        .samples
+        .iter()
+        .find(|s| !s.block_entities.is_empty())
+        .unwrap();
+    let (mut region, bases) = region(sample);
+    run::<WorldgenRandom>(sample, &mut region);
+    let [x, y, z] = sample.block_entities[0].pos;
+    FallenTreeWorld::mark_for_postprocessing(&mut region, (x, y, z));
+    FallenTreeWorld::mark_for_postprocessing(&mut region, (x, y, z));
+    let finalized = region.finish_chunk(ChunkPos::new(x >> 4, z >> 4));
+    assert_chunk_effects(sample, &finalized);
+    assert!(finalized.postprocessing.is_empty());
+    assert!(bases
+        .values()
+        .all(|c| c.block_entities().is_empty() && c.tick_requests().is_empty()));
 }

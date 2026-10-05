@@ -94,7 +94,7 @@ impl SurfaceRule {
         Ok(Self::parse(&serde_json::from_str(s)?))
     }
     pub fn evaluate(&self, c: &SurfaceContext<'_>) -> Option<BlockState> {
-        self.evaluate_with_chunk(c, None)
+        self.evaluate_with_steep(c, &mut || false)
     }
 
     pub(crate) fn evaluate_in_chunk(
@@ -102,20 +102,22 @@ impl SurfaceRule {
         c: &SurfaceContext<'_>,
         chunk: &GeneratedChunk,
     ) -> Option<BlockState> {
-        self.evaluate_with_chunk(c, Some(chunk))
+        self.evaluate_with_steep(c, &mut || steep(chunk, c.x, c.z))
     }
 
-    fn evaluate_with_chunk(
+    /// Evaluate with the caller's lazily cached, column-local steepness condition.
+    /// Native `LazyXZCondition` keeps the first value until the next column.
+    pub fn evaluate_with_steep(
         &self,
         c: &SurfaceContext<'_>,
-        chunk: Option<&GeneratedChunk>,
+        steep: &mut impl FnMut() -> bool,
     ) -> Option<BlockState> {
         match self {
             Self::Block(b) => Some(*b),
             Self::Bandlands => Some(band(c)),
-            Self::Sequence(xs) => xs.iter().find_map(|x| x.evaluate_with_chunk(c, chunk)),
-            Self::Condition(cond, rule) if cond.test_with_chunk(c, chunk) => {
-                rule.evaluate_with_chunk(c, chunk)
+            Self::Sequence(xs) => xs.iter().find_map(|x| x.evaluate_with_steep(c, steep)),
+            Self::Condition(cond, rule) if cond.test_with_steep(c, steep) => {
+                rule.evaluate_with_steep(c, steep)
             }
             _ => None,
         }
@@ -123,10 +125,10 @@ impl SurfaceRule {
 }
 impl SurfaceCondition {
     pub fn test(&self, c: &SurfaceContext<'_>) -> bool {
-        self.test_with_chunk(c, None)
+        self.test_with_steep(c, &mut || false)
     }
 
-    fn test_with_chunk(&self, c: &SurfaceContext<'_>, chunk: Option<&GeneratedChunk>) -> bool {
+    fn test_with_steep(&self, c: &SurfaceContext<'_>, steep: &mut impl FnMut() -> bool) -> bool {
         match self {
             Self::Biome(ids) => ids.contains(&c.biome),
             Self::StoneDepth {
@@ -198,9 +200,9 @@ impl SurfaceCondition {
                     0
                 } >= *anchor + c.surface_depth * *multiplier
             }
-            Self::Not(x) => !x.test_with_chunk(c, chunk),
+            Self::Not(x) => !x.test_with_steep(c, steep),
             Self::Hole => c.surface_depth <= 0,
-            Self::Steep => chunk.is_some_and(|chunk| steep(chunk, c.x, c.z)),
+            Self::Steep => steep(),
             Self::Temperature => c.temperature() < 0.15_f32,
             Self::Noise { name, min, max } => c
                 .noise
@@ -343,7 +345,7 @@ fn block_id(v: Option<&Value>) -> BlockState {
 }
 
 /// Native steepness is directional, with both neighbor coordinates clamped to this chunk.
-pub(crate) fn steep(chunk: &GeneratedChunk, x: i32, z: i32) -> bool {
+pub fn steep(chunk: &GeneratedChunk, x: i32, z: i32) -> bool {
     let x = (x & 15) as usize;
     let z = (z & 15) as usize;
     let height = |x, z| chunk.surface_y(x, z).unwrap_or(MIN_Y - 1);
@@ -353,8 +355,12 @@ pub(crate) fn steep(chunk: &GeneratedChunk, x: i32, z: i32) -> bool {
 
 /// SurfaceSystem receives RandomState's root positional factory directly.
 pub(crate) fn surface_depth(seed: i64, x: i32, z: i32) -> i32 {
-    let noise =
-        crate::density::noise_registry().sample("minecraft:surface", seed, x as f64, 0.0, z as f64);
+    surface_depth_with_noise(crate::density::noise_registry(), seed, x, z)
+}
+
+/// Surface depth from the supplied RandomState noise registry and root positional RNG.
+pub fn surface_depth_with_noise(noises: &NoiseRegistry, seed: i64, x: i32, z: i32) -> i32 {
+    let noise = noises.sample("minecraft:surface", seed, x as f64, 0.0, z as f64);
     let mut random = crate::noise_perlin::Xoroshiro::new(seed)
         .fork_positional()
         .at(x, 0, z);
@@ -490,7 +496,8 @@ fn simplex_2d(p: &[u8; 256], x: f64, z: f64) -> f64 {
 }
 
 impl SurfaceContext<'_> {
-    pub(crate) fn temperature(&self) -> f32 {
+    /// Native biome temperature, including frozen patches and the height adjustment.
+    pub fn temperature(&self) -> f32 {
         static CLIMATES: OnceLock<std::collections::BTreeMap<String, (f32, bool)>> =
             OnceLock::new();
         let climates = CLIMATES.get_or_init(|| {
@@ -584,6 +591,11 @@ fn f64v(v: &Value, k: &str, d: f64) -> f64 {
 fn strv(v: &Value, k: &str) -> String {
     v.get(k).and_then(Value::as_str).unwrap_or("").to_string()
 }
+
+#[cfg(test)]
+#[path = "surface_builder_pipeline_tests.rs"]
+mod pipeline_tests;
+
 #[cfg(test)]
 mod tests {
     use super::*;

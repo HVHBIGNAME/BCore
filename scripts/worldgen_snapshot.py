@@ -23,6 +23,42 @@ def run(command, cwd=ROOT):
     return result
 
 
+def summarize_generation(chunks):
+    sources = {}
+    missing_stages = set()
+    complete = incoming_finished = 0
+    for raw in chunks.values():
+        coverage = raw.get("generation_coverage")
+        if coverage is None:
+            raise ValueError("BCore dump has no generation coverage; rebuild dump_chunk")
+        if coverage["requested_status"] != "minecraft:full":
+            raise ValueError("BCore dump did not request the FULL dependency envelope")
+        complete += coverage["complete"]
+        incoming_finished += coverage["incoming_sources_finished"]
+        missing_stages.update((item["status"], item["reason"]) for item in coverage["missing_stages"])
+        for source in coverage["feature_sources"]:
+            key = tuple(source["source"])
+            if key in sources and sources[key] != source:
+                raise ValueError(f"feature source {key} changed between chunk requests")
+            sources[key] = source
+    order = sorted(sources.values(), key=lambda source: source["sequence"])
+    if len({source["sequence"] for source in order}) != len(order):
+        raise ValueError("feature sources did not share one generation sequence")
+    missing = Counter((item["feature"], item["reason"])
+                      for source in order for item in source["missing"])
+    return {
+        "chunks": len(chunks), "complete_chunks": complete,
+        "incoming_sources_finished_chunks": incoming_finished,
+        "sources": len(sources),
+        "completed_placed_streams": sum(len(source["completed"]) for source in order),
+        "missing_placed_streams": sum(missing.values()),
+        "source_order": [{"source": source["source"], "sequence": source["sequence"]} for source in order],
+        "missing_stages": [{"status": status, "reason": reason} for status, reason in sorted(missing_stages)],
+        "missing_features": [{"feature": feature, "reason": reason, "sources": count}
+                             for (feature, reason), count in missing.most_common()],
+    }
+
+
 def compare(capture, executable, seed):
     chunks = {}
     keys = sorted({(row[0] // 16, row[2] // 16) for row in capture["blocks"]})
@@ -77,6 +113,7 @@ def compare(capture, executable, seed):
         "vanilla_biomes": dict(Counter(row[3] for row in capture["biomes"])),
         "biome_cells": len(capture["biomes"]), "biome_matches": biome_matches,
         "top_differences": [[a, b, n] for (a, b), n in diffs.most_common(12)],
+        "generation": summarize_generation(chunks),
     }
 
 

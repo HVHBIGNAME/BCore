@@ -87,6 +87,7 @@ fn normal_and_mesa_starts_and_references_survive_persistence() {
         let data = StructureData {
             mineshaft_start: Some(layout),
             references: vec![([owner.x, owner.z], kind)],
+            ..Default::default()
         };
         let mut column = ChunkColumn::flat();
         assert!(column.set_structures(owner, data.clone()));

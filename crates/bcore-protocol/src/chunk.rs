@@ -66,7 +66,8 @@
 use std::sync::OnceLock;
 
 use bcore_core::varint::encode_varint;
-use bcore_worldgen::{Biome, GeneratedChunk};
+use bcore_worldgen::lighting::ChunkLight;
+use bcore_worldgen::{generation::FeatureBlockEntity, Biome, GeneratedChunk};
 
 /// Lowest block Y coordinate of the overworld.
 pub const MIN_Y: i32 = -64;
@@ -376,7 +377,12 @@ pub struct ChunkColumn {
     biomes: Vec<u32>,
     block_entities:
         std::collections::BTreeMap<(usize, i32, usize), bcore_worldgen::block_entity::BlockEntity>,
+    feature_block_entities: std::collections::BTreeMap<(usize, i32, usize), FeatureBlockEntity>,
     entities: Vec<bcore_worldgen::generated_entity::GeneratedEntity>,
+    structure_entities: Vec<bcore_worldgen::generation::StructureEntityRequest>,
+    tick_requests: Vec<bcore_worldgen::tick_request::TickRequest>,
+    postprocessing: Vec<(usize, i32, usize)>,
+    light: Option<ChunkLight>,
     structures: bcore_worldgen::structure::mineshaft::region::StructureData,
 }
 
@@ -387,7 +393,12 @@ impl ChunkColumn {
             states: vec![block_state::AIR; COLUMNS * WORLD_HEIGHT as usize],
             biomes: vec![biome; SECTION_COUNT * SECTION_BIOMES],
             block_entities: std::collections::BTreeMap::new(),
+            feature_block_entities: std::collections::BTreeMap::new(),
             entities: Vec::new(),
+            structure_entities: Vec::new(),
+            tick_requests: Vec::new(),
+            postprocessing: Vec::new(),
+            light: None,
             structures: Default::default(),
         }
     }
@@ -426,7 +437,12 @@ impl ChunkColumn {
             states,
             biomes,
             block_entities: std::collections::BTreeMap::new(),
+            feature_block_entities: std::collections::BTreeMap::new(),
             entities: Vec::new(),
+            structure_entities: Vec::new(),
+            tick_requests: Vec::new(),
+            postprocessing: Vec::new(),
+            light: None,
             structures: Default::default(),
         }
     }
@@ -452,14 +468,24 @@ impl ChunkColumn {
         }
         let mut column = Self::from_parts(states, biomes);
         column.block_entities = chunk.block_entities().clone();
+        column.feature_block_entities = chunk.feature_block_entities().clone();
         column.entities = chunk.entities().to_vec();
+        column.structure_entities = chunk.structure_entities().to_vec();
+        column.tick_requests = chunk.tick_requests().to_vec();
+        column.postprocessing = chunk.postprocessing_positions().to_vec();
         column.structures = chunk.structures().clone();
+        if let Some(light) = chunk.light() {
+            assert!(
+                column.set_light(light.clone()),
+                "valid generated light geometry"
+            );
+        }
         column
     }
 
     #[inline]
     fn index(x: usize, y: i32, z: usize) -> Option<usize> {
-        if x >= 16 || z >= 16 || y < MIN_Y || y > MAX_Y {
+        if x >= 16 || z >= 16 || !(MIN_Y..=MAX_Y).contains(&y) {
             return None;
         }
         Some((y - MIN_Y) as usize * COLUMNS + z * 16 + x)
@@ -476,6 +502,10 @@ impl ChunkColumn {
     pub fn set(&mut self, x: usize, y: i32, z: usize, state: u32) -> bool {
         match Self::index(x, y, z) {
             Some(i) => {
+                if self.states[i] != state {
+                    // A generation snapshot cannot describe lighting after an edit.
+                    self.light = None;
+                }
                 self.states[i] = state;
                 if self
                     .block_entities
@@ -483,6 +513,13 @@ impl ChunkColumn {
                     .is_some_and(|data| !data.matches_state(state))
                 {
                     self.block_entities.remove(&(x, y, z));
+                }
+                if self
+                    .feature_block_entities
+                    .get(&(x, y, z))
+                    .is_some_and(|data| !data.matches_state(state))
+                {
+                    self.feature_block_entities.remove(&(x, y, z));
                 }
                 true
             }
@@ -493,6 +530,21 @@ impl ChunkColumn {
     /// Every block state in wire order (`x` fastest, then `z`, then `y`).
     pub fn states(&self) -> &[u32] {
         &self.states
+    }
+
+    /// Native light snapshot, including null storage and both padding sections.
+    pub fn light(&self) -> Option<&ChunkLight> {
+        self.light.as_ref()
+    }
+
+    /// Attach validated light for the current block snapshot. This does not run
+    /// propagation or assert completion of a generation stage.
+    pub fn set_light(&mut self, light: ChunkLight) -> bool {
+        if !light.validate(MIN_Y, WORLD_HEIGHT, true) {
+            return false;
+        }
+        self.light = Some(light);
+        true
     }
 
     pub fn block_entities(
@@ -509,9 +561,10 @@ impl ChunkColumn {
         z: usize,
         data: bcore_worldgen::block_entity::BlockEntity,
     ) -> bool {
-        if !self
-            .get(x, y, z)
-            .is_some_and(|state| data.matches_state(state))
+        if self.feature_block_entities.contains_key(&(x, y, z))
+            || !self
+                .get(x, y, z)
+                .is_some_and(|state| data.matches_state(state))
         {
             return false;
         }
@@ -519,8 +572,63 @@ impl ChunkColumn {
         true
     }
 
+    pub fn feature_block_entities(
+        &self,
+    ) -> &std::collections::BTreeMap<(usize, i32, usize), FeatureBlockEntity> {
+        &self.feature_block_entities
+    }
+
+    pub fn set_feature_block_entity(
+        &mut self,
+        owner: bcore_core::ChunkPos,
+        x: usize,
+        y: i32,
+        z: usize,
+        data: FeatureBlockEntity,
+    ) -> bool {
+        let Some(state) = self.get(x, y, z) else {
+            return false;
+        };
+        let Some(wx) = owner
+            .x
+            .checked_mul(16)
+            .and_then(|v| v.checked_add(x as i32))
+        else {
+            return false;
+        };
+        let Some(wz) = owner
+            .z
+            .checked_mul(16)
+            .and_then(|v| v.checked_add(z as i32))
+        else {
+            return false;
+        };
+        if self.block_entities.contains_key(&(x, y, z)) || !data.valid_for(state, (wx, y, wz)) {
+            return false;
+        }
+        self.feature_block_entities.insert((x, y, z), data);
+        true
+    }
+
     pub fn entities(&self) -> &[bcore_worldgen::generated_entity::GeneratedEntity] {
         &self.entities
+    }
+
+    /// Ordered template-entity requests awaiting the native factory/finalization path.
+    pub fn structure_entities(&self) -> &[bcore_worldgen::generation::StructureEntityRequest] {
+        &self.structure_entities
+    }
+
+    pub fn add_structure_entity(
+        &mut self,
+        owner: bcore_core::ChunkPos,
+        request: bcore_worldgen::generation::StructureEntityRequest,
+    ) -> bool {
+        if !request.valid_for(owner) {
+            return false;
+        }
+        self.structure_entities.push(request);
+        true
     }
 
     pub fn add_entity(
@@ -533,6 +641,37 @@ impl ChunkColumn {
             return false;
         }
         self.entities.push(entity);
+        true
+    }
+
+    /// Unexecuted NORMAL-priority feature requests, in insertion order including duplicates.
+    pub fn tick_requests(&self) -> &[bcore_worldgen::tick_request::TickRequest] {
+        &self.tick_requests
+    }
+
+    /// Unconsumed proto-chunk marks, including their native order and duplicates.
+    pub fn postprocessing_positions(&self) -> &[(usize, i32, usize)] {
+        &self.postprocessing
+    }
+
+    pub fn mark_postprocessing(&mut self, x: usize, y: i32, z: usize) -> bool {
+        if Self::index(x, y, z).is_none() {
+            return false;
+        }
+        self.postprocessing.push((x, y, z));
+        true
+    }
+
+    /// Append a request for this owner without scheduling it or checking the current block.
+    pub fn add_tick_request(
+        &mut self,
+        owner: bcore_core::ChunkPos,
+        request: bcore_worldgen::tick_request::TickRequest,
+    ) -> bool {
+        if !request.valid_for(owner) {
+            return false;
+        }
+        self.tick_requests.push(request);
         true
     }
 
@@ -741,7 +880,7 @@ impl ChunkColumn {
                     }
                     let nibble = y_off as usize * COLUMNS + z * 16 + x;
                     let byte = &mut layer[nibble / 2];
-                    if nibble % 2 == 0 {
+                    if nibble.is_multiple_of(2) {
                         *byte |= 0x0f;
                     } else {
                         *byte |= 0xf0;
@@ -752,8 +891,23 @@ impl ChunkColumn {
         layer
     }
 
-    /// Sky light for one section (convenience wrapper used by tests).
+    /// Sky light for one section, using stored native data when present.
     pub fn sky_layer(&self, section: usize) -> Vec<u8> {
+        if let Some(light) = &self.light {
+            if let Some(data) = light.sections.get(section + 1).and_then(|s| s.sky.as_ref()) {
+                return data.clone();
+            }
+            // Native missing sky layers repeat the next stored bottom plane.
+            if let Some(above) = light
+                .sections
+                .iter()
+                .skip(section + 2)
+                .find_map(|s| s.sky.as_ref())
+            {
+                return above[..COLUMNS / 2].repeat(16);
+            }
+            return vec![0xff; LIGHT_LAYER_BYTES];
+        }
         self.sky_layer_with(section, &self.surfaces())
     }
 
@@ -808,7 +962,77 @@ impl ChunkColumn {
 
     /// Light sections that carry sky-light data (convenience wrapper).
     pub fn lit_sections(&self) -> (Vec<usize>, Vec<usize>) {
+        if let Some(light) = &self.light {
+            let mut data = Vec::new();
+            let mut empty = Vec::new();
+            for (index, section) in light.sections.iter().enumerate() {
+                if section.sky.is_some() {
+                    if section.sky_empty {
+                        empty.push(index);
+                    } else {
+                        data.push(index);
+                    }
+                }
+            }
+            return (data, empty);
+        }
         self.lit_sections_from(&self.surfaces())
+    }
+
+    /// The light-update data shared by map_chunk and standalone light updates.
+    /// Native lazy-zero layers use empty masks; materialized zero arrays use data
+    /// masks, exactly like ClientboundLightUpdatePacketData.prepareSectionData.
+    pub fn encode_light_payload(&self) -> Vec<u8> {
+        let mut out = Vec::new();
+        self.write_light_payload(&mut out);
+        out
+    }
+
+    fn write_light_payload(&self, out: &mut Vec<u8>) {
+        if let Some(light) = &self.light {
+            let (mut sky_bits, mut block_bits, mut empty_sky, mut empty_block) =
+                (Vec::new(), Vec::new(), Vec::new(), Vec::new());
+            let (mut sky, mut block) = (Vec::new(), Vec::new());
+            for (index, section) in light.sections.iter().enumerate() {
+                if let Some(bytes) = &section.sky {
+                    if section.sky_empty {
+                        empty_sky.push(index);
+                    } else {
+                        sky_bits.push(index);
+                        sky.push(bytes.clone());
+                    }
+                }
+                if let Some(bytes) = &section.block {
+                    if section.block_empty {
+                        empty_block.push(index);
+                    } else {
+                        block_bits.push(index);
+                        block.push(bytes.clone());
+                    }
+                }
+            }
+            for bits in [&sky_bits, &block_bits, &empty_sky, &empty_block] {
+                write_long_array(out, &light_bitset(bits));
+            }
+            write_light_arrays(out, &sky);
+            write_light_arrays(out, &block);
+            return;
+        }
+        let surfaces = self.surfaces();
+        let (sky_bits, empty_sky_bits) = self.lit_sections_from(&surfaces);
+        write_long_array(out, &light_bitset(&sky_bits));
+        write_long_array(out, &[]);
+        write_long_array(out, &light_bitset(&empty_sky_bits));
+        let mut empty_block: Vec<usize> = sky_bits.clone();
+        empty_block.extend_from_slice(&empty_sky_bits);
+        empty_block.sort_unstable();
+        write_long_array(out, &light_bitset(&empty_block));
+        let sky: Vec<Vec<u8>> = sky_bits
+            .iter()
+            .map(|&i| self.sky_layer_with(i - 1, &surfaces))
+            .collect();
+        write_light_arrays(out, &sky);
+        write_light_arrays(out, &[]);
     }
 
     /// Encode the full `map_chunk` payload (without the packet id) for `(x, z)`.
@@ -839,30 +1063,24 @@ impl ChunkColumn {
         encode_varint(sections.len() as i32, &mut out);
         out.extend_from_slice(&sections);
 
-        encode_varint(self.block_entities.len() as i32, &mut out);
+        encode_varint(
+            (self.block_entities.len() + self.feature_block_entities.len()) as i32,
+            &mut out,
+        );
         for (&(lx, y, lz), data) in &self.block_entities {
             out.push(((lx << 4) | lz) as u8);
             out.extend_from_slice(&(y as i16).to_be_bytes());
             encode_varint(data.type_id() as i32, &mut out);
             out.extend_from_slice(&crate::nbt::encode_block_entity_update(data));
         }
+        for (&(lx, y, lz), data) in &self.feature_block_entities {
+            out.push(((lx << 4) | lz) as u8);
+            out.extend_from_slice(&(y as i16).to_be_bytes());
+            encode_varint(data.type_id as i32, &mut out);
+            out.extend_from_slice(&crate::nbt::encode_feature_block_entity_update(data));
+        }
 
-        let surfaces = self.surfaces();
-        let (sky_bits, empty_sky_bits) = self.lit_sections_from(&surfaces);
-        write_long_array(&mut out, &light_bitset(&sky_bits));
-        write_long_array(&mut out, &[]); // blockLightMask: no block light sources
-        write_long_array(&mut out, &light_bitset(&empty_sky_bits));
-        let mut empty_block: Vec<usize> = sky_bits.clone();
-        empty_block.extend_from_slice(&empty_sky_bits);
-        empty_block.sort_unstable();
-        write_long_array(&mut out, &light_bitset(&empty_block));
-
-        let sky: Vec<Vec<u8>> = sky_bits
-            .iter()
-            .map(|&i| self.sky_layer_with(i - 1, &surfaces))
-            .collect();
-        write_light_arrays(&mut out, &sky);
-        write_light_arrays(&mut out, &[]); // blockLight
+        self.write_light_payload(&mut out);
         out
     }
 }
@@ -1035,8 +1253,6 @@ mod tests {
         );
     }
 
-    // ---- heightmap predicates -------------------------------------------
-
     #[test]
     fn the_three_heightmaps_agree_on_plain_terrain() {
         let column = ChunkColumn::flat();
@@ -1106,8 +1322,6 @@ mod tests {
         assert!(!ChunkColumn::is_passable_plant(block_state::OAK_LEAVES));
     }
 
-    // ---- fluidCount ------------------------------------------------------
-
     #[test]
     fn fluid_count_counts_water_in_the_encoded_section() {
         let mut column = ChunkColumn::new(BIOME_PLAINS);
@@ -1133,8 +1347,6 @@ mod tests {
         // bedrock + 2 dirt + grass = 4 layers of 256 blocks.
         assert_eq!(section.block_count, 4 * 256);
     }
-
-    // ---- direct palette --------------------------------------------------
 
     #[test]
     fn a_section_with_more_than_256_states_uses_the_global_palette() {
@@ -1167,8 +1379,6 @@ mod tests {
         assert_eq!(section.states[299], 300);
         assert_eq!(section.states[300], block_state::AIR);
     }
-
-    // ---- test-only decoder ----------------------------------------------
 
     struct DecodedSection {
         block_count: i16,

@@ -1,0 +1,30 @@
+{
+  "minecraft": "26.1",
+  "jar_sha256": "a7fed6f7d88379349e35ae0c6e9881d4484605132f6f620376a3868eea6cce52",
+  "probe_sha256": "7b40948506ceedb6a40b0c2f30e2ff9ec0a11f4218cc19c8afc2082a2ab6bb59",
+  "samples": [
+    {
+      "name": "ascending",
+      "steps": 288,
+      "trace_md5": "400c892ef089ac8208050f64266fe635"
+    },
+    {
+      "name": "descending",
+      "steps": 288,
+      "trace_md5": "4a90846d2b223655e6f31d5a757169a2"
+    },
+    {
+      "name": "split",
+      "steps": 288,
+      "trace_md5": "70230cb778568673915ef349ea7e140d"
+    },
+    {
+      "name": "signed",
+      "steps": 288,
+      "trace_md5": "3171edd1f197acf64c3858b5ddf83764"
+    }
+  ],
+  "encoding": "For each operation: four int32 LE op values, int32 LE size, then every native iterator xyz as int32 LE.",
+  "tree_probe_sha256": "5602c35a7f11b6ffcbaba887cc1aefc171e031c6601716aeaa53fa5a2a8b3680",
+  "capture_sha256": "72222980a94d452da2d17d034b8096f2e3576f4895c4aa43c965d94a931fa3f5"
+}

@@ -1,0 +1,273 @@
+{
+  "minecraft": "26.1",
+  "jar_sha256": "a7fed6f7d88379349e35ae0c6e9881d4484605132f6f620376a3868eea6cce52",
+  "probe_sha256": "1041d380650941307d65d32a636c7a7b1c86a3b448e86158c7e9d8837b0bd194",
+  "capture_sha256": "632b2d393add798b79d993c36296ac9a5862b80357a878ebb75407a5d1c74958",
+  "decoder_sha256": "4bc0cda24ea1fd3118fe67c277877950d56c1d7f9793d5e8d6470883d7de107f",
+  "compound_order": "Java TreeMap; fixture compound keys have no ordering ambiguity",
+  "samples": [
+    {
+      "hex": "0180",
+      "name": "byte_min",
+      "nbt": {
+        "Byte": -128
+      }
+    },
+    {
+      "hex": "028000",
+      "name": "short_min",
+      "nbt": {
+        "Short": -32768
+      }
+    },
+    {
+      "hex": "0380000000",
+      "name": "int_min",
+      "nbt": {
+        "Int": -2147483648
+      }
+    },
+    {
+      "hex": "048000000000000000",
+      "name": "long_min",
+      "nbt": {
+        "Long": -9223372036854775808
+      }
+    },
+    {
+      "hex": "047fffffffffffffff",
+      "name": "long_max",
+      "nbt": {
+        "Long": 9223372036854775807
+      }
+    },
+    {
+      "hex": "053eaaaaab",
+      "name": "float_fraction",
+      "nbt": {
+        "Float": 0.3333333432674408
+      }
+    },
+    {
+      "hex": "0580000000",
+      "name": "float_negative_zero",
+      "nbt": {
+        "Float": -0.0
+      }
+    },
+    {
+      "hex": "057fc00000",
+      "name": "float_nan_payload",
+      "input_bits": "ff812345"
+    },
+    {
+      "hex": "063fd5555555555555",
+      "name": "double_fraction",
+      "nbt": {
+        "Double": 0.3333333333333333
+      }
+    },
+    {
+      "hex": "068000000000000000",
+      "name": "double_negative_zero",
+      "nbt": {
+        "Double": -0.0
+      }
+    },
+    {
+      "hex": "067ff8000000000000",
+      "name": "double_nan_payload",
+      "input_bits": "fff0000000000001"
+    },
+    {
+      "hex": "080000",
+      "name": "empty_string",
+      "nbt": {
+        "String": ""
+      }
+    },
+    {
+      "hex": "08001ad09fd180d0b8d0b2d0b5d182c080eda0bdedb880eda0b4edb49e",
+      "name": "unicode_and_nul",
+      "nbt": {
+        "String": "\u041f\u0440\u0438\u0432\u0435\u0442\u0000\ud83d\ude00\ud834\udd1e"
+      }
+    },
+    {
+      "hex": "070000000480ff007f",
+      "name": "byte_array",
+      "nbt": {
+        "ByteArray": [
+          -128,
+          -1,
+          0,
+          127
+        ]
+      }
+    },
+    {
+      "hex": "0b0000000480000000ffffffff000000007fffffff",
+      "name": "int_array",
+      "nbt": {
+        "IntArray": [
+          -2147483648,
+          -1,
+          0,
+          2147483647
+        ]
+      }
+    },
+    {
+      "hex": "0c000000048000000000000000ffffffffffffffff00000000000000007fffffffffffffff",
+      "name": "long_array",
+      "nbt": {
+        "LongArray": [
+          -9223372036854775808,
+          -1,
+          0,
+          9223372036854775807
+        ]
+      }
+    },
+    {
+      "hex": "090000000000",
+      "name": "empty_list",
+      "nbt": {
+        "List": {
+          "element_type": 0,
+          "values": []
+        }
+      }
+    },
+    {
+      "hex": "090300000002ffffffff7fffffff",
+      "name": "int_list",
+      "nbt": {
+        "List": {
+          "element_type": 3,
+          "values": [
+            {
+              "Int": -1
+            },
+            {
+              "Int": 2147483647
+            }
+          ]
+        }
+      }
+    },
+    {
+      "hex": "090a00000003080000000474657874000300000000001100090000000000000000",
+      "name": "heterogeneous_list_wrappers",
+      "nbt": {
+        "List": {
+          "element_type": 10,
+          "values": [
+            {
+              "Compound": {
+                "": {
+                  "String": "text"
+                }
+              }
+            },
+            {
+              "Compound": {
+                "": {
+                  "Int": 17
+                }
+              }
+            },
+            {
+              "Compound": {
+                "": {
+                  "List": {
+                    "element_type": 0,
+                    "values": []
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "hex": "0a0900054974656d730a00000001010004536c6f740d030005636f756e7400000001080002696400166d696e6563726166743a676f6c64656e5f6170706c650004000d4c6f6f745461626c655365656480000000000000000a0005656d707479000900046c6973740900000002000000000008000000010001780800046e616d65000d4368657374c080eda0bdedb88000",
+      "name": "nested",
+      "nbt": {
+        "Compound": {
+          "Items": {
+            "List": {
+              "element_type": 10,
+              "values": [
+                {
+                  "Compound": {
+                    "Slot": {
+                      "Byte": 13
+                    },
+                    "count": {
+                      "Int": 1
+                    },
+                    "id": {
+                      "String": "minecraft:golden_apple"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "LootTableSeed": {
+            "Long": -9223372036854775808
+          },
+          "empty": {
+            "Compound": {}
+          },
+          "list": {
+            "List": {
+              "element_type": 9,
+              "values": [
+                {
+                  "List": {
+                    "element_type": 0,
+                    "values": []
+                  }
+                },
+                {
+                  "List": {
+                    "element_type": 8,
+                    "values": [
+                      {
+                        "String": "x"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "name": {
+            "String": "Chest\u0000\ud83d\ude00"
+          }
+        }
+      }
+    },
+    {
+      "hex": "0a080008c080eda0bdedb880000576616c756500",
+      "name": "unicode_key",
+      "nbt": {
+        "Compound": {
+          "\u0000\ud83d\ude00": {
+            "String": "value"
+          }
+        }
+      }
+    },
+    {
+      "hex": "0a00",
+      "name": "empty_compound",
+      "nbt": {
+        "Compound": {}
+      }
+    }
+  ]
+}

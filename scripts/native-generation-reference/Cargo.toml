@@ -1,0 +1,20 @@
+[package]
+name = "native-history-replay"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[[bin]]
+name = "native-history-replay"
+path = "replay.rs"
+
+[[bin]]
+name = "native-feature-replay"
+path = "feature_replay.rs"
+
+[dependencies]
+bcore-core = { path = "../../crates/bcore-core" }
+bcore-worldgen = { path = "../../crates/bcore-worldgen", features = ["diagnostics"] }
+serde_json = { version = "1", features = ["float_roundtrip"] }

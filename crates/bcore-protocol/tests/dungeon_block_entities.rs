@@ -99,6 +99,9 @@ fn all_native_room_entities_keep_update_nbt_and_persisted_data() {
                 match data {
                     BlockEntity::DungeonChest { .. } => dungeon::CHEST,
                     BlockEntity::Spawner { .. } => dungeon::SPAWNER,
+                    BlockEntity::Beehive { .. } => {
+                        panic!("unexpected beehive in monster-room fixture")
+                    }
                 },
             );
             assert!(column.set_block_entity(lx, y, lz, data.clone()));

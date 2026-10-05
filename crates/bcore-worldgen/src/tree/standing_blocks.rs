@@ -1,6 +1,21 @@
 use super::{relative, Pos, StandingTreeWorld, UnsupportedShape};
 use std::sync::OnceLock;
 
+#[path = "extra_blocks.rs"]
+mod extra;
+
+#[cfg(test)]
+#[path = "falling_shape_tests.rs"]
+mod falling_shape_tests;
+
+#[cfg(test)]
+#[path = "stair_shape_tests.rs"]
+mod stair_shape_tests;
+
+#[cfg(test)]
+#[path = "bamboo_shape_tests.rs"]
+mod bamboo_shape_tests;
+
 #[derive(Clone, Copy)]
 pub(super) struct State {
     pub flags: i32,
@@ -56,7 +71,7 @@ fn vine_faces(state: u32) -> u32 {
         0
     }
 }
-fn attaches<W: StandingTreeWorld + ?Sized>(
+pub(super) fn attaches<W: StandingTreeWorld + ?Sized>(
     world: &W,
     pos: Pos,
     dir: usize,
@@ -158,6 +173,6 @@ pub(super) fn update<W: StandingTreeWorld + ?Sized>(
                 Ok(state)
             }
         }
-        _ => Err(UnsupportedShape { pos, state }),
+        _ => extra::update(world, pos, state, dir, neighbour),
     }
 }

@@ -3,7 +3,7 @@
 //! The load path is only safe if it is *indistinguishable* from generation, so
 //! these tests assert the strong property directly: for the same seed, a chunk
 //! read back from disk is byte-for-byte the same column — and encodes to the same
-//! `map_chunk` payload — as one freshly generated.
+//! `map_chunk` payload — as generation with the same seed and request history.
 //!
 //! They also cover the failure modes that matter for a world directory that
 //! outlives a server process: corruption, truncation, cross-seed contamination
@@ -119,7 +119,7 @@ fn a_loaded_chunk_is_indistinguishable_from_a_generated_one() {
         // Force the save.
         let (_, origin) = persistent.chunk(x, z);
         assert_eq!(origin, ChunkOrigin::Generated);
-        // Now read it back and compare against pure generation.
+        // Compare against the in-memory world following the same request order.
         let (loaded, origin) = persistent.chunk(x, z);
         assert_eq!(origin, ChunkOrigin::Loaded);
         assert_eq!(

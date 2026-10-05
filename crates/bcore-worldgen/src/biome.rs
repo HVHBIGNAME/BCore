@@ -2,6 +2,18 @@
 use serde_json::Value;
 use std::sync::OnceLock;
 
+mod canonical;
+mod parameter_list;
+mod tree;
+
+pub use parameter_list::{BiomeLookup, BiomeSampler, ParameterList};
+
+#[cfg(test)]
+mod reference_tests;
+
+#[cfg(test)]
+mod benchmark;
+
 pub type BiomeId = u32;
 
 fn quantize(value: f64) -> i64 {
@@ -28,7 +40,13 @@ impl ClimateRange {
     }
 
     fn distance(self, value: i64) -> i64 {
-        (self.min - value).max(value - self.max).max(0)
+        // Java long subtraction wraps; the above-range branch has priority.
+        let above = value.wrapping_sub(self.max);
+        if above > 0 {
+            above
+        } else {
+            self.min.wrapping_sub(value).max(0)
+        }
     }
 }
 
@@ -45,7 +63,7 @@ pub struct BiomeParameters {
 }
 
 impl BiomeParameters {
-    fn distance(&self, target: [i64; 6]) -> i64 {
+    fn space(&self) -> [ClimateRange; 7] {
         [
             self.temperature,
             self.humidity,
@@ -53,19 +71,21 @@ impl BiomeParameters {
             self.erosion,
             self.depth,
             self.weirdness,
+            ClimateRange {
+                min: self.offset,
+                max: self.offset,
+            },
         ]
-        .into_iter()
-        .zip(target)
-        .map(|(range, value)| range.distance(value).pow(2))
-        .sum::<i64>()
-            + self.offset * self.offset
     }
 }
 
-/// Nearest quantized parameter row. Equal distances retain parameter-list order.
-/// Vanilla's R-tree traversal/cache tie-breaking is not implemented here yet.
-pub fn biome_at(
-    parameters: &[(BiomeId, BiomeParameters)],
+/// Native 26.1 multi-noise lookup, with f64 -> f32 -> quantized-long inputs.
+///
+/// Retain a [`ParameterList`] for native per-list, per-thread last-result semantics.
+/// Existing slice/Vec/array callers remain supported, but have no owning cache
+/// identity: those calls perform a cold native tree search (see [`BiomeLookup`]).
+pub fn biome_at<P: BiomeLookup + ?Sized>(
+    parameters: &P,
     temperature: f64,
     humidity: f64,
     continentalness: f64,
@@ -82,11 +102,7 @@ pub fn biome_at(
         weirdness,
     ]
     .map(quantize);
-    parameters
-        .iter()
-        .min_by_key(|(_, p)| p.distance(target))
-        .map(|(id, _)| *id)
-        .expect("nonempty biome parameter list")
+    parameters.find_biome(target)
 }
 
 pub const DEFAULT_BIOME: BiomeId = 40;

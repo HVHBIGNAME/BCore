@@ -55,9 +55,17 @@ def bcore_grid(x,z,region,ground):
 def bcore_blocks(x,z,region,ymin,ymax):
     out={}
     half=region//2
-    for cx in range((x-half)//16, (x+half-1)//16+1):
-      for cz in range((z-half)//16, (z+half-1)//16+1):
-        raw=json.loads(run([str(CHUNK),str(SEED),str(cx),str(cz)])[0])
+    chunks=[(cx,cz) for cx in range((x-half)//16, (x+half-1)//16+1)
+            for cz in range((z-half)//16, (z+half-1)//16+1)]
+    coordinates=[str(value) for chunk in chunks for value in chunk]
+    rows=run([str(CHUNK),str(SEED),*coordinates])[0].splitlines()
+    seen=set()
+    for line in rows:
+        raw=json.loads(line)
+        cx,cz=raw["x"],raw["z"]
+        if raw["seed"] != SEED or (cx,cz) not in chunks or (cx,cz) in seen or len(raw["states"]) != 384*256:
+            raise ValueError("invalid or duplicate BCore chunk")
+        seen.add((cx,cz))
         states=raw["states"]
         for wx in range(max(x-half,cx*16), min(x+half,(cx+1)*16)):
           for wz in range(max(z-half,cz*16), min(z+half,(cz+1)*16)):
@@ -65,6 +73,8 @@ def bcore_blocks(x,z,region,ymin,ymax):
             for y in range(ymin,ymax+1):
                 i=(y+64)*256+lz*16+lx
                 out[(wx,y,wz)]=IDS.get(states[i],f"state_{states[i]}")
+    if seen != set(chunks):
+        raise ValueError("incomplete BCore region")
     return out
 
 def block_map_vanilla(x,z,region,ymin,ymax):

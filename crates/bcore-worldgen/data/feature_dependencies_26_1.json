@@ -1,0 +1,1088 @@
+{
+  "minecraft": "26.1",
+  "jar_sha256": "a7fed6f7d88379349e35ae0c6e9881d4484605132f6f620376a3868eea6cce52",
+  "probe_sha256": "876289544df8743b6dcea98ab9dc5052a3f17670502c2a731206f82810deec46",
+  "schema_version": 1,
+  "native_pyramid_class": "net.minecraft.world.level.chunk.status.ChunkPyramid",
+  "max_structure_distance": 8,
+  "statuses": [
+    {
+      "name": "minecraft:empty",
+      "index": 0,
+      "parent": "minecraft:empty",
+      "chunk_type": "PROTOCHUNK",
+      "heightmaps_after": [
+        "WORLD_SURFACE_WG",
+        "OCEAN_FLOOR_WG"
+      ]
+    },
+    {
+      "name": "minecraft:structure_starts",
+      "index": 1,
+      "parent": "minecraft:empty",
+      "chunk_type": "PROTOCHUNK",
+      "heightmaps_after": [
+        "WORLD_SURFACE_WG",
+        "OCEAN_FLOOR_WG"
+      ]
+    },
+    {
+      "name": "minecraft:structure_references",
+      "index": 2,
+      "parent": "minecraft:structure_starts",
+      "chunk_type": "PROTOCHUNK",
+      "heightmaps_after": [
+        "WORLD_SURFACE_WG",
+        "OCEAN_FLOOR_WG"
+      ]
+    },
+    {
+      "name": "minecraft:biomes",
+      "index": 3,
+      "parent": "minecraft:structure_references",
+      "chunk_type": "PROTOCHUNK",
+      "heightmaps_after": [
+        "WORLD_SURFACE_WG",
+        "OCEAN_FLOOR_WG"
+      ]
+    },
+    {
+      "name": "minecraft:noise",
+      "index": 4,
+      "parent": "minecraft:biomes",
+      "chunk_type": "PROTOCHUNK",
+      "heightmaps_after": [
+        "WORLD_SURFACE_WG",
+        "OCEAN_FLOOR_WG"
+      ]
+    },
+    {
+      "name": "minecraft:surface",
+      "index": 5,
+      "parent": "minecraft:noise",
+      "chunk_type": "PROTOCHUNK",
+      "heightmaps_after": [
+        "WORLD_SURFACE_WG",
+        "OCEAN_FLOOR_WG"
+      ]
+    },
+    {
+      "name": "minecraft:carvers",
+      "index": 6,
+      "parent": "minecraft:surface",
+      "chunk_type": "PROTOCHUNK",
+      "heightmaps_after": [
+        "WORLD_SURFACE",
+        "OCEAN_FLOOR",
+        "MOTION_BLOCKING",
+        "MOTION_BLOCKING_NO_LEAVES"
+      ]
+    },
+    {
+      "name": "minecraft:features",
+      "index": 7,
+      "parent": "minecraft:carvers",
+      "chunk_type": "PROTOCHUNK",
+      "heightmaps_after": [
+        "WORLD_SURFACE",
+        "OCEAN_FLOOR",
+        "MOTION_BLOCKING",
+        "MOTION_BLOCKING_NO_LEAVES"
+      ]
+    },
+    {
+      "name": "minecraft:initialize_light",
+      "index": 8,
+      "parent": "minecraft:features",
+      "chunk_type": "PROTOCHUNK",
+      "heightmaps_after": [
+        "WORLD_SURFACE",
+        "OCEAN_FLOOR",
+        "MOTION_BLOCKING",
+        "MOTION_BLOCKING_NO_LEAVES"
+      ]
+    },
+    {
+      "name": "minecraft:light",
+      "index": 9,
+      "parent": "minecraft:initialize_light",
+      "chunk_type": "PROTOCHUNK",
+      "heightmaps_after": [
+        "WORLD_SURFACE",
+        "OCEAN_FLOOR",
+        "MOTION_BLOCKING",
+        "MOTION_BLOCKING_NO_LEAVES"
+      ]
+    },
+    {
+      "name": "minecraft:spawn",
+      "index": 10,
+      "parent": "minecraft:light",
+      "chunk_type": "PROTOCHUNK",
+      "heightmaps_after": [
+        "WORLD_SURFACE",
+        "OCEAN_FLOOR",
+        "MOTION_BLOCKING",
+        "MOTION_BLOCKING_NO_LEAVES"
+      ]
+    },
+    {
+      "name": "minecraft:full",
+      "index": 11,
+      "parent": "minecraft:spawn",
+      "chunk_type": "LEVELCHUNK",
+      "heightmaps_after": [
+        "WORLD_SURFACE",
+        "OCEAN_FLOOR",
+        "MOTION_BLOCKING",
+        "MOTION_BLOCKING_NO_LEAVES"
+      ]
+    }
+  ],
+  "pyramids": {
+    "generation": {
+      "native_field": "GENERATION_PYRAMID",
+      "steps": [
+        {
+          "target_status": "minecraft:empty",
+          "direct_dependencies": {
+            "by_radius": [],
+            "radius": 0
+          },
+          "accumulated_dependencies": {
+            "by_radius": [],
+            "radius": 0
+          },
+          "block_state_write_radius": -1,
+          "task_layer_radii": {
+            "minecraft:empty": 0
+          }
+        },
+        {
+          "target_status": "minecraft:structure_starts",
+          "direct_dependencies": {
+            "by_radius": [
+              "minecraft:empty"
+            ],
+            "radius": 0
+          },
+          "accumulated_dependencies": {
+            "by_radius": [
+              "minecraft:empty"
+            ],
+            "radius": 0
+          },
+          "block_state_write_radius": -1,
+          "task_layer_radii": {
+            "minecraft:empty": 0,
+            "minecraft:structure_starts": 0
+          }
+        },
+        {
+          "target_status": "minecraft:structure_references",
+          "direct_dependencies": {
+            "by_radius": [
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts"
+            ],
+            "radius": 8
+          },
+          "accumulated_dependencies": {
+            "by_radius": [
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts"
+            ],
+            "radius": 8
+          },
+          "block_state_write_radius": -1,
+          "task_layer_radii": {
+            "minecraft:empty": 8,
+            "minecraft:structure_starts": 8,
+            "minecraft:structure_references": 0
+          }
+        },
+        {
+          "target_status": "minecraft:biomes",
+          "direct_dependencies": {
+            "by_radius": [
+              "minecraft:structure_references",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts"
+            ],
+            "radius": 8
+          },
+          "accumulated_dependencies": {
+            "by_radius": [
+              "minecraft:structure_references",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts"
+            ],
+            "radius": 8
+          },
+          "block_state_write_radius": -1,
+          "task_layer_radii": {
+            "minecraft:empty": 8,
+            "minecraft:structure_starts": 8,
+            "minecraft:structure_references": 0,
+            "minecraft:biomes": 0
+          }
+        },
+        {
+          "target_status": "minecraft:noise",
+          "direct_dependencies": {
+            "by_radius": [
+              "minecraft:biomes",
+              "minecraft:biomes",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts"
+            ],
+            "radius": 8
+          },
+          "accumulated_dependencies": {
+            "by_radius": [
+              "minecraft:biomes",
+              "minecraft:biomes",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts"
+            ],
+            "radius": 9
+          },
+          "block_state_write_radius": 0,
+          "task_layer_radii": {
+            "minecraft:empty": 9,
+            "minecraft:structure_starts": 9,
+            "minecraft:structure_references": 1,
+            "minecraft:biomes": 1,
+            "minecraft:noise": 0
+          }
+        },
+        {
+          "target_status": "minecraft:surface",
+          "direct_dependencies": {
+            "by_radius": [
+              "minecraft:noise",
+              "minecraft:biomes",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts"
+            ],
+            "radius": 8
+          },
+          "accumulated_dependencies": {
+            "by_radius": [
+              "minecraft:noise",
+              "minecraft:biomes",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts"
+            ],
+            "radius": 9
+          },
+          "block_state_write_radius": 0,
+          "task_layer_radii": {
+            "minecraft:empty": 9,
+            "minecraft:structure_starts": 9,
+            "minecraft:structure_references": 1,
+            "minecraft:biomes": 1,
+            "minecraft:noise": 0,
+            "minecraft:surface": 0
+          }
+        },
+        {
+          "target_status": "minecraft:carvers",
+          "direct_dependencies": {
+            "by_radius": [
+              "minecraft:surface",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts"
+            ],
+            "radius": 8
+          },
+          "accumulated_dependencies": {
+            "by_radius": [
+              "minecraft:surface",
+              "minecraft:biomes",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts"
+            ],
+            "radius": 9
+          },
+          "block_state_write_radius": 0,
+          "task_layer_radii": {
+            "minecraft:empty": 9,
+            "minecraft:structure_starts": 9,
+            "minecraft:structure_references": 1,
+            "minecraft:biomes": 1,
+            "minecraft:noise": 0,
+            "minecraft:surface": 0,
+            "minecraft:carvers": 0
+          }
+        },
+        {
+          "target_status": "minecraft:features",
+          "direct_dependencies": {
+            "by_radius": [
+              "minecraft:carvers",
+              "minecraft:carvers",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts"
+            ],
+            "radius": 8
+          },
+          "accumulated_dependencies": {
+            "by_radius": [
+              "minecraft:carvers",
+              "minecraft:carvers",
+              "minecraft:biomes",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts"
+            ],
+            "radius": 10
+          },
+          "block_state_write_radius": 1,
+          "task_layer_radii": {
+            "minecraft:empty": 10,
+            "minecraft:structure_starts": 10,
+            "minecraft:structure_references": 2,
+            "minecraft:biomes": 2,
+            "minecraft:noise": 1,
+            "minecraft:surface": 1,
+            "minecraft:carvers": 1,
+            "minecraft:features": 0
+          }
+        },
+        {
+          "target_status": "minecraft:initialize_light",
+          "direct_dependencies": {
+            "by_radius": [
+              "minecraft:features"
+            ],
+            "radius": 0
+          },
+          "accumulated_dependencies": {
+            "by_radius": [
+              "minecraft:features",
+              "minecraft:carvers",
+              "minecraft:biomes",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts"
+            ],
+            "radius": 10
+          },
+          "block_state_write_radius": -1,
+          "task_layer_radii": {
+            "minecraft:empty": 10,
+            "minecraft:structure_starts": 10,
+            "minecraft:structure_references": 2,
+            "minecraft:biomes": 2,
+            "minecraft:noise": 1,
+            "minecraft:surface": 1,
+            "minecraft:carvers": 1,
+            "minecraft:features": 0,
+            "minecraft:initialize_light": 0
+          }
+        },
+        {
+          "target_status": "minecraft:light",
+          "direct_dependencies": {
+            "by_radius": [
+              "minecraft:initialize_light",
+              "minecraft:initialize_light"
+            ],
+            "radius": 1
+          },
+          "accumulated_dependencies": {
+            "by_radius": [
+              "minecraft:initialize_light",
+              "minecraft:initialize_light",
+              "minecraft:carvers",
+              "minecraft:biomes",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts"
+            ],
+            "radius": 11
+          },
+          "block_state_write_radius": -1,
+          "task_layer_radii": {
+            "minecraft:empty": 11,
+            "minecraft:structure_starts": 11,
+            "minecraft:structure_references": 3,
+            "minecraft:biomes": 3,
+            "minecraft:noise": 2,
+            "minecraft:surface": 2,
+            "minecraft:carvers": 2,
+            "minecraft:features": 1,
+            "minecraft:initialize_light": 1,
+            "minecraft:light": 0
+          }
+        },
+        {
+          "target_status": "minecraft:spawn",
+          "direct_dependencies": {
+            "by_radius": [
+              "minecraft:light",
+              "minecraft:biomes"
+            ],
+            "radius": 1
+          },
+          "accumulated_dependencies": {
+            "by_radius": [
+              "minecraft:light",
+              "minecraft:initialize_light",
+              "minecraft:carvers",
+              "minecraft:biomes",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts"
+            ],
+            "radius": 11
+          },
+          "block_state_write_radius": -1,
+          "task_layer_radii": {
+            "minecraft:empty": 11,
+            "minecraft:structure_starts": 11,
+            "minecraft:structure_references": 3,
+            "minecraft:biomes": 3,
+            "minecraft:noise": 2,
+            "minecraft:surface": 2,
+            "minecraft:carvers": 2,
+            "minecraft:features": 1,
+            "minecraft:initialize_light": 1,
+            "minecraft:light": 0,
+            "minecraft:spawn": 0
+          }
+        },
+        {
+          "target_status": "minecraft:full",
+          "direct_dependencies": {
+            "by_radius": [
+              "minecraft:spawn"
+            ],
+            "radius": 0
+          },
+          "accumulated_dependencies": {
+            "by_radius": [
+              "minecraft:spawn",
+              "minecraft:initialize_light",
+              "minecraft:carvers",
+              "minecraft:biomes",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts",
+              "minecraft:structure_starts"
+            ],
+            "radius": 11
+          },
+          "block_state_write_radius": -1,
+          "task_layer_radii": {
+            "minecraft:empty": 11,
+            "minecraft:structure_starts": 11,
+            "minecraft:structure_references": 3,
+            "minecraft:biomes": 3,
+            "minecraft:noise": 2,
+            "minecraft:surface": 2,
+            "minecraft:carvers": 2,
+            "minecraft:features": 1,
+            "minecraft:initialize_light": 1,
+            "minecraft:light": 0,
+            "minecraft:spawn": 0,
+            "minecraft:full": 0
+          }
+        }
+      ]
+    },
+    "loading": {
+      "native_field": "LOADING_PYRAMID",
+      "steps": [
+        {
+          "target_status": "minecraft:empty",
+          "direct_dependencies": {
+            "by_radius": [],
+            "radius": 0
+          },
+          "accumulated_dependencies": {
+            "by_radius": [],
+            "radius": 0
+          },
+          "block_state_write_radius": -1,
+          "task_layer_radii": {
+            "minecraft:empty": 0
+          }
+        },
+        {
+          "target_status": "minecraft:structure_starts",
+          "direct_dependencies": {
+            "by_radius": [
+              "minecraft:empty"
+            ],
+            "radius": 0
+          },
+          "accumulated_dependencies": {
+            "by_radius": [
+              "minecraft:empty"
+            ],
+            "radius": 0
+          },
+          "block_state_write_radius": -1,
+          "task_layer_radii": {
+            "minecraft:empty": 0,
+            "minecraft:structure_starts": 0
+          }
+        },
+        {
+          "target_status": "minecraft:structure_references",
+          "direct_dependencies": {
+            "by_radius": [
+              "minecraft:structure_starts"
+            ],
+            "radius": 0
+          },
+          "accumulated_dependencies": {
+            "by_radius": [
+              "minecraft:structure_starts"
+            ],
+            "radius": 0
+          },
+          "block_state_write_radius": -1,
+          "task_layer_radii": {
+            "minecraft:empty": 0,
+            "minecraft:structure_starts": 0,
+            "minecraft:structure_references": 0
+          }
+        },
+        {
+          "target_status": "minecraft:biomes",
+          "direct_dependencies": {
+            "by_radius": [
+              "minecraft:structure_references"
+            ],
+            "radius": 0
+          },
+          "accumulated_dependencies": {
+            "by_radius": [
+              "minecraft:structure_references"
+            ],
+            "radius": 0
+          },
+          "block_state_write_radius": -1,
+          "task_layer_radii": {
+            "minecraft:empty": 0,
+            "minecraft:structure_starts": 0,
+            "minecraft:structure_references": 0,
+            "minecraft:biomes": 0
+          }
+        },
+        {
+          "target_status": "minecraft:noise",
+          "direct_dependencies": {
+            "by_radius": [
+              "minecraft:biomes"
+            ],
+            "radius": 0
+          },
+          "accumulated_dependencies": {
+            "by_radius": [
+              "minecraft:biomes"
+            ],
+            "radius": 0
+          },
+          "block_state_write_radius": -1,
+          "task_layer_radii": {
+            "minecraft:empty": 0,
+            "minecraft:structure_starts": 0,
+            "minecraft:structure_references": 0,
+            "minecraft:biomes": 0,
+            "minecraft:noise": 0
+          }
+        },
+        {
+          "target_status": "minecraft:surface",
+          "direct_dependencies": {
+            "by_radius": [
+              "minecraft:noise"
+            ],
+            "radius": 0
+          },
+          "accumulated_dependencies": {
+            "by_radius": [
+              "minecraft:noise"
+            ],
+            "radius": 0
+          },
+          "block_state_write_radius": -1,
+          "task_layer_radii": {
+            "minecraft:empty": 0,
+            "minecraft:structure_starts": 0,
+            "minecraft:structure_references": 0,
+            "minecraft:biomes": 0,
+            "minecraft:noise": 0,
+            "minecraft:surface": 0
+          }
+        },
+        {
+          "target_status": "minecraft:carvers",
+          "direct_dependencies": {
+            "by_radius": [
+              "minecraft:surface"
+            ],
+            "radius": 0
+          },
+          "accumulated_dependencies": {
+            "by_radius": [
+              "minecraft:surface"
+            ],
+            "radius": 0
+          },
+          "block_state_write_radius": -1,
+          "task_layer_radii": {
+            "minecraft:empty": 0,
+            "minecraft:structure_starts": 0,
+            "minecraft:structure_references": 0,
+            "minecraft:biomes": 0,
+            "minecraft:noise": 0,
+            "minecraft:surface": 0,
+            "minecraft:carvers": 0
+          }
+        },
+        {
+          "target_status": "minecraft:features",
+          "direct_dependencies": {
+            "by_radius": [
+              "minecraft:carvers"
+            ],
+            "radius": 0
+          },
+          "accumulated_dependencies": {
+            "by_radius": [
+              "minecraft:carvers"
+            ],
+            "radius": 0
+          },
+          "block_state_write_radius": -1,
+          "task_layer_radii": {
+            "minecraft:empty": 0,
+            "minecraft:structure_starts": 0,
+            "minecraft:structure_references": 0,
+            "minecraft:biomes": 0,
+            "minecraft:noise": 0,
+            "minecraft:surface": 0,
+            "minecraft:carvers": 0,
+            "minecraft:features": 0
+          }
+        },
+        {
+          "target_status": "minecraft:initialize_light",
+          "direct_dependencies": {
+            "by_radius": [
+              "minecraft:features"
+            ],
+            "radius": 0
+          },
+          "accumulated_dependencies": {
+            "by_radius": [
+              "minecraft:features"
+            ],
+            "radius": 0
+          },
+          "block_state_write_radius": -1,
+          "task_layer_radii": {
+            "minecraft:empty": 0,
+            "minecraft:structure_starts": 0,
+            "minecraft:structure_references": 0,
+            "minecraft:biomes": 0,
+            "minecraft:noise": 0,
+            "minecraft:surface": 0,
+            "minecraft:carvers": 0,
+            "minecraft:features": 0,
+            "minecraft:initialize_light": 0
+          }
+        },
+        {
+          "target_status": "minecraft:light",
+          "direct_dependencies": {
+            "by_radius": [
+              "minecraft:initialize_light",
+              "minecraft:initialize_light"
+            ],
+            "radius": 1
+          },
+          "accumulated_dependencies": {
+            "by_radius": [
+              "minecraft:initialize_light",
+              "minecraft:initialize_light"
+            ],
+            "radius": 1
+          },
+          "block_state_write_radius": -1,
+          "task_layer_radii": {
+            "minecraft:empty": 1,
+            "minecraft:structure_starts": 1,
+            "minecraft:structure_references": 1,
+            "minecraft:biomes": 1,
+            "minecraft:noise": 1,
+            "minecraft:surface": 1,
+            "minecraft:carvers": 1,
+            "minecraft:features": 1,
+            "minecraft:initialize_light": 1,
+            "minecraft:light": 0
+          }
+        },
+        {
+          "target_status": "minecraft:spawn",
+          "direct_dependencies": {
+            "by_radius": [
+              "minecraft:light"
+            ],
+            "radius": 0
+          },
+          "accumulated_dependencies": {
+            "by_radius": [
+              "minecraft:light",
+              "minecraft:initialize_light"
+            ],
+            "radius": 1
+          },
+          "block_state_write_radius": -1,
+          "task_layer_radii": {
+            "minecraft:empty": 1,
+            "minecraft:structure_starts": 1,
+            "minecraft:structure_references": 1,
+            "minecraft:biomes": 1,
+            "minecraft:noise": 1,
+            "minecraft:surface": 1,
+            "minecraft:carvers": 1,
+            "minecraft:features": 1,
+            "minecraft:initialize_light": 1,
+            "minecraft:light": 0,
+            "minecraft:spawn": 0
+          }
+        },
+        {
+          "target_status": "minecraft:full",
+          "direct_dependencies": {
+            "by_radius": [
+              "minecraft:spawn"
+            ],
+            "radius": 0
+          },
+          "accumulated_dependencies": {
+            "by_radius": [
+              "minecraft:spawn",
+              "minecraft:initialize_light"
+            ],
+            "radius": 1
+          },
+          "block_state_write_radius": -1,
+          "task_layer_radii": {
+            "minecraft:empty": 1,
+            "minecraft:structure_starts": 1,
+            "minecraft:structure_references": 1,
+            "minecraft:biomes": 1,
+            "minecraft:noise": 1,
+            "minecraft:surface": 1,
+            "minecraft:carvers": 1,
+            "minecraft:features": 1,
+            "minecraft:initialize_light": 1,
+            "minecraft:light": 0,
+            "minecraft:spawn": 0,
+            "minecraft:full": 0
+          }
+        }
+      ]
+    }
+  },
+  "feature_dependency_queries": {
+    "generation": {
+      "center": [
+        -2,
+        3
+      ],
+      "neighbour_samples": [
+        {
+          "chunk": [
+            -2,
+            3
+          ],
+          "native_chessboard_distance": 0,
+          "direct_dependency": "minecraft:carvers",
+          "accumulated_dependency": "minecraft:carvers"
+        },
+        {
+          "chunk": [
+            -3,
+            4
+          ],
+          "native_chessboard_distance": 1,
+          "direct_dependency": "minecraft:carvers",
+          "accumulated_dependency": "minecraft:carvers"
+        },
+        {
+          "chunk": [
+            -4,
+            5
+          ],
+          "native_chessboard_distance": 2,
+          "direct_dependency": "minecraft:structure_starts",
+          "accumulated_dependency": "minecraft:biomes"
+        },
+        {
+          "chunk": [
+            -5,
+            6
+          ],
+          "native_chessboard_distance": 3,
+          "direct_dependency": "minecraft:structure_starts",
+          "accumulated_dependency": "minecraft:structure_starts"
+        },
+        {
+          "chunk": [
+            -6,
+            7
+          ],
+          "native_chessboard_distance": 4,
+          "direct_dependency": "minecraft:structure_starts",
+          "accumulated_dependency": "minecraft:structure_starts"
+        },
+        {
+          "chunk": [
+            -7,
+            8
+          ],
+          "native_chessboard_distance": 5,
+          "direct_dependency": "minecraft:structure_starts",
+          "accumulated_dependency": "minecraft:structure_starts"
+        },
+        {
+          "chunk": [
+            -8,
+            9
+          ],
+          "native_chessboard_distance": 6,
+          "direct_dependency": "minecraft:structure_starts",
+          "accumulated_dependency": "minecraft:structure_starts"
+        },
+        {
+          "chunk": [
+            -9,
+            10
+          ],
+          "native_chessboard_distance": 7,
+          "direct_dependency": "minecraft:structure_starts",
+          "accumulated_dependency": "minecraft:structure_starts"
+        },
+        {
+          "chunk": [
+            -10,
+            11
+          ],
+          "native_chessboard_distance": 8,
+          "direct_dependency": "minecraft:structure_starts",
+          "accumulated_dependency": "minecraft:structure_starts"
+        },
+        {
+          "chunk": [
+            -11,
+            12
+          ],
+          "native_chessboard_distance": 9,
+          "direct_dependency": "outside_dependency_table",
+          "accumulated_dependency": "minecraft:structure_starts"
+        },
+        {
+          "chunk": [
+            -12,
+            13
+          ],
+          "native_chessboard_distance": 10,
+          "direct_dependency": "outside_dependency_table",
+          "accumulated_dependency": "minecraft:structure_starts"
+        },
+        {
+          "chunk": [
+            -13,
+            14
+          ],
+          "native_chessboard_distance": 11,
+          "direct_dependency": "outside_dependency_table",
+          "accumulated_dependency": "outside_dependency_table"
+        }
+      ],
+      "direct_get_radius_of_features": {
+        "throws": "java.lang.IllegalArgumentException"
+      },
+      "accumulated_get_radius_of_features": {
+        "throws": "java.lang.IllegalArgumentException"
+      },
+      "step_get_accumulated_radius_of_features": 0
+    },
+    "loading": {
+      "center": [
+        -2,
+        3
+      ],
+      "neighbour_samples": [
+        {
+          "chunk": [
+            -2,
+            3
+          ],
+          "native_chessboard_distance": 0,
+          "direct_dependency": "minecraft:carvers",
+          "accumulated_dependency": "minecraft:carvers"
+        },
+        {
+          "chunk": [
+            -3,
+            4
+          ],
+          "native_chessboard_distance": 1,
+          "direct_dependency": "outside_dependency_table",
+          "accumulated_dependency": "outside_dependency_table"
+        }
+      ],
+      "direct_get_radius_of_features": {
+        "throws": "java.lang.IllegalArgumentException"
+      },
+      "accumulated_get_radius_of_features": {
+        "throws": "java.lang.IllegalArgumentException"
+      },
+      "step_get_accumulated_radius_of_features": 0
+    }
+  },
+  "decoration_steps": [
+    {
+      "index": 0,
+      "name": "RAW_GENERATION"
+    },
+    {
+      "index": 1,
+      "name": "LAKES"
+    },
+    {
+      "index": 2,
+      "name": "LOCAL_MODIFICATIONS"
+    },
+    {
+      "index": 3,
+      "name": "UNDERGROUND_STRUCTURES"
+    },
+    {
+      "index": 4,
+      "name": "SURFACE_STRUCTURES"
+    },
+    {
+      "index": 5,
+      "name": "STRONGHOLDS"
+    },
+    {
+      "index": 6,
+      "name": "UNDERGROUND_ORES"
+    },
+    {
+      "index": 7,
+      "name": "UNDERGROUND_DECORATION"
+    },
+    {
+      "index": 8,
+      "name": "FLUID_SPRINGS"
+    },
+    {
+      "index": 9,
+      "name": "VEGETAL_DECORATION"
+    },
+    {
+      "index": 10,
+      "name": "TOP_LAYER_MODIFICATION"
+    }
+  ]
+}

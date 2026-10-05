@@ -14,9 +14,12 @@
 //! lines exactly that way), so [`encode_component`] emits the compact form
 //! whenever no styling is attached and the compound form otherwise.
 //!
-//! NBT strings are length-prefixed with a big-endian `u16` byte count. Java
-//! writes "modified UTF-8"; for text without NUL or surrogate pairs (everything
-//! BCore produces) that is byte-identical to plain UTF-8.
+//! NBT strings use Java modified UTF-8 with a big-endian `u16` byte count.
+//! The typed encoder also accepts full template/update NBT without losing numeric
+//! widths, array types or the physical list representation.
+
+mod typed;
+pub use typed::{encode_typed_nbt, NbtEncodeError};
 
 /// NBT tag id: end of compound.
 pub const TAG_END: u8 = 0;
@@ -29,11 +32,10 @@ pub const TAG_LIST: u8 = 9;
 /// NBT tag id: named-entry compound, terminated by [`TAG_END`].
 pub const TAG_COMPOUND: u8 = 10;
 
-/// Write an NBT string payload: big-endian `u16` byte length + bytes.
+/// Write an NBT string payload, including Java's NUL and supplementary encoding.
+/// Oversized strings are rejected rather than emitting a wrapped length prefix.
 pub fn write_nbt_string(s: &str, out: &mut Vec<u8>) {
-    let bytes = s.as_bytes();
-    out.extend_from_slice(&(bytes.len() as u16).to_be_bytes());
-    out.extend_from_slice(bytes);
+    typed::write_string(s, out).expect("NBT string exceeds the native modified-UTF length limit");
 }
 
 /// Write a named compound entry header: tag id + entry name.
@@ -42,7 +44,7 @@ fn write_entry(tag: u8, name: &str, out: &mut Vec<u8>) {
     write_nbt_string(name, out);
 }
 
-/// Encode the generated chest/spawner update schema as anonymous NBT.
+/// Encode generated block-entity updates as anonymous NBT; chest/beehive updates are empty.
 /// All numeric fields in this schema are vanilla TAG_Short spawner settings.
 pub fn encode_block_entity_update(entity: &bcore_worldgen::block_entity::BlockEntity) -> Vec<u8> {
     fn compound(value: &serde_json::Value, out: &mut Vec<u8>) {
@@ -70,6 +72,31 @@ pub fn encode_block_entity_update(entity: &bcore_worldgen::block_entity::BlockEn
     let mut out = vec![TAG_COMPOUND];
     compound(&entity.update_data(), &mut out);
     out
+}
+
+/// Encode the independently derived native update tag, never the full saved NBT.
+/// Legacy sculk records retain their native empty update compound.
+pub fn encode_feature_block_entity_update(
+    entity: &bcore_worldgen::generation::FeatureBlockEntity,
+) -> Vec<u8> {
+    if let Some(typed) = &entity.typed_update_data {
+        let update = bcore_worldgen::structure::template::Nbt::from_typed_json(typed)
+            .expect("validated typed block-entity update");
+        assert_eq!(
+            update.to_json(),
+            entity.update_data,
+            "typed update and projected fields disagree"
+        );
+        return encode_typed_nbt(&update).expect("valid generated block-entity update NBT");
+    }
+    assert!(
+        entity
+            .update_data
+            .as_object()
+            .is_some_and(|data| data.is_empty()),
+        "legacy generated sculk updates must match the native empty compound"
+    );
+    vec![TAG_COMPOUND, TAG_END]
 }
 
 /// A minimal chat text component: literal text plus optional colour, italics

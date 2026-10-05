@@ -1,0 +1,31 @@
+{
+  "minecraft": "26.1",
+  "protocol": 775,
+  "jar_sha256": "a7fed6f7d88379349e35ae0c6e9881d4484605132f6f620376a3868eea6cce52",
+  "fixtures": [
+    {
+      "file": "origin-heightmaps-26.1.zip",
+      "sha256": "d99540113fbff2280f7b9fd45bf1a672f7d9ed16418d09d6f51caaea216e1e45",
+      "capture": "target/full-parity-20261002/native-history/origin-heightmaps-v3",
+      "native_provenance_sha256": "fcdccfa85866049f97bb3343f2eb8eb2b0d97e2d4604e83700559129d232c579"
+    },
+    {
+      "file": "adjacent-26.1.zip",
+      "sha256": "dc7b58b9f013884c5b3912375b7471bb6f19be66dc7ef478b4369cf647b1d3c9",
+      "capture": "target/full-parity-20261002/native-history/adjacent-01",
+      "native_provenance_sha256": "546ccffa5b9b709cf47f2a50fef1816ab60d49a1c98c0bf4ca51652b773e4e07"
+    },
+    {
+      "file": "reverse-26.1.zip",
+      "sha256": "477a4ffc8d733504c66fc98449c50374d66280c8faeed5571991742ba38885d8",
+      "capture": "target/full-parity-20261002/native-history/reverse-01",
+      "native_provenance_sha256": "cfba4f4fcad68de1f598e575c9a10ebd6a22cf4a0d1c0df2c369eecf0d8b44e2"
+    },
+    {
+      "file": "forest-grass-26.1.zip",
+      "sha256": "828cb925e4b8cfcaf1db7f0f73fde99c86d3107c0b2ecf2ceccfaf4296baf5c4",
+      "capture": "target/full-parity-20261002/native-history/forest-grass-input-v4",
+      "native_provenance_sha256": "1cefe8d1e6f0e72b08421138c9d67bd7c14c5682d17f8ba88c038629b021ece6"
+    }
+  ]
+}

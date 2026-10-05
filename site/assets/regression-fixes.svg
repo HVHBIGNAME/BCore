@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="304" viewBox="0 0 1000 304" role="img" aria-labelledby="title desc">
+<title id="title">Native-history regression fixes</title>
+<desc id="desc">Trial: 36 to zero state differences across eight requests. Scattered adjacency: 450 to zero across twelve requests.</desc>
+<defs><linearGradient id="background" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#13243a"/><stop offset="1" stop-color="#0b1220"/></linearGradient><pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32,0 H0 V32" fill="none" stroke="#547294" stroke-opacity=".12"/></pattern></defs>
+<g font-family="Segoe UI, Ubuntu, Arial, sans-serif">
+<rect x="1" y="1" width="998" height="302" rx="20" fill="url(#background)" stroke="#26374e" />
+<text x="36" y="43" font-size="27" fill="#e8f0fc" font-weight="650" text-anchor="start" >From witness to fix</text>
+<text x="36" y="70" font-size="14" fill="#a7bad2" font-weight="400" text-anchor="start" >Same request histories before and after the integration fixes.</text>
+<rect x="30" y="94" width="461" height="155" rx="12" fill="#111e31" stroke="#26374e" />
+<text x="50" y="122" font-size="18" fill="#e8f0fc" font-weight="600" text-anchor="start" >Trial chambers</text>
+<text x="50" y="145" font-size="12" fill="#a7bad2" font-weight="400" text-anchor="start" >Decorated-pot handoff restores the ore stream</text>
+<text x="53" y="205" font-size="43" fill="#f5c36c" font-weight="650" text-anchor="start" >36</text>
+<text x="165" y="198" font-size="30" fill="#a7bad2" font-weight="400" text-anchor="start" >→</text>
+<text x="218" y="205" font-size="43" fill="#50e3c2" font-weight="650" text-anchor="start" >0</text>
+<text x="283" y="186" font-size="13" fill="#e8f0fc" font-weight="400" text-anchor="start" >state differences</text>
+<text x="283" y="209" font-size="12" fill="#a7bad2" font-weight="400" text-anchor="start" >across 8 requests</text>
+<text x="53" y="230" font-size="10" fill="#a7bad2" font-weight="600" text-anchor="start" >BEFORE</text>
+<text x="218" y="230" font-size="10" fill="#a7bad2" font-weight="600" text-anchor="start" >AFTER</text>
+<rect x="509" y="94" width="461" height="155" rx="12" fill="#111e31" stroke="#26374e" />
+<text x="529" y="122" font-size="18" fill="#e8f0fc" font-weight="600" text-anchor="start" >Jungle / scattered adjacency</text>
+<text x="529" y="145" font-size="12" fill="#a7bad2" font-weight="400" text-anchor="start" >Native stair + bamboo edge callbacks</text>
+<text x="532" y="205" font-size="43" fill="#f5c36c" font-weight="650" text-anchor="start" >450</text>
+<text x="644" y="198" font-size="30" fill="#a7bad2" font-weight="400" text-anchor="start" >→</text>
+<text x="697" y="205" font-size="43" fill="#50e3c2" font-weight="650" text-anchor="start" >0</text>
+<text x="762" y="186" font-size="13" fill="#e8f0fc" font-weight="400" text-anchor="start" >state differences</text>
+<text x="762" y="209" font-size="12" fill="#a7bad2" font-weight="400" text-anchor="start" >across 12 requests</text>
+<text x="532" y="230" font-size="10" fill="#a7bad2" font-weight="600" text-anchor="start" >BEFORE</text>
+<text x="697" y="230" font-size="10" fill="#a7bad2" font-weight="600" text-anchor="start" >AFTER</text>
+<text x="36" y="280" font-size="12" fill="#a7bad2" font-weight="400" text-anchor="start" >Counts sum request snapshots, including repeats; they are not counts of unique world positions.</text>
+</g></svg>

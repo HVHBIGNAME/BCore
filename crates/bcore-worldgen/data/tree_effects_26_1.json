@@ -1,0 +1,4345 @@
+{
+  "minecraft": "26.1",
+  "jar_sha256": "a7fed6f7d88379349e35ae0c6e9881d4484605132f6f620376a3868eea6cce52",
+  "probe_sha256": "ec8c0af4a3aa681735a9dc15dce1a7fa6fdd22cbf1e497f133726060f6932086",
+  "version": 1,
+  "api": "WorldGenRegion.setBlock/getBlockEntity(BlockPos, BlockEntityType) -> ProtoChunk",
+  "setup": "Constructed ProtoChunks/ChunkHolders with completed CARVERS futures; native FEATURES step; WorldGenRegion constructor bypassed; fixed game time 100; server POI callback record-only",
+  "scope": "BeehiveBlockEntity-compatible states, non-block-entity removal/recreation, typed lookup/storeBee and native proto tick retention",
+  "excluded": [
+    "transitions to other block-entity types",
+    "LevelChunk writes",
+    "POI execution",
+    "global source scheduling",
+    "tick execution"
+  ],
+  "request_encoding": "input scheduleTick calls: x,y,z,default block-state/fluid ID,delay,fluid flag; native ticks append priority and have proto delay zero",
+  "source_dependencies": [
+    "TreeReference.java",
+    "NativeEntityLevel.java",
+    "NativeWorldgenRegistries.java",
+    "TreeEffectReference.java"
+  ],
+  "samples": [
+    {
+      "name": "same_state",
+      "pos": [
+        -1,
+        65,
+        16
+      ],
+      "source": [
+        0,
+        0
+      ],
+      "flags": 19,
+      "requests": [
+        [
+          -1,
+          65,
+          16,
+          21768,
+          1,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          2,
+          5,
+          1
+        ],
+        [
+          -1,
+          65,
+          16,
+          21768,
+          -5,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          2,
+          -2147483648,
+          1
+        ],
+        [
+          -1,
+          65,
+          16,
+          3,
+          2147483647,
+          1
+        ]
+      ],
+      "native_ticks_before": [
+        [
+          -1,
+          65,
+          16,
+          21768,
+          0,
+          0,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "steps": [
+        {
+          "op": "write",
+          "state": 21774,
+          "accepted": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": "DUMMY",
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": []
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": 9,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "write",
+          "state": 21774,
+          "accepted": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": -5,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9,
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9,
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        }
+      ],
+      "native_ticks_after": [
+        [
+          -1,
+          65,
+          16,
+          21768,
+          0,
+          0,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "poi_callbacks": 2,
+      "nbt": {
+        "components": {},
+        "x": -1,
+        "y": 65,
+        "z": 16,
+        "id": "minecraft:beehive",
+        "bees": [
+          {
+            "ticks_in_hive": 9,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          },
+          {
+            "ticks_in_hive": -5,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          }
+        ]
+      }
+    },
+    {
+      "name": "same_state",
+      "pos": [
+        16,
+        319,
+        -1
+      ],
+      "source": [
+        2,
+        -2
+      ],
+      "flags": 3,
+      "requests": [
+        [
+          16,
+          319,
+          -1,
+          21768,
+          1,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          2,
+          5,
+          1
+        ],
+        [
+          16,
+          319,
+          -1,
+          21768,
+          -5,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          2,
+          -2147483648,
+          1
+        ],
+        [
+          16,
+          319,
+          -1,
+          3,
+          2147483647,
+          1
+        ]
+      ],
+      "native_ticks_before": [
+        [
+          16,
+          319,
+          -1,
+          21768,
+          0,
+          0,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "steps": [
+        {
+          "op": "write",
+          "state": 21774,
+          "accepted": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": "DUMMY",
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": []
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": 9,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "write",
+          "state": 21774,
+          "accepted": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": -5,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9,
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9,
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        }
+      ],
+      "native_ticks_after": [
+        [
+          16,
+          319,
+          -1,
+          21768,
+          0,
+          0,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "poi_callbacks": 2,
+      "nbt": {
+        "components": {},
+        "x": 16,
+        "y": 319,
+        "z": -1,
+        "id": "minecraft:beehive",
+        "bees": [
+          {
+            "ticks_in_hive": 9,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          },
+          {
+            "ticks_in_hive": -5,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          }
+        ]
+      }
+    },
+    {
+      "name": "nest_properties",
+      "pos": [
+        -17,
+        -64,
+        -1
+      ],
+      "source": [
+        -1,
+        -2
+      ],
+      "flags": 19,
+      "requests": [
+        [
+          -17,
+          -64,
+          -1,
+          21768,
+          1,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          2,
+          5,
+          1
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          21768,
+          -5,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          2,
+          -2147483648,
+          1
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          3,
+          2147483647,
+          1
+        ]
+      ],
+      "native_ticks_before": [
+        [
+          -17,
+          -64,
+          -1,
+          21768,
+          0,
+          0,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "steps": [
+        {
+          "op": "write",
+          "state": 21774,
+          "accepted": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": "DUMMY",
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": []
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": 9,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "write",
+          "state": 21791,
+          "accepted": true,
+          "after": {
+            "state": 21791,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21791,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": -5,
+          "after": {
+            "state": 21791,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9,
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "write",
+          "state": 21774,
+          "accepted": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9,
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9,
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        }
+      ],
+      "native_ticks_after": [
+        [
+          -17,
+          -64,
+          -1,
+          21768,
+          0,
+          0,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "poi_callbacks": 3,
+      "nbt": {
+        "components": {},
+        "x": -17,
+        "y": -64,
+        "z": -1,
+        "id": "minecraft:beehive",
+        "bees": [
+          {
+            "ticks_in_hive": 9,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          },
+          {
+            "ticks_in_hive": -5,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          }
+        ]
+      }
+    },
+    {
+      "name": "nest_properties",
+      "pos": [
+        -1,
+        65,
+        16
+      ],
+      "source": [
+        0,
+        0
+      ],
+      "flags": 3,
+      "requests": [
+        [
+          -1,
+          65,
+          16,
+          21768,
+          1,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          2,
+          5,
+          1
+        ],
+        [
+          -1,
+          65,
+          16,
+          21768,
+          -5,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          2,
+          -2147483648,
+          1
+        ],
+        [
+          -1,
+          65,
+          16,
+          3,
+          2147483647,
+          1
+        ]
+      ],
+      "native_ticks_before": [
+        [
+          -1,
+          65,
+          16,
+          21768,
+          0,
+          0,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "steps": [
+        {
+          "op": "write",
+          "state": 21774,
+          "accepted": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": "DUMMY",
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": []
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": 9,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "write",
+          "state": 21791,
+          "accepted": true,
+          "after": {
+            "state": 21791,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21791,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": -5,
+          "after": {
+            "state": 21791,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9,
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "write",
+          "state": 21774,
+          "accepted": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9,
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9,
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        }
+      ],
+      "native_ticks_after": [
+        [
+          -1,
+          65,
+          16,
+          21768,
+          0,
+          0,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "poi_callbacks": 3,
+      "nbt": {
+        "components": {},
+        "x": -1,
+        "y": 65,
+        "z": 16,
+        "id": "minecraft:beehive",
+        "bees": [
+          {
+            "ticks_in_hive": 9,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          },
+          {
+            "ticks_in_hive": -5,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          }
+        ]
+      }
+    },
+    {
+      "name": "hive_properties",
+      "pos": [
+        16,
+        319,
+        -1
+      ],
+      "source": [
+        2,
+        -2
+      ],
+      "flags": 19,
+      "requests": [
+        [
+          16,
+          319,
+          -1,
+          21792,
+          1,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          2,
+          5,
+          1
+        ],
+        [
+          16,
+          319,
+          -1,
+          21792,
+          -5,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          2,
+          -2147483648,
+          1
+        ],
+        [
+          16,
+          319,
+          -1,
+          3,
+          2147483647,
+          1
+        ]
+      ],
+      "native_ticks_before": [
+        [
+          16,
+          319,
+          -1,
+          21792,
+          0,
+          0,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "steps": [
+        {
+          "op": "write",
+          "state": 21792,
+          "accepted": true,
+          "after": {
+            "state": 21792,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": "DUMMY",
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21792,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": []
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": 9,
+          "after": {
+            "state": 21792,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "write",
+          "state": 21807,
+          "accepted": true,
+          "after": {
+            "state": 21807,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21807,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": -5,
+          "after": {
+            "state": 21807,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9,
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "write",
+          "state": 21792,
+          "accepted": true,
+          "after": {
+            "state": 21792,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9,
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21792,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9,
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        }
+      ],
+      "native_ticks_after": [
+        [
+          16,
+          319,
+          -1,
+          21792,
+          0,
+          0,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "poi_callbacks": 3,
+      "nbt": {
+        "components": {},
+        "x": 16,
+        "y": 319,
+        "z": -1,
+        "id": "minecraft:beehive",
+        "bees": [
+          {
+            "ticks_in_hive": 9,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          },
+          {
+            "ticks_in_hive": -5,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          }
+        ]
+      }
+    },
+    {
+      "name": "hive_properties",
+      "pos": [
+        -17,
+        -64,
+        -1
+      ],
+      "source": [
+        -1,
+        -2
+      ],
+      "flags": 3,
+      "requests": [
+        [
+          -17,
+          -64,
+          -1,
+          21792,
+          1,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          2,
+          5,
+          1
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          21792,
+          -5,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          2,
+          -2147483648,
+          1
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          3,
+          2147483647,
+          1
+        ]
+      ],
+      "native_ticks_before": [
+        [
+          -17,
+          -64,
+          -1,
+          21792,
+          0,
+          0,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "steps": [
+        {
+          "op": "write",
+          "state": 21792,
+          "accepted": true,
+          "after": {
+            "state": 21792,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": "DUMMY",
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21792,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": []
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": 9,
+          "after": {
+            "state": 21792,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "write",
+          "state": 21807,
+          "accepted": true,
+          "after": {
+            "state": 21807,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21807,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": -5,
+          "after": {
+            "state": 21807,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9,
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "write",
+          "state": 21792,
+          "accepted": true,
+          "after": {
+            "state": 21792,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9,
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21792,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9,
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        }
+      ],
+      "native_ticks_after": [
+        [
+          -17,
+          -64,
+          -1,
+          21792,
+          0,
+          0,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "poi_callbacks": 3,
+      "nbt": {
+        "components": {},
+        "x": -17,
+        "y": -64,
+        "z": -1,
+        "id": "minecraft:beehive",
+        "bees": [
+          {
+            "ticks_in_hive": 9,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          },
+          {
+            "ticks_in_hive": -5,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          }
+        ]
+      }
+    },
+    {
+      "name": "nest_to_hive",
+      "pos": [
+        -1,
+        65,
+        16
+      ],
+      "source": [
+        0,
+        0
+      ],
+      "flags": 19,
+      "requests": [
+        [
+          -1,
+          65,
+          16,
+          21768,
+          1,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          2,
+          5,
+          1
+        ],
+        [
+          -1,
+          65,
+          16,
+          21768,
+          -5,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          2,
+          -2147483648,
+          1
+        ],
+        [
+          -1,
+          65,
+          16,
+          3,
+          2147483647,
+          1
+        ]
+      ],
+      "native_ticks_before": [
+        [
+          -1,
+          65,
+          16,
+          21768,
+          0,
+          0,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "steps": [
+        {
+          "op": "write",
+          "state": 21774,
+          "accepted": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": "DUMMY",
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": []
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": 9,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "write",
+          "state": 21792,
+          "accepted": true,
+          "after": {
+            "state": 21792,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21792,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": -5,
+          "after": {
+            "state": 21792,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9,
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        }
+      ],
+      "native_ticks_after": [
+        [
+          -1,
+          65,
+          16,
+          21768,
+          0,
+          0,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "poi_callbacks": 2,
+      "nbt": {
+        "components": {},
+        "x": -1,
+        "y": 65,
+        "z": 16,
+        "id": "minecraft:beehive",
+        "bees": [
+          {
+            "ticks_in_hive": 9,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          },
+          {
+            "ticks_in_hive": -5,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          }
+        ]
+      }
+    },
+    {
+      "name": "nest_to_hive",
+      "pos": [
+        16,
+        319,
+        -1
+      ],
+      "source": [
+        2,
+        -2
+      ],
+      "flags": 3,
+      "requests": [
+        [
+          16,
+          319,
+          -1,
+          21768,
+          1,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          2,
+          5,
+          1
+        ],
+        [
+          16,
+          319,
+          -1,
+          21768,
+          -5,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          2,
+          -2147483648,
+          1
+        ],
+        [
+          16,
+          319,
+          -1,
+          3,
+          2147483647,
+          1
+        ]
+      ],
+      "native_ticks_before": [
+        [
+          16,
+          319,
+          -1,
+          21768,
+          0,
+          0,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "steps": [
+        {
+          "op": "write",
+          "state": 21774,
+          "accepted": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": "DUMMY",
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": []
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": 9,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "write",
+          "state": 21792,
+          "accepted": true,
+          "after": {
+            "state": 21792,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21792,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": -5,
+          "after": {
+            "state": 21792,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9,
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        }
+      ],
+      "native_ticks_after": [
+        [
+          16,
+          319,
+          -1,
+          21768,
+          0,
+          0,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "poi_callbacks": 2,
+      "nbt": {
+        "components": {},
+        "x": 16,
+        "y": 319,
+        "z": -1,
+        "id": "minecraft:beehive",
+        "bees": [
+          {
+            "ticks_in_hive": 9,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          },
+          {
+            "ticks_in_hive": -5,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          }
+        ]
+      }
+    },
+    {
+      "name": "hive_to_nest",
+      "pos": [
+        -17,
+        -64,
+        -1
+      ],
+      "source": [
+        -1,
+        -2
+      ],
+      "flags": 19,
+      "requests": [
+        [
+          -17,
+          -64,
+          -1,
+          21792,
+          1,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          2,
+          5,
+          1
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          21792,
+          -5,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          2,
+          -2147483648,
+          1
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          3,
+          2147483647,
+          1
+        ]
+      ],
+      "native_ticks_before": [
+        [
+          -17,
+          -64,
+          -1,
+          21792,
+          0,
+          0,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "steps": [
+        {
+          "op": "write",
+          "state": 21792,
+          "accepted": true,
+          "after": {
+            "state": 21792,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": "DUMMY",
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21792,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": []
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": 9,
+          "after": {
+            "state": 21792,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "write",
+          "state": 21774,
+          "accepted": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": -5,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9,
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        }
+      ],
+      "native_ticks_after": [
+        [
+          -17,
+          -64,
+          -1,
+          21792,
+          0,
+          0,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "poi_callbacks": 2,
+      "nbt": {
+        "components": {},
+        "x": -17,
+        "y": -64,
+        "z": -1,
+        "id": "minecraft:beehive",
+        "bees": [
+          {
+            "ticks_in_hive": 9,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          },
+          {
+            "ticks_in_hive": -5,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          }
+        ]
+      }
+    },
+    {
+      "name": "hive_to_nest",
+      "pos": [
+        -1,
+        65,
+        16
+      ],
+      "source": [
+        0,
+        0
+      ],
+      "flags": 3,
+      "requests": [
+        [
+          -1,
+          65,
+          16,
+          21792,
+          1,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          2,
+          5,
+          1
+        ],
+        [
+          -1,
+          65,
+          16,
+          21792,
+          -5,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          2,
+          -2147483648,
+          1
+        ],
+        [
+          -1,
+          65,
+          16,
+          3,
+          2147483647,
+          1
+        ]
+      ],
+      "native_ticks_before": [
+        [
+          -1,
+          65,
+          16,
+          21792,
+          0,
+          0,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "steps": [
+        {
+          "op": "write",
+          "state": 21792,
+          "accepted": true,
+          "after": {
+            "state": 21792,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": "DUMMY",
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21792,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": []
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": 9,
+          "after": {
+            "state": 21792,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "write",
+          "state": 21774,
+          "accepted": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": -5,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9,
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        }
+      ],
+      "native_ticks_after": [
+        [
+          -1,
+          65,
+          16,
+          21792,
+          0,
+          0,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "poi_callbacks": 2,
+      "nbt": {
+        "components": {},
+        "x": -1,
+        "y": 65,
+        "z": 16,
+        "id": "minecraft:beehive",
+        "bees": [
+          {
+            "ticks_in_hive": 9,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          },
+          {
+            "ticks_in_hive": -5,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          }
+        ]
+      }
+    },
+    {
+      "name": "stone_recreate",
+      "pos": [
+        16,
+        319,
+        -1
+      ],
+      "source": [
+        2,
+        -2
+      ],
+      "flags": 19,
+      "requests": [
+        [
+          16,
+          319,
+          -1,
+          21768,
+          1,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          2,
+          5,
+          1
+        ],
+        [
+          16,
+          319,
+          -1,
+          21768,
+          -5,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          2,
+          -2147483648,
+          1
+        ],
+        [
+          16,
+          319,
+          -1,
+          3,
+          2147483647,
+          1
+        ]
+      ],
+      "native_ticks_before": [
+        [
+          16,
+          319,
+          -1,
+          21768,
+          0,
+          0,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "steps": [
+        {
+          "op": "write",
+          "state": 21774,
+          "accepted": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": "DUMMY",
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": []
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": 9,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "write",
+          "state": 1,
+          "accepted": true,
+          "after": {
+            "state": 1,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": null,
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": false,
+          "after": {
+            "state": 1,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": null,
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "write",
+          "state": 21774,
+          "accepted": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": "DUMMY",
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 2,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": []
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": -5,
+          "after": {
+            "state": 21774,
+            "entity_id": 2,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        }
+      ],
+      "native_ticks_after": [
+        [
+          16,
+          319,
+          -1,
+          21768,
+          0,
+          0,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "poi_callbacks": 3,
+      "nbt": {
+        "components": {},
+        "x": 16,
+        "y": 319,
+        "z": -1,
+        "id": "minecraft:beehive",
+        "bees": [
+          {
+            "ticks_in_hive": -5,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          }
+        ]
+      }
+    },
+    {
+      "name": "stone_recreate",
+      "pos": [
+        -17,
+        -64,
+        -1
+      ],
+      "source": [
+        -1,
+        -2
+      ],
+      "flags": 3,
+      "requests": [
+        [
+          -17,
+          -64,
+          -1,
+          21768,
+          1,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          2,
+          5,
+          1
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          21768,
+          -5,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          2,
+          -2147483648,
+          1
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          3,
+          2147483647,
+          1
+        ]
+      ],
+      "native_ticks_before": [
+        [
+          -17,
+          -64,
+          -1,
+          21768,
+          0,
+          0,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "steps": [
+        {
+          "op": "write",
+          "state": 21774,
+          "accepted": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": "DUMMY",
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": []
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": 9,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "write",
+          "state": 1,
+          "accepted": true,
+          "after": {
+            "state": 1,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": null,
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": false,
+          "after": {
+            "state": 1,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": null,
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "write",
+          "state": 21774,
+          "accepted": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": "DUMMY",
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 2,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": []
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": -5,
+          "after": {
+            "state": 21774,
+            "entity_id": 2,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        }
+      ],
+      "native_ticks_after": [
+        [
+          -17,
+          -64,
+          -1,
+          21768,
+          0,
+          0,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "poi_callbacks": 3,
+      "nbt": {
+        "components": {},
+        "x": -17,
+        "y": -64,
+        "z": -1,
+        "id": "minecraft:beehive",
+        "bees": [
+          {
+            "ticks_in_hive": -5,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          }
+        ]
+      }
+    },
+    {
+      "name": "air_recreate",
+      "pos": [
+        -1,
+        65,
+        16
+      ],
+      "source": [
+        0,
+        0
+      ],
+      "flags": 19,
+      "requests": [
+        [
+          -1,
+          65,
+          16,
+          21792,
+          1,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          2,
+          5,
+          1
+        ],
+        [
+          -1,
+          65,
+          16,
+          21792,
+          -5,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          2,
+          -2147483648,
+          1
+        ],
+        [
+          -1,
+          65,
+          16,
+          3,
+          2147483647,
+          1
+        ]
+      ],
+      "native_ticks_before": [
+        [
+          -1,
+          65,
+          16,
+          21792,
+          0,
+          0,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "steps": [
+        {
+          "op": "write",
+          "state": 21792,
+          "accepted": true,
+          "after": {
+            "state": 21792,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": "DUMMY",
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21792,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": []
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": 9,
+          "after": {
+            "state": 21792,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "write",
+          "state": 0,
+          "accepted": true,
+          "after": {
+            "state": 0,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": null,
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": false,
+          "after": {
+            "state": 0,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": null,
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "write",
+          "state": 21792,
+          "accepted": true,
+          "after": {
+            "state": 21792,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": "DUMMY",
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21792,
+            "entity_id": 2,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": []
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": -5,
+          "after": {
+            "state": 21792,
+            "entity_id": 2,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        }
+      ],
+      "native_ticks_after": [
+        [
+          -1,
+          65,
+          16,
+          21792,
+          0,
+          0,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "poi_callbacks": 3,
+      "nbt": {
+        "components": {},
+        "x": -1,
+        "y": 65,
+        "z": 16,
+        "id": "minecraft:beehive",
+        "bees": [
+          {
+            "ticks_in_hive": -5,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          }
+        ]
+      }
+    },
+    {
+      "name": "air_recreate",
+      "pos": [
+        16,
+        319,
+        -1
+      ],
+      "source": [
+        2,
+        -2
+      ],
+      "flags": 3,
+      "requests": [
+        [
+          16,
+          319,
+          -1,
+          21792,
+          1,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          2,
+          5,
+          1
+        ],
+        [
+          16,
+          319,
+          -1,
+          21792,
+          -5,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          2,
+          -2147483648,
+          1
+        ],
+        [
+          16,
+          319,
+          -1,
+          3,
+          2147483647,
+          1
+        ]
+      ],
+      "native_ticks_before": [
+        [
+          16,
+          319,
+          -1,
+          21792,
+          0,
+          0,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "steps": [
+        {
+          "op": "write",
+          "state": 21792,
+          "accepted": true,
+          "after": {
+            "state": 21792,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": "DUMMY",
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21792,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": []
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": 9,
+          "after": {
+            "state": 21792,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "write",
+          "state": 0,
+          "accepted": true,
+          "after": {
+            "state": 0,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": null,
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": false,
+          "after": {
+            "state": 0,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": null,
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "write",
+          "state": 21792,
+          "accepted": true,
+          "after": {
+            "state": 21792,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": "DUMMY",
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21792,
+            "entity_id": 2,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": []
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": -5,
+          "after": {
+            "state": 21792,
+            "entity_id": 2,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        }
+      ],
+      "native_ticks_after": [
+        [
+          16,
+          319,
+          -1,
+          21792,
+          0,
+          0,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "poi_callbacks": 3,
+      "nbt": {
+        "components": {},
+        "x": 16,
+        "y": 319,
+        "z": -1,
+        "id": "minecraft:beehive",
+        "bees": [
+          {
+            "ticks_in_hive": -5,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          }
+        ]
+      }
+    },
+    {
+      "name": "repeated_stores",
+      "pos": [
+        -17,
+        -64,
+        -1
+      ],
+      "source": [
+        -1,
+        -2
+      ],
+      "flags": 19,
+      "requests": [
+        [
+          -17,
+          -64,
+          -1,
+          21768,
+          1,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          2,
+          5,
+          1
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          21768,
+          -5,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          2,
+          -2147483648,
+          1
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          3,
+          2147483647,
+          1
+        ]
+      ],
+      "native_ticks_before": [
+        [
+          -17,
+          -64,
+          -1,
+          21768,
+          0,
+          0,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "steps": [
+        {
+          "op": "write",
+          "state": 21774,
+          "accepted": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": "DUMMY",
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": []
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": 9,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": -5,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9,
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9,
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": -2147483648,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9,
+              -5,
+              -2147483648
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": 2147483647,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9,
+              -5,
+              -2147483648,
+              2147483647
+            ]
+          },
+          "native_ticks_unchanged": true
+        }
+      ],
+      "native_ticks_after": [
+        [
+          -17,
+          -64,
+          -1,
+          21768,
+          0,
+          0,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "poi_callbacks": 1,
+      "nbt": {
+        "components": {},
+        "x": -17,
+        "y": -64,
+        "z": -1,
+        "id": "minecraft:beehive",
+        "bees": [
+          {
+            "ticks_in_hive": 9,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          },
+          {
+            "ticks_in_hive": -5,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          },
+          {
+            "ticks_in_hive": -2147483648,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          },
+          {
+            "ticks_in_hive": 2147483647,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          }
+        ]
+      }
+    },
+    {
+      "name": "repeated_stores",
+      "pos": [
+        -1,
+        65,
+        16
+      ],
+      "source": [
+        0,
+        0
+      ],
+      "flags": 3,
+      "requests": [
+        [
+          -1,
+          65,
+          16,
+          21768,
+          1,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          2,
+          5,
+          1
+        ],
+        [
+          -1,
+          65,
+          16,
+          21768,
+          -5,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          2,
+          -2147483648,
+          1
+        ],
+        [
+          -1,
+          65,
+          16,
+          3,
+          2147483647,
+          1
+        ]
+      ],
+      "native_ticks_before": [
+        [
+          -1,
+          65,
+          16,
+          21768,
+          0,
+          0,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "steps": [
+        {
+          "op": "write",
+          "state": 21774,
+          "accepted": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": "DUMMY",
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": []
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": 9,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": -5,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9,
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9,
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": -2147483648,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9,
+              -5,
+              -2147483648
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": 2147483647,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21774,
+            "pending_id": null,
+            "ticks_in_hive": [
+              9,
+              -5,
+              -2147483648,
+              2147483647
+            ]
+          },
+          "native_ticks_unchanged": true
+        }
+      ],
+      "native_ticks_after": [
+        [
+          -1,
+          65,
+          16,
+          21768,
+          0,
+          0,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          -1,
+          65,
+          16,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "poi_callbacks": 1,
+      "nbt": {
+        "components": {},
+        "x": -1,
+        "y": 65,
+        "z": 16,
+        "id": "minecraft:beehive",
+        "bees": [
+          {
+            "ticks_in_hive": 9,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          },
+          {
+            "ticks_in_hive": -5,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          },
+          {
+            "ticks_in_hive": -2147483648,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          },
+          {
+            "ticks_in_hive": 2147483647,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          }
+        ]
+      }
+    },
+    {
+      "name": "pending_rewrites",
+      "pos": [
+        16,
+        319,
+        -1
+      ],
+      "source": [
+        2,
+        -2
+      ],
+      "flags": 19,
+      "requests": [
+        [
+          16,
+          319,
+          -1,
+          21768,
+          1,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          2,
+          5,
+          1
+        ],
+        [
+          16,
+          319,
+          -1,
+          21768,
+          -5,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          2,
+          -2147483648,
+          1
+        ],
+        [
+          16,
+          319,
+          -1,
+          3,
+          2147483647,
+          1
+        ]
+      ],
+      "native_ticks_before": [
+        [
+          16,
+          319,
+          -1,
+          21768,
+          0,
+          0,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "steps": [
+        {
+          "op": "write",
+          "state": 21774,
+          "accepted": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": "DUMMY",
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "write",
+          "state": 21791,
+          "accepted": true,
+          "after": {
+            "state": 21791,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": "DUMMY",
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "write",
+          "state": 21792,
+          "accepted": true,
+          "after": {
+            "state": 21792,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": "DUMMY",
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21792,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": []
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": -5,
+          "after": {
+            "state": 21792,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "write",
+          "state": 21774,
+          "accepted": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": 599,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              -5,
+              599
+            ]
+          },
+          "native_ticks_unchanged": true
+        }
+      ],
+      "native_ticks_after": [
+        [
+          16,
+          319,
+          -1,
+          21768,
+          0,
+          0,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          16,
+          319,
+          -1,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "poi_callbacks": 4,
+      "nbt": {
+        "components": {},
+        "x": 16,
+        "y": 319,
+        "z": -1,
+        "id": "minecraft:beehive",
+        "bees": [
+          {
+            "ticks_in_hive": -5,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          },
+          {
+            "ticks_in_hive": 599,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          }
+        ]
+      }
+    },
+    {
+      "name": "pending_rewrites",
+      "pos": [
+        -17,
+        -64,
+        -1
+      ],
+      "source": [
+        -1,
+        -2
+      ],
+      "flags": 3,
+      "requests": [
+        [
+          -17,
+          -64,
+          -1,
+          21768,
+          1,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          2,
+          5,
+          1
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          21768,
+          -5,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          2,
+          -2147483648,
+          1
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          3,
+          2147483647,
+          1
+        ]
+      ],
+      "native_ticks_before": [
+        [
+          -17,
+          -64,
+          -1,
+          21768,
+          0,
+          0,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "steps": [
+        {
+          "op": "write",
+          "state": 21774,
+          "accepted": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": "DUMMY",
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "write",
+          "state": 21791,
+          "accepted": true,
+          "after": {
+            "state": 21791,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": "DUMMY",
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "write",
+          "state": 21792,
+          "accepted": true,
+          "after": {
+            "state": 21792,
+            "entity_id": 0,
+            "entity_state": null,
+            "pending_id": "DUMMY",
+            "ticks_in_hive": null
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21792,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": []
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": -5,
+          "after": {
+            "state": 21792,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "write",
+          "state": 21774,
+          "accepted": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "resolve",
+          "present": true,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              -5
+            ]
+          },
+          "native_ticks_unchanged": true
+        },
+        {
+          "op": "store",
+          "age": 599,
+          "after": {
+            "state": 21774,
+            "entity_id": 1,
+            "entity_state": 21792,
+            "pending_id": null,
+            "ticks_in_hive": [
+              -5,
+              599
+            ]
+          },
+          "native_ticks_unchanged": true
+        }
+      ],
+      "native_ticks_after": [
+        [
+          -17,
+          -64,
+          -1,
+          21768,
+          0,
+          0,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          -17,
+          -64,
+          -1,
+          3,
+          0,
+          1,
+          0
+        ]
+      ],
+      "poi_callbacks": 4,
+      "nbt": {
+        "components": {},
+        "x": -17,
+        "y": -64,
+        "z": -1,
+        "id": "minecraft:beehive",
+        "bees": [
+          {
+            "ticks_in_hive": -5,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          },
+          {
+            "ticks_in_hive": 599,
+            "entity_data": {
+              "id": "minecraft:bee"
+            },
+            "min_ticks_in_hive": 600
+          }
+        ]
+      }
+    }
+  ]
+}

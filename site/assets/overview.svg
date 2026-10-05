@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="364" viewBox="0 0 1000 364" role="img" aria-labelledby="title desc">
+<title id="title">BCore verified development checkpoint</title>
+<desc id="desc">628 passing tests, 69 native requests in 11 histories. 31 matching scored light snapshots. Full parity remains incomplete.</desc>
+<defs><linearGradient id="background" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#13243a"/><stop offset="1" stop-color="#0b1220"/></linearGradient><pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32,0 H0 V32" fill="none" stroke="#547294" stroke-opacity=".12"/></pattern></defs>
+<g font-family="Segoe UI, Ubuntu, Arial, sans-serif">
+<rect x="1" y="1" width="998" height="362" rx="20" fill="url(#background)" stroke="#26374e" />
+<rect x="660" y="18" width="320" height="158" rx="12" fill="url(#grid)" stroke="none" />
+<text x="38" y="45" font-size="12" fill="#50e3c2" font-weight="600" text-anchor="start" letter-spacing="2">INDEPENDENT IMPLEMENTATION / RUST</text>
+<text x="36" y="112" font-size="66" fill="#e8f0fc" font-weight="700" text-anchor="start" >BCore</text>
+<text x="39" y="146" font-size="20" fill="#a7bad2" font-weight="400" text-anchor="start" >Building native worlds. Checking every boundary.</text>
+<rect x="772" y="28" width="190" height="27" rx="13" fill="#233248" stroke="none" />
+<text x="867" y="47" font-size="11" fill="#73aaff" font-weight="600" text-anchor="middle" >JAVA 26.1  ·  PROTOCOL 775</text>
+<path d="M898,93.0 l-38,19.0 v58 l38,-19.0 Z" fill="#1b354a" stroke="#50e3c2" stroke-opacity=".5"/>
+<path d="M822,93.0 l38,19.0 v58 l-38,-19.0 Z" fill="#183047" stroke="#50e3c2" stroke-opacity=".4"/>
+<path d="M860,74 l38,19.0 l-38,19.0 l-38,-19.0 Z" fill="#50e3c2" fill-opacity=".18" stroke="#50e3c2"/>
+<path d="M945,124.5 l-23,11.5 v29 l23,-11.5 Z" fill="#1b354a" stroke="#73aaff" stroke-opacity=".5"/>
+<path d="M899,124.5 l23,11.5 v29 l-23,-11.5 Z" fill="#183047" stroke="#73aaff" stroke-opacity=".4"/>
+<path d="M922,113 l23,11.5 l-23,11.5 l-23,-11.5 Z" fill="#73aaff" fill-opacity=".18" stroke="#73aaff"/>
+<path d="M832,135.0 l-22,11.0 v20 l22,-11.0 Z" fill="#1b354a" stroke="#b89bff" stroke-opacity=".5"/>
+<path d="M788,135.0 l22,11.0 v20 l-22,-11.0 Z" fill="#183047" stroke="#b89bff" stroke-opacity=".4"/>
+<path d="M810,124 l22,11.0 l-22,11.0 l-22,-11.0 Z" fill="#b89bff" fill-opacity=".18" stroke="#b89bff"/>
+<rect x="36" y="178" width="222" height="112" rx="12" fill="#111e31" stroke="#26374e" />
+<rect x="52" y="194" width="4" height="28" rx="2" fill="#50e3c2" stroke="none" />
+<text x="68" y="224" font-size="36" fill="#50e3c2" font-weight="700" text-anchor="start" >628</text>
+<text x="53" y="251" font-size="16" fill="#e8f0fc" font-weight="600" text-anchor="start" >tests passed</text>
+<text x="53" y="274" font-size="11" fill="#a7bad2" font-weight="400" text-anchor="start" >0 failed · 4 ignored</text>
+<rect x="272" y="178" width="222" height="112" rx="12" fill="#111e31" stroke="#26374e" />
+<rect x="288" y="194" width="4" height="28" rx="2" fill="#73aaff" stroke="none" />
+<text x="304" y="224" font-size="36" fill="#73aaff" font-weight="700" text-anchor="start" >69</text>
+<text x="289" y="251" font-size="16" fill="#e8f0fc" font-weight="600" text-anchor="start" >native requests</text>
+<text x="289" y="274" font-size="11" fill="#a7bad2" font-weight="400" text-anchor="start" >matched execution histories</text>
+<rect x="508" y="178" width="222" height="112" rx="12" fill="#111e31" stroke="#26374e" />
+<rect x="524" y="194" width="4" height="28" rx="2" fill="#b89bff" stroke="none" />
+<text x="540" y="224" font-size="36" fill="#b89bff" font-weight="700" text-anchor="start" >11</text>
+<text x="525" y="251" font-size="16" fill="#e8f0fc" font-weight="600" text-anchor="start" >history scenarios</text>
+<text x="525" y="274" font-size="11" fill="#a7bad2" font-weight="400" text-anchor="start" >adjacency · repeats · stages</text>
+<rect x="744" y="178" width="222" height="112" rx="12" fill="#111e31" stroke="#26374e" />
+<rect x="760" y="194" width="4" height="28" rx="2" fill="#50e3c2" stroke="none" />
+<text x="776" y="224" font-size="36" fill="#50e3c2" font-weight="700" text-anchor="start" >31</text>
+<text x="761" y="251" font-size="16" fill="#e8f0fc" font-weight="600" text-anchor="start" >light snapshots match</text>
+<text x="761" y="274" font-size="11" fill="#a7bad2" font-weight="400" text-anchor="start" >scored storage and bytes</text>
+<text x="39" y="322" font-size="13" fill="#f5c36c" font-weight="400" text-anchor="start" >ALPHA / Worldgen parity is incomplete. SPAWN and FULL runtime integration are next.</text>
+<text x="960" y="346" font-size="11" fill="#a7bad2" font-weight="400" text-anchor="end" >Verified checkpoint · 2026-10-05</text>
+</g></svg>

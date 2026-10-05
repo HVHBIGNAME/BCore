@@ -1,0 +1,1960 @@
+{
+  "schema": 1,
+  "recorded_utc": "2026-10-05T11:33:43.300015+00:00",
+  "scope": "noise-fill-kernel",
+  "minecraft": "26.1",
+  "protocol": 775,
+  "seed": "846692123413862008",
+  "chunks": [
+    [
+      0,
+      0
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      1
+    ],
+    [
+      -64,
+      -32
+    ],
+    [
+      -63,
+      -32
+    ],
+    [
+      62,
+      0
+    ],
+    [
+      -125,
+      187
+    ]
+  ],
+  "min_y": -64,
+  "height": 384,
+  "hardware": {
+    "os": "Windows-10-10.0.26200-SP0",
+    "logical_processors": 16,
+    "cpu": {
+      "Name": "AMD Ryzen 7 5700X 8-Core Processor             ",
+      "NumberOfCores": 8,
+      "NumberOfLogicalProcessors": 16
+    }
+  },
+  "processes_per_configuration": 3,
+  "warmup_batches_per_process": 5,
+  "measured_batches_per_process": 5,
+  "timed": "Production NOISE material fill of eight independent fresh chunks, including aquifers, ore veins and fluid postprocessing requests. Empty structure references; no blending.",
+  "excluded": [
+    "compilation",
+    "registry/JVM startup",
+    "warmup batches",
+    "initial chunk allocation",
+    "output checksums",
+    "BIOMES",
+    "structure admission/placement",
+    "SURFACE",
+    "CARVERS",
+    "FEATURES",
+    "LIGHT",
+    "SPAWN",
+    "FULL",
+    "packets",
+    "disk I/O",
+    "gameplay/TPS"
+  ],
+  "worker_contract": "BCore Rayon pool N; Vanilla max.bg.threads=N and ActiveProcessorCount=N+1. Worker budget is not an OS CPU-affinity cap.",
+  "method": "Serial fresh processes, alternating engine order; medians of process-median batch times. Every batch and every engine/worker run must produce the same complete block and ordered per-section postprocessing hashes.",
+  "provenance": {
+    "native_jar_sha256": "a7fed6f7d88379349e35ae0c6e9881d4484605132f6f620376a3868eea6cce52",
+    "bcore_executable_sha256": "7d13f0a831c17178c3e91273e1b861ba1a869d33ce72fa36751e2e2b27baf895",
+    "source_sha256": {
+      "crates/bcore-worldgen/examples/noise_bench.rs": "313dbbb95a42ba1525fb69aa3441ca539706f260ca53a29157576526d17fc389",
+      "crates/bcore-worldgen/src/aquifer.rs": "5bdae497eabd4dc1e62669a591d6b9d816c9d07de443ba0a3374d88157f73a74",
+      "crates/bcore-worldgen/src/assets.rs": "3487aa66a4bceeff74f8f75dc221077ab851e1bee0d8f228526b636441a10bd8",
+      "crates/bcore-worldgen/src/base_features.rs": "4bd9ec99b778d107d6ef5d71329acbd4fb768497c5cfe565a38982c43f9ff972",
+      "crates/bcore-worldgen/src/beardifier.rs": "2d79080460529dd9d2ca3780507de424f064ef5c7058694ebe1b98c80f85a739",
+      "crates/bcore-worldgen/src/beardifier_tests.rs": "f78a005f8e19999c3b5b09416139d0f067e5d72cd27245c133142bfff34ac09e",
+      "crates/bcore-worldgen/src/biome/benchmark.rs": "4d8e639dea89743b4710a377840d663a5a62442033155eb84520be085a6426cc",
+      "crates/bcore-worldgen/src/biome/canonical.rs": "84e68787dfa535cc187f3e0e5fd94e13c03fdd1f3cd5b4f61598feb1c8e5a676",
+      "crates/bcore-worldgen/src/biome/parameter_list.rs": "c07172b307e78fee19a46d2885a6319b214e19fe281e4fa4a50a55dbfb6949f7",
+      "crates/bcore-worldgen/src/biome/reference_tests.rs": "e063a18e39631a7e24fdba7bc569d88be1c3c1193a323df065442a69a1ed882a",
+      "crates/bcore-worldgen/src/biome/tree.rs": "38289081e278a52a2f4e1a46e0ca0750adb47611dcc5e1a2f910455bcaad6d67",
+      "crates/bcore-worldgen/src/biome.rs": "78ffd80482b40fd02c5a737f6da3da854623c849525c08ae423c41fed95662f1",
+      "crates/bcore-worldgen/src/biome_zoom.rs": "ea7e48c5621b3c47a54ca51496d7e571551ba1b95cd55530bb15a5b63034e048",
+      "crates/bcore-worldgen/src/block_entity.rs": "bb558ce02509802ad62a8d9ce6ff46c0ac9a17edd8160b7b64d8cb56c2e05ecf",
+      "crates/bcore-worldgen/src/block_predicate.rs": "ad937c7622d65ab36aa74c262efffad88d232482eb40ca1d6e5f27ced4c1a465",
+      "crates/bcore-worldgen/src/carver.rs": "e2b79ad57066378a141050165fa3113a626d411b68615d70cfc286805ee20a9c",
+      "crates/bcore-worldgen/src/decoration.rs": "062e053e25c020e42745b68b465e2a297f4467594e30399104e91e4b6141f648",
+      "crates/bcore-worldgen/src/density.rs": "f3057940a376354b85d1f928d4f420159e1323421192f2e3ccd3c70b4381e1f7",
+      "crates/bcore-worldgen/src/density_materials_tests.rs": "0a7e206e4656a76cd404d4cc124e0ec3a59ff527b7b6f6b6a8d65770a5060354",
+      "crates/bcore-worldgen/src/dripstone.rs": "6968ce74a94ab3bb3c433404bba94709882a1b7552de2365c738b35644d70145",
+      "crates/bcore-worldgen/src/dungeon.rs": "3d06077d0dd175607862e893564b270e2ba42d21e48412de936a10330b07eaac",
+      "crates/bcore-worldgen/src/feature_sorter.rs": "578f1d703c5f88d28bfc4822e7fc5d5f42ba595df2c3742cf51628ec0490b429",
+      "crates/bcore-worldgen/src/feature_world.rs": "a9d8ae15d0728886fa917c78e28d7d793d329f01acd8631cf350a04bcaeee272",
+      "crates/bcore-worldgen/src/features.rs": "0ce49f1c033db4fb3b4b2db6ed6bb27b73d26a84031ad820c490841c1184e67a",
+      "crates/bcore-worldgen/src/generated_entity.rs": "7225c15ee9ded77ec48a892451a5cf90570106ae586e9c04d8602e2d95f5ac86",
+      "crates/bcore-worldgen/src/generation/benchmark.rs": "bc42c5da3b5fe4c7b1ae4c2085d50eda673066f5c7f275c75a30419c5191e2c4",
+      "crates/bcore-worldgen/src/generation/biome_bridge_tests.rs": "6d45eedc8cd49f8f1a1d9d38dd3f73fbbee6f8be1219436595afc4caacbe034e",
+      "crates/bcore-worldgen/src/generation/coverage.rs": "41400342a7f675673bbac0d07b5e91e54d86cb39e50bb7f65bbd3585d42098b5",
+      "crates/bcore-worldgen/src/generation/diagnostics.rs": "c3fd5605f0f6fb85d2cb3dd492dc57abe9bb53aaafe02731aee4b888f68470fe",
+      "crates/bcore-worldgen/src/generation/driver.rs": "c4a6aa887888909f2c4025b13dfbb3d1bff684284c3f9dfc531f776d8a582914",
+      "crates/bcore-worldgen/src/generation/effects.rs": "623a149c65d119b53863018a73a9ec03d47ada0aa648b9fc2a2c4c3c3a18cf3c",
+      "crates/bcore-worldgen/src/generation/graph.rs": "157cfbcd4b1753aca5e7bef855efdd19e94e4d05880f1a22160baaf08f8f9684",
+      "crates/bcore-worldgen/src/generation/graph_tests.rs": "45f15c1d42b02f7a64937dd4eef7955887a3a13b6552f799ea718db410311007",
+      "crates/bcore-worldgen/src/generation/light.rs": "40fcc6ccc717a5e80f89b5a6b90ecc393defd50b5ba9ac9591f79efadb4ad3fd",
+      "crates/bcore-worldgen/src/generation/lighting_environment_tests.rs": "38513b776219169ed8395b2f45f38d0e9cb0c9a0b76744a263aea377b3373e8f",
+      "crates/bcore-worldgen/src/generation/placed.rs": "ab7e23d6b92f970b3fa2a759727b6b6677ab4a95dda6d2b9ef2b5fac401f49ec",
+      "crates/bcore-worldgen/src/generation/scattered.rs": "280fd094d68e015a22192155bf7d4e947730f9f8a65aad30583009da43a0b90e",
+      "crates/bcore-worldgen/src/generation/scattered_tests.rs": "dbec389a9255ea8593efe74c11587c5d64c47c89f942d8bb4748595d2dbabc4b",
+      "crates/bcore-worldgen/src/generation/structure_runtime_tests.rs": "444bf43444fd91ab2a15d584f24b9c54dfb2707ddcb9f16ca29a8ac600d47db6",
+      "crates/bcore-worldgen/src/generation/structures.rs": "9dbe6d9dcef857a9cd141c0f96471ed82f5c28da4ec5d810ba1b660b1ab7fb62",
+      "crates/bcore-worldgen/src/generation/terrain.rs": "522915a59481b8c1d32baefbae367412c9ccc94d6f16313e6293bfc049259c7c",
+      "crates/bcore-worldgen/src/generation/tests.rs": "be56cc51e25708d9e784dbdd89d3302445a784f54681e3f189b8b0f24d9344cf",
+      "crates/bcore-worldgen/src/generation/tree_world.rs": "7bf2da755faffcab6a2e5424c01cec5f5af1b9f43c3438a496c77f29fad66112",
+      "crates/bcore-worldgen/src/generation.rs": "d0c16a5a4482d3ff846fff432b28838a280f4a87d60e72ad1251be4b8fc5c186",
+      "crates/bcore-worldgen/src/geode.rs": "91add50c93d897da82a6e80fb8e7623d03cc3227af62a9bf3b0039d52ea7efd4",
+      "crates/bcore-worldgen/src/heightmap.rs": "94963131bc5a34dfb842f3fc10960c70a8d7500df85327f04a387ea588e3da14",
+      "crates/bcore-worldgen/src/lib.rs": "8e8558855c65343a36ac0bbf9528ff248fa31d456fe5de8f1c8882c11849120f",
+      "crates/bcore-worldgen/src/lighting/updates.rs": "aac5ff92632bc5e35ce2f422a690d8712c40bd4b84db1e19d96541a5d16c0510",
+      "crates/bcore-worldgen/src/lighting.rs": "46d8d72ba7520215bc35c1db53a793ba7c95ee3051338997014d6c53b956af01",
+      "crates/bcore-worldgen/src/lush_caves.rs": "88cc5679cb1857bfabf4961d83666cbfcbb56a8414f8b5c6d52c98580e539cc6",
+      "crates/bcore-worldgen/src/misc_features.rs": "a1f4c4ebfddc7009250ff30e205c060bcc1c5e42a21178070dd4bcda5be5770e",
+      "crates/bcore-worldgen/src/mth.rs": "387acfde6a316a4b5782e93bb70626a54d29e8a365782fc2c7d9ce3886503a90",
+      "crates/bcore-worldgen/src/noise.rs": "714d9386e94e304034162a2419e5711405d5ef4f22f942a032a495ca0269d483",
+      "crates/bcore-worldgen/src/noise_perlin.rs": "ea6d51e87fba38f2f5df17d20755186770f4b58b3f2485d83d1a942d3baa9a35",
+      "crates/bcore-worldgen/src/ore.rs": "6615ea46e222f463a54060282e340f9b901f23c0b93115e6deaefa5f9982665f",
+      "crates/bcore-worldgen/src/ore_vein.rs": "49ea8d51086306b3a92fa6ecba9576c3c73d1b22f1a2e03825ace831e4335c0d",
+      "crates/bcore-worldgen/src/ore_vein_tests.rs": "d657be03c8ebe8ea309aa88c27a680cd7a6e06179317f39313881e39a4adeb2b",
+      "crates/bcore-worldgen/src/placement.rs": "751be34df89adc55166e770646ae5c35e28d948148f38d854261a280545bfd6b",
+      "crates/bcore-worldgen/src/random.rs": "74b814f4bb4b7119b5be693d7e473307547c7c1f108ffa87fecdc24ee7365d62",
+      "crates/bcore-worldgen/src/region/access_tests.rs": "2bef393c125a55e276596af3cb19e9d056e24fd937a33f529ecd7a82ae852ec8",
+      "crates/bcore-worldgen/src/region/fallen_tests.rs": "e0ad0433b5c880d726cd1ad6a738e5a04ebecfa4beb8d1434b77d4106bb6a7c0",
+      "crates/bcore-worldgen/src/region/standing_tests.rs": "77b23061ad8b3da92816d0743222496af138a1e054192979f7ebc6f40ba0ea8a",
+      "crates/bcore-worldgen/src/region/tree_effects_tests.rs": "f6966ef94103d2cc67eccc2d263f72d6507360d8c9a0a9eb90636d5a803db50d",
+      "crates/bcore-worldgen/src/region/vegetation_tests.rs": "4b2964c9d7bd9b3e6d7ff58fbf0f6f00cf6c95a243951940bfe146f51cc02cd7",
+      "crates/bcore-worldgen/src/region.rs": "9f8a84a417680f8c9a22f4664a6191a395214fa8b7883c08d6759b5b3864540d",
+      "crates/bcore-worldgen/src/sculk.rs": "dde29d938d1e212598277f233dc21ffe9dd2626fe01eb0d1cdf87715b9c56c87",
+      "crates/bcore-worldgen/src/simplex.rs": "263154756ed20fe76a05922902df8d716ff1a089fe7112384dee7a0050b9d73b",
+      "crates/bcore-worldgen/src/spawn.rs": "3aa3657e75d71cce2635723aa7799138d536bf25e42b8d35415c9457dd1b800b",
+      "crates/bcore-worldgen/src/structure/jigsaw.rs": "af33e21a22a0cbb68eaab49606ee67621236fbbd34a2589efcf79b4ccc5f5ba3",
+      "crates/bcore-worldgen/src/structure/mineshaft/blocks.rs": "6a7070e5ae12d222b155cbd84d14843b0970611001337a8e127c1a4c43dfbfb1",
+      "crates/bcore-worldgen/src/structure/mineshaft/region.rs": "3871990b40b1c4f4a696ea17befd3889d8e6edf1b6447132978d50d948d10a39",
+      "crates/bcore-worldgen/src/structure/mineshaft/start.rs": "7d4b19ef3f17abe131083992e01b2e0ff7237980e9da0ba59d7449f4f1c1737f",
+      "crates/bcore-worldgen/src/structure/mineshaft.rs": "6f349d34cb4c039c3d52ee749e2e2772df424dee52f50562f2064453063f8c0d",
+      "crates/bcore-worldgen/src/structure/placement.rs": "a7fdc65c0e1dc40e64b5c37cbc685f0f74ba756874ad0c882e1238c96b91cbf9",
+      "crates/bcore-worldgen/src/structure/pool_alias.rs": "195f82266f5a7431e41cb956e235d9960ce9fea05ab528e4ea51eac200c70277",
+      "crates/bcore-worldgen/src/structure/processors.rs": "fe0652762b88c536ea96f92d93df7ad9655ff8b44117ddb6e368e08e366ac18e",
+      "crates/bcore-worldgen/src/structure/scattered.rs": "b7955e8b60400704802ef8d6b78234b55be1f9c6c636b4d42bb24d5e72b0ec61",
+      "crates/bcore-worldgen/src/structure/template.rs": "96f1783e4ee9361e78a549aa750e0e9bd5dde0a5c32fc5d5292a8113d93da55a",
+      "crates/bcore-worldgen/src/structure/template_pool.rs": "1ce4d2edab894bdfb4dd321cd24b42ed8578123a70e52532b951a0bf44044322",
+      "crates/bcore-worldgen/src/structure.rs": "e6e6b9dd3e68bb5f2a7b1fd5cdb80a50b7a2565cabcf2211475f1ab3f8251097",
+      "crates/bcore-worldgen/src/surface.rs": "acb57529424af5355603266575142236e5ec36a527f4090a277e59e80eec83ee",
+      "crates/bcore-worldgen/src/surface_builder.rs": "378e7574dd5be652b1bed6ec1b5c3fe0cffc0b5040279d319594dbd35a3606df",
+      "crates/bcore-worldgen/src/surface_builder_pipeline_tests.rs": "3bb5a667469c9d5239422f3ceab09ac96ac4363bad110e20ab12e3e03342d153",
+      "crates/bcore-worldgen/src/surface_rules.rs": "4f196f3ac608cc61d23bc57efa1491b406a3b465e9c9fa0a281443e433074a2e",
+      "crates/bcore-worldgen/src/terrain_cache.rs": "948164870e8aeba96e2905db4b78deb958c6da302a75644813eacbf07493ae3c",
+      "crates/bcore-worldgen/src/tick_queue.rs": "8feef78813e63302c609e791a24464ddb17d206ad6c033d8d2653889f0db2698",
+      "crates/bcore-worldgen/src/tick_request.rs": "a64987e67884eff0916414b2b16bad4ae60463654ae4cf7d19f0f15f011e696d",
+      "crates/bcore-worldgen/src/tree/bamboo_shape_tests.rs": "f95fb6d7d3834e175dc5e3787aba7d1f840de49ce249c80a03ceeb0c2c803631",
+      "crates/bcore-worldgen/src/tree/extra_blocks.rs": "09d71feec9a0b634673ee8f33c36232ba3152950498aa455706fd0c28c438c0f",
+      "crates/bcore-worldgen/src/tree/extra_data.rs": "8a7558819114f2dcb7bf3b94a140658b19dac59755426f8e55ec23293b8a5fc6",
+      "crates/bcore-worldgen/src/tree/extra_decorators.rs": "b03af9d7d990dc01c97368e7201ec446598ea8fb385408cbccff82ed4f464005",
+      "crates/bcore-worldgen/src/tree/extra_foliage.rs": "4f88c6e8c3a803e1b401403f32656a525353aaaad772c01e4765e5ee2ac7f3a7",
+      "crates/bcore-worldgen/src/tree/extra_roots.rs": "004c07f2e0df0223aa28db0d6e0b32e5bb95d30ae7079579659cd5fb27d017cc",
+      "crates/bcore-worldgen/src/tree/extra_tests.rs": "ee12b61223acd74bb8e872e7dc1c51d0217073a53d13530731406121f8555d33",
+      "crates/bcore-worldgen/src/tree/extra_trunks.rs": "8aa6923427393a5434147ea6d8b422be0d309799328189eae543205b36452a85",
+      "crates/bcore-worldgen/src/tree/fallen.rs": "f5e535b9208d6d686c8ab66ad0cd6aa6b0f2750806b7ad3f5943a5b3fdf4a1df",
+      "crates/bcore-worldgen/src/tree/falling_shape_tests.rs": "e51e977bda123ce354a0cee6400d5b2e97f8b2133adf2235c0a726e9e51290fa",
+      "crates/bcore-worldgen/src/tree/fancy.rs": "352f3bf88fadfb60c6d1ba99c3136ac4ccfe1254c0b3e99837e52f52f84dacaf",
+      "crates/bcore-worldgen/src/tree/positions.rs": "ad924b6cdf4a465b18ab7428c5980229213136eed94ce7fb730284a629ba5b51",
+      "crates/bcore-worldgen/src/tree/stair_shape_tests.rs": "6a58cb7a6b624a7dc5729341c952db550535061c4b404b8163739b0a6b297823",
+      "crates/bcore-worldgen/src/tree/standing.rs": "00420755628b7143deb8d35a27bb2ac9921c656b13e5bee4dbf1b34052cf9840",
+      "crates/bcore-worldgen/src/tree/standing_blocks.rs": "f72f152dab2878a43e0e54173161a96948dea95a3965c0a2b9540d4e66ed9731",
+      "crates/bcore-worldgen/src/tree.rs": "c66486c0ea7a162956eab41c6b3cc43729d0f76f5ce5948d374f43bf90cd9027",
+      "scripts/benchmarks/NoiseFillBenchmark.java": "e01475e0f1e549cbd826c7d3b5aeccbd4bd456a9e6bd1fccb59497e33617ba84",
+      "scripts/benchmarks/run.py": "68d8c6e9b2a58fd7c073a4ec07488b3a36adac92db07ff55686baf319c33774e",
+      "scripts/density-materials-reference/DensityMaterialsReference.java": "bd1ee92bf904e29d8ced378f44a69c5fc3361e9abfe6f1bff26ef7d54fd6958f",
+      "scripts/jigsaw-reference/JigsawSupport.java": "ec236e3fb27a92f54d36392c1698ee57cc7495a81acab7fee86cf011eeb37469",
+      "scripts/NativeWorldgenRegistries.java": "8c7baf226eb3fd20976d59f261bda13095e014327dff617a5e98ad5044a91e35",
+      "scripts/TreeReference.java": "47f021860550c9d1006c050fa48345ab3f2c09ec472c8a172a79d509ae74b670"
+    },
+    "rustc": "rustc 1.100.0-nightly (8925ea358 2026-08-20)",
+    "java": "openjdk version \"25.0.4.1\" 2026-08-18 LTS\nOpenJDK Runtime Environment Temurin-25.0.4.1+1 (build 25.0.4.1+1-LTS)\nOpenJDK 64-Bit Server VM Temurin-25.0.4.1+1 (build 25.0.4.1+1-LTS, mixed mode, sharing)"
+  },
+  "samples": [
+    {
+      "chunks_per_batch": 8,
+      "seconds": [
+        0.1713479,
+        0.1189013,
+        0.115337,
+        0.144198,
+        0.1268124
+      ],
+      "seed": "846692123413862008",
+      "engine": "Vanilla 26.1",
+      "fingerprints": [
+        {
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "chunk": [
+            0,
+            0
+          ],
+          "marks": 0
+        },
+        {
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "chunk": [
+            1,
+            0
+          ],
+          "marks": 0
+        },
+        {
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "chunk": [
+            0,
+            1
+          ],
+          "marks": 0
+        },
+        {
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "chunk": [
+            1,
+            1
+          ],
+          "marks": 0
+        },
+        {
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "chunk": [
+            -64,
+            -32
+          ],
+          "marks": 27
+        },
+        {
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "chunk": [
+            -63,
+            -32
+          ],
+          "marks": 147
+        },
+        {
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "chunk": [
+            62,
+            0
+          ],
+          "marks": 0
+        },
+        {
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "chunk": [
+            -125,
+            187
+          ],
+          "marks": 110
+        }
+      ],
+      "scope": "noise-fill-kernel",
+      "workers": 1,
+      "warmup_batches": 5,
+      "process": 1,
+      "log_sha256": "89b5523f9e2ce617e3a5169aeae9bf25268873856e36cef1a017dd825d1d313e"
+    },
+    {
+      "engine": "BCore",
+      "scope": "noise-fill-kernel",
+      "seed": "846692123413862008",
+      "workers": 1,
+      "warmup_batches": 5,
+      "chunks_per_batch": 8,
+      "seconds": [
+        2.9560535,
+        3.0289694,
+        3.4133047,
+        3.1356177,
+        2.8717462
+      ],
+      "fingerprints": [
+        {
+          "chunk": [
+            0,
+            0
+          ],
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            1,
+            0
+          ],
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            0,
+            1
+          ],
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            1,
+            1
+          ],
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            -64,
+            -32
+          ],
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "marks": 27
+        },
+        {
+          "chunk": [
+            -63,
+            -32
+          ],
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "marks": 147
+        },
+        {
+          "chunk": [
+            62,
+            0
+          ],
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            -125,
+            187
+          ],
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "marks": 110
+        }
+      ],
+      "process": 1,
+      "log_sha256": "bcb3bc31dc5d7a82c6f598279341d3ac911a5ef6ae0d9d57bbd15f8aade9a917"
+    },
+    {
+      "engine": "BCore",
+      "scope": "noise-fill-kernel",
+      "seed": "846692123413862008",
+      "workers": 1,
+      "warmup_batches": 5,
+      "chunks_per_batch": 8,
+      "seconds": [
+        2.9285712,
+        2.9397373,
+        3.1563477,
+        2.9730191,
+        2.9305059
+      ],
+      "fingerprints": [
+        {
+          "chunk": [
+            0,
+            0
+          ],
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            1,
+            0
+          ],
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            0,
+            1
+          ],
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            1,
+            1
+          ],
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            -64,
+            -32
+          ],
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "marks": 27
+        },
+        {
+          "chunk": [
+            -63,
+            -32
+          ],
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "marks": 147
+        },
+        {
+          "chunk": [
+            62,
+            0
+          ],
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            -125,
+            187
+          ],
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "marks": 110
+        }
+      ],
+      "process": 2,
+      "log_sha256": "1db0aa89d95a345dca7c24056e0fe2edcbe03af4c858705620479c0bcb7f90d9"
+    },
+    {
+      "seconds": [
+        0.1627043,
+        0.1712409,
+        0.1220272,
+        0.167267,
+        0.1347586
+      ],
+      "seed": "846692123413862008",
+      "engine": "Vanilla 26.1",
+      "fingerprints": [
+        {
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "chunk": [
+            0,
+            0
+          ],
+          "marks": 0
+        },
+        {
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "chunk": [
+            1,
+            0
+          ],
+          "marks": 0
+        },
+        {
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "chunk": [
+            0,
+            1
+          ],
+          "marks": 0
+        },
+        {
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "chunk": [
+            1,
+            1
+          ],
+          "marks": 0
+        },
+        {
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "chunk": [
+            -64,
+            -32
+          ],
+          "marks": 27
+        },
+        {
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "chunk": [
+            -63,
+            -32
+          ],
+          "marks": 147
+        },
+        {
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "chunk": [
+            62,
+            0
+          ],
+          "marks": 0
+        },
+        {
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "chunk": [
+            -125,
+            187
+          ],
+          "marks": 110
+        }
+      ],
+      "scope": "noise-fill-kernel",
+      "workers": 1,
+      "warmup_batches": 5,
+      "chunks_per_batch": 8,
+      "process": 2,
+      "log_sha256": "fb243da206a82a26e2a0b27b3cf645ee71512c3fc1c550d6ea4ed6c741f43e68"
+    },
+    {
+      "warmup_batches": 5,
+      "workers": 1,
+      "scope": "noise-fill-kernel",
+      "fingerprints": [
+        {
+          "chunk": [
+            0,
+            0
+          ],
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            1,
+            0
+          ],
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            0,
+            1
+          ],
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            1,
+            1
+          ],
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            -64,
+            -32
+          ],
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "marks": 27
+        },
+        {
+          "chunk": [
+            -63,
+            -32
+          ],
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "marks": 147
+        },
+        {
+          "chunk": [
+            62,
+            0
+          ],
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            -125,
+            187
+          ],
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "marks": 110
+        }
+      ],
+      "engine": "Vanilla 26.1",
+      "seed": "846692123413862008",
+      "seconds": [
+        0.1932469,
+        0.2394217,
+        0.1980209,
+        0.1696813,
+        0.178786
+      ],
+      "chunks_per_batch": 8,
+      "process": 3,
+      "log_sha256": "62ecee215c002f887050cb35164f530ec0f4575500fd33c8d16ceaf429972e16"
+    },
+    {
+      "engine": "BCore",
+      "scope": "noise-fill-kernel",
+      "seed": "846692123413862008",
+      "workers": 1,
+      "warmup_batches": 5,
+      "chunks_per_batch": 8,
+      "seconds": [
+        3.634114,
+        3.7424628,
+        3.2910364,
+        3.8352906,
+        3.9065724
+      ],
+      "fingerprints": [
+        {
+          "chunk": [
+            0,
+            0
+          ],
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            1,
+            0
+          ],
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            0,
+            1
+          ],
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            1,
+            1
+          ],
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            -64,
+            -32
+          ],
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "marks": 27
+        },
+        {
+          "chunk": [
+            -63,
+            -32
+          ],
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "marks": 147
+        },
+        {
+          "chunk": [
+            62,
+            0
+          ],
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            -125,
+            187
+          ],
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "marks": 110
+        }
+      ],
+      "process": 3,
+      "log_sha256": "cc4663e91b6fb6fcd7c91364fd910698f6d77eb50b2bef602507c4599b515ca9"
+    },
+    {
+      "fingerprints": [
+        {
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "marks": 0,
+          "chunk": [
+            0,
+            0
+          ]
+        },
+        {
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "marks": 0,
+          "chunk": [
+            1,
+            0
+          ]
+        },
+        {
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "marks": 0,
+          "chunk": [
+            0,
+            1
+          ]
+        },
+        {
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "marks": 0,
+          "chunk": [
+            1,
+            1
+          ]
+        },
+        {
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "marks": 27,
+          "chunk": [
+            -64,
+            -32
+          ]
+        },
+        {
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "marks": 147,
+          "chunk": [
+            -63,
+            -32
+          ]
+        },
+        {
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "marks": 0,
+          "chunk": [
+            62,
+            0
+          ]
+        },
+        {
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "marks": 110,
+          "chunk": [
+            -125,
+            187
+          ]
+        }
+      ],
+      "engine": "Vanilla 26.1",
+      "seed": "846692123413862008",
+      "seconds": [
+        0.0910826,
+        0.0862785,
+        0.0938658,
+        0.1078866,
+        0.1238497
+      ],
+      "chunks_per_batch": 8,
+      "warmup_batches": 5,
+      "workers": 2,
+      "scope": "noise-fill-kernel",
+      "process": 1,
+      "log_sha256": "83ce104d17da73dc4a885afd4e313cd27e982d32b3714cc4e0bd20aec1c3b89d"
+    },
+    {
+      "engine": "BCore",
+      "scope": "noise-fill-kernel",
+      "seed": "846692123413862008",
+      "workers": 2,
+      "warmup_batches": 5,
+      "chunks_per_batch": 8,
+      "seconds": [
+        2.2156591,
+        2.1517489,
+        2.2084877,
+        2.1793358,
+        2.176352
+      ],
+      "fingerprints": [
+        {
+          "chunk": [
+            0,
+            0
+          ],
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            1,
+            0
+          ],
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            0,
+            1
+          ],
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            1,
+            1
+          ],
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            -64,
+            -32
+          ],
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "marks": 27
+        },
+        {
+          "chunk": [
+            -63,
+            -32
+          ],
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "marks": 147
+        },
+        {
+          "chunk": [
+            62,
+            0
+          ],
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            -125,
+            187
+          ],
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "marks": 110
+        }
+      ],
+      "process": 1,
+      "log_sha256": "655b794351b55472336542a85d22759c28ef18d0c11985e7451e7115d4d580b8"
+    },
+    {
+      "engine": "BCore",
+      "scope": "noise-fill-kernel",
+      "seed": "846692123413862008",
+      "workers": 2,
+      "warmup_batches": 5,
+      "chunks_per_batch": 8,
+      "seconds": [
+        1.9200237,
+        1.9092681,
+        1.6590381,
+        2.04485,
+        2.1974873
+      ],
+      "fingerprints": [
+        {
+          "chunk": [
+            0,
+            0
+          ],
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            1,
+            0
+          ],
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            0,
+            1
+          ],
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            1,
+            1
+          ],
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            -64,
+            -32
+          ],
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "marks": 27
+        },
+        {
+          "chunk": [
+            -63,
+            -32
+          ],
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "marks": 147
+        },
+        {
+          "chunk": [
+            62,
+            0
+          ],
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            -125,
+            187
+          ],
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "marks": 110
+        }
+      ],
+      "process": 2,
+      "log_sha256": "915ae786ba94ecf2aabc7ea8c91db2a14cb26856d7e1c29027ed450b9af8cd6b"
+    },
+    {
+      "chunks_per_batch": 8,
+      "seconds": [
+        0.1319656,
+        0.1167094,
+        0.1201032,
+        0.1165443,
+        0.1165374
+      ],
+      "seed": "846692123413862008",
+      "engine": "Vanilla 26.1",
+      "fingerprints": [
+        {
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "chunk": [
+            0,
+            0
+          ],
+          "marks": 0
+        },
+        {
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "chunk": [
+            1,
+            0
+          ],
+          "marks": 0
+        },
+        {
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "chunk": [
+            0,
+            1
+          ],
+          "marks": 0
+        },
+        {
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "chunk": [
+            1,
+            1
+          ],
+          "marks": 0
+        },
+        {
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "chunk": [
+            -64,
+            -32
+          ],
+          "marks": 27
+        },
+        {
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "chunk": [
+            -63,
+            -32
+          ],
+          "marks": 147
+        },
+        {
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "chunk": [
+            62,
+            0
+          ],
+          "marks": 0
+        },
+        {
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "chunk": [
+            -125,
+            187
+          ],
+          "marks": 110
+        }
+      ],
+      "scope": "noise-fill-kernel",
+      "workers": 2,
+      "warmup_batches": 5,
+      "process": 2,
+      "log_sha256": "87c7f469db81a285b38be15736338c79ee7029f11671a5c8e045b0fe13ad514c"
+    },
+    {
+      "warmup_batches": 5,
+      "workers": 2,
+      "scope": "noise-fill-kernel",
+      "fingerprints": [
+        {
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "marks": 0,
+          "chunk": [
+            0,
+            0
+          ]
+        },
+        {
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "marks": 0,
+          "chunk": [
+            1,
+            0
+          ]
+        },
+        {
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "marks": 0,
+          "chunk": [
+            0,
+            1
+          ]
+        },
+        {
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "marks": 0,
+          "chunk": [
+            1,
+            1
+          ]
+        },
+        {
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "marks": 27,
+          "chunk": [
+            -64,
+            -32
+          ]
+        },
+        {
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "marks": 147,
+          "chunk": [
+            -63,
+            -32
+          ]
+        },
+        {
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "marks": 0,
+          "chunk": [
+            62,
+            0
+          ]
+        },
+        {
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "marks": 110,
+          "chunk": [
+            -125,
+            187
+          ]
+        }
+      ],
+      "engine": "Vanilla 26.1",
+      "seed": "846692123413862008",
+      "seconds": [
+        0.1141878,
+        0.0820907,
+        0.0832042,
+        0.0884967,
+        0.0901882
+      ],
+      "chunks_per_batch": 8,
+      "process": 3,
+      "log_sha256": "c0a0316f3f665d878003680dfbb0a3af23f494d6e490ed34317c7e2e58546a72"
+    },
+    {
+      "engine": "BCore",
+      "scope": "noise-fill-kernel",
+      "seed": "846692123413862008",
+      "workers": 2,
+      "warmup_batches": 5,
+      "chunks_per_batch": 8,
+      "seconds": [
+        2.2150575,
+        2.1820755,
+        2.16957,
+        2.195681,
+        2.171441
+      ],
+      "fingerprints": [
+        {
+          "chunk": [
+            0,
+            0
+          ],
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            1,
+            0
+          ],
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            0,
+            1
+          ],
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            1,
+            1
+          ],
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            -64,
+            -32
+          ],
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "marks": 27
+        },
+        {
+          "chunk": [
+            -63,
+            -32
+          ],
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "marks": 147
+        },
+        {
+          "chunk": [
+            62,
+            0
+          ],
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            -125,
+            187
+          ],
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "marks": 110
+        }
+      ],
+      "process": 3,
+      "log_sha256": "5eb3643a40d647ee65983f2db55af1a5ecd0f6556cfc8cf40dd1e43f7ff52d42"
+    },
+    {
+      "fingerprints": [
+        {
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "marks": 0,
+          "chunk": [
+            0,
+            0
+          ]
+        },
+        {
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "marks": 0,
+          "chunk": [
+            1,
+            0
+          ]
+        },
+        {
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "marks": 0,
+          "chunk": [
+            0,
+            1
+          ]
+        },
+        {
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "marks": 0,
+          "chunk": [
+            1,
+            1
+          ]
+        },
+        {
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "marks": 27,
+          "chunk": [
+            -64,
+            -32
+          ]
+        },
+        {
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "marks": 147,
+          "chunk": [
+            -63,
+            -32
+          ]
+        },
+        {
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "marks": 0,
+          "chunk": [
+            62,
+            0
+          ]
+        },
+        {
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "marks": 110,
+          "chunk": [
+            -125,
+            187
+          ]
+        }
+      ],
+      "engine": "Vanilla 26.1",
+      "seed": "846692123413862008",
+      "seconds": [
+        0.0481372,
+        0.0441062,
+        0.0515768,
+        0.047481,
+        0.0441081
+      ],
+      "chunks_per_batch": 8,
+      "warmup_batches": 5,
+      "workers": 4,
+      "scope": "noise-fill-kernel",
+      "process": 1,
+      "log_sha256": "fd001595cd40786eb606822d4854be1922c32e7f53eeb88d4f3794dd9736e2f6"
+    },
+    {
+      "engine": "BCore",
+      "scope": "noise-fill-kernel",
+      "seed": "846692123413862008",
+      "workers": 4,
+      "warmup_batches": 5,
+      "chunks_per_batch": 8,
+      "seconds": [
+        1.4901543,
+        1.4228449,
+        1.5131424,
+        1.3833133,
+        1.5543425
+      ],
+      "fingerprints": [
+        {
+          "chunk": [
+            0,
+            0
+          ],
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            1,
+            0
+          ],
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            0,
+            1
+          ],
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            1,
+            1
+          ],
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            -64,
+            -32
+          ],
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "marks": 27
+        },
+        {
+          "chunk": [
+            -63,
+            -32
+          ],
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "marks": 147
+        },
+        {
+          "chunk": [
+            62,
+            0
+          ],
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            -125,
+            187
+          ],
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "marks": 110
+        }
+      ],
+      "process": 1,
+      "log_sha256": "032d0f7eeef33db3fdd38363af616c9c7d3c42a1799305c54ae26dc8b35c1fb8"
+    },
+    {
+      "engine": "BCore",
+      "scope": "noise-fill-kernel",
+      "seed": "846692123413862008",
+      "workers": 4,
+      "warmup_batches": 5,
+      "chunks_per_batch": 8,
+      "seconds": [
+        1.3659811,
+        1.1942397,
+        1.4590939,
+        1.4297519,
+        1.2585327
+      ],
+      "fingerprints": [
+        {
+          "chunk": [
+            0,
+            0
+          ],
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            1,
+            0
+          ],
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            0,
+            1
+          ],
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            1,
+            1
+          ],
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            -64,
+            -32
+          ],
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "marks": 27
+        },
+        {
+          "chunk": [
+            -63,
+            -32
+          ],
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "marks": 147
+        },
+        {
+          "chunk": [
+            62,
+            0
+          ],
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            -125,
+            187
+          ],
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "marks": 110
+        }
+      ],
+      "process": 2,
+      "log_sha256": "25a50d456f6c9db071d3c0560cf434ea8ff855e9689563c1fc1f7d98921aa631"
+    },
+    {
+      "seed": "846692123413862008",
+      "seconds": [
+        0.041143,
+        0.0466428,
+        0.0357117,
+        0.0383198,
+        0.0393615
+      ],
+      "chunks_per_batch": 8,
+      "warmup_batches": 5,
+      "workers": 4,
+      "scope": "noise-fill-kernel",
+      "fingerprints": [
+        {
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "marks": 0,
+          "chunk": [
+            0,
+            0
+          ],
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "marks": 0,
+          "chunk": [
+            1,
+            0
+          ],
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "marks": 0,
+          "chunk": [
+            0,
+            1
+          ],
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "marks": 0,
+          "chunk": [
+            1,
+            1
+          ],
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "marks": 27,
+          "chunk": [
+            -64,
+            -32
+          ],
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6"
+        },
+        {
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "marks": 147,
+          "chunk": [
+            -63,
+            -32
+          ],
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6"
+        },
+        {
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "marks": 0,
+          "chunk": [
+            62,
+            0
+          ],
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "marks": 110,
+          "chunk": [
+            -125,
+            187
+          ],
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b"
+        }
+      ],
+      "engine": "Vanilla 26.1",
+      "process": 2,
+      "log_sha256": "e0c361e3652456c90644ee3b0511c5fa0822e77d28f8e0171a6f0ecb3792096e"
+    },
+    {
+      "chunks_per_batch": 8,
+      "seconds": [
+        0.0511869,
+        0.042943,
+        0.0558557,
+        0.0355712,
+        0.0510559
+      ],
+      "seed": "846692123413862008",
+      "engine": "Vanilla 26.1",
+      "fingerprints": [
+        {
+          "chunk": [
+            0,
+            0
+          ],
+          "marks": 0,
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "chunk": [
+            1,
+            0
+          ],
+          "marks": 0,
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "chunk": [
+            0,
+            1
+          ],
+          "marks": 0,
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "chunk": [
+            1,
+            1
+          ],
+          "marks": 0,
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "chunk": [
+            -64,
+            -32
+          ],
+          "marks": 27,
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6"
+        },
+        {
+          "chunk": [
+            -63,
+            -32
+          ],
+          "marks": 147,
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6"
+        },
+        {
+          "chunk": [
+            62,
+            0
+          ],
+          "marks": 0,
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "chunk": [
+            -125,
+            187
+          ],
+          "marks": 110,
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b"
+        }
+      ],
+      "scope": "noise-fill-kernel",
+      "workers": 4,
+      "warmup_batches": 5,
+      "process": 3,
+      "log_sha256": "835feca2fa417dc521b91bf14107b614988a175f452ff17244312e3a840cebf5"
+    },
+    {
+      "engine": "BCore",
+      "scope": "noise-fill-kernel",
+      "seed": "846692123413862008",
+      "workers": 4,
+      "warmup_batches": 5,
+      "chunks_per_batch": 8,
+      "seconds": [
+        1.4115582,
+        1.4013792999999999,
+        1.2736927,
+        1.3730556,
+        1.3480699
+      ],
+      "fingerprints": [
+        {
+          "chunk": [
+            0,
+            0
+          ],
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            1,
+            0
+          ],
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            0,
+            1
+          ],
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            1,
+            1
+          ],
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            -64,
+            -32
+          ],
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "marks": 27
+        },
+        {
+          "chunk": [
+            -63,
+            -32
+          ],
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "marks": 147
+        },
+        {
+          "chunk": [
+            62,
+            0
+          ],
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "marks": 0
+        },
+        {
+          "chunk": [
+            -125,
+            187
+          ],
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "marks": 110
+        }
+      ],
+      "process": 3,
+      "log_sha256": "3d459a54b5740871a81e4d773f0130c4120c21f915fb283c399b44a096b491aa"
+    }
+  ],
+  "summary": [
+    {
+      "engine": "Vanilla 26.1",
+      "workers": 1,
+      "median_batch_seconds": 0.1627043,
+      "min_process_median_seconds": 0.1268124,
+      "max_process_median_seconds": 0.1932469,
+      "chunks_per_second": 49.16895251078183
+    },
+    {
+      "engine": "BCore",
+      "workers": 1,
+      "median_batch_seconds": 3.0289694,
+      "min_process_median_seconds": 2.9397373,
+      "max_process_median_seconds": 3.7424628,
+      "chunks_per_second": 2.641162370276834
+    },
+    {
+      "engine": "Vanilla 26.1",
+      "workers": 2,
+      "median_batch_seconds": 0.0938658,
+      "min_process_median_seconds": 0.0884967,
+      "max_process_median_seconds": 0.1167094,
+      "chunks_per_second": 85.22805963407333
+    },
+    {
+      "engine": "BCore",
+      "workers": 2,
+      "median_batch_seconds": 2.1793358,
+      "min_process_median_seconds": 1.9200237,
+      "max_process_median_seconds": 2.1820755,
+      "chunks_per_second": 3.6708431991068102
+    },
+    {
+      "engine": "Vanilla 26.1",
+      "workers": 4,
+      "median_batch_seconds": 0.047481,
+      "min_process_median_seconds": 0.0393615,
+      "max_process_median_seconds": 0.0510559,
+      "chunks_per_second": 168.48844801078326
+    },
+    {
+      "engine": "BCore",
+      "workers": 4,
+      "median_batch_seconds": 1.3730556,
+      "min_process_median_seconds": 1.3659811,
+      "max_process_median_seconds": 1.4901543,
+      "chunks_per_second": 5.826421013103912
+    }
+  ],
+  "verified_matching_outputs": true,
+  "fingerprints": [
+    {
+      "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+      "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "chunk": [
+        0,
+        0
+      ],
+      "marks": 0
+    },
+    {
+      "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+      "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "chunk": [
+        1,
+        0
+      ],
+      "marks": 0
+    },
+    {
+      "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+      "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "chunk": [
+        0,
+        1
+      ],
+      "marks": 0
+    },
+    {
+      "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+      "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "chunk": [
+        1,
+        1
+      ],
+      "marks": 0
+    },
+    {
+      "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+      "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+      "chunk": [
+        -64,
+        -32
+      ],
+      "marks": 27
+    },
+    {
+      "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+      "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+      "chunk": [
+        -63,
+        -32
+      ],
+      "marks": 147
+    },
+    {
+      "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+      "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "chunk": [
+        62,
+        0
+      ],
+      "marks": 0
+    },
+    {
+      "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+      "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+      "chunk": [
+        -125,
+        187
+      ],
+      "marks": 110
+    }
+  ],
+  "capture_results_sha256": "defee71e59e514f9fa124cbbc85e99e3dfa64b88fb2ff83e9b67cb91dfae1c73"
+}

@@ -15,8 +15,8 @@
 //!
 //! ```text
 //! magic:          4 bytes  "BCC1"
-//! version:        u16      = 3 (versions 1 and 2 are still readable)
-//! flags:          u16      = 0 (reserved)
+//! version:        u16      = 4 (versions 1, 2 and 3 are still readable)
+//! flags:          u16      v4: bit 0 marks; bit 1 structure entities; bit 2 light
 //! chunk_x:        i32
 //! chunk_z:        i32
 //! min_y:          i32      = MIN_Y  (guards against a world-height change)
@@ -32,10 +32,27 @@
 //! block_entities: u32 count; entries: u8 packedXZ, i32 y, u8 kind,
 //!                 kind 1: i64 dungeon loot seed; kind 2: u8 spawner mob
 //!                 (0 skeleton, 1 zombie, 2 spider, 3 cave spider). Absent in v1.
+//!                 kind 3 (v4): u32 bee count, then i32 ticks_in_hive per bee.
+//!                 kind 4 (v4): u32 byte length, then FeatureBlockEntity JSON,
+//!                 retaining typed full NBT and the native update data.
 //! entities:       u32 count; entries: u8 kind (1 chest minecart),
 //!                 u8 packedXZ, i32 y, i64 loot seed. Added in v3.
 //! structures:     u32 byte length, then UTF-8 StructureData JSON (0 = empty).
 //!                 Added in v3; coordinates/bounds are validated on load.
+//! tick_requests:  u32 count; entries: u8 kind (1 block, 2 fluid), u8 packedXZ,
+//!                 i32 y, u32 target ID, i32 relative delay. Added in v4.
+//!                 NORMAL priority requests retain insertion order and duplicates.
+//! postprocessing: u32 count; entries: u8 packedXZ, i32 y. Present if flags bit 0
+//!                 is set; preserves unconsumed marks, order and duplicates.
+//! structure_entities: u32 count; entries: u32 JSON byte length and typed entity
+//!                 factory/finalization request. Present if flags bit 1 is set,
+//!                 after optional postprocessing; never implies executed spawning.
+//! light:          i32 minimum section Y, u16 section count, then per section:
+//!                 u8 flags (bit 0 sky present, bit 1 block present, bit 2 sky
+//!                 lazy-zero, bit 3 block lazy-zero). Each present non-lazy layer
+//!                 has 2048 raw bytes, sky then block. Present if header bit 2 is
+//!                 set, after optional structure entities. Null and lazy-zero
+//!                 layers remain distinct from materialized all-zero arrays.
 //! checksum:       u32      FNV-1a over everything above
 //! ```
 //!
@@ -52,7 +69,7 @@ use crate::chunk::{ChunkColumn, MIN_Y, SECTION_BIOMES, SECTION_COUNT, WORLD_HEIG
 /// File magic: BCore Chunk v1.
 pub const MAGIC: &[u8; 4] = b"BCC1";
 /// Format version written into every file.
-pub const FORMAT_VERSION: u16 = 3;
+pub const FORMAT_VERSION: u16 = 4;
 /// Default directory chunks are stored under, relative to the server's cwd.
 pub const DEFAULT_WORLD_DIR: &str = "world";
 
@@ -61,6 +78,13 @@ const COLUMN_ENTRIES: usize = 256 * WORLD_HEIGHT as usize;
 /// Total biome cells in one column.
 const BIOME_ENTRIES: usize = SECTION_COUNT * SECTION_BIOMES;
 const MAX_STRUCTURE_BYTES: usize = 4 * 1024 * 1024;
+const MAX_BLOCK_ENTITY_BYTES: usize = 1024 * 1024;
+const TICK_REQUEST_BYTES: usize = 1 + 1 + 4 + 4 + 4;
+const POSTPROCESSING_FLAG: u16 = 1;
+const STRUCTURE_ENTITIES_FLAG: u16 = 2;
+const LIGHT_FLAG: u16 = 4;
+const MAX_STRUCTURE_ENTITY_BYTES: usize = 1024 * 1024;
+const POSTPROCESSING_BYTES: usize = 1 + 4;
 
 /// Something went wrong reading or writing a chunk file.
 #[derive(Debug)]
@@ -71,6 +95,8 @@ pub enum ChunkStoreError {
     BadMagic([u8; 4]),
     /// The file was written by an incompatible version.
     UnsupportedVersion(u16),
+    /// Unknown extension flags, or extension flags in a legacy version.
+    UnsupportedFlags(u16),
     /// The file's world geometry does not match this build.
     GeometryMismatch { min_y: i32, world_height: i32 },
     /// The file ended earlier than its header promised.
@@ -85,8 +111,16 @@ pub enum ChunkStoreError {
     InvalidBlockEntity,
     /// Invalid generated entity kind, count or position.
     InvalidEntity,
+    /// Invalid pending structure-entity request, owner, position or typed data.
+    InvalidStructureEntity,
     /// Invalid structure metadata or coordinates.
     InvalidStructures,
+    /// Invalid deferred tick request kind, count, target ID or position.
+    InvalidTickRequest,
+    /// Invalid deferred postprocessing mark count or position.
+    InvalidPostprocessing,
+    /// Invalid native light geometry, layer flags or lazy-zero representation.
+    InvalidLight,
     /// Unconsumed bytes precede the checksum.
     TrailingData,
 }
@@ -97,6 +131,7 @@ impl std::fmt::Display for ChunkStoreError {
             Self::Io(e) => write!(f, "chunk io error: {e}"),
             Self::BadMagic(m) => write!(f, "not a BCore chunk file (magic {m:?})"),
             Self::UnsupportedVersion(v) => write!(f, "unsupported chunk format version {v}"),
+            Self::UnsupportedFlags(flags) => write!(f, "unsupported chunk flags {flags:#06x}"),
             Self::GeometryMismatch {
                 min_y,
                 world_height,
@@ -121,7 +156,11 @@ impl std::fmt::Display for ChunkStoreError {
             Self::BadIndexBits(bits) => write!(f, "invalid index width {bits} (want 8/16/32)"),
             Self::InvalidBlockEntity => write!(f, "invalid generated block entity"),
             Self::InvalidEntity => write!(f, "invalid generated entity"),
+            Self::InvalidStructureEntity => write!(f, "invalid structure entity request"),
             Self::InvalidStructures => write!(f, "invalid structure metadata"),
+            Self::InvalidTickRequest => write!(f, "invalid deferred tick request"),
+            Self::InvalidPostprocessing => write!(f, "invalid deferred postprocessing mark"),
+            Self::InvalidLight => write!(f, "invalid native chunk light"),
             Self::TrailingData => write!(f, "trailing data in chunk file"),
         }
     }
@@ -326,7 +365,18 @@ pub fn encode_chunk(x: i32, z: i32, column: &ChunkColumn) -> Vec<u8> {
         Vec::with_capacity(32 + palette.len() * 4 + indices.len() * index_bits as usize / 8);
     out.extend_from_slice(MAGIC);
     out.extend_from_slice(&FORMAT_VERSION.to_le_bytes());
-    out.extend_from_slice(&0u16.to_le_bytes()); // flags
+    let mut flags = if column.postprocessing_positions().is_empty() {
+        0
+    } else {
+        POSTPROCESSING_FLAG
+    };
+    if !column.structure_entities().is_empty() {
+        flags |= STRUCTURE_ENTITIES_FLAG;
+    }
+    if column.light().is_some() {
+        flags |= LIGHT_FLAG;
+    }
+    out.extend_from_slice(&flags.to_le_bytes());
     out.extend_from_slice(&x.to_le_bytes());
     out.extend_from_slice(&z.to_le_bytes());
     out.extend_from_slice(&MIN_Y.to_le_bytes());
@@ -354,7 +404,8 @@ pub fn encode_chunk(x: i32, z: i32, column: &ChunkColumn) -> Vec<u8> {
     }
 
     use bcore_worldgen::block_entity::{BlockEntity, SpawnerMob};
-    out.extend_from_slice(&(column.block_entities().len() as u32).to_le_bytes());
+    let block_entity_count = column.block_entities().len() + column.feature_block_entities().len();
+    out.extend_from_slice(&(block_entity_count as u32).to_le_bytes());
     for (&(lx, y, lz), data) in column.block_entities() {
         out.push(((lx << 4) | lz) as u8);
         out.extend_from_slice(&y.to_le_bytes());
@@ -372,7 +423,34 @@ pub fn encode_chunk(x: i32, z: i32, column: &ChunkColumn) -> Vec<u8> {
                     SpawnerMob::CaveSpider => 3,
                 });
             }
+            BlockEntity::Beehive { ticks_in_hive } => {
+                out.push(3);
+                let count = u32::try_from(ticks_in_hive.len()).expect("BCC bee count fits u32");
+                out.extend_from_slice(&count.to_le_bytes());
+                for ticks in ticks_in_hive {
+                    out.extend_from_slice(&ticks.to_le_bytes());
+                }
+            }
         }
+    }
+    for (&(lx, y, lz), data) in column.feature_block_entities() {
+        let wx = x.checked_mul(16).and_then(|v| v.checked_add(lx as i32));
+        let wz = z.checked_mul(16).and_then(|v| v.checked_add(lz as i32));
+        assert!(
+            wx.zip(wz).is_some_and(|(wx, wz)| {
+                column
+                    .get(lx, y, lz)
+                    .is_some_and(|state| data.valid_for(state, (wx, y, wz)))
+            }),
+            "generated block entity must match its state and saved chunk"
+        );
+        let bytes = serde_json::to_vec(data).expect("serializable generated block entity");
+        assert!(bytes.len() <= MAX_BLOCK_ENTITY_BYTES);
+        out.push(((lx << 4) | lz) as u8);
+        out.extend_from_slice(&y.to_le_bytes());
+        out.push(4);
+        out.extend_from_slice(&(bytes.len() as u32).to_le_bytes());
+        out.extend_from_slice(&bytes);
     }
 
     use bcore_worldgen::generated_entity::GeneratedEntity;
@@ -406,6 +484,77 @@ pub fn encode_chunk(x: i32, z: i32, column: &ChunkColumn) -> Vec<u8> {
         assert!(bytes.len() <= MAX_STRUCTURE_BYTES);
         out.extend_from_slice(&(bytes.len() as u32).to_le_bytes());
         out.extend_from_slice(&bytes);
+    }
+
+    use bcore_worldgen::tick_request::TickTarget;
+    let owner = bcore_core::ChunkPos::new(x, z);
+    let count = u32::try_from(column.tick_requests().len()).expect("BCC tick count fits u32");
+    out.extend_from_slice(&count.to_le_bytes());
+    for request in column.tick_requests() {
+        assert!(
+            request.valid_for(owner),
+            "tick request must belong to the saved chunk"
+        );
+        let (kind, target) = match request.target {
+            TickTarget::Block(state) => (1, state),
+            TickTarget::Fluid(id) => (2, id),
+        };
+        let [tx, ty, tz] = request.block_pos;
+        out.push(kind);
+        out.push((((tx & 15) << 4) | (tz & 15)) as u8);
+        out.extend_from_slice(&ty.to_le_bytes());
+        out.extend_from_slice(&target.to_le_bytes());
+        out.extend_from_slice(&request.delay.to_le_bytes());
+    }
+    if flags & POSTPROCESSING_FLAG != 0 {
+        let count = u32::try_from(column.postprocessing_positions().len())
+            .expect("BCC postprocessing count fits u32");
+        out.extend_from_slice(&count.to_le_bytes());
+        for &(lx, y, lz) in column.postprocessing_positions() {
+            out.push(((lx << 4) | lz) as u8);
+            out.extend_from_slice(&y.to_le_bytes());
+        }
+    }
+    if flags & STRUCTURE_ENTITIES_FLAG != 0 {
+        let count = u32::try_from(column.structure_entities().len())
+            .expect("BCC structure entity count fits u32");
+        out.extend_from_slice(&count.to_le_bytes());
+        for request in column.structure_entities() {
+            assert!(
+                request.valid_for(owner),
+                "structure entity request must belong to saved chunk"
+            );
+            let bytes = serde_json::to_vec(request).expect("serializable structure entity request");
+            assert!(bytes.len() <= MAX_STRUCTURE_ENTITY_BYTES);
+            out.extend_from_slice(&(bytes.len() as u32).to_le_bytes());
+            out.extend_from_slice(&bytes);
+        }
+    }
+
+    if let Some(light) = column.light() {
+        assert!(
+            light.validate(MIN_Y, WORLD_HEIGHT, true),
+            "valid stored native light"
+        );
+        out.extend_from_slice(&light.min_section_y.to_le_bytes());
+        out.extend_from_slice(&(light.sections.len() as u16).to_le_bytes());
+        for section in &light.sections {
+            let layer_flags = u8::from(section.sky.is_some())
+                | (u8::from(section.block.is_some()) << 1)
+                | (u8::from(section.sky_empty) << 2)
+                | (u8::from(section.block_empty) << 3);
+            out.push(layer_flags);
+            for (layer, empty) in [
+                (&section.sky, section.sky_empty),
+                (&section.block, section.block_empty),
+            ] {
+                if let Some(bytes) = layer {
+                    if !empty {
+                        out.extend_from_slice(bytes);
+                    }
+                }
+            }
+        }
     }
 
     let checksum = fnv1a(&out);
@@ -502,7 +651,12 @@ pub fn decode_chunk_at(bytes: &[u8]) -> Result<(i32, i32, ChunkColumn), ChunkSto
     if !(1..=FORMAT_VERSION).contains(&version) {
         return Err(ChunkStoreError::UnsupportedVersion(version));
     }
-    let _flags = cur.u16()?;
+    let flags = cur.u16()?;
+    if flags & !(POSTPROCESSING_FLAG | STRUCTURE_ENTITIES_FLAG | LIGHT_FLAG) != 0
+        || (version < 4 && flags != 0)
+    {
+        return Err(ChunkStoreError::UnsupportedFlags(flags));
+    }
     let x = cur.i32()?;
     let z = cur.i32()?;
     let min_y = cur.i32()?;
@@ -566,9 +720,33 @@ pub fn decode_chunk_at(bytes: &[u8]) -> Result<(i32, i32, ChunkColumn), ChunkSto
             let xz = cur.u8()?;
             let (lx, lz) = ((xz >> 4) as usize, (xz & 15) as usize);
             let y = cur.i32()?;
-            let data = match cur.u8()? {
+            if column.block_entities().contains_key(&(lx, y, lz))
+                || column.feature_block_entities().contains_key(&(lx, y, lz))
+            {
+                return Err(ChunkStoreError::InvalidBlockEntity);
+            }
+            let kind = cur.u8()?;
+            if kind == 4 && version >= 4 {
+                let length = cur.u32()? as usize;
+                if length > MAX_BLOCK_ENTITY_BYTES {
+                    return Err(ChunkStoreError::InvalidBlockEntity);
+                }
+                let data = serde_json::from_slice(cur.take(length)?)
+                    .map_err(|_| ChunkStoreError::InvalidBlockEntity)?;
+                if !column.set_feature_block_entity(
+                    bcore_core::ChunkPos::new(x, z),
+                    lx,
+                    y,
+                    lz,
+                    data,
+                ) {
+                    return Err(ChunkStoreError::InvalidBlockEntity);
+                }
+                continue;
+            }
+            let data = match kind {
                 1 => BlockEntity::DungeonChest {
-                    loot_seed: i64::from_le_bytes(cur.take(8)?.try_into().unwrap()),
+                    loot_seed: i64::from_le_bytes(cur.take(8)?.try_into().expect("8 bytes")),
                 },
                 2 => BlockEntity::Spawner {
                     mob: match cur.u8()? {
@@ -579,11 +757,24 @@ pub fn decode_chunk_at(bytes: &[u8]) -> Result<(i32, i32, ChunkColumn), ChunkSto
                         _ => return Err(ChunkStoreError::InvalidBlockEntity),
                     },
                 },
+                3 if version >= 4 => {
+                    let count = cur.u32()? as usize;
+                    let length = count
+                        .checked_mul(4)
+                        .ok_or(ChunkStoreError::InvalidBlockEntity)?;
+                    let ticks_in_hive = cur
+                        .take(length)?
+                        .as_chunks::<4>()
+                        .0
+                        .iter()
+                        .copied()
+                        .map(i32::from_le_bytes)
+                        .collect();
+                    BlockEntity::Beehive { ticks_in_hive }
+                }
                 _ => return Err(ChunkStoreError::InvalidBlockEntity),
             };
-            if column.block_entities().contains_key(&(lx, y, lz))
-                || !column.set_block_entity(lx, y, lz, data)
-            {
+            if !column.set_block_entity(lx, y, lz, data) {
                 return Err(ChunkStoreError::InvalidBlockEntity);
             }
         }
@@ -602,7 +793,7 @@ pub fn decode_chunk_at(bytes: &[u8]) -> Result<(i32, i32, ChunkColumn), ChunkSto
             }
             let xz = cur.u8()?;
             let y = cur.i32()?;
-            let loot_seed = i64::from_le_bytes(cur.take(8)?.try_into().unwrap());
+            let loot_seed = i64::from_le_bytes(cur.take(8)?.try_into().expect("8 bytes"));
             let ex = x
                 .checked_mul(16)
                 .and_then(|v| v.checked_add(i32::from(xz >> 4)))
@@ -631,6 +822,117 @@ pub fn decode_chunk_at(bytes: &[u8]) -> Result<(i32, i32, ChunkColumn), ChunkSto
             if !column.set_structures(owner, data) {
                 return Err(ChunkStoreError::InvalidStructures);
             }
+        }
+    }
+    if version >= 4 {
+        use bcore_worldgen::tick_request::{TickRequest, TickTarget};
+        let owner = bcore_core::ChunkPos::new(x, z);
+        let count = cur.u32()? as usize;
+        if count > (cur.bytes.len() - cur.at) / TICK_REQUEST_BYTES {
+            return Err(ChunkStoreError::InvalidTickRequest);
+        }
+        for _ in 0..count {
+            let kind = cur.u8()?;
+            let xz = cur.u8()?;
+            let y = cur.i32()?;
+            let target = match (kind, cur.u32()?) {
+                (1, state) => TickTarget::Block(state),
+                (2, id) => TickTarget::Fluid(id),
+                _ => return Err(ChunkStoreError::InvalidTickRequest),
+            };
+            let delay = cur.i32()?;
+            let tx = owner
+                .x
+                .checked_mul(16)
+                .and_then(|v| v.checked_add(i32::from(xz >> 4)))
+                .ok_or(ChunkStoreError::InvalidTickRequest)?;
+            let tz = owner
+                .z
+                .checked_mul(16)
+                .and_then(|v| v.checked_add(i32::from(xz & 15)))
+                .ok_or(ChunkStoreError::InvalidTickRequest)?;
+            if !column.add_tick_request(
+                owner,
+                TickRequest {
+                    block_pos: [tx, y, tz],
+                    target,
+                    delay,
+                },
+            ) {
+                return Err(ChunkStoreError::InvalidTickRequest);
+            }
+        }
+    }
+    if flags & POSTPROCESSING_FLAG != 0 {
+        let count = cur.u32()? as usize;
+        if count > (cur.bytes.len() - cur.at) / POSTPROCESSING_BYTES {
+            return Err(ChunkStoreError::InvalidPostprocessing);
+        }
+        for _ in 0..count {
+            let xz = cur.u8()?;
+            let y = cur.i32()?;
+            if !column.mark_postprocessing((xz >> 4) as usize, y, (xz & 15) as usize) {
+                return Err(ChunkStoreError::InvalidPostprocessing);
+            }
+        }
+    }
+    if flags & STRUCTURE_ENTITIES_FLAG != 0 {
+        let owner = bcore_core::ChunkPos::new(x, z);
+        let count = cur.u32()? as usize;
+        if count > (cur.bytes.len() - cur.at) / 4 {
+            return Err(ChunkStoreError::InvalidStructureEntity);
+        }
+        for _ in 0..count {
+            let length = cur.u32()? as usize;
+            if length > MAX_STRUCTURE_ENTITY_BYTES {
+                return Err(ChunkStoreError::InvalidStructureEntity);
+            }
+            let request = serde_json::from_slice(cur.take(length)?)
+                .map_err(|_| ChunkStoreError::InvalidStructureEntity)?;
+            if !column.add_structure_entity(owner, request) {
+                return Err(ChunkStoreError::InvalidStructureEntity);
+            }
+        }
+    }
+    if flags & LIGHT_FLAG != 0 {
+        use bcore_worldgen::lighting::{ChunkLight, LightSection};
+        let min_section_y = cur.i32()?;
+        let count = usize::from(cur.u16()?);
+        if min_section_y != MIN_Y / 16 - 1 || count != crate::chunk::LIGHT_SECTION_COUNT {
+            return Err(ChunkStoreError::InvalidLight);
+        }
+        let mut sections = Vec::with_capacity(count);
+        for _ in 0..count {
+            let layer_flags = cur.u8()?;
+            if layer_flags & !15 != 0
+                || (layer_flags & 4 != 0 && layer_flags & 1 == 0)
+                || (layer_flags & 8 != 0 && layer_flags & 2 == 0)
+            {
+                return Err(ChunkStoreError::InvalidLight);
+            }
+            let mut layers = [None, None];
+            for (kind, layer) in layers.iter_mut().enumerate() {
+                if layer_flags & (1 << kind) != 0 {
+                    *layer = Some(if layer_flags & (4 << kind) != 0 {
+                        vec![0; crate::chunk::LIGHT_LAYER_BYTES]
+                    } else {
+                        cur.take(crate::chunk::LIGHT_LAYER_BYTES)?.to_vec()
+                    });
+                }
+            }
+            let [sky, block] = layers;
+            sections.push(LightSection {
+                sky,
+                block,
+                sky_empty: layer_flags & 4 != 0,
+                block_empty: layer_flags & 8 != 0,
+            });
+        }
+        if !column.set_light(ChunkLight {
+            min_section_y,
+            sections,
+        }) {
+            return Err(ChunkStoreError::InvalidLight);
         }
     }
     if cur.at != cur.bytes.len() {
@@ -669,8 +971,8 @@ mod tests {
         let column = ChunkColumn::flat();
         let mut old = encode_chunk(3, -7, &column);
         old[4..6].copy_from_slice(&1u16.to_le_bytes());
-        // Remove v2 block entities, v3 entities/structures and the checksum.
-        old.truncate(old.len() - 16);
+        // Remove v2 block entities, v3 entities/structures, v4 requests and checksum.
+        old.truncate(old.len() - 20);
         let checksum = fnv1a(&old);
         old.extend_from_slice(&checksum.to_le_bytes());
         assert_eq!(decode_chunk_at(&old).unwrap(), (3, -7, column));
@@ -691,9 +993,39 @@ mod tests {
         );
         let mut old = encode_chunk(-2, 3, &column);
         old[4..6].copy_from_slice(&2u16.to_le_bytes());
-        old.truncate(old.len() - 12);
+        old.truncate(old.len() - 16);
         old.extend_from_slice(&fnv1a(&old).to_le_bytes());
         assert_eq!(decode_chunk_at(&old).unwrap(), (-2, 3, column));
+    }
+
+    #[test]
+    fn legacy_version_three_preserves_entities_and_structures() {
+        use bcore_worldgen::{
+            generated_entity::GeneratedEntity,
+            structure::mineshaft::{region::StructureData, MineType},
+        };
+        let owner = bcore_core::ChunkPos::new(-2, 3);
+        let mut column = ChunkColumn::flat();
+        assert!(column.add_entity(
+            owner,
+            GeneratedEntity::ChestMinecart {
+                block_pos: [-31, 20, 50],
+                loot_seed: i64::MIN,
+            },
+        ));
+        assert!(column.set_structures(
+            owner,
+            StructureData {
+                mineshaft_start: None,
+                references: vec![([-3, 3], MineType::Mesa)],
+                ..Default::default()
+            },
+        ));
+        let mut old = encode_chunk(owner.x, owner.z, &column);
+        old[4..6].copy_from_slice(&3u16.to_le_bytes());
+        old.truncate(old.len() - 8); // v4 tick count and checksum
+        old.extend_from_slice(&fnv1a(&old).to_le_bytes());
+        assert_eq!(decode_chunk_at(&old).unwrap(), (owner.x, owner.z, column));
     }
 
     #[test]
@@ -709,7 +1041,7 @@ mod tests {
         ));
         let bytes = encode_chunk(-2, 3, &column);
         assert_eq!(decode_chunk(&bytes).unwrap(), column);
-        let entity = bytes.len() - 4 - 4 - 14;
+        let entity = bytes.len() - 4 - 4 - 4 - 14;
         for (offset, value) in [(entity, 255), (entity + 2, 0xFF)] {
             let mut invalid = bytes.clone();
             if offset == entity + 2 {
@@ -726,10 +1058,11 @@ mod tests {
             ));
         }
         let mut invalid = encode_chunk(0, 0, &ChunkColumn::flat());
-        invalid.truncate(invalid.len() - 8);
+        invalid.truncate(invalid.len() - 12);
         let bad = br#"{"mineshaft_start":{"mine_type":"Normal","pieces":[]},"references":[]}"#;
         invalid.extend_from_slice(&(bad.len() as u32).to_le_bytes());
         invalid.extend_from_slice(bad);
+        invalid.extend_from_slice(&0u32.to_le_bytes()); // v4 tick requests
         invalid.extend_from_slice(&fnv1a(&invalid).to_le_bytes());
         assert!(matches!(
             decode_chunk(&invalid),
@@ -744,7 +1077,7 @@ mod tests {
         column.set(1, 32, 2, dungeon::CHEST);
         column.set_block_entity(1, 32, 2, BlockEntity::DungeonChest { loot_seed: -1 });
         let mut bytes = encode_chunk(0, 0, &column);
-        let kind = bytes.len() - 4 - 8 - 8 - 1;
+        let kind = bytes.len() - 4 - 4 - 8 - 8 - 1;
         bytes[kind] = 255;
         let end = bytes.len() - 4;
         let checksum = fnv1a(&bytes[..end]);
@@ -928,11 +1261,11 @@ mod tests {
         let header = 4 + 2 + 2 + 4 + 4 + 4 + 4; // magic, version, flags, x, z, min_y, height
         let blocks = 4 + 4 * 4 + 1 + COLUMN_ENTRIES; // len, palette, index_bits, indices
         let biomes = 4 + 4 + BIOME_ENTRIES * 2; // len, 1-entry palette, indices
-        let entities = 4 + 4 + 4; // empty block entities, entities and structures
+        let metadata = 4 + 4 + 4 + 4; // block entities, entities, structures and tick requests
         let checksum = 4;
         assert_eq!(
             encoded.len(),
-            header + blocks + biomes + entities + checksum
+            header + blocks + biomes + metadata + checksum
         );
         // Sanity: a whole flat column stays well under 200 KB.
         assert!(encoded.len() < 200 * 1024, "{} bytes", encoded.len());

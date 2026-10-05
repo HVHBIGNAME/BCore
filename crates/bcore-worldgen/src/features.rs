@@ -743,33 +743,6 @@ pub fn place_ore_veins(
     }
 }
 
-/// Full ore placement against shared mutable pre-feature terrain.
-pub(crate) fn decorate_ores(
-    seed: i64,
-    source: bcore_core::ChunkPos,
-    world: &mut crate::region::FeatureRegion,
-) {
-    let base_x = source.x.wrapping_mul(16);
-    let base_z = source.z.wrapping_mul(16);
-    let mut random = WorldgenRandom::new(seed);
-    let decoration_seed = random.set_decoration_seed(seed, base_x, base_z);
-    let sorter = crate::feature_sorter::sorter();
-    for step in [6, 7] {
-        for (index, name) in
-            (0..).map_while(|index| sorter.feature_name(step, index).map(|name| (index, name)))
-        {
-            if ore_placement(name).is_none() {
-                continue;
-            }
-            random.set_feature_seed(decoration_seed, index as i32, step as i32);
-            place_ore_feature(world, &mut random, source, name, |world, pos| {
-                sorter.feature_in_biome(crate::biome::name(world.biome_at(pos)), name)
-            })
-            .expect("supported ore feature");
-        }
-    }
-}
-
 /// Run one named ore placement after its feature seed has been set. The biome
 /// predicate is evaluated lazily between height sampling and feature placement.
 /// Returns `None` for features that are not implemented here.

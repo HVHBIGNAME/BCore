@@ -1,0 +1,231 @@
+{
+  "seed": 846692123413862008,
+  "protocol": 775,
+  "ymin": -64,
+  "ymax": 319,
+  "executable_sha256": "5f246f21063f67314055ef1ed3e5e750fa6f6440bdebd9daeacf3bf30fc50376",
+  "samples": [
+    {
+      "center": [0, 0],
+      "cells": 98304,
+      "equal_states": 92242,
+      "different_names": 5894,
+      "columns": 256,
+      "terrain_matches": 256,
+      "height_deltas": {"0": 256},
+      "vanilla_tree_origins": 12,
+      "bcore_tree_origins": 8,
+      "tree_intersection": 1,
+      "vanilla_biomes": {
+        "minecraft:deep_dark": 214,
+        "minecraft:forest": 891,
+        "minecraft:dripstone_caves": 431
+      },
+      "biome_cells": 1536,
+      "biome_matches": 1536,
+      "top_differences": [
+        ["air", "deepslate", 2509],
+        ["air", "tuff", 511],
+        ["oak_leaves", "air", 353],
+        ["sculk", "deepslate", 249],
+        ["air", "oak_leaves", 222],
+        ["air", "sculk", 187],
+        ["dirt", "stone", 175],
+        ["sculk_vein", "deepslate", 146],
+        ["gray_wool", "deepslate", 139],
+        ["air", "gravel", 119],
+        ["air", "sculk_vein", 103],
+        ["deepslate", "gravel", 98]
+      ],
+      "generation": {
+        "chunks": 4,
+        "complete_chunks": 0,
+        "incoming_sources_finished_chunks": 4,
+        "sources": 16,
+        "completed_placed_streams": 886,
+        "missing_placed_streams": 48,
+        "source_order": [
+          {"source": [-2, -2], "sequence": 1},
+          {"source": [-2, -1], "sequence": 2},
+          {"source": [-2, 0], "sequence": 3},
+          {"source": [-1, -2], "sequence": 4},
+          {"source": [-1, -1], "sequence": 5},
+          {"source": [-1, 0], "sequence": 6},
+          {"source": [0, -2], "sequence": 7},
+          {"source": [0, -1], "sequence": 8},
+          {"source": [0, 0], "sequence": 9},
+          {"source": [-2, 1], "sequence": 10},
+          {"source": [-1, 1], "sequence": 11},
+          {"source": [0, 1], "sequence": 12},
+          {"source": [1, -2], "sequence": 13},
+          {"source": [1, -1], "sequence": 14},
+          {"source": [1, 0], "sequence": 15},
+          {"source": [1, 1], "sequence": 16}
+        ],
+        "missing_stages": [
+          {"status": "minecraft:features", "reason": "3 placed features have incomplete coverage; see feature_sources"},
+          {"status": "minecraft:features", "reason": "Structure decoration covers only mineshaft and mineshaft_mesa"},
+          {"status": "minecraft:full", "reason": "Native stage has not been implemented or executed"},
+          {"status": "minecraft:initialize_light", "reason": "Native stage has not been implemented or executed"},
+          {"status": "minecraft:light", "reason": "Native stage has not been implemented or executed"},
+          {"status": "minecraft:noise", "reason": "Structure density adaptation and noise ore-vein filling are not implemented"},
+          {"status": "minecraft:spawn", "reason": "Native stage has not been implemented or executed"},
+          {"status": "minecraft:structure_references", "reason": "Only mineshaft structure references are available"},
+          {"status": "minecraft:structure_starts", "reason": "Non-mineshaft structure starts are not evaluated"}
+        ],
+        "missing_features": [
+          {"feature": "amethyst_geode", "reason": "unsupported feature operation: configured geode has no integrated kernel", "sources": 16},
+          {"feature": "underwater_magma", "reason": "unsupported feature operation: configured underwater_magma has no integrated kernel", "sources": 16},
+          {"feature": "freeze_top_layer", "reason": "unsupported feature operation: configured freeze_top_layer has no integrated kernel", "sources": 16}
+        ]
+      },
+      "capture_sha256": "ce653f2337a0cecd5c5553cb58b34057dac6599375414d0f2c78fff443115b89"
+    },
+    {
+      "center": [1000, 0],
+      "cells": 98304,
+      "equal_states": 96618,
+      "different_names": 1594,
+      "columns": 256,
+      "terrain_matches": 256,
+      "height_deltas": {"0": 256},
+      "vanilla_tree_origins": 16,
+      "bcore_tree_origins": 11,
+      "tree_intersection": 2,
+      "vanilla_biomes": {
+        "minecraft:deep_dark": 29,
+        "minecraft:forest": 1507
+      },
+      "biome_cells": 1536,
+      "biome_matches": 1536,
+      "top_differences": [
+        ["oak_leaves", "air", 471],
+        ["air", "oak_leaves", 158],
+        ["coal_ore", "stone", 153],
+        ["leaf_litter", "air", 93],
+        ["stone", "gravel", 90],
+        ["gravel", "stone", 81],
+        ["gravel", "deepslate", 74],
+        ["stone", "coal_ore", 64],
+        ["air", "birch_leaves", 45],
+        ["oak_log", "air", 34],
+        ["birch_leaves", "air", 34],
+        ["oak_leaves", "birch_leaves", 32]
+      ],
+      "generation": {
+        "chunks": 2,
+        "complete_chunks": 0,
+        "incoming_sources_finished_chunks": 2,
+        "sources": 12,
+        "completed_placed_streams": 651,
+        "missing_placed_streams": 54,
+        "source_order": [
+          {"source": [61, -2], "sequence": 1},
+          {"source": [61, -1], "sequence": 2},
+          {"source": [61, 0], "sequence": 3},
+          {"source": [62, -2], "sequence": 4},
+          {"source": [62, -1], "sequence": 5},
+          {"source": [62, 0], "sequence": 6},
+          {"source": [63, -2], "sequence": 7},
+          {"source": [63, -1], "sequence": 8},
+          {"source": [63, 0], "sequence": 9},
+          {"source": [61, 1], "sequence": 10},
+          {"source": [62, 1], "sequence": 11},
+          {"source": [63, 1], "sequence": 12}
+        ],
+        "missing_stages": [
+          {"status": "minecraft:features", "reason": "3 placed features have incomplete coverage; see feature_sources"},
+          {"status": "minecraft:features", "reason": "5 placed features have incomplete coverage; see feature_sources"},
+          {"status": "minecraft:features", "reason": "Structure decoration covers only mineshaft and mineshaft_mesa"},
+          {"status": "minecraft:full", "reason": "Native stage has not been implemented or executed"},
+          {"status": "minecraft:initialize_light", "reason": "Native stage has not been implemented or executed"},
+          {"status": "minecraft:light", "reason": "Native stage has not been implemented or executed"},
+          {"status": "minecraft:noise", "reason": "Structure density adaptation and noise ore-vein filling are not implemented"},
+          {"status": "minecraft:spawn", "reason": "Native stage has not been implemented or executed"},
+          {"status": "minecraft:structure_references", "reason": "Only mineshaft structure references are available"},
+          {"status": "minecraft:structure_starts", "reason": "Non-mineshaft structure starts are not evaluated"}
+        ],
+        "missing_features": [
+          {"feature": "amethyst_geode", "reason": "unsupported feature operation: configured geode has no integrated kernel", "sources": 12},
+          {"feature": "underwater_magma", "reason": "unsupported feature operation: configured underwater_magma has no integrated kernel", "sources": 12},
+          {"feature": "freeze_top_layer", "reason": "unsupported feature operation: configured freeze_top_layer has no integrated kernel", "sources": 12},
+          {"feature": "bamboo_light", "reason": "unsupported feature operation: configured bamboo has no integrated kernel", "sources": 9},
+          {"feature": "vines", "reason": "unsupported feature operation: configured vines has no integrated kernel", "sources": 9}
+        ]
+      },
+      "capture_sha256": "2355cb1a8cfc1dea7c8149eb74e441cddb183a12d14fb672499ce169a6b05aae"
+    },
+    {
+      "center": [-2000, 3000],
+      "cells": 98304,
+      "equal_states": 97187,
+      "different_names": 868,
+      "columns": 256,
+      "terrain_matches": 256,
+      "height_deltas": {"0": 256},
+      "vanilla_tree_origins": 13,
+      "bcore_tree_origins": 9,
+      "tree_intersection": 5,
+      "vanilla_biomes": {
+        "minecraft:deep_dark": 126,
+        "minecraft:forest": 980,
+        "minecraft:dripstone_caves": 430
+      },
+      "biome_cells": 1536,
+      "biome_matches": 1536,
+      "top_differences": [
+        ["oak_leaves", "air", 186],
+        ["air", "oak_leaves", 116],
+        ["stone", "coal_ore", 81],
+        ["birch_leaves", "air", 80],
+        ["coal_ore", "stone", 73],
+        ["leaf_litter", "air", 43],
+        ["birch_leaves", "oak_leaves", 33],
+        ["air", "leaf_litter", 29],
+        ["oak_log", "air", 22],
+        ["stone", "dripstone_block", 21],
+        ["oak_leaves", "birch_leaves", 18],
+        ["dripstone_block", "stone", 18]
+      ],
+      "generation": {
+        "chunks": 2,
+        "complete_chunks": 0,
+        "incoming_sources_finished_chunks": 2,
+        "sources": 12,
+        "completed_placed_streams": 660,
+        "missing_placed_streams": 36,
+        "source_order": [
+          {"source": [-127, 186], "sequence": 1},
+          {"source": [-127, 187], "sequence": 2},
+          {"source": [-127, 188], "sequence": 3},
+          {"source": [-126, 186], "sequence": 4},
+          {"source": [-126, 187], "sequence": 5},
+          {"source": [-126, 188], "sequence": 6},
+          {"source": [-125, 186], "sequence": 7},
+          {"source": [-125, 187], "sequence": 8},
+          {"source": [-125, 188], "sequence": 9},
+          {"source": [-124, 186], "sequence": 10},
+          {"source": [-124, 187], "sequence": 11},
+          {"source": [-124, 188], "sequence": 12}
+        ],
+        "missing_stages": [
+          {"status": "minecraft:features", "reason": "3 placed features have incomplete coverage; see feature_sources"},
+          {"status": "minecraft:features", "reason": "Structure decoration covers only mineshaft and mineshaft_mesa"},
+          {"status": "minecraft:full", "reason": "Native stage has not been implemented or executed"},
+          {"status": "minecraft:initialize_light", "reason": "Native stage has not been implemented or executed"},
+          {"status": "minecraft:light", "reason": "Native stage has not been implemented or executed"},
+          {"status": "minecraft:noise", "reason": "Structure density adaptation and noise ore-vein filling are not implemented"},
+          {"status": "minecraft:spawn", "reason": "Native stage has not been implemented or executed"},
+          {"status": "minecraft:structure_references", "reason": "Only mineshaft structure references are available"},
+          {"status": "minecraft:structure_starts", "reason": "Non-mineshaft structure starts are not evaluated"}
+        ],
+        "missing_features": [
+          {"feature": "amethyst_geode", "reason": "unsupported feature operation: configured geode has no integrated kernel", "sources": 12},
+          {"feature": "underwater_magma", "reason": "unsupported feature operation: configured underwater_magma has no integrated kernel", "sources": 12},
+          {"feature": "freeze_top_layer", "reason": "unsupported feature operation: configured freeze_top_layer has no integrated kernel", "sources": 12}
+        ]
+      },
+      "capture_sha256": "a900c2c6731eb34a38cfbaf37afc61764e387feb4b349f15ce3abe9da025569e"
+    }
+  ]
+}
