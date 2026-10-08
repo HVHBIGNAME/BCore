@@ -1,11 +1,11 @@
 //! Vanilla `NoiseBasedAquifer` substance computation.
+use crate::fast_hash::FastMap;
 use crate::{
     block, density,
     noise_perlin::{Xoroshiro, XoroshiroPositional},
     simplex::NoiseRegistry,
     VanillaGraph,
 };
-use std::collections::HashMap;
 
 const NO_FLUID: i32 = -32512;
 const X_SPACING: i32 = 16;
@@ -42,8 +42,9 @@ pub struct Aquifer<'a> {
     random: XoroshiroPositional,
     noises: &'a NoiseRegistry,
     ctx: density::EvalContext,
-    centers: Vec<((i32, i32, i32), (i32, i32, i32))>,
-    statuses: HashMap<(i32, i32, i32), FluidStatus>,
+    centers: FastMap<(i32, i32, i32), (i32, i32, i32)>,
+    statuses: FastMap<(i32, i32, i32), FluidStatus>,
+    preliminary_levels: FastMap<(i32, i32), i32>,
     schedule_fluid_update: bool,
 }
 
@@ -59,8 +60,9 @@ impl<'a> Aquifer<'a> {
             random,
             noises: density::noise_registry(),
             ctx,
-            centers: Vec::with_capacity(12),
-            statuses: HashMap::new(),
+            centers: FastMap::default(),
+            statuses: FastMap::default(),
+            preliminary_levels: FastMap::default(),
             schedule_fluid_update: false,
         }
     }
@@ -162,7 +164,7 @@ impl<'a> Aquifer<'a> {
         nearest
     }
     fn center(&mut self, c: (i32, i32, i32)) -> (i32, i32, i32) {
-        if let Some(&(_, p)) = self.centers.iter().find(|(k, _)| *k == c) {
+        if let Some(&p) = self.centers.get(&c) {
             return p;
         }
         let mut rr = self.random.at(c.0, c.1, c.2);
@@ -171,7 +173,7 @@ impl<'a> Aquifer<'a> {
             c.1 * Y_SPACING + rr.next_int(Y_RANGE) as i32,
             c.2 * Z_SPACING + rr.next_int(Z_RANGE) as i32,
         );
-        self.centers.push((c, p));
+        self.centers.insert(c, p);
         p
     }
 
@@ -184,7 +186,7 @@ impl<'a> Aquifer<'a> {
         status
     }
 
-    fn compute_status(&self, (x, y, z): (i32, i32, i32)) -> FluidStatus {
+    fn compute_status(&mut self, (x, y, z): (i32, i32, i32)) -> FluidStatus {
         let global = self.global(y);
         let offsets = [
             (0, 0),
@@ -284,14 +286,19 @@ impl<'a> Aquifer<'a> {
                     > 0.3);
         FluidStatus { level, lava }
     }
-    fn preliminary_level(&self, x: i32, z: i32) -> i32 {
+    fn preliminary_level(&mut self, x: i32, z: i32) -> i32 {
         // NoiseChunk.preliminarySurfaceLevel samples the flat cache at quart
         // coordinates, not at the arbitrary block coordinates of the aquifer
         // cell.  Without this quantization the 13-cell scan uses different
         // surfaces from vanilla, shifting floodedness and ocean boundaries.
         let qx = (x >> 2) << 2;
         let qz = (z >> 2) << 2;
-        density::evaluate(
+        // NoiseChunk memoizes the returned height, not just density markers
+        // inside its scan. This aquifer owns a fixed graph and full context.
+        if let Some(&level) = self.preliminary_levels.get(&(qx, qz)) {
+            return level;
+        }
+        let level = density::evaluate(
             self.graph
                 .preliminary_surface_level
                 .as_ref()
@@ -301,7 +308,9 @@ impl<'a> Aquifer<'a> {
             qz as f64,
             &self.ctx,
         )
-        .floor() as i32
+        .floor() as i32;
+        self.preliminary_levels.insert((qx, qz), level);
+        level
     }
     fn random_level(&self, x: i32, y: i32, z: i32, lowest: i32) -> i32 {
         let cx = x.div_euclid(16);

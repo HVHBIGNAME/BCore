@@ -23,6 +23,20 @@ pub trait FeatureWorld: OreWorld {
     fn set_feature_block(&mut self, pos: Pos, state: u32, flags: i32) -> bool;
     fn mark_feature_postprocessing(&mut self, pos: Pos);
     fn schedule_feature_tick(&mut self, request: TickRequest) -> bool;
+
+    /// Native typed brushable lookup followed by setLootTable if present. The
+    /// lookup may materialize pending DUMMY data even after a rejected write.
+    /// False means the lookup found no brushable, not an unsupported world.
+    fn set_feature_brushable_loot(
+        &mut self,
+        _pos: Pos,
+        _table: &str,
+        _seed: i64,
+    ) -> Result<bool, FeatureError> {
+        Err(FeatureError::Unsupported(
+            "brushable feature loot lookup".into(),
+        ))
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

@@ -8,7 +8,7 @@ Full generation parity remains incomplete.
 
 ## Combined checkpoint — 2026-10-08
 
-The final merged workspace passes **662 tests, with 0 failures and 4 ignored**.
+The final merged workspace passes **665 tests, with 0 failures and 4 ignored**.
 One frozen executable replays **88 requests / 14 native histories** with zero
 differences in **8,650,752 block-state** and **135,168 biome** observations.
 Source order, logical structures, ordered postprocessing and all **40 scored
@@ -20,8 +20,14 @@ boundary and **70 WG-map presence fields** across repeated snapshots. All 88
 requests retain incomplete coverage. The table below reports the three new
 histories on this same integrated executable.
 
-[Per-request measurements and provenance](metrics/checkpoint-2026-10-08.json) ·
-[Detailed verification report](parity-report.md#terrain-and-lifecycle-repairs--2026-10-08).
+The same tree also contains the implemented **desert well** family (real
+original-server witness at seed 42, source chunk `(-223,-250)`) and three
+exact-behavior NOISE optimizations; see
+[parity-report.md](parity-report.md#terrain-lifecycle-and-noise-optimization--2026-10-08)
+and [performance.md](performance.md).
+
+[Per-request measurements and provenance](metrics/checkpoint-2026-10-08-optimized.json) ·
+[Detailed verification report](parity-report.md#terrain-lifecycle-and-noise-optimization--2026-10-08).
 
 ## Reproduced terrain differences
 

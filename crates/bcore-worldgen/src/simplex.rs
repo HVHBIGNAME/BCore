@@ -290,15 +290,17 @@ impl SimplexNoise {
     }
 }
 
-// Per-thread cache of `NormalNoise` instances, keyed by (world seed, noise name).
-// Avoids constructing up to 2×9 ImprovedNoise permutation tables per sample.
+// Per-thread cache of `NormalNoise` instances, keyed by world seed and the
+// static registry key. Avoids constructing up to 2x9 ImprovedNoise permutation
+// tables per sample, and allocates nothing on the hot path: the borrowed key
+// comes from the static registry and nested maps accept a `&str` lookup.
 thread_local! {
-    static NORMAL_CACHE: std::cell::RefCell<std::collections::HashMap<(i64, String), crate::noise_perlin::NormalNoise>> =
+    static NORMAL_CACHE: std::cell::RefCell<std::collections::HashMap<i64, std::collections::HashMap<String, crate::noise_perlin::NormalNoise>>> =
         std::cell::RefCell::new(std::collections::HashMap::new());
 }
 fn sample_cached_normal(
     seed: i64,
-    noise_name: &str,
+    noise_key: &str,
     first: i32,
     amplitudes: &[f64],
     x: f64,
@@ -307,10 +309,23 @@ fn sample_cached_normal(
 ) -> f64 {
     NORMAL_CACHE.with(|c| {
         let mut m = c.borrow_mut();
-        m.entry((seed, noise_name.to_string()))
-            .or_insert_with(|| {
-                crate::noise_perlin::NormalNoise::for_world(seed, noise_name, first, amplitudes)
-            })
+        let per_seed = m.entry(seed).or_default();
+        // Borrowed lookup: the hot path allocates nothing. Construction (with
+        // its "minecraft:<key>" name) happens once per seed and noise.
+        if !per_seed.contains_key(noise_key) {
+            per_seed.insert(
+                noise_key.to_owned(),
+                crate::noise_perlin::NormalNoise::for_world(
+                    seed,
+                    &format!("minecraft:{noise_key}"),
+                    first,
+                    amplitudes,
+                ),
+            );
+        }
+        per_seed
+            .get(noise_key)
+            .expect("seeded noise just inserted")
             .get_value(x, y, z)
     })
 }
@@ -359,15 +374,9 @@ impl NoiseRegistry {
         // Vanilla `RandomState` with `legacy_random_source: false` (the overworld
         // default): the root random is Xoroshiro, forked positionally, and each
         // noise comes from `fromHashOf("minecraft:<key>")` (MD5-derived seed pair).
-        sample_cached_normal(
-            seed,
-            &format!("minecraft:{key}"),
-            d.first_octave,
-            &d.amplitudes,
-            x,
-            y,
-            z,
-        )
+        // The seeded cache is addressed by this borrowed name, so a sample
+        // allocates nothing and never builds a "minecraft:<key>" string.
+        sample_cached_normal(seed, key, d.first_octave, &d.amplitudes, x, y, z)
     }
 }
 

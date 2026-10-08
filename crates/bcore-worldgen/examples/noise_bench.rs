@@ -8,6 +8,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     #[derive(Deserialize)]
     #[serde(deny_unknown_fields)]
     struct Request {
+        schema: u32,
+        scope: String,
         seed: String,
         workers: usize,
         warmup_batches: usize,
@@ -18,8 +20,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .nth(1)
         .ok_or("usage: noise_bench request.json")?;
     let request: Request = serde_json::from_slice(&std::fs::read(path)?)?;
-    if !(1..=64).contains(&request.workers) {
-        return Err("workers must be in 1..=64".into());
+    if request.schema != benchmark::SCHEMA || request.scope != benchmark::SCOPE {
+        return Err("unsupported noise benchmark contract".into());
+    }
+    if !matches!(request.workers, 1 | 2 | 4) {
+        return Err("noise-fill-wg-v2 workers must be 1, 2 or 4".into());
     }
     rayon::ThreadPoolBuilder::new()
         .num_threads(request.workers)

@@ -3,11 +3,11 @@
 **Worldgen parity is incomplete.** Component checks and the whole-chunk snapshot
 below have different coverage; neither establishes all-world/all-dimension parity.
 
-Latest full workspace verification: **662 passed, 0 failed, 4 ignored** in
-release, including **394 worldgen and 259 protocol** tests. The previous 628-pass
-checkpoint and earlier [regression suites](#regression-suites) remain recorded below.
+Latest full workspace verification: **665 passed, 0 failed, 4 ignored** in
+release, including **397 worldgen and 259 protocol** tests. The 662-pass and 628-pass
+checkpoints and earlier [regression suites](#regression-suites) remain recorded below.
 
-## Terrain and lifecycle repairs — 2026-10-08
+## Terrain, lifecycle and NOISE optimization — 2026-10-08
 
 Three parallel workers implemented native fossils, desert pyramids and pending
 block-entity materialization. Their immutable before/after histories reproduce
@@ -15,12 +15,37 @@ block-entity materialization. Their immutable before/after histories reproduce
 See [the milestone report](generation-milestone-2026-10-07.md) for witnesses,
 component coverage, RNG contracts and the remaining implicit-FULL differences.
 
+A further delegated worker implemented **desert wells**, with an independently
+recaptured component corpus and a real original-server witness (seed 42, source
+chunk `(-223,-250)`, well center `(-3563,62,-4000)`): the frozen unimplemented
+baseline differs by **63 / 45 / 63** state observations and 2 block-entity fields,
+and the implemented replay removes all of them in two independent runs.
+
 After integration, the generation suite passed **57/57** and focused protocol
-storage/delivery passed **12/12**, including the pyramid↔pending-BE boundary and
-456 native mob LOAD/pairing records. The final workspace run passed **662 tests**
-in 60 target summaries. An earlier run's one standing-tree expectation omitted the
-empty hive materialized by an explicit native lookup; its lifecycle setup was
-corrected while preserving the native block, RNG and occupant comparisons.
+storage/delivery passed **12/12**; the merged tree then passed **265/265** worldgen
+library tests with desert wells included. The final workspace run passed **665
+tests** in 60 target summaries. An earlier run's one standing-tree expectation
+omitted the empty hive materialized by an explicit native lookup; its lifecycle
+setup was corrected while preserving the native block, RNG and occupant
+comparisons.
+
+### NOISE material-fill optimization
+
+Three exact-behavior passes were measured against a revised, matched benchmark
+contract (`noise-fill-wg-v2`, which additionally fingerprints both worldgen
+heightmaps and verifies native executor parallelism):
+
+| Pass | BCore chunks/s (1 / 2 / 4 workers) |
+|---|---:|
+| Baseline | 2.04 / 3.24 / 4.31 |
+| Aquifer/preliminary-surface reuse | 4.04 / 6.39 / 8.35 |
+| Faster internal lookup tables, allocation-free seeded noise lookup | 11.30 / 12.60 / 15.50 |
+| Chunk-scoped material caches (native lifetime) | 12.12 / 16.21 / 44.14 |
+
+Every pass reproduces the frozen native histories with zero differences, and the
+final workspace run passes 665 tests. The measured gap to Vanilla at four workers
+is now about 4.6x under this contract, down from roughly 29x under the earlier
+one. Details, caveats and reproduction are in [performance.md](performance.md).
 
 One frozen replay executable then verified **88 requests across 14 histories**:
 
@@ -41,12 +66,13 @@ incomplete native coverage. The 36 remaining BE fields belong to the final LIGHT
 read after Vanilla's implicit ticket-driven FULL transition; WG maps also remain
 until real FULL conversion is implemented.
 
-[Published checkpoint](metrics/checkpoint-2026-10-08.json) contains per-request
-counts and artifact hashes. Local evidence:
+[Published checkpoint](metrics/checkpoint-2026-10-08-optimized.json) contains
+per-request counts and artifact hashes. Local evidence:
 
-- `target/generation-checks-20261001/tests-1791426197736092900.{json,log}`
-- `target/full-parity-20261003/integrated-histories-1791426197736092900/`
-- `target/full-parity-20261003/combined-input-audit-20261008-final.json`
+- `target/parallel-20261008/main-tests-final-01-1791478964840414900.{json,log}`
+- `target/full-parity-20261003/integrated-histories-phase3-1791477900/`
+- `target/full-parity-20261003/phase3-input-audit-20261008.json`
+- `target/noise-fill-wg-v2-phase3-final-01/results.json`
 
 The audit verifies archive contents, binary/result hashes, native provenance and
 current-source equality. The previous failed test run and older frozen replays

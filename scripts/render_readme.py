@@ -17,8 +17,9 @@ import xml.etree.ElementTree as ET
 ROOT = Path(__file__).resolve().parents[1]
 METRICS = ROOT / "docs/metrics"
 ASSETS = ROOT / "site/assets"
-CHECKPOINT = METRICS / "checkpoint-2026-10-08.json"
-BENCHMARK = METRICS / "noise-fill-2026-10-05.json"
+CHECKPOINT = METRICS / "checkpoint-2026-10-08-optimized.json"
+BENCHMARK = METRICS / "noise-fill-wg-v2-2026-10-08.json"
+PREVIOUS_BENCHMARK = METRICS / "noise-fill-2026-10-05.json"
 BG, CARD, LINE = "#0b1220", "#111e31", "#26374e"
 FG, MUTED = "#e8f0fc", "#a7bad2"
 TEAL, BLUE, VIOLET, AMBER = "#50e3c2", "#73aaff", "#b89bff", "#f5c36c"
@@ -169,12 +170,13 @@ def nice_max(value):
     return math.ceil(value / magnitude) * magnitude
 
 
-def performance(data):
+def performance(data, previous):
     groups = sorted({row["workers"] for row in data["summary"]})
     max_value = nice_max(max(len(data["chunks"]) / row["min_process_median_seconds"] for row in data["summary"]) * 1.05)
     chart_x, chart_w = 224, 650
+    contract = data.get("contract", {})
     e = [text(36, 45, "BCore vs Vanilla / NOISE material fill", 27, FG, 650),
-         text(36, 74, "Original production kernels · identical block and ordered effect hashes · higher is faster", 13, MUTED),
+         text(36, 74, "Original production kernels · identical block, ordered effect and WG-map hashes · higher is faster", 13, MUTED),
          rect(36, 91, 11, 11, BLUE, 3, "none"), text(55, 101, "Vanilla 26.1", 12),
          rect(175, 91, 11, 11, TEAL, 3, "none"), text(194, 101, "BCore (release)", 12),
          text(958, 101, "CHUNKS / SECOND", 11, MUTED, 600, "end")]
@@ -207,12 +209,16 @@ def performance(data):
     build = re.search(r"Windows-.*?10\.0\.(\d+)", os_name)
     if build and int(build.group(1)) >= 22000:
         os_name = "Windows 11"
+    old = next(r for r in previous["summary"] if r["engine"] == "BCore" and r["workers"] == max(groups))
+    current = next(r for r in data["summary"] if r["engine"] == "BCore" and r["workers"] == max(groups))
     e += [line(30, 452, 970, 452),
           text(38, 479, f'{cpu_name} · {os_name} · {len(data["chunks"])} fresh chunks per batch', 13),
           text(38, 502, f'{data["processes_per_configuration"]} fresh processes × {data["measured_batches_per_process"]} timed batches per configuration; {data["warmup_batches_per_process"]} warmup batches per process.', 12, MUTED),
           text(38, 524, "Bars: median of process medians. Whiskers: process-median range. No concurrent benchmark jobs.", 12, MUTED),
-          text(38, 552, "KERNEL SCOPE ONLY — excludes full chunk generation, server startup, I/O, packets and gameplay/TPS.", 12, AMBER, 600)]
-    return document(576, "Measured NOISE kernel throughput: BCore versus Vanilla", "; ".join(description) + ". This is not a full-server benchmark.", e)
+          text(38, 546, f'{max(groups)} workers: BCore {current["chunks_per_second"]:.1f} vs {old["chunks_per_second"]:.1f} chunks/s before this optimization series ({current["chunks_per_second"] / old["chunks_per_second"]:.1f}x), on a different timed contract.', 12, MUTED),
+          text(38, 574, "KERNEL SCOPE ONLY — excludes full chunk generation, server startup, I/O, packets and gameplay/TPS.", 12, AMBER, 600)]
+    return document(598, "Measured NOISE kernel throughput: BCore versus Vanilla",
+                    "; ".join(description) + f'. Timed contract {contract.get("scope", "unknown")}. This is not a full-server benchmark.', e)
 
 
 def pipeline():
@@ -265,7 +271,7 @@ def main():
     historical = load(ROOT / "docs/parity-live-generation.json")
     benchmark = load(BENCHMARK)
     files = {"overview.svg": overview(checkpoint), "generation-accuracy.svg": accuracy(checkpoint, historical),
-             "regression-fixes.svg": fixes(checkpoint), "performance.svg": performance(benchmark),
+             "regression-fixes.svg": fixes(checkpoint), "performance.svg": performance(benchmark, load(PREVIOUS_BENCHMARK)),
              "generation-pipeline.svg": pipeline()}
     for name, contents in files.items():
         ET.fromstring(contents)

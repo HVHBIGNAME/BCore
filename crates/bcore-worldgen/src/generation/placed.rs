@@ -324,7 +324,8 @@ fn check_configured(document: &Value, name: Option<&str>, depth: usize) -> Featu
     let config = &document["config"];
     match kind(document)? {
         "simple_block" | "block_column" | "disk" | "spring_feature" | "lake" | "seagrass"
-        | "pointed_dripstone" | "dripstone_cluster" | "large_dripstone" | "sculk_patch" => Ok(()),
+        | "pointed_dripstone" | "dripstone_cluster" | "large_dripstone" | "sculk_patch"
+        | "desert_well" => Ok(()),
         "geode" => crate::geode::check_configured("geode", config),
         "fossil" => crate::fossil::check_configured(config),
         "underwater_magma"
@@ -420,6 +421,7 @@ impl ConfiguredFeatureDispatcher for AdditionalFeatures<'_> {
         let feature_type = kind(document)?;
         let config = &document["config"];
         match feature_type {
+            "desert_well" => crate::desert_well::place(world, random, origin),
             "fossil" => {
                 let effects = self.tree_effects.clone();
                 crate::fossil::place(
@@ -582,6 +584,14 @@ impl FeatureWorld for WorldView<'_> {
     fn schedule_feature_tick(&mut self, request: TickRequest) -> bool {
         self.0.schedule_feature_tick(request)
     }
+    fn set_feature_brushable_loot(
+        &mut self,
+        pos: Pos,
+        table: &str,
+        seed: i64,
+    ) -> FeatureResult<bool> {
+        self.0.set_feature_brushable_loot(pos, table, seed)
+    }
 }
 
 #[cfg(test)]
@@ -595,3 +605,7 @@ mod lighting_environment_tests;
 #[cfg(test)]
 #[path = "fossil_tests.rs"]
 mod fossil_tests;
+
+#[cfg(test)]
+#[path = "desert_well_tests.rs"]
+mod desert_well_tests;

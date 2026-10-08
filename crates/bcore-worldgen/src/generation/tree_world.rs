@@ -102,6 +102,14 @@ impl FeatureWorld for EffectWorld<'_> {
     fn schedule_feature_tick(&mut self, request: TickRequest) -> bool {
         self.region.schedule_feature_tick(request)
     }
+    fn set_feature_brushable_loot(
+        &mut self,
+        pos: Pos,
+        table: &str,
+        seed: i64,
+    ) -> Result<bool, FeatureError> {
+        self.region.set_feature_brushable_loot(pos, table, seed)
+    }
 }
 
 pub(super) fn configured_name(

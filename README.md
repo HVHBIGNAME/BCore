@@ -1,7 +1,7 @@
 # BCore
 
 <p align="center">
-  <img src="site/assets/overview.svg" alt="BCore checkpoint: 662 passing tests, 88 native requests in 14 histories, 40 matching scored light snapshots. Alpha; full parity remains incomplete." width="100%" />
+  <img src="site/assets/overview.svg" alt="BCore checkpoint: 665 passing tests, 88 native requests in 14 histories, 40 matching scored light snapshots. Alpha; full parity remains incomplete." width="100%" />
 </p>
 
 <p align="center">
@@ -32,8 +32,9 @@ BCore is an **independent implementation** (not a fork) aiming for vanilla parit
 **Latest checkpoint:** 88 requests across 14 matching native execution histories,
 with **0 block-state, biome, source-order or scored-light differences**. That is
 8,650,752 block-state observations, including air and repeated snapshots.
-The [2026-10-08 evidence](docs/metrics/checkpoint-2026-10-08.json) records the
-per-request results, frozen-source hashes and **662 passing workspace tests**.
+The [2026-10-08 evidence](docs/metrics/checkpoint-2026-10-08-optimized.json)
+records the per-request results, frozen-source hashes and **665 passing workspace
+tests**.
 
 The older three-region comparison remains **286,047 / 294,912 states (96.99%)**,
 768/768 terrain heights and 4,608/4,608 biome cells. It uses an older executable
@@ -59,20 +60,25 @@ are tracked with FULL conversion and other omissions in the
 
 ## Performance comparison
 
-<img src="site/assets/performance.svg" alt="Measured BCore versus Vanilla 26.1 NOISE material-fill throughput at one, two and four workers. Full block and ordered postprocessing hashes match. See the benchmark guide for exact values and limitations." width="100%" />
+<img src="site/assets/performance.svg" alt="Measured BCore versus Vanilla 26.1 NOISE material-fill throughput at one, two and four workers, including both worldgen heightmaps, with identical block, ordered effect and WG-map hashes. BCore is still slower in this bounded kernel workload. See the benchmark guide for exact values, the optimization series and limitations." width="100%" />
 
 This compares the **terrain material-fill kernel** in BCore and the original
 Vanilla 26.1 JAR on the same machine, seed, eight chunks and worker budgets.
-It includes aquifers and noise ore veins; it excludes server startup, later
-generation stages, storage, packets and gameplay. It is **not a full-server TPS
-ranking**. Bars show medians; whiskers show variation between fresh processes.
+It includes aquifers, noise ore veins, fluid postprocessing requests and both
+worldgen heightmaps; it excludes server startup, later generation stages,
+storage, packets and gameplay. It is **not a full-server TPS ranking**.
+Bars show medians; whiskers show variation between fresh processes.
 
-At four workers this local test measures **5.83 chunks/s for BCore** and
-**168.49 chunks/s for Vanilla**. The next optimization pass targets this gap with
-hot-path profiling and must preserve exact block and ordered-effect fingerprints.
+At four workers this local test measures **44.14 chunks/s for BCore** and
+**202.77 chunks/s for Vanilla**, i.e. a gap of about **4.6×** instead of the
+roughly 29× recorded before the optimization series. Three exact-behavior passes
+(aquifer/preliminary-surface reuse, cheaper internal lookup tables and seeded
+noise lookups, and chunk-scoped material caches) took BCore from 4.31 to
+44.14 chunks/s on the same contract while every native fingerprint stayed
+identical.
 
-[Exact timings, hardware and reproduction commands](docs/performance.md) ·
-[Raw measurements and hashes](docs/metrics/noise-fill-2026-10-05.json)
+[Exact timings, optimization series, hardware and reproduction commands](docs/performance.md) ·
+[Raw measurements and hashes](docs/metrics/noise-fill-wg-v2-2026-10-08.json)
 
 ## Current work
 
@@ -80,9 +86,9 @@ hot-path profiling and must preserve exact block and ordered-effect fingerprints
 
 | Delivered | Current focus | Following work |
 |---|---|---|
-| Shared cross-chunk generation; native light storage and updates | Missing terrain features and broader seed/biome comparisons | Ticket-driven FULL conversion and tick lifecycle |
-| Fossils; villages, ancient cities, trail/trial jigsaws; treasure, huts, jungle and desert pyramids | Preserve real native behavior across combined request histories | Remaining structure families, saved-holder hydration, Nether/End |
-| Pending/materialized typed NBT; `.bcc` v5; retained SPAWN and 456 native mob handoffs | Finish live clock/settings integration and FULL boundaries | Broader performance work after correctness checks |
+| Shared cross-chunk generation; native light storage and updates | Ticket-driven FULL conversion, remaining terrain families and broader seed samples | Worldgen-heightmap retirement, saved-holder hydration, Nether/End |
+| Fossils; villages, ancient cities, trail/trial jigsaws; treasure, huts, jungle, desert pyramids and **desert wells** | Preserve real native behavior across combined request histories | Remaining structure families, persistent generation graph |
+| Pending/materialized typed NBT; `.bcc` v5; retained SPAWN and 456 native mob handoffs | Finish live clock/settings integration and FULL boundaries | Broader performance work on the remaining ~4.6× kernel gap |
 
 Project updates and evidence are published together in the
 [tracker](https://HVHBIGNAME.github.io/BCore/), [parity report](docs/parity-report.md)

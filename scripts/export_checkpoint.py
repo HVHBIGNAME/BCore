@@ -94,6 +94,11 @@ def main():
     parser.add_argument("--wave", type=Path, required=True)
     parser.add_argument("--replay", action="append", type=Path, default=[])
     parser.add_argument("--before", action="append", type=Path, default=[])
+    parser.add_argument(
+        "--carry-before-after",
+        type=Path,
+        help="reuse the before/after rows of an already published checkpoint whose frozen replays were pruned",
+    )
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     status = read(args.tests)
@@ -147,6 +152,26 @@ def main():
                              "after_state_differences": sum(r["states"]["mismatches"] for r in after["requests"]),
                              "before_comparison_sha256": before["comparison_sha256"],
                              "after_comparison_sha256": after["comparison_sha256"]})
+    if args.carry_before_after:
+        # The frozen replays behind these rows were pruned after publication, so
+        # the rows are carried verbatim from the already published checkpoint
+        # instead of being recomputed. Only their recorded hashes change.
+        carried = read(args.carry_before_after)
+        if not carried.get("before_after"):
+            raise ValueError("carried checkpoint has no before/after rows")
+        names = {h["name"] for h in histories}
+        for row in carried["before_after"]:
+            if row["history"] not in names:
+                raise ValueError(f"carried history is absent from this wave: {row['history']}")
+        before_after = [{"history": row["history"], "requests": row["requests"],
+                         "before_state_differences": row["before_state_differences"],
+                         "after_state_differences": row["after_state_differences"],
+                         "before_comparison_sha256": row["before_comparison_sha256"],
+                         "after_comparison_sha256": row["after_comparison_sha256"],
+                         "carried_from": relative(args.carry_before_after)}
+                        for row in carried["before_after"]]
+        if args.before:
+            raise ValueError("--before and --carry-before-after are exclusive")
     result = {"schema": 1, "published_date": dt.datetime.now(dt.timezone.utc).date().isoformat(),
               "minecraft": "26.1", "protocol": 775, "tests": tests, "totals": totals,
               "scope": "Matched bootstrap/request/source histories. Counts include repeated snapshots and air; they are not a percentage of all generator features implemented.",

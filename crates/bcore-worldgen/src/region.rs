@@ -794,6 +794,60 @@ impl FeatureWorld for FeatureRegion {
         }
         self.chunk_mut(owner.x, owner.z).add_tick_request(request)
     }
+
+    fn set_feature_brushable_loot(
+        &mut self,
+        pos @ (x, y, z): (i32, i32, i32),
+        table: &str,
+        seed: i64,
+    ) -> Result<bool, crate::feature_world::FeatureError> {
+        use crate::feature_world::FeatureError;
+        use crate::generation::FeatureBlockEntity;
+        use crate::structure::template::{Nbt, TemplateBlockEntity};
+        use crate::structure::template_pool::StructureAssets;
+
+        // Lookup uses read dependencies, not the write radius. In particular, a
+        // denied suspicious-sand write must not prevent an existing BE lookup.
+        if !self.materialize_block_entity_at(pos)? {
+            return Ok(false);
+        }
+        let owner = ChunkPos::new(x >> 4, z >> 4);
+        let local = ((x & 15) as usize, y, (z & 15) as usize);
+        let chunk = self.owned_chunk(owner).expect("materialized feature owner");
+        let Some(previous) = chunk.feature_block_entities().get(&local) else {
+            return Ok(false);
+        };
+        if previous.full_data["id"] != "minecraft:brushable_block" {
+            return Ok(false);
+        }
+        let update = previous.update_nbt()?;
+        // setLootTable preserves a live item's update tag, whereas loading a tag
+        // with LootTable clears that item. Do not silently use the load codec for
+        // that unsupported runtime transition; generated wells have empty items.
+        if update.get("item").is_some() {
+            return Err(FeatureError::Unsupported(
+                "brushable loot mutation with a live item".into(),
+            ));
+        }
+        let mut load = previous.full_nbt()?.compound()?.clone();
+        if let Some(direction) = update.get("hit_direction") {
+            load.insert("hit_direction".into(), direction.clone());
+        }
+        load.insert("LootTable".into(), Nbt::String(table.into()));
+        load.insert("LootTableSeed".into(), Nbt::Long(seed));
+        let state = chunk.get(local.0, y, local.2).expect("brushable block");
+        let entity = TemplateBlockEntity::from_load(
+            &StructureAssets::bundled().blocks,
+            state,
+            pos,
+            Nbt::Compound(load),
+        )?;
+        let data = FeatureBlockEntity::from_template(&entity)?;
+        self.owned_chunk_mut(owner)
+            .feature_block_entities
+            .insert(local, data);
+        Ok(true)
+    }
 }
 
 #[cfg(test)]

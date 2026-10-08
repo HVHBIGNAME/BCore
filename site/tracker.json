@@ -4,7 +4,7 @@
   "updated": "2026-10-08",
   "protocol": 775,
   "checkpoint": {
-    "tests_passed": 662,
+    "tests_passed": 665,
     "tests_failed": 0,
     "tests_ignored": 4,
     "requests": 88,
@@ -18,7 +18,7 @@
     "remaining_wg_presence_differences": 70,
     "complete_requests": 0,
     "report": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/parity-report.md#terrain-and-lifecycle-repairs--2026-10-08",
-    "data": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/metrics/checkpoint-2026-10-08.json"
+    "data": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/metrics/checkpoint-2026-10-08-optimized.json"
   },
   "parity": {
     "seed": "846692123413862008",
@@ -26,8 +26,8 @@
     "terrain": "768 / 768 heights",
     "biomes": "4608 / 4608 quart cells",
     "states": "286047 / 294912 states (96.99%, includes air)",
-    "components": "895 numeric cases / 62649 exact values; 1431 native carver cases; 688 extra-tree cases; 655 fallen-tree cases; original/trail/trial jigsaws; 13932 biome/feature memberships; 80 decorated-pot cases; 107 scattered piece saves; 10212 stair and 9360 bamboo callbacks; 76 fossil cases; 137 desert-pyramid placement passes; 39 deferred-BE cases / 55 save-read cycles; 456 native saved-mob LOAD/pairing cases across 19 CREATURE kinds; real LIGHT stages and 19 native light-packet cases",
-    "coverage": "Overworld only. Shared generation through SPAWN, pending/materialized typed NBT and matched-history replay are integrated. Remaining terrain/structure families, ticket-driven FULL conversion, WG retirement, persistent holders, fluid/gameplay ticks and Nether/End are incomplete. SPAWN accepts explicit world inputs; live server clock/settings updates remain pending.",
+    "components": "895 numeric cases / 62649 exact values; 1431 native carver cases; 688 extra-tree cases; 655 fallen-tree cases; original/trail/trial jigsaws; 13932 biome/feature memberships; 80 decorated-pot cases; 107 scattered piece saves; 10212 stair and 9360 bamboo callbacks; 76 fossil cases; 137 desert-pyramid placement passes; desert-well component cases with a real original-server witness; 39 deferred-BE cases / 55 save-read cycles; 456 native saved-mob LOAD/pairing cases across 19 CREATURE kinds; real LIGHT stages and 19 native light-packet cases",
+    "coverage": "Overworld only. Shared generation through SPAWN, pending/materialized typed NBT and matched-history replay are integrated. Ticket-driven FULL conversion, WG retirement, remaining structure families, persistent holders, fluid/gameplay ticks and Nether/End are incomplete. SPAWN accepts explicit world inputs; live server clock/settings updates remain pending. The NOISE material-fill kernel was optimized to about 4.6x of the measured Vanilla rate with identical native fingerprints.",
     "report": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/parity-report.md"
   },
   "categories": [
@@ -66,6 +66,8 @@
         { "name": "Villages, ancient cities, trail ruins and trial chambers: integrated native jigsaws", "status": "partial" },
         { "name": "Treasure, swamp huts, jungle and desert pyramids: starts, references and placement", "status": "partial" },
         { "name": "Fossils: 16 templates, native RNG, clipping and shape callbacks", "status": "partial" },
+        { "name": "Desert wells: descent, supports, cellar, archaeology loot", "status": "partial" },
+        { "name": "NOISE kernel: 10x faster since the 2026-10-08 optimization series, identical fingerprints", "status": "done" },
         { "name": "Native chunk dependency metadata (12 statuses; two pyramids)", "status": "done" },
         { "name": "Shared status-aware generation and source coverage", "status": "partial" },
         { "name": "Matched-history checks: 88 requests / 14 histories, explicit remaining differences", "status": "done" },

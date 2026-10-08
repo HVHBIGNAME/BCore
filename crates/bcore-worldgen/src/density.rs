@@ -1,5 +1,6 @@
 //! Vanilla-style density-function evaluation primitives.
 //! The JSON reader intentionally has no dependency on serde, keeping worldgen usable standalone.
+use crate::fast_hash::FastMap;
 use crate::noise_perlin;
 use crate::simplex::NoiseRegistry;
 use std::cell::RefCell;
@@ -231,16 +232,22 @@ impl EvalContext {
 type PointCacheKey = (usize, i64, EvaluationMode, u64, u64, u64);
 
 thread_local! {
-    static CACHE_ALL_IN_CELL: RefCell<HashMap<PointCacheKey, f64>> = RefCell::new(HashMap::new());
-    static CACHE_2D: RefCell<HashMap<(usize, i64, EvaluationMode, i64, i64), f64>> = RefCell::new(HashMap::new());
-    static FLAT_CACHE: RefCell<HashMap<usize, (i64, EvaluationMode, u64, u64, u64, f64)>> = RefCell::new(HashMap::new());
+    // These caches are pure lookups by exact coordinate bits: the hash function
+    // is invisible to generation results, and the workload performs tens of
+    // millions of hits per chunk, so they use the fast deterministic hasher.
+    static CACHE_ALL_IN_CELL: RefCell<FastMap<PointCacheKey, f64>> = RefCell::new(FastMap::default());
+    static CACHE_2D: RefCell<FastMap<(usize, i64, EvaluationMode, i64, i64), f64>> =
+        RefCell::new(FastMap::default());
+    static FLAT_CACHE: RefCell<FastMap<usize, (i64, EvaluationMode, u64, u64, u64, f64)>> =
+        RefCell::new(FastMap::default());
     // CacheOnce is keyed by the complete evaluation coordinate.  The previous
     // implementation intentionally bypassed this cache because a pointer-only
     // key returned a value from a different column/height.  Vanilla's cache
     // node may be sampled repeatedly at the same point by interpolated nodes;
     // retaining the full key is both safe and bit-for-bit transparent.
-    static CACHE_ONCE: RefCell<HashMap<PointCacheKey, f64>> = RefCell::new(HashMap::new());
-    static INTERPOLATED_CORNERS: RefCell<HashMap<PointCacheKey, [f64; 8]>> = RefCell::new(HashMap::new());
+    static CACHE_ONCE: RefCell<FastMap<PointCacheKey, f64>> = RefCell::new(FastMap::default());
+    static INTERPOLATED_CORNERS: RefCell<FastMap<PointCacheKey, [f64; 8]>> =
+        RefCell::new(FastMap::default());
 }
 
 /// Drop every per-thread density cache. The worldgen calls this once per chunk
@@ -258,7 +265,7 @@ pub fn clear_density_caches() {
                 let mut cache = c.borrow_mut();
                 cache.clear();
                 if cache.capacity() > MAX_DENSITY_CACHE_ENTRIES {
-                    *cache = HashMap::new();
+                    *cache = FastMap::default();
                 }
             });
         };
@@ -601,14 +608,21 @@ fn blended_noise(
     smear: f64,
 ) -> &'static noise_perlin::BlendedNoise {
     use std::sync::Mutex;
-    type Key = (i64, [u64; 5]);
-    static BLENDED: OnceLock<Mutex<HashMap<Key, &'static noise_perlin::BlendedNoise>>> =
+    static BLENDED: OnceLock<Mutex<FastMap<([u64; 5], i64), &'static noise_perlin::BlendedNoise>>> =
         OnceLock::new();
-    let cache = BLENDED.get_or_init(|| Mutex::new(HashMap::new()));
+    let cache = BLENDED.get_or_init(|| Mutex::new(FastMap::default()));
     let mut guard = cache.lock().unwrap();
+    // Exact bits identify the complete configuration; the hash function itself is
+    // not observable, so this lookup uses the fast hasher.
     let key = (
+        [
+            xz_scale.to_bits(),
+            y_scale.to_bits(),
+            xz_factor.to_bits(),
+            y_factor.to_bits(),
+            smear.to_bits(),
+        ],
         seed,
-        [xz_scale, y_scale, xz_factor, y_factor, smear].map(f64::to_bits),
     );
     guard.entry(key).or_insert_with(|| {
         Box::leak(Box::new(noise_perlin::BlendedNoise::for_world(

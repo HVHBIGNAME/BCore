@@ -25,8 +25,10 @@ pub mod decoration;
 pub mod density;
 #[cfg(test)]
 mod density_materials_tests;
+pub mod desert_well;
 pub mod dripstone;
 pub mod dungeon;
+mod fast_hash;
 pub mod feature_sorter;
 pub mod feature_world;
 pub mod features;
@@ -924,6 +926,20 @@ impl WorldGenerator {
         wz: i32,
         beardifier: &beardifier::Beardifier,
     ) -> VanillaColumn {
+        let mut aquifer = aquifer::Aquifer::new(seed, graph, *ctx);
+        let ore = ore_vein::OreVeinifier::new(seed);
+        Self::build_noise_column_with_materials(graph, ctx, wx, wz, beardifier, &mut aquifer, &ore)
+    }
+
+    fn build_noise_column_with_materials(
+        graph: &VanillaGraph,
+        ctx: &density::EvalContext,
+        wx: i32,
+        wz: i32,
+        beardifier: &beardifier::Beardifier,
+        aquifer: &mut aquifer::Aquifer<'_>,
+        ore: &ore_vein::OreVeinifier,
+    ) -> VanillaColumn {
         let mut top = MIN_Y;
         // Fixed-size scratch avoids two heap allocations per column. The
         // indexed layout and scalar evaluation order are unchanged.
@@ -940,8 +956,6 @@ impl WorldGenerator {
             graph.noise_biome_at(wx.div_euclid(4), top.div_euclid(4), wz.div_euclid(4), ctx);
         let biome = biome_from_id(biome_id);
         let mut states = vec![block::AIR; WORLD_HEIGHT as usize];
-        let mut aquifer = aquifer::Aquifer::new(seed, graph, *ctx);
-        let ore = ore_vein::OreVeinifier::new(seed);
         let mut fluid_postprocessing = Vec::new();
         for y in (MIN_Y..=MAX_Y).rev() {
             let density_value = densities[(y - MIN_Y) as usize];
@@ -955,7 +969,7 @@ impl WorldGenerator {
                 graph
                     .ore_veins
                     .as_ref()
-                    .and_then(|functions| functions.calculate(&ore, (wx, y, wz), ctx))
+                    .and_then(|functions| functions.calculate(ore, (wx, y, wz), ctx))
                     .unwrap_or(block::STONE)
             } else {
                 substance

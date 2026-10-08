@@ -1,11 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="576" viewBox="0 0 1000 576" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="598" viewBox="0 0 1000 598" role="img" aria-labelledby="title desc">
 <title id="title">Measured NOISE kernel throughput: BCore versus Vanilla</title>
-<desc id="desc">Vanilla 26.1, 1 workers: 49.2 chunks/second; BCore, 1 workers: 2.6 chunks/second; Vanilla 26.1, 2 workers: 85.2 chunks/second; BCore, 2 workers: 3.7 chunks/second; Vanilla 26.1, 4 workers: 168.5 chunks/second; BCore, 4 workers: 5.8 chunks/second. This is not a full-server benchmark.</desc>
+<desc id="desc">Vanilla 26.1, 1 workers: 66.2 chunks/second; BCore, 1 workers: 12.1 chunks/second; Vanilla 26.1, 2 workers: 76.2 chunks/second; BCore, 2 workers: 16.2 chunks/second; Vanilla 26.1, 4 workers: 202.8 chunks/second; BCore, 4 workers: 44.1 chunks/second. Timed contract noise-fill-wg-v2. This is not a full-server benchmark.</desc>
 <defs><linearGradient id="background" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#13243a"/><stop offset="1" stop-color="#0b1220"/></linearGradient><pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32,0 H0 V32" fill="none" stroke="#547294" stroke-opacity=".12"/></pattern></defs>
 <g font-family="Segoe UI, Ubuntu, Arial, sans-serif">
-<rect x="1" y="1" width="998" height="574" rx="20" fill="url(#background)" stroke="#26374e" />
+<rect x="1" y="1" width="998" height="596" rx="20" fill="url(#background)" stroke="#26374e" />
 <text x="36" y="45" font-size="27" fill="#e8f0fc" font-weight="650" text-anchor="start" >BCore vs Vanilla / NOISE material fill</text>
-<text x="36" y="74" font-size="13" fill="#a7bad2" font-weight="400" text-anchor="start" >Original production kernels · identical block and ordered effect hashes · higher is faster</text>
+<text x="36" y="74" font-size="13" fill="#a7bad2" font-weight="400" text-anchor="start" >Original production kernels · identical block, ordered effect and WG-map hashes · higher is faster</text>
 <rect x="36" y="91" width="11" height="11" rx="3" fill="#73aaff" stroke="none" />
 <text x="55" y="101" font-size="12" fill="#e8f0fc" font-weight="400" text-anchor="start" >Vanilla 26.1</text>
 <rect x="175" y="91" width="11" height="11" rx="3" fill="#50e3c2" stroke="none" />
@@ -23,43 +23,44 @@
 <text x="874.0" y="430" font-size="12" fill="#a7bad2" font-weight="400" text-anchor="middle" >300</text>
 <text x="38" y="160" font-size="18" fill="#e8f0fc" font-weight="600" text-anchor="start" >1 worker</text>
 <text x="38" y="182" font-size="11" fill="#a7bad2" font-weight="400" text-anchor="start" >parallelism budget</text>
-<rect x="224" y="139" width="106.53" height="22" rx="5" fill="#73aaff" stroke="none" />
-<path d="M313.6952723864307,150 L360.68484575115156,150" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
-<path d="M313.6952723864307,145 L313.6952723864307,155" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
-<path d="M360.68484575115156,145 L360.68484575115156,155" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
-<text x="369.68484575115156" y="155" font-size="14" fill="#73aaff" font-weight="650" text-anchor="start" >49.2</text>
-<rect x="224" y="171" width="5.72" height="22" rx="5" fill="#50e3c2" stroke="none" />
-<path d="M228.63153122947097,182 L229.89621845915732,182" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
-<path d="M228.63153122947097,177 L228.63153122947097,187" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
-<path d="M229.89621845915732,177 L229.89621845915732,187" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
-<text x="242.72251846893315" y="187" font-size="14" fill="#50e3c2" font-weight="650" text-anchor="start" >2.6</text>
+<rect x="224" y="139" width="143.36" height="22" rx="5" fill="#73aaff" stroke="none" />
+<path d="M332.77765606534274,150 L369.4244842814311,150" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
+<path d="M332.77765606534274,145 L332.77765606534274,155" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
+<path d="M369.4244842814311,145 L369.4244842814311,155" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
+<text x="380.3564881630272" y="155" font-size="14" fill="#73aaff" font-weight="650" text-anchor="start" >66.2</text>
+<rect x="224" y="171" width="26.25" height="22" rx="5" fill="#50e3c2" stroke="none" />
+<path d="M250.0430791593915,182 L250.29034465099807,182" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
+<path d="M250.0430791593915,177 L250.0430791593915,187" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
+<path d="M250.29034465099807,177 L250.29034465099807,187" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
+<text x="263.25478165210836" y="187" font-size="14" fill="#50e3c2" font-weight="650" text-anchor="start" >12.1</text>
 <text x="38" y="254" font-size="18" fill="#e8f0fc" font-weight="600" text-anchor="start" >2 workers</text>
 <text x="38" y="276" font-size="11" fill="#a7bad2" font-weight="400" text-anchor="start" >parallelism budget</text>
-<rect x="224" y="233" width="184.66" height="22" rx="5" fill="#73aaff" stroke="none" />
-<path d="M372.51702890541236,244 L419.86417723297404,244" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
-<path d="M372.51702890541236,239 L372.51702890541236,249" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
-<path d="M419.86417723297404,239 L419.86417723297404,249" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
-<text x="428.86417723297404" y="249" font-size="14" fill="#73aaff" font-weight="650" text-anchor="start" >85.2</text>
-<rect x="224" y="265" width="7.95" height="22" rx="5" fill="#50e3c2" stroke="none" />
-<path d="M231.94350760701604,276 L233.02766634252137,276" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
-<path d="M231.94350760701604,271 L231.94350760701604,281" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
-<path d="M233.02766634252137,271 L233.02766634252137,281" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
-<text x="244.95349359806477" y="281" font-size="14" fill="#50e3c2" font-weight="650" text-anchor="start" >3.7</text>
+<rect x="224" y="233" width="165.19" height="22" rx="5" fill="#73aaff" stroke="none" />
+<path d="M382.93392016626933,244 L415.12106655846276,244" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
+<path d="M382.93392016626933,239 L382.93392016626933,249" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
+<path d="M415.12106655846276,239 L415.12106655846276,249" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
+<text x="424.12106655846276" y="249" font-size="14" fill="#73aaff" font-weight="650" text-anchor="start" >76.2</text>
+<rect x="224" y="265" width="35.13" height="22" rx="5" fill="#50e3c2" stroke="none" />
+<path d="M258.99068743040976,276 L259.32375923597425,276" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
+<path d="M258.99068743040976,271 L258.99068743040976,281" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
+<path d="M259.32375923597425,271 L259.32375923597425,281" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
+<text x="272.1308292348492" y="281" font-size="14" fill="#50e3c2" font-weight="650" text-anchor="start" >16.2</text>
 <text x="38" y="348" font-size="18" fill="#e8f0fc" font-weight="600" text-anchor="start" >4 workers</text>
 <text x="38" y="370" font-size="11" fill="#a7bad2" font-weight="400" text-anchor="start" >parallelism budget</text>
-<rect x="224" y="327" width="365.06" height="22" rx="5" fill="#73aaff" stroke="none" />
-<path d="M563.4971655251074,338 L664.3626216819312,338" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
-<path d="M563.4971655251074,333 L563.4971655251074,343" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
-<path d="M664.3626216819312,333 L664.3626216819312,343" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
-<text x="673.3626216819312" y="343" font-size="14" fill="#73aaff" font-weight="650" text-anchor="start" >168.5</text>
-<rect x="224" y="359" width="12.62" height="22" rx="5" fill="#50e3c2" stroke="none" />
-<path d="M235.63190505394866,370 L236.6892922115345,370" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
-<path d="M235.63190505394866,365 L235.63190505394866,375" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
-<path d="M236.6892922115345,365 L236.6892922115345,375" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
-<text x="249.62391219505847" y="375" font-size="14" fill="#50e3c2" font-weight="650" text-anchor="start" >5.8</text>
+<rect x="224" y="327" width="439.33" height="22" rx="5" fill="#73aaff" stroke="none" />
+<path d="M603.371112130063,338 L683.2742936228881,338" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
+<path d="M603.371112130063,333 L603.371112130063,343" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
+<path d="M683.2742936228881,333 L683.2742936228881,343" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
+<text x="692.2742936228881" y="343" font-size="14" fill="#73aaff" font-weight="650" text-anchor="start" >202.8</text>
+<rect x="224" y="359" width="95.63" height="22" rx="5" fill="#50e3c2" stroke="none" />
+<path d="M319.11517716299227,370 L319.9632239398717,370" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
+<path d="M319.11517716299227,365 L319.11517716299227,375" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
+<path d="M319.9632239398717,365 L319.9632239398717,375" fill="none" stroke="#e8f0fc" stroke-width="1.5"/>
+<text x="332.6298360306924" y="375" font-size="14" fill="#50e3c2" font-weight="650" text-anchor="start" >44.1</text>
 <path d="M30,452 L970,452" fill="none" stroke="#26374e" stroke-width="1"/>
 <text x="38" y="479" font-size="13" fill="#e8f0fc" font-weight="400" text-anchor="start" >AMD Ryzen 7 5700X · Windows 11 · 8 fresh chunks per batch</text>
-<text x="38" y="502" font-size="12" fill="#a7bad2" font-weight="400" text-anchor="start" >3 fresh processes × 5 timed batches per configuration; 5 warmup batches per process.</text>
+<text x="38" y="502" font-size="12" fill="#a7bad2" font-weight="400" text-anchor="start" >3 fresh processes × 10 timed batches per configuration; 10 warmup batches per process.</text>
 <text x="38" y="524" font-size="12" fill="#a7bad2" font-weight="400" text-anchor="start" >Bars: median of process medians. Whiskers: process-median range. No concurrent benchmark jobs.</text>
-<text x="38" y="552" font-size="12" fill="#f5c36c" font-weight="600" text-anchor="start" >KERNEL SCOPE ONLY — excludes full chunk generation, server startup, I/O, packets and gameplay/TPS.</text>
+<text x="38" y="546" font-size="12" fill="#a7bad2" font-weight="400" text-anchor="start" >4 workers: BCore 44.1 vs 5.8 chunks/s before this optimization series (7.6x), on a different timed contract.</text>
+<text x="38" y="574" font-size="12" fill="#f5c36c" font-weight="600" text-anchor="start" >KERNEL SCOPE ONLY — excludes full chunk generation, server startup, I/O, packets and gameplay/TPS.</text>
 </g></svg>

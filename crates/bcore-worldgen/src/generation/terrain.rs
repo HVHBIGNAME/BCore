@@ -1,6 +1,4 @@
 //! Real pre-feature stage boundaries. Metadata and feature effects survive each pass.
-use rayon::prelude::*;
-
 use crate::{density, GeneratedChunk, VanillaGraph, WorldGenerator, MAX_Y, MIN_Y};
 
 struct DensityScope;
@@ -70,22 +68,26 @@ impl WorldGenerator {
         let _scope = DensityScope::new();
         let ctx = self.chunk_context(chunk.pos);
         let (base_x, base_z) = (chunk.pos.x * 16, chunk.pos.z * 16);
-        let columns: Vec<_> = (0..256)
-            .into_par_iter()
-            // Reuse corners across the columns consumed by one Rayon job. Its
-            // graph and full EvalContext stay fixed; both scope boundaries clear
-            // the worker's caches before another chunk/context can use them.
-            .map_init(DensityScope::new, |_, index| {
-                Self::build_noise_column_with_structures(
-                    self.seed(),
-                    graph,
-                    &ctx,
-                    base_x + (index % 16) as i32,
-                    base_z + (index / 16) as i32,
-                    beardifier,
-                )
-            })
-            .collect();
+        // Native builds one NoiseChunk, aquifer and material context per chunk.
+        // Column order, per-column reads and every arithmetic operation are
+        // unchanged; only the material/density cache lifetime becomes the whole
+        // chunk instead of an arbitrary Rayon job. Callers already parallelize
+        // across chunks, so nested column parallelism only fragmented those
+        // caches (measured: 385 jobs and 4.7x more 2D misses at four workers).
+        let mut aquifer = crate::aquifer::Aquifer::new(self.seed(), graph, ctx);
+        let ore = crate::ore_vein::OreVeinifier::new(self.seed());
+        let mut columns = Vec::with_capacity(256);
+        for index in 0..256 {
+            columns.push(Self::build_noise_column_with_materials(
+                graph,
+                &ctx,
+                base_x + (index % 16) as i32,
+                base_z + (index / 16) as i32,
+                beardifier,
+                &mut aquifer,
+                &ore,
+            ));
+        }
         let marks_start = chunk.postprocessing.len();
         for (index, column) in columns.into_iter().enumerate() {
             chunk.heights[index] = column.top;

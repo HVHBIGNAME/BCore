@@ -1,0 +1,3505 @@
+{
+  "schema": 1,
+  "published_date": "2026-10-08",
+  "minecraft": "26.1",
+  "protocol": 775,
+  "tests": {
+    "job": "main-tests-final-01-1791478964840414900",
+    "command": [
+      "cargo",
+      "test",
+      "--workspace",
+      "--release",
+      "--locked",
+      "--no-fail-fast",
+      "-j",
+      "1",
+      "--target-dir",
+      "target/full-parity-20261002/build-trail",
+      "--",
+      "--test-threads=2"
+    ],
+    "exit_code": 0,
+    "target_summaries": 60,
+    "passed": 665,
+    "failed": 0,
+    "ignored": 4,
+    "log_sha256": "c2c501fbb0631d6a6ba8021ddf6339e01340abe727f433b8298bd500eec90e0f",
+    "status_sha256": "22e29b2d4f433f7531c9795ed4d7ae34ac3691879c767181e4243fb40b47923d",
+    "ignored_tests": [
+      "bridge::tests::jvm_bridge_end_to_end",
+      "biome::benchmark::benchmark_native_tree_against_original_linear_on_identical_router_inputs",
+      "tests::benchmark_vanilla_graph_cache",
+      "parity_fixture_matches_bcore"
+    ]
+  },
+  "totals": {
+    "histories": 14,
+    "requests": 88,
+    "complete_requests": 0,
+    "state_observations": 8650752,
+    "state_differences": 0,
+    "biome_observations": 135168,
+    "biome_differences": 0,
+    "source_order_differences": 0,
+    "light_scored_requests": 40,
+    "light_mismatching_requests": 0,
+    "wg_presence_differences": 70,
+    "metadata_field_differences": {
+      "structures": 0,
+      "block_entity_payloads": 36,
+      "postprocessing": 0
+    }
+  },
+  "scope": "Matched bootstrap/request/source histories. Counts include repeated snapshots and air; they are not a percentage of all generator features implemented.",
+  "remaining": [
+    "live server clock/settings hookup for SPAWN",
+    "FULL conversion and ticket-driven completion",
+    "WG heightmap lifetime after FULL",
+    "tick-container lifecycle",
+    "other structures/features",
+    "saved-holder hydration",
+    "Nether/End pipelines"
+  ],
+  "histories": [
+    {
+      "name": "fossil-history-native-01",
+      "comparison": "target/full-parity-20261003/integrated-histories-phase3-1791477900/fossil-history-native-01/comparison.json",
+      "comparison_sha256": "0b841a6271d482eaa03db33cde434530583aebabbdf54bd8a8dddc75bc316fb6",
+      "binary_sha256": "c4a93cd8995af7d9fd6272790ce2f937b319b3c5297e8b324d9fccc2fcf9dfe8",
+      "source_zip_sha256": "380285a15ebd818e36a297a69e9823df0979433287a2e468f8ca95e6d56bacdc",
+      "native_provenance_sha256": "7026cb4b1ec4dceb1a80f2201f59b76f218446a9343ca95bc43d7d00c5cef7f3",
+      "comparator_sha256": "dda28ebfec799ac2ab2d67e94f6b7a8c239eb97629a47bded158bf0ab59bd672",
+      "requests": [
+        {
+          "chunk": [
+            11,
+            146
+          ],
+          "status": "carvers",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            11,
+            146
+          ],
+          "status": "features",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            12,
+            146
+          ],
+          "status": "features",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            11,
+            146
+          ],
+          "status": "features",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            3,
+            149
+          ],
+          "status": "carvers",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            3,
+            149
+          ],
+          "status": "features",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            3,
+            150
+          ],
+          "status": "features",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            3,
+            149
+          ],
+          "status": "features",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        }
+      ]
+    },
+    {
+      "name": "fossil-full-native-01",
+      "comparison": "target/full-parity-20261003/integrated-histories-phase3-1791477900/fossil-full-native-01/comparison.json",
+      "comparison_sha256": "706047356be48cf5e691a3f797fd50906db856d8e74159d23fc138644594932c",
+      "binary_sha256": "c4a93cd8995af7d9fd6272790ce2f937b319b3c5297e8b324d9fccc2fcf9dfe8",
+      "source_zip_sha256": "380285a15ebd818e36a297a69e9823df0979433287a2e468f8ca95e6d56bacdc",
+      "native_provenance_sha256": "3c9cc5aecef02c676d5974a63ad5cb6c3634ee5a97756539dba181644a63fe91",
+      "comparator_sha256": "dda28ebfec799ac2ab2d67e94f6b7a8c239eb97629a47bded158bf0ab59bd672",
+      "requests": [
+        {
+          "chunk": [
+            11,
+            146
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        },
+        {
+          "chunk": [
+            12,
+            146
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        },
+        {
+          "chunk": [
+            11,
+            146
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        }
+      ]
+    },
+    {
+      "name": "desert-pyramid-history-01",
+      "comparison": "target/full-parity-20261003/integrated-histories-phase3-1791477900/desert-pyramid-history-01/comparison.json",
+      "comparison_sha256": "5d5f5efd15f6fd92340f85d4012c7d65419d1906d61829b1a152c8403ac7300c",
+      "binary_sha256": "c4a93cd8995af7d9fd6272790ce2f937b319b3c5297e8b324d9fccc2fcf9dfe8",
+      "source_zip_sha256": "380285a15ebd818e36a297a69e9823df0979433287a2e468f8ca95e6d56bacdc",
+      "native_provenance_sha256": "5243c873da9c2cda55178c87e125d1e0ed3e1a376bf2916529ca7a8ccf194c78",
+      "comparator_sha256": "dda28ebfec799ac2ab2d67e94f6b7a8c239eb97629a47bded158bf0ab59bd672",
+      "requests": [
+        {
+          "chunk": [
+            -271,
+            -179
+          ],
+          "status": "features",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            -271,
+            -179
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        },
+        {
+          "chunk": [
+            -270,
+            -179
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        },
+        {
+          "chunk": [
+            -271,
+            -178
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        },
+        {
+          "chunk": [
+            -270,
+            -178
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        },
+        {
+          "chunk": [
+            -271,
+            -179
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        },
+        {
+          "chunk": [
+            -273,
+            -15
+          ],
+          "status": "features",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            -273,
+            -15
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        }
+      ]
+    },
+    {
+      "name": "scattered-history-native-1791083227866856600",
+      "comparison": "target/full-parity-20261003/integrated-histories-phase3-1791477900/scattered-history-native-1791083227866856600/comparison.json",
+      "comparison_sha256": "0e73063f5a0b8fb092896cf1834f83b4dc29dfd966da93f9d7677ed717ffe1fa",
+      "binary_sha256": "c4a93cd8995af7d9fd6272790ce2f937b319b3c5297e8b324d9fccc2fcf9dfe8",
+      "source_zip_sha256": "380285a15ebd818e36a297a69e9823df0979433287a2e468f8ca95e6d56bacdc",
+      "native_provenance_sha256": "e4af47f8f696eea777412ee9dec9d6fe713e73e08e399ad0a245501056b4768d",
+      "comparator_sha256": "dda28ebfec799ac2ab2d67e94f6b7a8c239eb97629a47bded158bf0ab59bd672",
+      "requests": [
+        {
+          "chunk": [
+            -51,
+            19
+          ],
+          "status": "features",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            -51,
+            19
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        },
+        {
+          "chunk": [
+            -50,
+            19
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        },
+        {
+          "chunk": [
+            -51,
+            19
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        },
+        {
+          "chunk": [
+            5,
+            146
+          ],
+          "status": "features",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            5,
+            146
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        },
+        {
+          "chunk": [
+            6,
+            146
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        },
+        {
+          "chunk": [
+            5,
+            146
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        },
+        {
+          "chunk": [
+            45,
+            19
+          ],
+          "status": "features",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            45,
+            19
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        },
+        {
+          "chunk": [
+            46,
+            19
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        },
+        {
+          "chunk": [
+            45,
+            19
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        }
+      ]
+    },
+    {
+      "name": "stages-origin-01",
+      "comparison": "target/full-parity-20261003/integrated-histories-phase3-1791477900/stages-origin-01/comparison.json",
+      "comparison_sha256": "62351ca8625c29f64f9998912307f1c78402beb4bead1da6463f48844d3d91fc",
+      "binary_sha256": "c4a93cd8995af7d9fd6272790ce2f937b319b3c5297e8b324d9fccc2fcf9dfe8",
+      "source_zip_sha256": "380285a15ebd818e36a297a69e9823df0979433287a2e468f8ca95e6d56bacdc",
+      "native_provenance_sha256": "22d38176ca2898f1df2cde617640c2132b59b044feed03919c0c9276401b3f86",
+      "comparator_sha256": "dda28ebfec799ac2ab2d67e94f6b7a8c239eb97629a47bded158bf0ab59bd672",
+      "requests": [
+        {
+          "chunk": [
+            0,
+            0
+          ],
+          "status": "biomes",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            0,
+            0
+          ],
+          "status": "noise",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            0,
+            0
+          ],
+          "status": "surface",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            0,
+            0
+          ],
+          "status": "carvers",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            0,
+            0
+          ],
+          "status": "features",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            0,
+            0
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        }
+      ]
+    },
+    {
+      "name": "primary-distant-v2",
+      "comparison": "target/full-parity-20261003/integrated-histories-phase3-1791477900/primary-distant-v2/comparison.json",
+      "comparison_sha256": "f54663ca36e2450b81c92a04fd1cb6d7bdeaf4ed4ac2381a5c7e552fee2066d7",
+      "binary_sha256": "c4a93cd8995af7d9fd6272790ce2f937b319b3c5297e8b324d9fccc2fcf9dfe8",
+      "source_zip_sha256": "380285a15ebd818e36a297a69e9823df0979433287a2e468f8ca95e6d56bacdc",
+      "native_provenance_sha256": "36d2cf9542a59d3761caf7e810a13c278d0b7c87328e6ea1ac89de3a13eb3e31",
+      "comparator_sha256": "dda28ebfec799ac2ab2d67e94f6b7a8c239eb97629a47bded158bf0ab59bd672",
+      "requests": [
+        {
+          "chunk": [
+            62,
+            0
+          ],
+          "status": "biomes",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            62,
+            0
+          ],
+          "status": "noise",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            62,
+            0
+          ],
+          "status": "surface",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            62,
+            0
+          ],
+          "status": "carvers",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            62,
+            0
+          ],
+          "status": "features",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            -125,
+            187
+          ],
+          "status": "biomes",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            -125,
+            187
+          ],
+          "status": "noise",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            -125,
+            187
+          ],
+          "status": "surface",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            -125,
+            187
+          ],
+          "status": "carvers",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            -125,
+            187
+          ],
+          "status": "features",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        }
+      ]
+    },
+    {
+      "name": "seed0-corner-v2",
+      "comparison": "target/full-parity-20261003/integrated-histories-phase3-1791477900/seed0-corner-v2/comparison.json",
+      "comparison_sha256": "5adfd5fefc3a201ad3c1ee2758bac7cff827817c4e21f9cee7131a12774c5f0f",
+      "binary_sha256": "c4a93cd8995af7d9fd6272790ce2f937b319b3c5297e8b324d9fccc2fcf9dfe8",
+      "source_zip_sha256": "380285a15ebd818e36a297a69e9823df0979433287a2e468f8ca95e6d56bacdc",
+      "native_provenance_sha256": "0474de8702c6dd89652a8a183f90b5a71b92dea4e5df6e8396e3a222e0c2557c",
+      "comparator_sha256": "dda28ebfec799ac2ab2d67e94f6b7a8c239eb97629a47bded158bf0ab59bd672",
+      "requests": [
+        {
+          "chunk": [
+            -1,
+            -1
+          ],
+          "status": "features",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            0,
+            -1
+          ],
+          "status": "features",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            0,
+            0
+          ],
+          "status": "features",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            -1,
+            0
+          ],
+          "status": "features",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            -1,
+            -1
+          ],
+          "status": "features",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        }
+      ]
+    },
+    {
+      "name": "seed42-corner-v2",
+      "comparison": "target/full-parity-20261003/integrated-histories-phase3-1791477900/seed42-corner-v2/comparison.json",
+      "comparison_sha256": "0e18881d648586f3e8088151f17bbba9655f95f201860173eac115a9c1ada114",
+      "binary_sha256": "c4a93cd8995af7d9fd6272790ce2f937b319b3c5297e8b324d9fccc2fcf9dfe8",
+      "source_zip_sha256": "380285a15ebd818e36a297a69e9823df0979433287a2e468f8ca95e6d56bacdc",
+      "native_provenance_sha256": "c47be1faa7ae01ca9153e013106a62ae19731b8ce2bd58bc57e83e815ed388ab",
+      "comparator_sha256": "dda28ebfec799ac2ab2d67e94f6b7a8c239eb97629a47bded158bf0ab59bd672",
+      "requests": [
+        {
+          "chunk": [
+            -1,
+            -1
+          ],
+          "status": "features",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            0,
+            0
+          ],
+          "status": "features",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            0,
+            -1
+          ],
+          "status": "features",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            -1,
+            0
+          ],
+          "status": "features",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            -1,
+            -1
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        }
+      ]
+    },
+    {
+      "name": "native-bootstrap-01",
+      "comparison": "target/full-parity-20261003/integrated-histories-phase3-1791477900/native-bootstrap-01/comparison.json",
+      "comparison_sha256": "b901fa5cea53892b04a734003a62870340baea24c99a4bf0b7e86b4a71ceba90",
+      "binary_sha256": "c4a93cd8995af7d9fd6272790ce2f937b319b3c5297e8b324d9fccc2fcf9dfe8",
+      "source_zip_sha256": "380285a15ebd818e36a297a69e9823df0979433287a2e468f8ca95e6d56bacdc",
+      "native_provenance_sha256": "85f86287d6308e00512113ffcf7c38890b73174f82f40b92e523b0e0a5fa0395",
+      "comparator_sha256": "dda28ebfec799ac2ab2d67e94f6b7a8c239eb97629a47bded158bf0ab59bd672",
+      "requests": [
+        {
+          "chunk": [
+            0,
+            0
+          ],
+          "status": "features",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        },
+        {
+          "chunk": [
+            0,
+            0
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        }
+      ]
+    },
+    {
+      "name": "full-adjacent-v4",
+      "comparison": "target/full-parity-20261003/integrated-histories-phase3-1791477900/full-adjacent-v4/comparison.json",
+      "comparison_sha256": "eda18edb24002d7c322318a26924ae038b292942bf8a978e511a6063ecb72f3f",
+      "binary_sha256": "c4a93cd8995af7d9fd6272790ce2f937b319b3c5297e8b324d9fccc2fcf9dfe8",
+      "source_zip_sha256": "380285a15ebd818e36a297a69e9823df0979433287a2e468f8ca95e6d56bacdc",
+      "native_provenance_sha256": "01f1b0a6b41b640b84e0e2bd541476644dfed07d5907f6ac8604e06bdd0c9919",
+      "comparator_sha256": "dda28ebfec799ac2ab2d67e94f6b7a8c239eb97629a47bded158bf0ab59bd672",
+      "requests": [
+        {
+          "chunk": [
+            0,
+            0
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        },
+        {
+          "chunk": [
+            1,
+            0
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        },
+        {
+          "chunk": [
+            0,
+            0
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        }
+      ]
+    },
+    {
+      "name": "full-reverse-v4",
+      "comparison": "target/full-parity-20261003/integrated-histories-phase3-1791477900/full-reverse-v4/comparison.json",
+      "comparison_sha256": "bc36f5f4e6518dbe8f7dad9c4d10ee262996502487161f8f481eaf5bdb550576",
+      "binary_sha256": "c4a93cd8995af7d9fd6272790ce2f937b319b3c5297e8b324d9fccc2fcf9dfe8",
+      "source_zip_sha256": "380285a15ebd818e36a297a69e9823df0979433287a2e468f8ca95e6d56bacdc",
+      "native_provenance_sha256": "a20f9d2bde5e0118d8f380dd3b04355196bad0a9e47e1e1764e8cbda678fad8b",
+      "comparator_sha256": "dda28ebfec799ac2ab2d67e94f6b7a8c239eb97629a47bded158bf0ab59bd672",
+      "requests": [
+        {
+          "chunk": [
+            1,
+            0
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        },
+        {
+          "chunk": [
+            0,
+            0
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        },
+        {
+          "chunk": [
+            1,
+            0
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        }
+      ]
+    },
+    {
+      "name": "light-history-native-1790952504492756600",
+      "comparison": "target/full-parity-20261003/integrated-histories-phase3-1791477900/light-history-native-1790952504492756600/comparison.json",
+      "comparison_sha256": "446db8382fe009c3d405ee1dfa3a57bb5c2801594de7bd567ef06f08b79e46b5",
+      "binary_sha256": "c4a93cd8995af7d9fd6272790ce2f937b319b3c5297e8b324d9fccc2fcf9dfe8",
+      "source_zip_sha256": "380285a15ebd818e36a297a69e9823df0979433287a2e468f8ca95e6d56bacdc",
+      "native_provenance_sha256": "f8dc4de050d4864a86db14470bc1a99c8cfe7edb1e3aebc78f3d671b1b890aaa",
+      "comparator_sha256": "dda28ebfec799ac2ab2d67e94f6b7a8c239eb97629a47bded158bf0ab59bd672",
+      "requests": [
+        {
+          "chunk": [
+            0,
+            0
+          ],
+          "status": "features",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            0,
+            0
+          ],
+          "status": "initialize_light",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            0,
+            0
+          ],
+          "status": "light",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            1,
+            0
+          ],
+          "status": "features",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            1,
+            0
+          ],
+          "status": "initialize_light",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            1,
+            0
+          ],
+          "status": "light",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            0,
+            0
+          ],
+          "status": "light",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 36
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        }
+      ]
+    },
+    {
+      "name": "trail-history-native-1790997747034802100",
+      "comparison": "target/full-parity-20261003/integrated-histories-phase3-1791477900/trail-history-native-1790997747034802100/comparison.json",
+      "comparison_sha256": "3790bc4e706d195f013b6802173d2106e646ae1a7ab9d11ca3444cb479f2ed4a",
+      "binary_sha256": "c4a93cd8995af7d9fd6272790ce2f937b319b3c5297e8b324d9fccc2fcf9dfe8",
+      "source_zip_sha256": "380285a15ebd818e36a297a69e9823df0979433287a2e468f8ca95e6d56bacdc",
+      "native_provenance_sha256": "734918ad7ace06c2721810f3e7d45a3f20800c5c30c3230d8f97812925a30506",
+      "comparator_sha256": "dda28ebfec799ac2ab2d67e94f6b7a8c239eb97629a47bded158bf0ab59bd672",
+      "requests": [
+        {
+          "chunk": [
+            43,
+            87
+          ],
+          "status": "biomes",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            43,
+            87
+          ],
+          "status": "noise",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            43,
+            87
+          ],
+          "status": "surface",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            43,
+            87
+          ],
+          "status": "carvers",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            43,
+            87
+          ],
+          "status": "features",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            43,
+            87
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        },
+        {
+          "chunk": [
+            44,
+            87
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        },
+        {
+          "chunk": [
+            43,
+            87
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        }
+      ]
+    },
+    {
+      "name": "trial-history-native-1791002200878050800",
+      "comparison": "target/full-parity-20261003/integrated-histories-phase3-1791477900/trial-history-native-1791002200878050800/comparison.json",
+      "comparison_sha256": "39e6e9525aba59aa4c13d1644b0953d14d28cb22f71310dea148ba5fc9a586d2",
+      "binary_sha256": "c4a93cd8995af7d9fd6272790ce2f937b319b3c5297e8b324d9fccc2fcf9dfe8",
+      "source_zip_sha256": "380285a15ebd818e36a297a69e9823df0979433287a2e468f8ca95e6d56bacdc",
+      "native_provenance_sha256": "80356065fea5bcaa32abee85bc2eb9b5a0442f518b86923801b9bd64f7ee2b0f",
+      "comparator_sha256": "dda28ebfec799ac2ab2d67e94f6b7a8c239eb97629a47bded158bf0ab59bd672",
+      "requests": [
+        {
+          "chunk": [
+            14,
+            8
+          ],
+          "status": "biomes",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            14,
+            8
+          ],
+          "status": "noise",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            14,
+            8
+          ],
+          "status": "surface",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            14,
+            8
+          ],
+          "status": "carvers",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            14,
+            8
+          ],
+          "status": "features",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": false,
+          "light_matches": null,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 0
+        },
+        {
+          "chunk": [
+            14,
+            8
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        },
+        {
+          "chunk": [
+            15,
+            8
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        },
+        {
+          "chunk": [
+            14,
+            8
+          ],
+          "status": "full",
+          "complete": false,
+          "states": {
+            "mismatches": 0,
+            "total": 98304
+          },
+          "biomes": {
+            "mismatches": 0,
+            "total": 1536
+          },
+          "source_order_differences": 0,
+          "light_scored": true,
+          "light_matches": true,
+          "metadata": {
+            "structures": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_payloads": {
+              "scored": true,
+              "mismatches": 0
+            },
+            "block_entity_packing": {
+              "scored": false
+            },
+            "postprocessing": {
+              "scored": true,
+              "mismatches": 0
+            }
+          },
+          "wg_presence_differences": 2
+        }
+      ]
+    }
+  ],
+  "before_after": [
+    {
+      "history": "fossil-history-native-01",
+      "requests": 8,
+      "before_state_differences": 269,
+      "after_state_differences": 0,
+      "before_comparison_sha256": "87ddb6a420690c65a4bc6b7b067069f9fb946922676e04e2ae2b2c4a6b82fdd6",
+      "after_comparison_sha256": "0b841a6271d482eaa03db33cde434530583aebabbdf54bd8a8dddc75bc316fb6",
+      "carried_from": "docs/metrics/checkpoint-2026-10-08.json"
+    },
+    {
+      "history": "fossil-full-native-01",
+      "requests": 3,
+      "before_state_differences": 103,
+      "after_state_differences": 0,
+      "before_comparison_sha256": "686f404202592d51d322894aacab4f57df9f356d542542fbb45ed26314833fd4",
+      "after_comparison_sha256": "706047356be48cf5e691a3f797fd50906db856d8e74159d23fc138644594932c",
+      "carried_from": "docs/metrics/checkpoint-2026-10-08.json"
+    },
+    {
+      "history": "desert-pyramid-history-01",
+      "requests": 8,
+      "before_state_differences": 7627,
+      "after_state_differences": 0,
+      "before_comparison_sha256": "60fef6456f3f3d95195fc38b8c833f048abe5aa32afc81b76809feeb02c3deb0",
+      "after_comparison_sha256": "12322febf807ca668dd1fbf6252211f47c21eb853671a6f73ec17ead635663d4",
+      "carried_from": "docs/metrics/checkpoint-2026-10-08.json"
+    }
+  ]
+}
