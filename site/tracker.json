@@ -1,24 +1,24 @@
 {
   "project": "BCore",
   "version": "0.7.0-alpha.1",
-  "updated": "2026-10-05",
+  "updated": "2026-10-08",
   "protocol": 775,
   "checkpoint": {
-    "tests_passed": 628,
+    "tests_passed": 662,
     "tests_failed": 0,
     "tests_ignored": 4,
-    "requests": 69,
-    "histories": 11,
+    "requests": 88,
+    "histories": 14,
     "state_differences": 0,
     "biome_differences": 0,
     "source_order_differences": 0,
-    "light_scored_requests": 31,
+    "light_scored_requests": 40,
     "light_mismatching_requests": 0,
-    "remaining_nbt_field_differences": 103,
-    "remaining_wg_presence_differences": 52,
+    "remaining_nbt_field_differences": 36,
+    "remaining_wg_presence_differences": 70,
     "complete_requests": 0,
-    "report": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/parity-report.md#native-history-integration--2026-10-04",
-    "data": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/metrics/checkpoint-2026-10-05.json"
+    "report": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/parity-report.md#terrain-and-lifecycle-repairs--2026-10-08",
+    "data": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/metrics/checkpoint-2026-10-08.json"
   },
   "parity": {
     "seed": "846692123413862008",
@@ -26,8 +26,8 @@
     "terrain": "768 / 768 heights",
     "biomes": "4608 / 4608 quart cells",
     "states": "286047 / 294912 states (96.99%, includes air)",
-    "components": "895 numeric cases / 62649 exact values; 1431 native carver cases; 688 extra-tree cases; 655 fallen-tree cases; original/trail/trial jigsaws; 13932 biome/feature memberships; 80 decorated-pot cases; 107 scattered piece saves; 10212 stair and 9360 bamboo callbacks; 19 tested overworld CREATURE finalizers; real LIGHT stages and 19 native light-packet cases",
-    "coverage": "Overworld only. Shared generation through LIGHT and matched-history replay are integrated. SPAWN/FULL runtime, deferred DUMMY NBT, remaining features/structures, persistent holders, fluid/gameplay ticks and Nether/End remain incomplete.",
+    "components": "895 numeric cases / 62649 exact values; 1431 native carver cases; 688 extra-tree cases; 655 fallen-tree cases; original/trail/trial jigsaws; 13932 biome/feature memberships; 80 decorated-pot cases; 107 scattered piece saves; 10212 stair and 9360 bamboo callbacks; 76 fossil cases; 137 desert-pyramid placement passes; 39 deferred-BE cases / 55 save-read cycles; 456 native saved-mob LOAD/pairing cases across 19 CREATURE kinds; real LIGHT stages and 19 native light-packet cases",
+    "coverage": "Overworld only. Shared generation through SPAWN, pending/materialized typed NBT and matched-history replay are integrated. Remaining terrain/structure families, ticket-driven FULL conversion, WG retirement, persistent holders, fluid/gameplay ticks and Nether/End are incomplete. SPAWN accepts explicit world inputs; live server clock/settings updates remain pending.",
     "report": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/parity-report.md"
   },
   "categories": [
@@ -64,10 +64,11 @@
         { "name": "Dungeons: blocks, loot and spawner data", "status": "partial" },
         { "name": "Mineshafts: admission, pieces, carts and persistence", "status": "partial" },
         { "name": "Villages, ancient cities, trail ruins and trial chambers: integrated native jigsaws", "status": "partial" },
-        { "name": "Treasure, swamp huts and jungle pyramids: starts, references and placement", "status": "partial" },
+        { "name": "Treasure, swamp huts, jungle and desert pyramids: starts, references and placement", "status": "partial" },
+        { "name": "Fossils: 16 templates, native RNG, clipping and shape callbacks", "status": "partial" },
         { "name": "Native chunk dependency metadata (12 statuses; two pyramids)", "status": "done" },
         { "name": "Shared status-aware generation and source coverage", "status": "partial" },
-        { "name": "Matched-history checks: 69 requests / 11 histories, explicit remaining differences", "status": "done" },
+        { "name": "Matched-history checks: 88 requests / 14 histories, explicit remaining differences", "status": "done" },
         { "name": "Native stair and bamboo updateShape callbacks", "status": "done" },
         { "name": "Biome identity bridge (13932 native feature-membership checks)", "status": "done" },
         { "name": "Job-local density-cache reuse and context/unwind isolation", "status": "done" },
@@ -85,7 +86,8 @@
         { "name": "Per-world asynchronous generation queue and bounded lookahead", "status": "done" },
         { "name": "Chunk unloading", "status": "done" },
         { "name": "World save/load (persistence)", "status": "done" },
-        { "name": "Generated NBT, raw ticks, deferred marks and native light (.bcc v4)", "status": "done" },
+        { "name": "Generated NBT, raw ticks, deferred marks and native light (.bcc v5)", "status": "done" },
+        { "name": "Pending proto NBT and explicit materialization; v1-v5 storage compatibility", "status": "done" },
         { "name": "Decorated-pot full/update NBT and scattered piece-state persistence", "status": "done" },
         { "name": "Region format (.mca) compat", "status": "planned" }
       ]
@@ -117,7 +119,8 @@
         { "name": "Player join & movement", "status": "done" },
         { "name": "Player physics (gravity/collision)", "status": "planned" },
         { "name": "Generation-spawn component: 19 overworld CREATURE finalizers", "status": "done" },
-        { "name": "SPAWN stage, generated mob persistence and network delivery", "status": "partial" },
+        { "name": "Retained SPAWN, saved-mob identity and initial LOAD/pairing delivery", "status": "partial" },
+        { "name": "Live server clock/settings updates for generation spawning", "status": "planned" },
         { "name": "Hostile mobs & AI", "status": "planned" },
         { "name": "Combat & damage", "status": "planned" }
       ]

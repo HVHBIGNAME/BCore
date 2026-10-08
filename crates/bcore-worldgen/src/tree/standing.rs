@@ -422,6 +422,7 @@ impl Voxel {
     fn update_edges<W: StandingTreeWorld + ?Sized>(
         &self,
         world: &mut W,
+        flags: i32,
     ) -> Result<(), UnsupportedShape> {
         let dimensions = [
             self.max.0 - self.min.0 + 1,
@@ -453,12 +454,12 @@ impl Voxel {
                             let other = world.get_block(neighbour);
                             let updated = blocks::update(world, pos, old, dir, other)?;
                             if updated != old {
-                                world.set_block(pos, updated, 2);
+                                world.set_block(pos, updated, flags & !1);
                             }
                             let updated_other =
                                 blocks::update(world, neighbour, other, dir ^ 1, updated)?;
                             if updated_other != other {
-                                world.set_block(neighbour, updated_other, 2);
+                                world.set_block(neighbour, updated_other, flags & !1);
                             }
                         }
                         previous = current;
@@ -468,6 +469,42 @@ impl Voxel {
         }
         Ok(())
     }
+}
+
+/// StructureTemplate's unknown-shape completion, used by overworld fossils.
+/// Only accepted writes fill the voxel; callbacks run before the overlay pass.
+pub(crate) fn update_template_shapes<W: StandingTreeWorld + ?Sized>(
+    world: &mut W,
+    positions: &[Pos],
+    flags: i32,
+) -> Result<(), UnsupportedShape> {
+    let Some(&first) = positions.first() else {
+        return Ok(());
+    };
+    let (mut min, mut max) = (first, first);
+    for &(x, y, z) in positions {
+        min = (min.0.min(x), min.1.min(y), min.2.min(z));
+        max = (max.0.max(x), max.1.max(y), max.2.max(z));
+    }
+    let mut voxel = Voxel::new(min, max);
+    for &pos in positions {
+        voxel.fill(pos);
+    }
+    voxel.update_edges(world, flags)?;
+    for &pos in positions {
+        let old = world.get_block(pos);
+        let mut updated = old;
+        // BlockBehaviour.UPDATE_SHAPE_ORDER, not Direction enum order.
+        for dir in [4, 5, 2, 3, 0, 1] {
+            let neighbour = world.get_block(relative(pos, dir));
+            updated = blocks::update(world, pos, updated, dir, neighbour)?;
+        }
+        if updated != old {
+            world.set_block(pos, updated, (flags & !1) | 16);
+        }
+        // WorldGenRegion inherits LevelAccessor's empty updateNeighborsAt.
+    }
+    Ok(())
 }
 
 /// Unknown configurations return `Ok(None)` before drawing. Unsupported world
@@ -513,6 +550,6 @@ pub fn place<W: StandingTreeWorld + ?Sized, R: TreeRandom + ?Sized>(
         }
     }
     let voxel = placement.update_leaves();
-    voxel.update_edges(placement.world)?;
+    voxel.update_edges(placement.world, 3)?;
     Ok(Some(true))
 }

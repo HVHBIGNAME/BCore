@@ -73,9 +73,9 @@ fn empty_updates(payload: &[u8]) -> Vec<(u8, i16, u32)> {
         let y = i16::from_be_bytes(take(&mut input, 2).try_into().unwrap());
         let type_id = varint(&mut input) as u32;
         assert_eq!(
-            take(&mut input, 2),
-            [10, 0],
-            "full sculk NBT is server-only"
+            take(&mut input, 1),
+            [0],
+            "native BlockEntityInfo projects an empty update to null"
         );
         entries.push((xz, y, type_id));
     }
@@ -151,7 +151,7 @@ fn mixed_entities_ticks_and_duplicate_marks_round_trip_without_execution() {
     assert!(column.add_tick_request(OWNER, request));
     assert!(column.add_tick_request(OWNER, request));
     let bytes = encode_chunk(OWNER.x, OWNER.z, &column);
-    assert_eq!(&bytes[4..8], [4, 0, 1, 0]);
+    assert_eq!(&bytes[4..8], [5, 0, 1, 0]);
     let mut loaded = decode_chunk(&bytes).unwrap();
     assert_eq!(loaded, column);
     assert_eq!(encode_chunk(OWNER.x, OWNER.z, &loaded), bytes);

@@ -310,7 +310,7 @@ fn native_biome(wire_id: u32) -> u32 {
 }
 
 pub(super) fn unsupported_structures() -> String {
-    "Unsupported structure types: desert_pyramid, igloo, mansion, monument, ocean_ruin_cold/warm, pillager_outpost, ruined_portal variants, shipwreck/beached, stronghold (Nether/End structures require their dimension pipelines)".into()
+    "Unsupported structure types: igloo, mansion, monument, ocean_ruin_cold/warm, pillager_outpost, ruined_portal variants, shipwreck/beached, stronghold (Nether/End structures require their dimension pipelines)".into()
 }
 
 /// 26.1's insertion-only LongOpenHashSet reference iteration. This is the order

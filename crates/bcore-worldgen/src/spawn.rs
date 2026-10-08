@@ -728,6 +728,13 @@ pub trait SpawnEnvironment {
     ) -> SpawnResult<i32>;
     fn current_difficulty_at(&self, pos: Pos) -> SpawnResult<SpawnDifficulty>;
 
+    /// The generation region's real addFreshEntity handoff, after finalization.
+    /// A retained-world adapter stores the proto save here so a later error or
+    /// unwind cannot discard mobs which were already successfully added.
+    fn add_fresh_mob(&mut self, _mob: &SpawnedMob) -> SpawnResult<()> {
+        Ok(())
+    }
+
     /// `ServerLevel.getGameTime()`, used by Camel's initial standing pose. This
     /// is a separate input from DifficultyInstance's overworld-time calculation.
     fn game_time(&self) -> SpawnResult<i64> {
@@ -2160,6 +2167,7 @@ fn spawn_loop(
                                     env.current_difficulty_at(block_pos)?;
                                     let finalized =
                                         finalize_mob(world, env, mob, p, yaw, &mut group_data)?;
+                                    env.add_fresh_mob(&finalized)?;
                                     let index = report.mobs.len();
                                     report.mobs.push(finalized);
                                     report.groups[group_index].final_data = group_data.clone();

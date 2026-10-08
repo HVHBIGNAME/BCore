@@ -59,13 +59,14 @@ fn place_hive(region: &mut FeatureRegion, pos: Pos, ticks: &[i32]) {
 }
 
 fn bees(region: &FeatureRegion, (x, y, z): Pos) -> Option<Vec<i32>> {
-    match region.chunk(x >> 4, z >> 4).block_entities().get(&(
-        (x & 15) as usize,
-        y,
-        (z & 15) as usize,
-    )) {
+    let chunk = region.chunk(x >> 4, z >> 4);
+    let local = ((x & 15) as usize, y, (z & 15) as usize);
+    match chunk.block_entities().get(&local) {
         Some(BlockEntity::Beehive { ticks_in_hive }) => Some(ticks_in_hive.clone()),
-        None => None,
+        None => chunk
+            .feature_block_entities()
+            .get(&local)
+            .map(|data| data.bee_ticks().expect("typed native hive occupants")),
         Some(other) => panic!("unexpected block entity {other:?}"),
     }
 }
@@ -296,7 +297,9 @@ fn incompatible_hive_keeps_the_entire_transfer_pending() {
     );
     assert_eq!(region.tree_effects, pending);
     assert_same_arcs(&region, &stored);
-    assert_eq!(bees(&region, valid), None);
+    // has_beehive already resolved the DUMMY factory; the failed transfer must
+    // keep that empty live instance and the staged occupants intact.
+    assert_eq!(bees(&region, valid), Some(Vec::new()));
     assert!(region.chunk_mut(1, -1).set(0, 65, 15, 21774));
     region.transfer_tree_effects().unwrap();
     assert_eq!(bees(&region, valid), Some(vec![1, 2]));
@@ -359,6 +362,12 @@ fn native_hive_metadata_transfers_all_supported_states_and_unbounded_age_lists()
         let mut chunk = GeneratedChunk::new(owner);
         assert!(sample.inside_build_height);
         assert!(chunk.set((x & 15) as usize, y, (z & 15) as usize, sample.state));
+        assert!(chunk.set_pending_block_entity(
+            (x & 15) as usize,
+            y,
+            (z & 15) as usize,
+            crate::block_entity::PendingBlockEntity::dummy((x, y, z)),
+        ));
         let base = Arc::new(chunk);
         let mut region = FeatureRegion::new(WorldGenerator::new(0), base.clone());
         assert!(
@@ -462,6 +471,14 @@ struct NativeHiveTransition {
 }
 
 fn replay_native_hive_transition(sample: &NativeHiveTransition, transfer_every: usize) {
+    replay_native_hive_transition_with_loaded_data(sample, transfer_every, false);
+}
+
+fn replay_native_hive_transition_with_loaded_data(
+    sample: &NativeHiveTransition,
+    transfer_every: usize,
+    typed_initial_hive: bool,
+) {
     let [x, y, z] = sample.pos;
     let pos = (x, y, z);
     let owner = ChunkPos::new(x >> 4, z >> 4);
@@ -478,9 +495,10 @@ fn replay_native_hive_transition(sample: &NativeHiveTransition, transfer_every: 
         region.schedule_tree_tick(row);
     }
     let label = format!(
-        "{} flags={} transfer_every={transfer_every}",
+        "{} flags={} transfer_every={transfer_every} typed={typed_initial_hive}",
         sample.name, sample.flags
     );
+    let mut typed_installed = false;
     for (index, step) in sample.steps.iter().enumerate() {
         let shared = region.chunks.borrow()[&(owner.x, owner.z)].clone();
         let before = shared.as_ref().clone();
@@ -496,6 +514,22 @@ fn replay_native_hive_transition(sample: &NativeHiveTransition, transfer_every: 
                     present,
                     "{label} step {index}: typed lookup"
                 );
+                if typed_initial_hive && present && !typed_installed {
+                    use crate::structure::template::{Nbt, TemplateBlockEntity, TemplateEffect};
+                    use crate::structure::template_pool::StructureAssets;
+                    assert_eq!(bees(&region, pos), Some(Vec::new()));
+                    let loaded = TemplateBlockEntity::from_load(
+                        &StructureAssets::bundled().blocks,
+                        FallenTreeWorld::get_block(&region, pos),
+                        pos,
+                        Nbt::empty_compound(),
+                    )
+                    .unwrap();
+                    region
+                        .apply_template_effect(source, TemplateEffect::BlockEntity(loaded))
+                        .unwrap();
+                    typed_installed = true;
+                }
             }
             NativeHiveAction::Store { age } => region.store_bee(pos, age),
         }
@@ -544,12 +578,12 @@ fn replay_native_hive_transition(sample: &NativeHiveTransition, transfer_every: 
     FallenTreeWorld::mark_for_postprocessing(&mut region, pos);
     FallenTreeWorld::mark_for_postprocessing(&mut region, pos);
     let finalized = region.finish_chunk(owner);
-    let entity = &finalized.block_entities()[&((x & 15) as usize, y, (z & 15) as usize)];
-    assert_eq!(
-        entity.full_data(pos),
-        sample.nbt,
-        "{label}: finalized native NBT"
-    );
+    let local = ((x & 15) as usize, y, (z & 15) as usize);
+    let full_data = match finalized.block_entities().get(&local) {
+        Some(entity) => entity.full_data(pos),
+        None => finalized.feature_block_entities()[&local].full_data.clone(),
+    };
+    assert_eq!(full_data, sample.nbt, "{label}: finalized native NBT");
     assert_eq!(
         finalized
             .tick_requests()
@@ -562,6 +596,28 @@ fn replay_native_hive_transition(sample: &NativeHiveTransition, transfer_every: 
     assert!(finalized.postprocessing.is_empty());
     assert_eq!(base.as_ref(), &GeneratedChunk::new(owner));
     assert_eq!(source_base.as_ref(), &GeneratedChunk::new(source));
+}
+
+#[test]
+fn deferred_loaded_hive_native_state_rewrites_keep_occupants() {
+    #[derive(serde::Deserialize)]
+    struct Reference {
+        samples: Vec<NativeHiveTransition>,
+    }
+    let reference: Reference =
+        serde_json::from_str(include_str!("../../data/tree_effects_26_1.json")).unwrap();
+    let mut checked = 0;
+    for sample in reference
+        .samples
+        .iter()
+        .filter(|sample| matches!(sample.name.as_str(), "nest_to_hive" | "hive_to_nest"))
+    {
+        for transfer_every in [0, 1, 2] {
+            replay_native_hive_transition_with_loaded_data(sample, transfer_every, true);
+        }
+        checked += 1;
+    }
+    assert_eq!(checked, 4, "both native directions with flags 3 and 19");
 }
 
 #[test]
@@ -585,6 +641,7 @@ fn native_proto_hive_transitions_match_staged_and_transferred_effects() {
         "a7fed6f7d88379349e35ae0c6e9881d4484605132f6f620376a3868eea6cce52"
     );
     let mut hash = Sha256::new();
+    let mut lf_hash = Sha256::new();
     for bytes in [
         &include_bytes!("../../../../scripts/TreeReference.java")[..],
         &include_bytes!("../../../../scripts/NativeEntityLevel.java")[..],
@@ -592,8 +649,22 @@ fn native_proto_hive_transitions_match_staged_and_transferred_effects() {
         &include_bytes!("../../../../scripts/TreeEffectReference.java")[..],
     ] {
         hash.update(bytes);
+        // Git's Windows checkout can use CRLF while the immutable capture used
+        // LF. Validate exact source text, accepting only this newline conversion.
+        lf_hash.update(
+            std::str::from_utf8(bytes)
+                .unwrap()
+                .replace("\r\n", "\n")
+                .as_bytes(),
+        );
     }
-    assert_eq!(reference.probe_sha256, format!("{:x}", hash.finalize()));
+    let raw_hash = format!("{:x}", hash.finalize());
+    let lf_hash = format!("{:x}", lf_hash.finalize());
+    assert!(
+        reference.probe_sha256 == raw_hash || reference.probe_sha256 == lf_hash,
+        "probe source differs: raw={raw_hash}, LF={lf_hash}, captured={}",
+        reference.probe_sha256
+    );
     assert_eq!(
         reference.source_dependencies,
         [

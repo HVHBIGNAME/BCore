@@ -21,22 +21,32 @@ use serde_json::Value;
 use std::collections::BTreeMap;
 use std::sync::OnceLock;
 
+#[path = "desert_pyramid.rs"]
+pub mod desert_pyramid;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ScatteredKind {
     BuriedTreasure,
     SwampHut,
     JungleTemple,
+    DesertPyramid,
 }
 
 impl ScatteredKind {
-    pub const ALL: [Self; 3] = [Self::BuriedTreasure, Self::SwampHut, Self::JungleTemple];
+    pub const ALL: [Self; 4] = [
+        Self::BuriedTreasure,
+        Self::SwampHut,
+        Self::JungleTemple,
+        Self::DesertPyramid,
+    ];
 
     pub fn name(self) -> &'static str {
         match self {
             Self::BuriedTreasure => "minecraft:buried_treasure",
             Self::SwampHut => "minecraft:swamp_hut",
             Self::JungleTemple => "minecraft:jungle_pyramid",
+            Self::DesertPyramid => "minecraft:desert_pyramid",
         }
     }
 
@@ -45,6 +55,7 @@ impl ScatteredKind {
             "buried_treasure" => Ok(Self::BuriedTreasure),
             "swamp_hut" => Ok(Self::SwampHut),
             "jungle_pyramid" => Ok(Self::JungleTemple),
+            "desert_pyramid" => Ok(Self::DesertPyramid),
             _ => Err(FeatureError::Unsupported(format!(
                 "scattered structure {name}"
             ))),
@@ -56,13 +67,16 @@ impl ScatteredKind {
             Self::BuriedTreasure => "minecraft:btp",
             Self::SwampHut => "minecraft:tesh",
             Self::JungleTemple => "minecraft:tejp",
+            Self::DesertPyramid => "minecraft:tedp",
         }
     }
 
     pub fn admission_heightmap(self) -> FeatureHeightmap {
         match self {
             Self::BuriedTreasure => FeatureHeightmap::OceanFloorWg,
-            Self::SwampHut | Self::JungleTemple => FeatureHeightmap::WorldSurfaceWg,
+            Self::SwampHut | Self::JungleTemple | Self::DesertPyramid => {
+                FeatureHeightmap::WorldSurfaceWg
+            }
         }
     }
 
@@ -71,6 +85,7 @@ impl ScatteredKind {
             Self::BuriedTreasure => None,
             Self::SwampHut => Some((7, 7, 9)),
             Self::JungleTemple => Some((12, 10, 15)),
+            Self::DesertPyramid => Some((21, 15, 21)),
         }
     }
 }
@@ -113,10 +128,21 @@ impl ScatteredCatalog {
     pub fn bundled() -> &'static Self {
         static DATA: OnceLock<ScatteredCatalog> = OnceLock::new();
         DATA.get_or_init(|| {
-            Self::from_json(include_str!(
+            // Keep the published three-family catalog immutable. The additional
+            // native family carries its own independently repeated provenance.
+            let mut data: Value = serde_json::from_str(include_str!(
                 "../../data/scattered_structure_catalog_26_1_v2.json"
             ))
-            .expect("pinned native scattered-structure catalog")
+            .expect("pinned scattered catalog");
+            let pyramid: Value =
+                serde_json::from_str(include_str!("../../data/desert_pyramid_catalog_26_1.json"))
+                    .expect("pinned desert-pyramid catalog");
+            assert_eq!(pyramid["jar_sha256"], data["jar_sha256"]);
+            data["catalog"]
+                .as_array_mut()
+                .unwrap()
+                .extend(pyramid["catalog"].as_array().unwrap().iter().cloned());
+            Self::from_json(&data.to_string()).expect("pinned native scattered-structure catalog")
         })
     }
 
@@ -410,6 +436,13 @@ pub enum ScatteredPieceData {
         placed_trap1: bool,
         placed_trap2: bool,
     },
+    DesertPyramid {
+        height_position: i32,
+        /// Native Direction.get2DDataValue order: south, west, north, east.
+        has_placed_chest: [bool; 4],
+        /// Retained in live holders; deliberately absent from native piece NBT.
+        archaeology: desert_pyramid::ArchaeologyState,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -426,6 +459,7 @@ impl ScatteredPiece {
             ScatteredPieceData::BuriedTreasure => ScatteredKind::BuriedTreasure,
             ScatteredPieceData::SwampHut { .. } => ScatteredKind::SwampHut,
             ScatteredPieceData::JungleTemple { .. } => ScatteredKind::JungleTemple,
+            ScatteredPieceData::DesertPyramid { .. } => ScatteredKind::DesertPyramid,
         }
     }
 
@@ -473,6 +507,9 @@ impl ScatteredPiece {
                 }
                 | ScatteredPieceData::JungleTemple {
                     height_position, ..
+                }
+                | ScatteredPieceData::DesertPyramid {
+                    height_position, ..
                 } => height_position,
                 ScatteredPieceData::BuriedTreasure => unreachable!(),
             };
@@ -509,6 +546,13 @@ impl ScatteredPiece {
                     ("placedTrap2", placed_trap2),
                 ] {
                     data.insert(key.into(), Nbt::Byte(i8::from(flag)));
+                }
+            }
+            ScatteredPieceData::DesertPyramid {
+                has_placed_chest, ..
+            } => {
+                for (index, flag) in has_placed_chest.into_iter().enumerate() {
+                    data.insert(format!("hasPlacedChest{index}"), Nbt::Byte(i8::from(flag)));
                 }
             }
         }
@@ -559,6 +603,26 @@ impl ScatteredPiece {
                     placed_hidden_chest: nbt_bool(nbt, "placedHiddenChest")?,
                     placed_trap1: nbt_bool(nbt, "placedTrap1")?,
                     placed_trap2: nbt_bool(nbt, "placedTrap2")?,
+                }
+            }
+            "minecraft:tedp" => {
+                if [("Width", 21), ("Height", 15), ("Depth", 21)]
+                    .into_iter()
+                    .any(|(key, expected)| nbt_int(nbt, key) != Ok(expected))
+                {
+                    return Err(FeatureError::Unsupported(
+                        "non-native desert-pyramid dimensions".into(),
+                    ));
+                }
+                ScatteredPieceData::DesertPyramid {
+                    height_position: nbt_int(nbt, "HPos")?,
+                    has_placed_chest: [
+                        nbt_bool(nbt, "hasPlacedChest0")?,
+                        nbt_bool(nbt, "hasPlacedChest1")?,
+                        nbt_bool(nbt, "hasPlacedChest2")?,
+                        nbt_bool(nbt, "hasPlacedChest3")?,
+                    ],
+                    archaeology: Default::default(),
                 }
             }
             _ => return Err(FeatureError::Unsupported(format!("scattered piece {name}"))),
@@ -713,6 +777,13 @@ impl ScatteredStart {
             && near(self.piece.bounds.min)
             && near(self.piece.bounds.max)
             && self.generation_point.is_none_or(near)
+            && match &self.piece.data {
+                ScatteredPieceData::DesertPyramid { archaeology, .. } => {
+                    archaeology.potential.iter().copied().all(near)
+                        && (archaeology.roof == (0, 0, 0) || near(archaeology.roof))
+                }
+                _ => true,
+            }
             && self.cached_reference_bounds.is_none_or(|b| {
                 near(b.min)
                     && near(b.max)
@@ -800,10 +871,14 @@ pub fn assemble_with_sea_level(
 ) -> Result<Option<ScatteredStart>> {
     let x = chunk.x.wrapping_mul(16);
     let z = chunk.z.wrapping_mul(16);
-    if kind == ScatteredKind::JungleTemple {
+    if matches!(
+        kind,
+        ScatteredKind::JungleTemple | ScatteredKind::DesertPyramid
+    ) {
         // SinglePieceStructure uses width/depth, not width-1/depth-1, before
         // selecting the piece orientation. It samples all four corners.
-        let corners = [(0, 0), (0, 15), (12, 0), (12, 15)].map(|(dx, dz)| {
+        let (width, _, depth) = kind.dimensions().unwrap();
+        let corners = [(0, 0), (0, depth), (width, 0), (width, depth)].map(|(dx, dz)| {
             (heights.first_free)(
                 FeatureHeightmap::WorldSurfaceWg,
                 x.wrapping_add(dx),
@@ -835,7 +910,7 @@ pub fn assemble_with_sea_level(
                 data: ScatteredPieceData::BuriedTreasure,
             }
         }
-        ScatteredKind::SwampHut | ScatteredKind::JungleTemple => {
+        ScatteredKind::SwampHut | ScatteredKind::JungleTemple | ScatteredKind::DesertPyramid => {
             let direction = HorizontalDirection::ALL[random.next_int(4)];
             let (width, height, depth) = kind.dimensions().expect("scattered feature dimensions");
             let (width, depth) = match direction {
@@ -859,13 +934,19 @@ pub fn assemble_with_sea_level(
                         spawned_witch: false,
                         spawned_cat: false,
                     }
-                } else {
+                } else if kind == ScatteredKind::JungleTemple {
                     ScatteredPieceData::JungleTemple {
                         height_position: -1,
                         placed_main_chest: false,
                         placed_hidden_chest: false,
                         placed_trap1: false,
                         placed_trap2: false,
+                    }
+                } else {
+                    ScatteredPieceData::DesertPyramid {
+                        height_position: -1,
+                        has_placed_chest: [false; 4],
+                        archaeology: Default::default(),
                     }
                 },
             }
@@ -1078,6 +1159,11 @@ pub fn place_in_chunk<W: ScatteredWorld + ?Sized, R: TemplateRandom + ?Sized>(
     random: &mut R,
     clip: BoundingBox,
 ) -> Result<ScatteredPlacement> {
+    if start.kind == ScatteredKind::DesertPyramid {
+        return Err(FeatureError::Unsupported(
+            "desert pyramid requires desert_pyramid::place_in_chunk with the source region RNG and world seed".into(),
+        ));
+    }
     if start.kind != start.piece.kind() || !start.piece.valid() {
         return Err(invalid("scattered piece before placement"));
     }
@@ -1099,6 +1185,7 @@ pub fn place_in_chunk<W: ScatteredWorld + ?Sized, R: TemplateRandom + ?Sized>(
         ScatteredPieceData::BuriedTreasure => placer.treasure(piece, random)?,
         ScatteredPieceData::SwampHut { .. } => placer.swamp_hut(piece)?,
         ScatteredPieceData::JungleTemple { .. } => placer.jungle_temple(piece, random)?,
+        ScatteredPieceData::DesertPyramid { .. } => unreachable!(),
     }
     Ok(report)
 }
@@ -1231,7 +1318,9 @@ impl<W: ScatteredWorld + ?Sized> Placer<'_, W> {
             | ScatteredPieceData::JungleTemple {
                 height_position, ..
             } => height_position,
-            ScatteredPieceData::BuriedTreasure => unreachable!(),
+            ScatteredPieceData::BuriedTreasure | ScatteredPieceData::DesertPyramid { .. } => {
+                unreachable!()
+            }
         };
         // A negative native HPos remains the sentinel, even after a void placement.
         if *height_position < 0 {

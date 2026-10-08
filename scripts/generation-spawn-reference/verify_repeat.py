@@ -76,8 +76,36 @@ def check_entity(entity):
     assert canonical(binary, attribute_order=False) == canonical(
         entity["typed_nbt"], attribute_order=False
     ), f"Binary/typed NBT mismatch: {entity['type']}"
-    return {**{k: v for k, v in entity.items() if k not in ("nbt_hex", "typed_nbt")},
-            "typed_nbt": canonical(entity["typed_nbt"])}
+    result = {**{k: v for k, v in entity.items() if k not in ("nbt_hex", "typed_nbt")},
+              "typed_nbt": canonical(entity["typed_nbt"])}
+    if "handoff" in result:
+        handoff = dict(result["handoff"])
+        handoff["loaded"] = check_entity(handoff["loaded"])
+        packets = []
+        for packet in handoff["packets"]:
+            packet = dict(packet)
+            if "attributes" in packet:
+                # Verify the original packet before normalizing JVM identity-map
+                # order. Every attribute's native codec bytes remain compared.
+                expected = (varint(packet["packet_id"]) + varint(handoff["runtime_id"])
+                            + varint(len(packet["attributes"]))
+                            + b"".join(bytes.fromhex(a["hex"]) for a in packet["attributes"]))
+                assert expected == bytes.fromhex(packet["wire_hex"])
+                packet.pop("wire_hex")
+                packet["attributes"] = sorted(packet["attributes"], key=lambda a: a["name"])
+            packets.append(packet)
+        handoff["packets"] = packets
+        result["handoff"] = handoff
+    return result
+
+
+def varint(value):
+    result = bytearray()
+    while value > 127:
+        result.append((value & 127) | 128)
+        value >>= 7
+    result.append(value)
+    return result
 
 
 def plain(tag):

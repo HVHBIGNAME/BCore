@@ -223,7 +223,7 @@ fn native_template_entity_requests_round_trip_with_both_extension_flags() {
                 assert!(column.mark_postprocessing(0, 80, 0));
             }
             let bytes = encode_chunk(owner.x, owner.z, &column);
-            assert_eq!(u16::from_le_bytes(bytes[4..6].try_into().unwrap()), 4);
+            assert_eq!(u16::from_le_bytes(bytes[4..6].try_into().unwrap()), 5);
             assert_eq!(
                 u16::from_le_bytes(bytes[6..8].try_into().unwrap()),
                 if with_marks { 3 } else { 2 }

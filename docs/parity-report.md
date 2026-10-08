@@ -3,9 +3,60 @@
 **Worldgen parity is incomplete.** Component checks and the whole-chunk snapshot
 below have different coverage; neither establishes all-world/all-dimension parity.
 
-Latest complete workspace verification: **628 passed, 0 failed, 4 ignored** in
-release, including **371 worldgen and 248 protocol** tests. The earlier 514-pass
-checkpoint remains recorded under [Regression suites](#regression-suites).
+Latest full workspace verification: **662 passed, 0 failed, 4 ignored** in
+release, including **394 worldgen and 259 protocol** tests. The previous 628-pass
+checkpoint and earlier [regression suites](#regression-suites) remain recorded below.
+
+## Terrain and lifecycle repairs — 2026-10-08
+
+Three parallel workers implemented native fossils, desert pyramids and pending
+block-entity materialization. Their immutable before/after histories reproduce
+**269 + 103 fossil** and **7,627 desert-pyramid** differing block observations.
+See [the milestone report](generation-milestone-2026-10-07.md) for witnesses,
+component coverage, RNG contracts and the remaining implicit-FULL differences.
+
+After integration, the generation suite passed **57/57** and focused protocol
+storage/delivery passed **12/12**, including the pyramid↔pending-BE boundary and
+456 native mob LOAD/pairing records. The final workspace run passed **662 tests**
+in 60 target summaries. An earlier run's one standing-tree expectation omitted the
+empty hive materialized by an explicit native lookup; its lifecycle setup was
+corrected while preserving the native block, RNG and occupant comparisons.
+
+One frozen replay executable then verified **88 requests across 14 histories**:
+
+| Scored output | Observations | Differences |
+|---|---:|---:|
+| Block states | 8,650,752 | 0 |
+| Quart-biome cells | 135,168 | 0 |
+| FEATURES source order | 88 request snapshots | 0 |
+| Serialized light | 40 scored snapshots | 0 |
+| Logical structures and ordered postprocessing | All scored snapshots | 0 |
+| Block-entity payloads | Logical fields | 36 |
+| WG heightmap presence | Both maps across repeated snapshots | 70 |
+
+The new fossil histories improve **269 → 0** and **103 → 0** differing state
+observations; the desert-pyramid history improves **7,627 → 0**. Before/after
+comparisons use the identical native captures. All 88 requests still report
+incomplete native coverage. The 36 remaining BE fields belong to the final LIGHT
+read after Vanilla's implicit ticket-driven FULL transition; WG maps also remain
+until real FULL conversion is implemented.
+
+[Published checkpoint](metrics/checkpoint-2026-10-08.json) contains per-request
+counts and artifact hashes. Local evidence:
+
+- `target/generation-checks-20261001/tests-1791426197736092900.{json,log}`
+- `target/full-parity-20261003/integrated-histories-1791426197736092900/`
+- `target/full-parity-20261003/combined-input-audit-20261008-final.json`
+
+The audit verifies archive contents, binary/result hashes, native provenance and
+current-source equality. The previous failed test run and older frozen replays
+remain preserved. This checkpoint expands the earlier 69-request corpus; it does
+not replace the separate historical 96.99% region measurement.
+
+The current `.bcc` writer is v5 (reads v1–v5). Pending typed NBT is separate from
+materialized entities; a FULL-request BE materialization boundary does not claim
+FULL conversion. SPAWN executes with explicit independent world inputs; live
+server clock/settings hookup, FULL/ticket transitions and ticking remain incomplete.
 
 ## Native-history integration — 2026-10-04
 

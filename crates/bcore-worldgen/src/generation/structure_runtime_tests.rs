@@ -481,7 +481,10 @@ fn native_structure_runtime_clipped_decoration_callbacks_effects_and_rng() {
         let mut ticks: BTreeMap<_, Vec<Value>> = BTreeMap::new();
         let mut marks = BTreeMap::new();
         for pos in layer_positions(source, 1) {
-            let chunk = state.region.owned_chunk(pos).unwrap();
+            // The original isolated native fixture saved factory-created BEs.
+            // Compare that boundary explicitly without changing the proto data.
+            let mut chunk = (*state.region.owned_chunk(pos).unwrap()).clone();
+            chunk.materialize_block_entities().unwrap();
             for y in crate::MIN_Y..=crate::MAX_Y {
                 for z in 0..16 {
                     for x in 0..16 {

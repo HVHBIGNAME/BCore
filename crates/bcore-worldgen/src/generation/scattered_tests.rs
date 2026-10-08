@@ -28,6 +28,167 @@ fn nbt(value: &Value) -> Nbt {
 }
 
 #[test]
+fn deferred_native_loot_callbacks_materialize_the_destination_before_setting_loot() {
+    let fixture: Value = serde_json::from_str(include_str!(
+        "../../data/deferred_block_entities_26_1_v1.json"
+    ))
+    .unwrap();
+    let mut checked = 0;
+    for row in fixture["cases"].as_array().unwrap().iter().filter(|row| {
+        row["kind"] == "callback" && (row["block"] == "CHEST" || row["block"] == "DISPENSER")
+    }) {
+        let observations = row["observations"].as_array().unwrap();
+        let first = &observations[0];
+        let source = chunk(&row["source"]);
+        let owner = chunk(&row["owner"]);
+        let p = pos(&first["pos"]);
+        let local = ((p.0 & 15) as usize, p.1, (p.2 & 15) as usize);
+        let mut region = FeatureRegion::shared(WorldGenerator::new(846692123413862008));
+        region.begin_source(
+            source,
+            ChunkStatus::Features,
+            layer_positions(source, 8)
+                .map(|p| ((p.x, p.z), ChunkStatus::Carvers))
+                .collect(),
+        );
+        let mut world = ScatteredRegion {
+            region: &mut region,
+            source,
+        };
+        assert!(world.set_feature_block(p, int(&first["state"]) as u32, 2));
+        let before = world.region.owned_chunk(owner).unwrap();
+        assert_eq!(
+            before.pending_block_entities()[&local].full_nbt().unwrap(),
+            nbt(&first["pending"])
+        );
+        assert!(before.feature_block_entities().is_empty());
+        let saved = observations
+            .iter()
+            .find(|v| v["boundary"] == "source getBlockEntity/mutation")
+            .unwrap();
+        let full = nbt(&saved["after"]["full"]);
+        let id = full.get("id").unwrap().string().unwrap();
+        assert!(world.has_structure_block_entity(p, id));
+        assert!(world
+            .region
+            .owned_chunk(owner)
+            .unwrap()
+            .pending_block_entities()
+            .is_empty());
+        let seed = crate::simplex::JavaRandom::new(12345).next_long();
+        assert_eq!(full.get("LootTableSeed"), Some(&Nbt::Long(seed)));
+        world
+            .apply_scattered_effect(ScatteredEffect::LootTable {
+                pos: p,
+                block_entity: id.into(),
+                table: full.get("LootTable").unwrap().string().unwrap().into(),
+                seed,
+            })
+            .unwrap();
+        let result = world.region.owned_chunk(owner).unwrap();
+        assert_eq!(
+            result.feature_block_entities()[&local].full_nbt().unwrap(),
+            full
+        );
+        assert_eq!(
+            result.feature_block_entities()[&local]
+                .update_nbt()
+                .unwrap(),
+            nbt(&saved["after"]["update"])
+        );
+        assert!(world.region.owned_chunk(source).is_none());
+        checked += 1;
+    }
+    assert_eq!(checked, 2);
+}
+
+#[test]
+fn deferred_structure_lookup_supports_chest_and_suspicious_sand_loot_guards() {
+    use crate::block_entity::PendingBlockEntity;
+    use crate::simplex::JavaRandom;
+
+    let blocks = &StructureAssets::bundled().blocks;
+    let source = ChunkPos::new(0, 0);
+    let owner = ChunkPos::new(-1, 0);
+    let p = (-1, 80, 1);
+    let local = (15, 80, 1);
+    for (block, id, table) in [
+        (
+            "chest",
+            "minecraft:chest",
+            "minecraft:chests/desert_pyramid",
+        ),
+        (
+            "suspicious_sand",
+            "minecraft:brushable_block",
+            "minecraft:archaeology/desert_pyramid",
+        ),
+    ] {
+        for flags in [2, 18] {
+            let state = blocks.default_state(block).unwrap();
+            let mut region = FeatureRegion::shared(WorldGenerator::new(846692123413862008));
+            region.begin_source(
+                source,
+                ChunkStatus::Features,
+                layer_positions(source, 8)
+                    .map(|p| ((p.x, p.z), ChunkStatus::Carvers))
+                    .collect(),
+            );
+            let mut world = ScatteredRegion {
+                region: &mut region,
+                source,
+            };
+            assert!(world.set_feature_block(p, state, flags));
+            let pending = world.region.owned_chunk(owner).unwrap();
+            assert_eq!(
+                pending.pending_block_entities()[&local],
+                PendingBlockEntity::dummy(p)
+            );
+            assert!(pending.feature_block_entities().is_empty());
+
+            // The production chest/sand caller tests the type before its loot
+            // callback. A DUMMY must be resolved by this first lookup.
+            let mut random = JavaRandom::new(12345);
+            let mut expected_random = JavaRandom::new(12345);
+            assert!(world.has_structure_block_entity(p, id));
+            let seed = random.next_long();
+            assert_eq!(seed, expected_random.next_long());
+            assert!(!world.has_structure_block_entity(p, "minecraft:dispenser"));
+            assert!(world
+                .region
+                .owned_chunk(owner)
+                .unwrap()
+                .pending_block_entities()
+                .is_empty());
+            world
+                .apply_scattered_effect(ScatteredEffect::LootTable {
+                    pos: p,
+                    block_entity: id.into(),
+                    table: table.into(),
+                    seed,
+                })
+                .unwrap();
+            let loaded = world.region.owned_chunk(owner).unwrap();
+            let data = &loaded.feature_block_entities()[&local];
+            let full = data.full_nbt().unwrap();
+            assert_eq!(full.get("id").and_then(Nbt::string), Some(id));
+            assert_eq!(full.get("LootTable").and_then(Nbt::string), Some(table));
+            assert_eq!(full.get("LootTableSeed"), Some(&Nbt::Long(seed)));
+            assert!(data.valid_for(state, p));
+            assert!(world.set_feature_block(p, state, flags));
+            assert!(world.has_structure_block_entity(p, id));
+            assert_eq!(*loaded, *world.region.owned_chunk(owner).unwrap());
+            assert_eq!(random.next_long(), expected_random.next_long());
+            assert_eq!(
+                pending.pending_block_entities()[&local],
+                PendingBlockEntity::dummy(p)
+            );
+            assert!(world.region.owned_chunk(source).is_none());
+        }
+    }
+}
+
+#[test]
 fn native_scattered_admission_matches_actual_noise_heights_and_retained_starts() {
     let mut admitted = 0;
     for fixture in fixtures() {
@@ -361,7 +522,11 @@ fn native_scattered_placement_through_live_region_preserves_clips_loot_and_pendi
                 let mut actual_ticks = BTreeMap::<_, Vec<Value>>::new();
                 let mut marks = BTreeMap::<Pos, usize>::new();
                 for &(cx, cz) in &positions {
-                    let target = region.owned_chunk(ChunkPos::new(cx, cz)).unwrap();
+                    // This immutable component fixture used an eager factory
+                    // world and observed full/update tags. Look up a clone for
+                    // that comparison; the retained proto world stays pending.
+                    let mut target = (*region.owned_chunk(ChunkPos::new(cx, cz)).unwrap()).clone();
+                    target.materialize_block_entities().unwrap();
                     let first = target
                         .states
                         .iter()

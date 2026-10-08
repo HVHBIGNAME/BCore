@@ -60,6 +60,16 @@ fn dump(
             json!({"pos":pos,"type":data.type_id,"nbt":data.full_data,"typed_nbt":data.typed_data})
         },
     ));
+    block_entities.extend(
+        chunk
+            .pending_block_entities()
+            .iter()
+            .map(|(&(lx, y, lz), data)| {
+                let pos = (x * 16 + lx as i32, y, z * 16 + lz as i32);
+                let nbt = data.full_nbt().expect("validated pending proto NBT");
+                json!({"pos":pos,"pending":true,"nbt":nbt.to_json(),"typed_nbt":data.typed_data})
+            }),
+    );
     let generated: Vec<_> = chunk
         .entities()
         .iter()

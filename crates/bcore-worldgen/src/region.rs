@@ -33,6 +33,7 @@ pub(crate) fn take_structure_write_trace() -> Vec<[i32; 5]> {
 pub(crate) enum TreeEffectError {
     InvalidTickRequest([i32; 6]),
     InvalidBeehive { pos: (i32, i32, i32), state: u32 },
+    InvalidBeehivePayload { pos: (i32, i32, i32) },
 }
 
 impl std::fmt::Display for TreeEffectError {
@@ -45,6 +46,9 @@ impl std::fmt::Display for TreeEffectError {
                 f,
                 "standing-tree bee data at {pos:?} is incompatible with block state {state}"
             ),
+            Self::InvalidBeehivePayload { pos } => {
+                write!(f, "invalid typed standing-tree hive data at {pos:?}")
+            }
         }
     }
 }
@@ -139,6 +143,7 @@ impl FeatureRegion {
                 let local = ((x & 15) as usize, y, (z & 15) as usize);
                 chunk.block_entities.remove(&local);
                 chunk.feature_block_entities.remove(&local);
+                chunk.pending_block_entities.remove(&local);
             }
             TemplateEffect::BlockEntity(entity) => {
                 let (x, y, z) = entity.pos;
@@ -155,6 +160,7 @@ impl FeatureRegion {
                 let chunk = self.chunk_mut(x >> 4, z >> 4);
                 let local = ((x & 15) as usize, y, (z & 15) as usize);
                 chunk.block_entities.remove(&local);
+                chunk.pending_block_entities.remove(&local);
                 chunk.feature_block_entities.insert(local, data);
             }
             TemplateEffect::Entity(entity) => {
@@ -227,8 +233,56 @@ impl FeatureRegion {
         self.access = RegionAccess::Inactive;
     }
 
+    pub(crate) fn store_generated_entity(
+        &self,
+        entity: crate::generated_entity::GeneratedEntity,
+    ) -> Result<(), crate::feature_world::FeatureError> {
+        let [x, _, z] = entity.block_pos();
+        let owner = ChunkPos::new(x >> 4, z >> 4);
+        self.check_access(owner, ChunkStatus::Empty)
+            .map_err(|error| {
+                crate::feature_world::FeatureError::MissingData(format!(
+                    "entity destination: {error:?}"
+                ))
+            })?;
+        if !entity.valid_for(owner) {
+            return Err(crate::feature_world::FeatureError::InvalidConfig(
+                "generated entity owner".into(),
+            ));
+        }
+        let mut chunks = self.chunks.borrow_mut();
+        let chunk = chunks.get_mut(&(owner.x, owner.z)).ok_or_else(|| {
+            crate::feature_world::FeatureError::MissingData(format!("entity destination {owner:?}"))
+        })?;
+        Arc::make_mut(chunk).entities.push(entity);
+        Ok(())
+    }
+
     pub(crate) fn owned_chunk(&self, pos: ChunkPos) -> Option<Arc<GeneratedChunk>> {
         self.chunks.borrow().get(&(pos.x, pos.z)).cloned()
+    }
+
+    /// A worldgen lookup is logically a read but may instantiate pending proto
+    /// data in a neighbouring source-owned chunk, just like WorldGenRegion.
+    pub(crate) fn materialize_block_entity_at(
+        &self,
+        (x, y, z): (i32, i32, i32),
+    ) -> Result<bool, crate::feature_world::FeatureError> {
+        let owner = ChunkPos::new(x >> 4, z >> 4);
+        self.check_access(owner, ChunkStatus::Empty)
+            .map_err(|error| {
+                crate::feature_world::FeatureError::MissingData(format!(
+                    "block entity access: {error:?}"
+                ))
+            })?;
+        drop(self.chunk(owner.x, owner.z));
+        let mut chunks = self.chunks.borrow_mut();
+        Arc::make_mut(
+            chunks
+                .get_mut(&(owner.x, owner.z))
+                .expect("readable block entity chunk"),
+        )
+        .materialize_block_entity((x & 15) as usize, y, (z & 15) as usize)
     }
 
     pub(crate) fn beehive_snapshots(&self) -> BTreeMap<(i32, i32, i32), Vec<i32>> {
@@ -239,6 +293,14 @@ impl FeatureRegion {
                     hives.insert(
                         (cx * 16 + x as i32, y, cz * 16 + z as i32),
                         ticks_in_hive.clone(),
+                    );
+                }
+            }
+            for (&(x, y, z), entity) in chunk.feature_block_entities() {
+                if entity.type_id == 34 {
+                    hives.insert(
+                        (cx * 16 + x as i32, y, cz * 16 + z as i32),
+                        entity.bee_ticks().expect("native typed hive occupants"),
                     );
                 }
             }
@@ -377,19 +439,41 @@ impl FeatureRegion {
         let hive = BlockEntity::Beehive {
             ticks_in_hive: Vec::new(),
         };
-        for &pos in self.tree_effects.beehives.keys() {
+        for (&pos, ticks) in &self.tree_effects.beehives {
             let state =
                 OreWorld::get_block(self, pos).expect("tree-effect region supplies every block");
             if !hive.matches_state(state) {
                 return Err(TreeEffectError::InvalidBeehive { pos, state });
+            }
+            let (x, y, z) = pos;
+            if let Some(previous) = self.chunk(x >> 4, z >> 4).feature_block_entities().get(&(
+                (x & 15) as usize,
+                y,
+                (z & 15) as usize,
+            )) {
+                previous
+                    .with_bee_ticks(state, pos, ticks)
+                    .map_err(|_| TreeEffectError::InvalidBeehivePayload { pos })?;
             }
         }
 
         // Validation precedes draining: a malformed late request must not consume
         // an earlier hive or append a request that would be duplicated on retry.
         for ((x, y, z), ticks_in_hive) in std::mem::take(&mut self.tree_effects.beehives) {
+            let chunk = self.chunk_mut(x >> 4, z >> 4);
+            let local = ((x & 15) as usize, y, (z & 15) as usize);
+            if let Some(previous) = chunk.feature_block_entities.get(&local) {
+                let state = chunk
+                    .get(local.0, y, local.2)
+                    .expect("validated hive state");
+                let data = previous
+                    .with_bee_ticks(state, (x, y, z), &ticks_in_hive)
+                    .expect("validated typed hive callback");
+                chunk.feature_block_entities.insert(local, data);
+                continue;
+            }
             assert!(
-                self.chunk_mut(x >> 4, z >> 4).set_block_entity(
+                chunk.set_block_entity(
                     (x & 15) as usize,
                     y,
                     (z & 15) as usize,
@@ -508,18 +592,28 @@ impl crate::tree::standing::StandingTreeWorld for FeatureRegion {
         if !OreWorld::get_block(self, pos).is_some_and(|state| hive.matches_state(state)) {
             return false;
         }
+        if !self
+            .materialize_block_entity_at(pos)
+            .expect("native hive lookup")
+        {
+            return false;
+        }
         if !self.tree_effects.beehives.contains_key(&pos) {
             // A staged hive is a complete snapshot, including occupants already
             // persisted by an earlier transfer in the same region.
-            let ticks = match self.chunk(x >> 4, z >> 4).block_entities().get(&(
-                (x & 15) as usize,
-                y,
-                (z & 15) as usize,
-            )) {
+            let chunk = self.chunk(x >> 4, z >> 4);
+            let local = ((x & 15) as usize, y, (z & 15) as usize);
+            let ticks = match chunk.block_entities().get(&local) {
                 Some(BlockEntity::Beehive { ticks_in_hive }) => ticks_in_hive.clone(),
-                None => Vec::new(),
+                None => chunk
+                    .feature_block_entities()
+                    .get(&local)
+                    .expect("materialized standing-tree hive")
+                    .bee_ticks()
+                    .expect("native typed hive occupants"),
                 Some(_) => panic!("incompatible block entity at a standing-tree hive"),
             };
+            drop(chunk);
             self.tree_effects.beehives.insert(pos, ticks);
         }
         true
@@ -576,12 +670,15 @@ impl OreWorld for FeatureRegion {
         if !chunk.set(local.0, y, local.2, state) {
             return false;
         }
-        if !chunk.feature_block_entities.contains_key(&local) {
-            if let Some(data) = crate::generation::sculk_block_entity(state, (x, y, z))
-                .expect("native generated sculk entity data")
-            {
-                chunk.feature_block_entities.insert(local, data);
-            }
+        if crate::block_entity::has_block_entity(state) {
+            // Native proto writes install DUMMY, not factory defaults. The
+            // setter ignores this tag if a previous lookup already loaded it.
+            chunk.set_pending_block_entity(
+                local.0,
+                y,
+                local.2,
+                crate::block_entity::PendingBlockEntity::dummy((x, y, z)),
+            );
         }
         if track_light {
             self.light_updates.push(((x, y, z), state));
@@ -602,9 +699,7 @@ impl crate::dungeon::DungeonWorld for FeatureRegion {
                 .get((x & 15) as usize, y, (z & 15) as usize)
                 .expect("block entity inside world")
         ));
-        chunk
-            .block_entities
-            .insert(((x & 15) as usize, y, (z & 15) as usize), data);
+        assert!(chunk.set_block_entity((x & 15) as usize, y, (z & 15) as usize, data));
     }
 }
 
@@ -722,6 +817,10 @@ mod tree_effects_tests;
 mod access_tests;
 
 #[cfg(test)]
+#[path = "region/block_entity_tests.rs"]
+mod block_entity_tests;
+
+#[cfg(test)]
 mod tests {
     use super::*;
 
@@ -799,6 +898,9 @@ mod tests {
                     crate::generated_entity::GeneratedEntity::ChestMinecart {
                         loot_seed, ..
                     } => json!({"pos": entity.position(),"loot_seed":loot_seed}),
+                    crate::generated_entity::GeneratedEntity::Mob(_) => {
+                        panic!("mineshaft placed a generation mob")
+                    }
                 })
                 .collect();
             assert_eq!(json!(carts), expected["minecarts"]);

@@ -69,6 +69,8 @@ use bcore_core::varint::encode_varint;
 use bcore_worldgen::lighting::ChunkLight;
 use bcore_worldgen::{generation::FeatureBlockEntity, Biome, GeneratedChunk};
 
+mod pending;
+
 /// Lowest block Y coordinate of the overworld.
 pub const MIN_Y: i32 = -64;
 /// Total overworld height in blocks.
@@ -378,6 +380,10 @@ pub struct ChunkColumn {
     block_entities:
         std::collections::BTreeMap<(usize, i32, usize), bcore_worldgen::block_entity::BlockEntity>,
     feature_block_entities: std::collections::BTreeMap<(usize, i32, usize), FeatureBlockEntity>,
+    pending_block_entities: std::collections::BTreeMap<
+        (usize, i32, usize),
+        bcore_worldgen::block_entity::PendingBlockEntity,
+    >,
     entities: Vec<bcore_worldgen::generated_entity::GeneratedEntity>,
     structure_entities: Vec<bcore_worldgen::generation::StructureEntityRequest>,
     tick_requests: Vec<bcore_worldgen::tick_request::TickRequest>,
@@ -394,6 +400,7 @@ impl ChunkColumn {
             biomes: vec![biome; SECTION_COUNT * SECTION_BIOMES],
             block_entities: std::collections::BTreeMap::new(),
             feature_block_entities: std::collections::BTreeMap::new(),
+            pending_block_entities: std::collections::BTreeMap::new(),
             entities: Vec::new(),
             structure_entities: Vec::new(),
             tick_requests: Vec::new(),
@@ -438,6 +445,7 @@ impl ChunkColumn {
             biomes,
             block_entities: std::collections::BTreeMap::new(),
             feature_block_entities: std::collections::BTreeMap::new(),
+            pending_block_entities: std::collections::BTreeMap::new(),
             entities: Vec::new(),
             structure_entities: Vec::new(),
             tick_requests: Vec::new(),
@@ -469,6 +477,7 @@ impl ChunkColumn {
         let mut column = Self::from_parts(states, biomes);
         column.block_entities = chunk.block_entities().clone();
         column.feature_block_entities = chunk.feature_block_entities().clone();
+        column.pending_block_entities = chunk.pending_block_entities().clone();
         column.entities = chunk.entities().to_vec();
         column.structure_entities = chunk.structure_entities().to_vec();
         column.tick_requests = chunk.tick_requests().to_vec();
@@ -521,6 +530,14 @@ impl ChunkColumn {
                 {
                     self.feature_block_entities.remove(&(x, y, z));
                 }
+                if self.pending_block_entities.contains_key(&(x, y, z))
+                    && !bcore_worldgen::structure::template_pool::StructureAssets::bundled()
+                        .blocks
+                        .flags(state)
+                        .is_ok_and(|flags| flags & 8 != 0)
+                {
+                    self.pending_block_entities.remove(&(x, y, z));
+                }
                 true
             }
             None => false,
@@ -568,6 +585,7 @@ impl ChunkColumn {
         {
             return false;
         }
+        self.pending_block_entities.remove(&(x, y, z));
         self.block_entities.insert((x, y, z), data);
         true
     }
@@ -606,6 +624,7 @@ impl ChunkColumn {
         if self.block_entities.contains_key(&(x, y, z)) || !data.valid_for(state, (wx, y, wz)) {
             return false;
         }
+        self.pending_block_entities.remove(&(x, y, z));
         self.feature_block_entities.insert((x, y, z), data);
         true
     }
@@ -636,8 +655,7 @@ impl ChunkColumn {
         owner: bcore_core::ChunkPos,
         entity: bcore_worldgen::generated_entity::GeneratedEntity,
     ) -> bool {
-        let [x, y, z] = entity.block_pos();
-        if x >> 4 != owner.x || z >> 4 != owner.z || !(MIN_Y..=MAX_Y).contains(&y) {
+        if !entity.valid_for(owner) {
             return false;
         }
         self.entities.push(entity);
@@ -1071,13 +1089,19 @@ impl ChunkColumn {
             out.push(((lx << 4) | lz) as u8);
             out.extend_from_slice(&(y as i16).to_be_bytes());
             encode_varint(data.type_id() as i32, &mut out);
-            out.extend_from_slice(&crate::nbt::encode_block_entity_update(data));
+            pending::write_chunk_update_tag(
+                &mut out,
+                &crate::nbt::encode_block_entity_update(data),
+            );
         }
         for (&(lx, y, lz), data) in &self.feature_block_entities {
             out.push(((lx << 4) | lz) as u8);
             out.extend_from_slice(&(y as i16).to_be_bytes());
             encode_varint(data.type_id as i32, &mut out);
-            out.extend_from_slice(&crate::nbt::encode_feature_block_entity_update(data));
+            pending::write_chunk_update_tag(
+                &mut out,
+                &crate::nbt::encode_feature_block_entity_update(data),
+            );
         }
 
         self.write_light_payload(&mut out);

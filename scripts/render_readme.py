@@ -17,7 +17,7 @@ import xml.etree.ElementTree as ET
 ROOT = Path(__file__).resolve().parents[1]
 METRICS = ROOT / "docs/metrics"
 ASSETS = ROOT / "site/assets"
-CHECKPOINT = METRICS / "checkpoint-2026-10-05.json"
+CHECKPOINT = METRICS / "checkpoint-2026-10-08.json"
 BENCHMARK = METRICS / "noise-fill-2026-10-05.json"
 BG, CARD, LINE = "#0b1220", "#111e31", "#26374e"
 FG, MUTED = "#e8f0fc", "#a7bad2"
@@ -70,6 +70,7 @@ def cube(x, y, size, height, color):
 
 def overview(checkpoint):
     t = checkpoint["totals"]
+    light_matches = t["light_scored_requests"] - t["light_mismatching_requests"]
     e = [rect(660, 18, 320, 158, "url(#grid)", 12, "none"),
          text(38, 45, "INDEPENDENT IMPLEMENTATION / RUST", 12, TEAL, 600, extra='letter-spacing="2"'),
          text(36, 112, "BCore", 66, FG, 700),
@@ -80,17 +81,17 @@ def overview(checkpoint):
     cards = [(str(checkpoint["tests"]["passed"]), "tests passed", f'{checkpoint["tests"]["failed"]} failed · {checkpoint["tests"]["ignored"]} ignored', TEAL),
              (str(t["requests"]), "native requests", "matched execution histories", BLUE),
              (str(t["histories"]), "history scenarios", "adjacency · repeats · stages", VIOLET),
-             (str(t["light_scored_requests"]), "light snapshots match", "scored storage and bytes", TEAL)]
+              (str(light_matches), "light snapshots match", "scored storage and bytes", TEAL)]
     for i, (value, label, detail, color) in enumerate(cards):
         x = 36 + i * 236
         e += [rect(x, 178, 222, 112), rect(x + 16, 194, 4, 28, color, 2, "none"),
               text(x + 32, 224, value, 36, color, 700), text(x + 17, 251, label, 16, FG, 600),
               text(x + 17, 274, detail, 11, MUTED)]
-    e += [text(39, 322, "ALPHA / Worldgen parity is incomplete. SPAWN and FULL runtime integration are next.", 13, AMBER),
+    e += [text(39, 322, "ALPHA / Terrain parity first. FULL conversion and remaining worldgen families are next.", 13, AMBER),
           text(960, 346, f'Verified checkpoint · {checkpoint["published_date"]}', 11, MUTED, anchor="end")]
     return document(364, "BCore verified development checkpoint",
                     f'{checkpoint["tests"]["passed"]} passing tests, {t["requests"]} native requests in {t["histories"]} histories. '
-                    f'{t["light_scored_requests"]} matching scored light snapshots. Full parity remains incomplete.', e)
+                     f'{light_matches} matching scored light snapshots. Full parity remains incomplete.', e)
 
 
 def accuracy(checkpoint, historical):
@@ -100,17 +101,20 @@ def accuracy(checkpoint, historical):
          text(36, 73, "Measured outputs, with the sample boundaries kept visible.", 14, MUTED),
          rect(30, 96, 455, 351), rect(503, 96, 467, 351),
          text(50, 125, "LATEST / MATCHED NATIVE HISTORIES", 12, TEAL, 600, extra='letter-spacing="1"'),
-         text(50, 160, "0", 40, TEAL, 700), text(87, 157, "block-state differences", 19, FG, 600),
+          text(50, 160, str(t["state_differences"]), 40, TEAL, 700), text(87, 157, "block-state differences", 19, FG, 600),
          text(50, 184, f'{t["state_observations"]:,} observations · repeated snapshots included', 12, MUTED)]
-    categories = [("Block snapshots", n, n), ("Quart-biome snapshots", n, n),
-                  ("Source execution order", n, n),
-                  ("Scored light snapshots", t["light_scored_requests"], t["light_scored_requests"])]
+    rows = [r for history in checkpoint["histories"] for r in history["requests"]]
+    categories = [("Block snapshots", sum(r["states"]["mismatches"] == 0 for r in rows), n),
+                  ("Quart-biome snapshots", sum(r["biomes"]["mismatches"] == 0 for r in rows), n),
+                  ("Source execution order", sum(r["source_order_differences"] == 0 for r in rows), n),
+                  ("Scored light snapshots", t["light_scored_requests"] - t["light_mismatching_requests"], t["light_scored_requests"])]
     for i, (label, matches, total) in enumerate(categories):
         y = 216 + i * 52
         e += [text(50, y, label, 14), text(463, y, f"{matches}/{total}", 14, TEAL, 600, "end"),
               rect(50, y + 9, 411, 7, LINE, 3, "none"),
               rect(50, y + 9, 411 * matches / total, 7, TEAL, 3, "none")]
-    e += [text(50, 424, "Structures + ordered postprocessing: zero differences", 12, MUTED),
+    meta = t["metadata_field_differences"]
+    e += [text(50, 424, f'Structures: {meta["structures"]} differences · ordered marks: {meta["postprocessing"]}', 12, MUTED),
           text(525, 125, "HISTORICAL / 2026-10-02 REGION SAMPLE", 12, BLUE, 600, extra='letter-spacing=".7"')]
     for i, row in enumerate(historical["samples"]):
         y = 163 + i * 72
@@ -126,11 +130,12 @@ def accuracy(checkpoint, historical):
           text(525, 421, "Includes air. Older executable + unmatched capture history.", 12, MUTED),
           rect(30, 466, 940, 93, "#272536", 12, "#5c4d39"),
           text(50, 493, "What is still different?", 16, AMBER, 650),
-          text(50, 518, f'{t["metadata_field_differences"]["block_entity_payloads"]} deferred-NBT field differences · {t["wg_presence_differences"]} WG-presence differences across repeated snapshots.', 13, MUTED),
-          text(50, 541, "SPAWN / FULL conversion, ticking, other features and dimensions remain incomplete.", 13, MUTED),
+           text(50, 518, f'{meta["block_entity_payloads"]} NBT field differences · {t["wg_presence_differences"]} WG-presence differences across repeated snapshots.', 13, MUTED),
+           text(50, 541, "Ticket-driven FULL conversion, ticking, other features and dimensions remain incomplete.", 13, MUTED),
           text(36, 589, "These are different evaluation scopes — neither is a percentage of the whole generator implemented.", 12, MUTED)]
     return document(614, "BCore generation accuracy and remaining differences",
-                    f'{n} matching block and biome snapshots. {t["light_scored_requests"]} scored light snapshots match. '
+                     f'{categories[0][1]}/{n} matching block snapshots and {categories[1][1]}/{n} biome snapshots. '
+                     f'{categories[3][1]}/{categories[3][2]} scored light snapshots match. '
                     f'Historical three-region block match {matches / total:.2%}. '
                     f'{t["metadata_field_differences"]["block_entity_payloads"]} NBT field and {t["wg_presence_differences"]} WG-presence differences remain.', e)
 
@@ -138,21 +143,25 @@ def accuracy(checkpoint, historical):
 def fixes(checkpoint):
     e = [text(36, 43, "From witness to fix", 27, FG, 650),
          text(36, 70, "Same request histories before and after the integration fixes.", 14, MUTED)]
+    labels = {"fossil-history-native-01": ("Fossils / feature boundaries", "Shared RNG, templates and cross-chunk shapes"),
+              "fossil-full-native-01": ("Fossils / FULL requests", "Repeated and adjacent native requests"),
+              "desert-pyramid-history-01": ("Desert pyramids", "Native geometry, cellar and archaeology")}
+    description = []
     for i, row in enumerate(checkpoint["before_after"]):
-        x = 30 + i * 479
-        title = "Trial chambers" if row["history"].startswith("trial-") else "Jungle / scattered adjacency"
-        detail = "Decorated-pot handoff restores the ore stream" if i == 0 else "Native stair + bamboo edge callbacks"
-        e += [rect(x, 94, 461, 155), text(x + 20, 122, title, 18, FG, 600),
-              text(x + 20, 145, detail, 12, MUTED),
-              text(x + 23, 205, str(row["before_state_differences"]), 43, AMBER, 650),
-              text(x + 135, 198, "→", 30, MUTED),
-              text(x + 188, 205, str(row["after_state_differences"]), 43, TEAL, 650),
-              text(x + 253, 186, "state differences", 13),
-              text(x + 253, 209, f'across {row["requests"]} requests', 12, MUTED),
-              text(x + 23, 230, "BEFORE", 10, MUTED, 600), text(x + 188, 230, "AFTER", 10, MUTED, 600)]
-    e += [text(36, 280, "Counts sum request snapshots, including repeats; they are not counts of unique world positions.", 12, MUTED)]
-    return document(304, "Native-history regression fixes",
-                    "Trial: 36 to zero state differences across eight requests. Scattered adjacency: 450 to zero across twelve requests.", e)
+        x, y = 30, 94 + i * 119
+        title, detail = labels.get(row["history"], (row["history"], "Matched native request history"))
+        before, after = row["before_state_differences"], row["after_state_differences"]
+        e += [rect(x, y, 940, 103), text(x + 20, y + 30, title, 18, FG, 600),
+              text(x + 20, y + 56, detail, 12, MUTED),
+              text(x + 20, y + 82, f'{row["requests"]} requests · repeated snapshots included', 12, MUTED),
+              text(680, y + 56, f"{before:,}", 38, AMBER, 650, "end"),
+              text(722, y + 51, "→", 27, MUTED, anchor="middle"),
+              text(768, y + 56, f"{after:,}", 38, TEAL, 650),
+              text(786, y + 83, "state differences", 12, MUTED, anchor="middle")]
+        description.append(f"{title}: {before} to {after} across {row['requests']} requests")
+    footer = 108 + len(checkpoint["before_after"]) * 119
+    e += [text(36, footer, "Counts sum request snapshots; they are not counts of unique world positions or overall completion.", 12, MUTED)]
+    return document(footer + 24, "Native-history regression fixes", "; ".join(description), e)
 
 
 def nice_max(value):
@@ -209,7 +218,7 @@ def performance(data):
 def pipeline():
     names = [("EMPTY", "ready"), ("STARTS", "partial"), ("REFS", "partial"), ("BIOMES", "ready"),
              ("NOISE", "ready"), ("SURFACE", "ready"), ("CARVERS", "ready"), ("FEATURES", "partial"),
-             ("INIT LIGHT", "ready"), ("LIGHT", "ready"), ("SPAWN", "next"), ("FULL", "next")]
+              ("INIT LIGHT", "ready"), ("LIGHT", "ready"), ("SPAWN", "partial"), ("FULL", "next")]
     e = [text(36, 44, "Runtime generation path", 27, FG, 650),
          text(36, 71, "Implementation coverage by stage. Earlier omissions still keep overall requests partial.", 13, MUTED),
          line(52, 120, 948, 120, LINE, 3)]
@@ -221,8 +230,8 @@ def pipeline():
               text(round(x, 2), 153, label, 10, color, 600, "middle")]
     e += [text(36, 191, "● Implemented", 12, TEAL), text(202, 191, "● Partial families / callbacks", 12, AMBER),
           text(474, 191, "● Pending runtime integration", 12, MUTED),
-          text(36, 221, "SPAWN component: all 19 overworld CREATURE finalizers tested. World, storage and network hookup is next.", 12, MUTED)]
-    return document(246, "BCore runtime generation-stage coverage", "Through LIGHT is integrated, with partial structure and feature coverage. SPAWN and FULL runtime integration remain pending.", e)
+           text(36, 221, "SPAWN runs with explicit inputs; 456 native mob saves verify LOAD, storage and pairing. Live clock hookup remains.", 12, MUTED)]
+    return document(246, "BCore runtime generation-stage coverage", "Through SPAWN is integrated with partial coverage. Live clock hookup, FULL conversion and ticket-driven lifecycle remain incomplete.", e)
 
 
 def import_benchmark(path):

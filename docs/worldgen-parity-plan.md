@@ -46,7 +46,7 @@ and monster rooms (dungeons). Nether and End require their own coverage.
 | Additional configured trees | 688 native cases / 24 variants on both RNG backends; mangrove roots, ordered writes, effects and RNG; 4 native tree-bin traces / 1,152 operations; fresh fixture/catalog verification | Natural pale-oak callbacks, huge mushrooms, contextual edge effects and identical-hash Java identity ties |
 | Cave support shapes | Glow-lichen attachment reuses proven multiface masks: 65 cache-null states / 195 native observations; 10 cave and 6 sculk tests passed | 114 contextual states remain unsupported; broader native mixed-feature regions |
 | Density-cache lifetime | Fixed graph/context per Rayon job; 4 terrain regressions, 24,576 exact density samples, cold-column equality and worker/unwind cleanup; measured 7×7 workload 127.61→44.56 s with unchanged result hashes (baseline contended) | Controlled wider scaling/peak-memory measurements and complete stage/source history comparisons |
-| Generated-effect persistence | Shared in-memory ownership and `.bcc` v4; native hive data, typed sculk defaults across 106 compatible states, duplicate marks/ticks and queued-load checks | Persisting the holder graph and unreturned neighbours; mutable block-entity gameplay |
+| Generated-effect persistence | Shared in-memory ownership and `.bcc` v5 (reads v1–v5); pending typed NBT, lazy materialization, native hive data, sculk across 106 states, duplicate marks/ticks | Ticket-driven FULL boundary; persisting holders and unreturned neighbours; gameplay |
 | Tick containers | 22 native traces, 4 preparations, 24 conversions, 81 comparator pairs, 12 filters and 11 priority cases; 8 Rust tests | Production handoff from raw requests, world clock/sub-order allocation, cross-chunk dispatch and block/fluid callbacks |
 | Fallen trees | 655 native cases through live FeatureRegion (645 writable + 10 fault-injected), original ten preserved; both RNG backends, owning-chunk marks/flags and 89,619 UP/FULL queries; live driver hookup | Native multi-source integration parity and tick execution |
 | Historical vegetation fixtures | 37 isolated standing-tree cases and 504 bounded placement-driver cases preserved alongside the 655 fallen cases | These older scopes do not establish full native source scheduling |
@@ -57,7 +57,9 @@ and monster rooms (dungeons). Nether and End require their own coverage.
 | Other structures | Runtime villages/cities/trail ruins/trial chambers, terrain adaptation and typed template data; 672 alias resolutions; scattered treasure/hut/temple starts, references, clipping and 107 native piece-storage snapshots | Remaining families, village/hut entity factories/finalization, wider mixed-feature histories and unsupported processors |
 | Lighting | Real INITIALIZE_LIGHT/LIGHT and ordered later-source updates; 18 native light tests, 19 packet cases, lazy/materialized/absent storage and BCC round trips | Broader mixed-feature histories, FULL/loading lifecycle and contextual callbacks |
 | Structure/feature handoffs | Native decorated-pot handoff fixed; 58 stair types / 10,212 updates and 9,360 bamboo updates independently repeated, including read/tick ordering | Remaining contextual block callbacks and broader cross-source coverage |
-| Natural mob generation | Component covers all 19 overworld CREATURE finalizers; 14 tests, 12 actual SPAWN entry executions / 29 entities, independent entity entropy and region RNG | Runtime environment, game clock/entropy, generated-entity persistence and protocol hookup |
+| Fossils | 16 native templates, 76 component cases and real cross-chunk feature/FULL histories; shared RNG, shape callbacks and retained WG maps | Wider terrain/history coverage and remaining configured features |
+| Desert pyramids | 62 admissions, 137 native placement passes, 98 reference comparisons; geometry, cellar, archaeology and BCC persistence | FULL/ticking lifecycle and wider structure mixtures |
+| Natural mob generation | Retained SPAWN with independent entity entropy/region RNG; 456 native proto-save→LOAD→pairing cases across 19 CREATURE types, BCC and queued delivery | Live server clock/settings hookup, generic structure entities and ticking simulation |
 | Nether / End | No full-generation parity evidence | Dedicated pipelines, features, structures and fixtures |
 
 The **2026-10-02 shared-context snapshot** records **92,242 / 96,618 / 97,187**
@@ -69,11 +71,12 @@ The [parity report](parity-report.md) retains binary/capture provenance, source
 coverage and the historical **97.20%** result. The numerical-phase **123 / 2**
 worldgen and pre-streaming **178-pass** protocol totals are historical checkpoints.
 
-The latest complete release verification passed **628 tests, with 0 failures and
+The previous complete release verification passed **628 tests, with 0 failures and
 4 ignored** (371 worldgen / 248 protocol). The final frozen binary also matched
 blocks, biomes, source order and scored light in **69 requests across 11 native
 histories**. See the current [native-history report](parity-report.md#native-history-integration--2026-10-04)
-for deferred-NBT, WG/FULL and other incomplete lifecycle work.
+for that checkpoint. The [October 7 milestone](generation-milestone-2026-10-07.md)
+records the subsequent fossil/pyramid/deferred-NBT repairs and combined validation.
 
 The earlier **2026-10-02 workspace release run passed 514 tests, with 0 failures
 and 4 ignored**, including **271 worldgen / 234 protocol** passes. It completed
@@ -83,7 +86,7 @@ command and saved logs are recorded in the parity report's regression section.
 The earlier live integration passed **7 base-feature tests, 10 generation tests and 17
 targeted protocol tests**, including actual generated sculk/marks, all 106 native
 sculk-compatible states, and shared queued generation across world clones. Current
-generation executes lighting; SPAWN and FULL remain pending. The [October 4 native
+generation at that checkpoint executed lighting; SPAWN and FULL remained pending. The [October 4 native
 history report](parity-report.md#native-history-integration--2026-10-04) records newer
 matched-history results and the remaining deferred-NBT/WG lifetime differences.
 
@@ -109,7 +112,7 @@ Production carvers use the real surface resolver and required
 retain their narrower scope. Queue routing now retains the requesting world.
 The source driver now uses a world-scoped `FeatureRegion`, native decoration indices
 and shared RNG state. Server `World` and the multi-coordinate diagnostic retain the
-same context across requests. Owning-chunk data survives `.bcc` v4, including sculk
+same context across requests. Owning-chunk data survives `.bcc` v5, including sculk
 NBT and unconsumed marks. Persisted holder/loading integration, native schedule
 traces, remaining features/structures and runtime tick execution are still pending.
 

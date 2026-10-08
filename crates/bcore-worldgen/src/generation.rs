@@ -14,6 +14,7 @@ pub mod graph;
 mod light;
 mod placed;
 mod scattered;
+mod spawn;
 mod structures;
 mod terrain;
 mod tree_world;
@@ -24,6 +25,7 @@ pub use diagnostics::FeatureTrace;
 pub(crate) use effects::sculk_block_entity;
 pub use effects::{FeatureBlockEntity, StructureEntityRequest};
 pub use graph::{ChunkPyramid, ChunkStatus};
+pub use spawn::{SpawnInputs, SpawnSettings, WorldSpawnInputs};
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::panic::{catch_unwind, AssertUnwindSafe};
@@ -92,10 +94,16 @@ impl std::fmt::Debug for GenerationWorld {
 
 impl GenerationWorld {
     pub fn new(seed: i64) -> Self {
+        Self::with_spawn_inputs(seed, Arc::new(WorldSpawnInputs::default()))
+    }
+
+    pub fn with_spawn_inputs(seed: i64, inputs: Arc<dyn SpawnInputs>) -> Self {
         let generator = WorldGenerator::new(seed);
+        let mut state = GenerationState::new(generator);
+        state.spawn_inputs = inputs;
         Self {
             generator,
-            state: Mutex::new(GenerationState::new(generator)),
+            state: Mutex::new(state),
         }
     }
 
@@ -147,6 +155,7 @@ struct ChunkHolder {
     progress: ChunkProgress,
     structures: StructureData,
     features: Option<SourceFeatureCoverage>,
+    spawn: Option<crate::spawn::SpawnReport>,
     failure: Option<GenerationError>,
     /// Failed validation must not discard effects or contaminate another source.
     pending_tree_effects: crate::tree::standing::TreeEffects,
@@ -161,6 +170,7 @@ impl ChunkHolder {
             },
             structures: StructureData::default(),
             features: None,
+            spawn: None,
             failure: None,
             pending_tree_effects: Default::default(),
         }
@@ -174,6 +184,7 @@ struct GenerationState {
     graph: Option<Arc<crate::VanillaGraph>>,
     light: crate::lighting::GenerationLight,
     light_missing: Option<String>,
+    spawn_inputs: Arc<dyn SpawnInputs>,
     #[cfg(feature = "diagnostics")]
     feature_trace: diagnostics::FeatureTraceState,
     #[cfg(test)]
@@ -189,6 +200,7 @@ impl GenerationState {
             graph: None,
             light: crate::lighting::GenerationLight::default(),
             light_missing: None,
+            spawn_inputs: Arc::new(WorldSpawnInputs::default()),
             #[cfg(feature = "diagnostics")]
             feature_trace: Default::default(),
             #[cfg(test)]
@@ -207,7 +219,7 @@ impl GenerationState {
             let Some(radius) = step.layer_radius(status) else {
                 continue;
             };
-            if status > ChunkStatus::Light {
+            if status > ChunkStatus::Spawn {
                 continue;
             }
             for source in layer_positions(pos, radius) {
@@ -218,6 +230,17 @@ impl GenerationState {
         let structures = self.holders[&(pos.x, pos.z)].structures.clone();
         let chunk = self.region.owned_chunk_mut(pos);
         chunk.structures = structures;
+        if target == ChunkStatus::Full {
+            // Execute the verified BE-only boundary. Native FULL conversion
+            // (including ticks, postprocessing and WG retirement) remains pending.
+            chunk
+                .materialize_block_entities()
+                .map_err(|error| GenerationError::StageFailed {
+                    pos,
+                    status: ChunkStatus::Full,
+                    detail: format!("block-entity materialization: {error}"),
+                })?;
+        }
         Ok(GenerationResult {
             chunk: chunk.clone(),
             coverage,
@@ -252,7 +275,7 @@ impl GenerationState {
 
         let result = catch_unwind(AssertUnwindSafe(|| {
             self.validate_dependencies(pos, status)?;
-            if status == ChunkStatus::Features {
+            if matches!(status, ChunkStatus::Features | ChunkStatus::Spawn) {
                 let available = self
                     .holders
                     .iter()
@@ -302,6 +325,9 @@ impl GenerationState {
                     result = Err(error);
                 }
             }
+        }
+        if status == ChunkStatus::Spawn {
+            self.region.end_source();
         }
         let holder = self.holders.get_mut(&key).unwrap();
         let progress = &mut holder.progress.stages[status.index()];
@@ -362,7 +388,10 @@ impl GenerationState {
         }
         use ChunkStatus::*;
         let key = (pos.x, pos.z);
-        let graph = if matches!(status, StructureStarts | Biomes | Noise | Surface | Carvers) {
+        let graph = if matches!(
+            status,
+            StructureStarts | Biomes | Noise | Surface | Carvers | Spawn
+        ) {
             Some(
                 self.graph
                     .get_or_insert_with(|| {
@@ -459,6 +488,11 @@ impl GenerationState {
             }
             InitializeLight => self.initialize_light(pos),
             Light => self.propagate_light(pos),
+            Spawn => self.spawn_source(
+                generator,
+                pos,
+                graph.as_ref().unwrap().disable_mob_generation,
+            ),
             _ => Err(format!("no generation implementation for {status}")),
         }
     }
@@ -501,10 +535,10 @@ impl GenerationState {
                     }
                 }
             }
-            if status > ChunkStatus::Light {
+            if status > ChunkStatus::Spawn {
                 missing_stages.insert(MissingStage {
                     status,
-                    reason: "Native stage has not been implemented or executed".into(),
+                    reason: "Native FULL conversion, postprocessing and tick-container lifecycle remain pending; only the supported block-entity materialization boundary is executed".into(),
                 });
             }
             layers.push(layer);

@@ -396,7 +396,7 @@ impl PlayerView {
             write_packet(&mut buf, CB_CHUNK_BATCH_FINISHED, &size);
             for (_, chunk) in &batch {
                 for entity in chunk.entities.iter() {
-                    buf.extend_from_slice(&entity.spawn_packet());
+                    buf.extend_from_slice(&entity.pairing_packets()?);
                 }
             }
         }

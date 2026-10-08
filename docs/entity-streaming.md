@@ -1,6 +1,6 @@
 # Generated-entity streaming (26.1)
 
-Generated chest minecarts now stream with their owning chunks on protocol **775**.
+Generated chest minecarts and generation creatures stream with their owning chunks on protocol **775**.
 The implemented scope is static, immutable **GENERATED / pre-gameplay** entities:
 initial placement and loot data, reconstructed identity, spawn delivery and
 removal as a player's chunk view changes.
@@ -16,22 +16,45 @@ pre-gameplay data independently of entity UUIDs.
 
 `ChunkColumn` retains the ordered generated-entity rows. Their kind, owning-chunk
 position and loot seed use the layout introduced in `.bcc` v3, alongside block
-entities and structure metadata. The current writer emits **v4** and the reader
-accepts **v1–v4**. V4 adds [hive occupants and deferred tick requests](tree-effects.md)
-while retaining the v3 entity layout. Streaming adds no persisted UUID or runtime-ID
-field.
+entities and structure metadata. The current writer emits **v5** and the reader
+accepts **v1–v5**. V4 adds [hive occupants and deferred tick requests](tree-effects.md);
+v5 adds pending block-entity data. The v3 minecart record layout is retained.
+Generation mobs use entity kind `2`: a length-prefixed physical typed-NBT JSON save
+containing native UUID, actual double-precision position and float rotation.
+Runtime entity IDs are never persisted.
 
 `TrackedEntity` in `crates/bcore-protocol/src/entity.rs` supplies two identities:
 
 - **Runtime ID:** a process-wide atomic allocator starts at **393**, reserving
   **392** for the local player. An ID remains shared while its entity record has
   an owner. Reconstructing a record after all owners release it allocates a new ID.
-- **UUID:** the first 16 bytes of a domain-separated SHA-256 hash, with UUIDv8 and
+- **Minecart UUID:** the first 16 bytes of a domain-separated SHA-256 hash, with UUIDv8 and
   variant bits set. Inputs are the world seed, owning chunk coordinates, row
   ordinal, native entity type, initial block position and loot seed. This never
   consumes placement RNG. Identical rows at different ordinals have distinct
   identities; unchanged ordered rows and the same seed reconstruct the same UUID
   after reload or recreation.
+- **Mob UUID:** the native UUID retained in its saved proto NBT, originally drawn
+  from independent entity entropy. It is not reconstructed from the world seed,
+  chunk coordinates or row ordinal.
+
+### Saved generation mobs and native LOAD
+
+`GeneratedMob` stores the finalized native proto save. `LoadedGeneratedMob` derives
+initial loaded state and emits spawn → nondefault metadata → instantiated syncable
+attributes → nonempty equipment. The 456 independently repeated native handoffs
+cover all 19 overworld CREATURE types. Native identity-keyed attribute iteration is
+compared by resource identity, while each snapshot's codec bytes remain exact.
+
+LOAD preserves UUID and body rotation, clamps health against loaded max health and
+initializes the wolf max-health attribute. Goat head yaw is clamped before body
+rotation is restored. Constructor RNG/sensor state is not falsely persisted as
+part of the proto save. The pairing implementation covers fresh generation data;
+generic mutable entities, equipment components and gameplay remain separate work.
+
+Queued delivery tests cover saved UUIDs, shared viewers, cache eviction, reload,
+transfer tokens, failed writes and removal. World clocks/settings are injectable
+at the generation boundary; their live server updates are not yet connected.
 
 This identity contract depends on immutable initial data and row order. Generic
 persistent mutable-entity NBT identity, movement between chunks, changed inventory

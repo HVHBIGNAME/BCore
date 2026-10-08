@@ -129,8 +129,12 @@ fn all_native_room_entities_keep_update_nbt_and_persisted_data() {
                 varint(&mut packet),
                 native["type"].as_u64().unwrap() as usize
             );
-            assert_eq!(take(&mut packet, 1), [10]);
-            assert_eq!(read_compound(&mut packet), native["update"]);
+            if native["update"].as_object().unwrap().is_empty() {
+                assert_eq!(take(&mut packet, 1), [0], "native chunk packet null update");
+            } else {
+                assert_eq!(take(&mut packet, 1), [10]);
+                assert_eq!(read_compound(&mut packet), native["update"]);
+            }
             column.set(lx, y, lz, 0);
             assert!(
                 column.block_entities().is_empty(),

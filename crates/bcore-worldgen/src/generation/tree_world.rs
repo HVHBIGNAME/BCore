@@ -157,6 +157,20 @@ struct TreeWorld<'a> {
     effects: SharedTreeEffects,
 }
 
+pub(super) fn update_template_shapes(
+    world: &mut dyn FeatureWorld,
+    effects: SharedTreeEffects,
+    positions: &[Pos],
+    flags: i32,
+) -> Result<(), FeatureError> {
+    crate::tree::standing::update_template_shapes(
+        &mut TreeWorld { world, effects },
+        positions,
+        flags,
+    )
+    .map_err(|error| FeatureError::Unsupported(error.to_string()))
+}
+
 impl FallenTreeWorld for TreeWorld<'_> {
     fn get_block(&self, pos: Pos) -> u32 {
         self.world.get_block(pos).expect("guarded tree block read")

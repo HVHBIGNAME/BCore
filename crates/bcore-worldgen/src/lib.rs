@@ -30,6 +30,7 @@ pub mod dungeon;
 pub mod feature_sorter;
 pub mod feature_world;
 pub mod features;
+mod fossil;
 pub mod generated_entity;
 pub mod generation;
 pub mod geode;
@@ -315,6 +316,8 @@ pub struct GeneratedChunk {
     block_entities: std::collections::BTreeMap<(usize, i32, usize), block_entity::BlockEntity>,
     feature_block_entities:
         std::collections::BTreeMap<(usize, i32, usize), generation::FeatureBlockEntity>,
+    pending_block_entities:
+        std::collections::BTreeMap<(usize, i32, usize), block_entity::PendingBlockEntity>,
     entities: Vec<generated_entity::GeneratedEntity>,
     structure_entities: Vec<generation::StructureEntityRequest>,
     structures: structure::mineshaft::region::StructureData,
@@ -348,6 +351,7 @@ impl GeneratedChunk {
             light: None,
             block_entities: std::collections::BTreeMap::new(),
             feature_block_entities: std::collections::BTreeMap::new(),
+            pending_block_entities: std::collections::BTreeMap::new(),
             entities: Vec::new(),
             structure_entities: Vec::new(),
             structures: Default::default(),
@@ -393,6 +397,11 @@ impl GeneratedChunk {
                 {
                     self.feature_block_entities.remove(&(x, y, z));
                 }
+                if self.pending_block_entities.contains_key(&(x, y, z))
+                    && !block_entity::has_block_entity(state)
+                {
+                    self.pending_block_entities.remove(&(x, y, z));
+                }
                 true
             }
             None => false,
@@ -410,11 +419,18 @@ impl GeneratedChunk {
         &self.block_entities
     }
 
-    /// Generated typed entities (currently sculk) in addition to `block_entities`.
+    /// Materialized typed entities in addition to `block_entities`.
     pub fn feature_block_entities(
         &self,
     ) -> &std::collections::BTreeMap<(usize, i32, usize), generation::FeatureBlockEntity> {
         &self.feature_block_entities
+    }
+
+    /// Saved proto tags awaiting a lookup. Reading or saving these is inert.
+    pub fn pending_block_entities(
+        &self,
+    ) -> &std::collections::BTreeMap<(usize, i32, usize), block_entity::PendingBlockEntity> {
+        &self.pending_block_entities
     }
 
     /// Attach generated data only to a compatible block in this chunk.
@@ -431,6 +447,8 @@ impl GeneratedChunk {
         {
             return false;
         }
+        self.pending_block_entities.remove(&(x, y, z));
+        self.feature_block_entities.remove(&(x, y, z));
         self.block_entities.insert((x, y, z), data);
         true
     }
@@ -1442,6 +1460,7 @@ impl std::ops::Deref for VanillaGraph {
 
 pub(crate) struct VanillaGraphData {
     pub(crate) final_density: density::DensityFunction,
+    disable_mob_generation: bool,
     ore_veins: Option<ore_vein::VeinFunctions>,
     pub(crate) preliminary_surface_level: Option<density::DensityFunction>,
     // Exposed in the graph for cave probes and parity diagnostics.  These are
@@ -1547,6 +1566,7 @@ impl VanillaGraph {
             parameters,
             data: std::sync::Arc::new(VanillaGraphData {
                 final_density,
+                disable_mob_generation: settings_value["disable_mob_generation"].as_bool()?,
                 ore_veins: if settings_value["ore_veins_enabled"]
                     .as_bool()
                     .unwrap_or(false)

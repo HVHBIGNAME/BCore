@@ -74,7 +74,11 @@ fn assert_hive_packet(payload: &[u8], [x, y, z]: [i32; 3]) {
         y as i16
     );
     assert_eq!(varint(&mut input), 34);
-    assert_eq!(take(&mut input, 2), [10, 0], "bees are server-only data");
+    assert_eq!(
+        take(&mut input, 1),
+        [0],
+        "native chunk packet projects the empty hive update to null"
+    );
     for _ in 0..4 {
         let longs = varint(&mut input);
         take(&mut input, longs * 8);
@@ -125,7 +129,7 @@ fn native_beehives_keep_occupants_but_send_only_empty_updates() {
             continue;
         }
         let bytes = encode_chunk(x >> 4, z >> 4, &column);
-        assert_eq!(&bytes[..6], b"BCC1\x04\x00");
+        assert_eq!(&bytes[..6], b"BCC1\x05\x00");
         let (cx, cz, loaded) = decode_chunk_at(&bytes).unwrap();
         assert_eq!((cx, cz), (x >> 4, z >> 4));
         assert_eq!(loaded, column);
@@ -441,7 +445,7 @@ fn malformed_beehive_records_are_rejected() {
         Err(ChunkStoreError::InvalidBlockEntity)
     ));
 
-    for version in [0u16, 5] {
+    for version in [0u16, 6] {
         let mut invalid = bytes.clone();
         invalid[4..6].copy_from_slice(&version.to_le_bytes());
         rechecksum(&mut invalid);

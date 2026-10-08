@@ -365,6 +365,7 @@ fn assert_region_chunk(world: &World<'_>, record: &Value) {
             GeneratedEntity::ChestMinecart { loot_seed, .. } => {
                 json!({"pos": e.position(),"loot_seed": loot_seed})
             }
+            GeneratedEntity::Mob(_) => panic!("mineshaft placed a generation mob"),
         })
         .collect();
     assert_eq!(

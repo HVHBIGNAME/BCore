@@ -154,9 +154,9 @@
         `<div class="checkpoint-grid">` +
         `<div class="checkpoint-stat"><strong>${c.tests_passed}</strong><span>tests passed · ${c.tests_failed} failed · ${c.tests_ignored} ignored</span></div>` +
         `<div class="checkpoint-stat"><strong>${c.requests} / ${c.histories}</strong><span>native requests / matched histories</span></div>` +
-        `<div class="checkpoint-stat"><strong>${c.light_scored_requests}</strong><span>matching scored light snapshots</span></div></div>` +
-        `<p>Zero block-state, biome and source-order differences in these histories.</p>` +
-        `<p class="caveat">Full parity remains incomplete: ${c.remaining_nbt_field_differences} deferred-NBT field differences and ${c.remaining_wg_presence_differences} WG-presence differences remain across repeated snapshots. SPAWN/FULL runtime integration is next.</p>` +
+        `<div class="checkpoint-stat"><strong>${c.light_scored_requests - c.light_mismatching_requests}</strong><span>matching scored light snapshots</span></div></div>` +
+        `<p>Differences in these histories: ${c.state_differences} block states, ${c.biome_differences} biomes and ${c.source_order_differences} source-order entries.</p>` +
+        `<p class="caveat">Full parity remains incomplete: ${c.remaining_nbt_field_differences} NBT field differences and ${c.remaining_wg_presence_differences} WG-presence differences remain across repeated snapshots. Ticket-driven FULL conversion, ticking and remaining terrain families are next; live SPAWN clock/settings hookup is still pending.</p>` +
         `<p><a href="${escapeHtml(c.report)}">Detailed report</a> · <a href="${escapeHtml(c.data)}">Published evidence</a></p>`;
       container.appendChild(latest);
       const plots = document.createElement('section');

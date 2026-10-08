@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="246" viewBox="0 0 1000 246" role="img" aria-labelledby="title desc">
 <title id="title">BCore runtime generation-stage coverage</title>
-<desc id="desc">Through LIGHT is integrated, with partial structure and feature coverage. SPAWN and FULL runtime integration remain pending.</desc>
+<desc id="desc">Through SPAWN is integrated with partial coverage. Live clock hookup, FULL conversion and ticket-driven lifecycle remain incomplete.</desc>
 <defs><linearGradient id="background" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#13243a"/><stop offset="1" stop-color="#0b1220"/></linearGradient><pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32,0 H0 V32" fill="none" stroke="#547294" stroke-opacity=".12"/></pattern></defs>
 <g font-family="Segoe UI, Ubuntu, Arial, sans-serif">
 <rect x="1" y="1" width="998" height="244" rx="20" fill="url(#background)" stroke="#26374e" />
@@ -37,14 +37,14 @@
 <circle cx="785.05" cy="120" r="12" fill="#111e31" stroke="#50e3c2" stroke-width="2"/>
 <circle cx="785.05" cy="120" r="4" fill="#50e3c2"/>
 <text x="785.05" y="153" font-size="10" fill="#50e3c2" font-weight="600" text-anchor="middle" >LIGHT</text>
-<circle cx="866.50" cy="120" r="12" fill="#111e31" stroke="#a7bad2" stroke-width="2"/>
-<circle cx="866.50" cy="120" r="4" fill="#a7bad2"/>
-<text x="866.5" y="153" font-size="10" fill="#a7bad2" font-weight="600" text-anchor="middle" >SPAWN</text>
+<circle cx="866.50" cy="120" r="12" fill="#111e31" stroke="#f5c36c" stroke-width="2"/>
+<circle cx="866.50" cy="120" r="4" fill="#f5c36c"/>
+<text x="866.5" y="153" font-size="10" fill="#f5c36c" font-weight="600" text-anchor="middle" >SPAWN</text>
 <circle cx="947.95" cy="120" r="12" fill="#111e31" stroke="#a7bad2" stroke-width="2"/>
 <circle cx="947.95" cy="120" r="4" fill="#a7bad2"/>
 <text x="947.95" y="153" font-size="10" fill="#a7bad2" font-weight="600" text-anchor="middle" >FULL</text>
 <text x="36" y="191" font-size="12" fill="#50e3c2" font-weight="400" text-anchor="start" >● Implemented</text>
 <text x="202" y="191" font-size="12" fill="#f5c36c" font-weight="400" text-anchor="start" >● Partial families / callbacks</text>
 <text x="474" y="191" font-size="12" fill="#a7bad2" font-weight="400" text-anchor="start" >● Pending runtime integration</text>
-<text x="36" y="221" font-size="12" fill="#a7bad2" font-weight="400" text-anchor="start" >SPAWN component: all 19 overworld CREATURE finalizers tested. World, storage and network hookup is next.</text>
+<text x="36" y="221" font-size="12" fill="#a7bad2" font-weight="400" text-anchor="start" >SPAWN runs with explicit inputs; 456 native mob saves verify LOAD, storage and pairing. Live clock hookup remains.</text>
 </g></svg>

@@ -238,11 +238,14 @@ terrain reproduces the history of an already partially generated world.
   Admission maps BCore biome IDs to the native catalog by resource key; the
   independent wire/save registry is not used as a native numeric index.
 - Retained starts/references now cover mineshafts, villages, ancient cities, trail
-  ruins, trial chambers, buried treasure, swamp huts and jungle pyramids. All
+  ruins, trial chambers, buried treasure, swamp huts, jungle and desert pyramids. All
   structure types share the source RNG and use their native structure indices,
   before the separate placed-feature indices. Scattered piece flags and cached
   reference boxes survive movement, clipping and `.bcc` round trips. Template and
   hut entity requests remain explicit until their factories/finalizers execute.
+- Fossils use the native templates/processors and continuing feature RNG, including
+  shape completion between passes. Desert pyramids additionally consume the single
+  source-region RNG and separate positional archaeology streams.
 - BIOMES fills ascending sections in native X/Y/Z query order, independently of
   Y/Z/X palette storage. Each world's climate search keeps its own tie history.
 - INITIALIZE_LIGHT and LIGHT execute against shared native-style storage. Later
@@ -258,6 +261,12 @@ terrain reproduces the history of an already partially generated world.
   after a failed feature; failures retain their state and are not retried as fresh
   sources. The earlier `RegionPlan` and target-local helpers remain useful to
   isolated fixtures but are not the server's live generation context.
+- Proto block-entity writes install pending typed `DUMMY` tags. Explicit lookups
+  materialize those tags before loot/occupant callbacks; NBT-less template writes
+  do not eagerly create defaults. The v5 store preserves this pending/live boundary.
+- SPAWN uses retained biome/block/light storage, Legacy decoration RNG, a separate
+  region stream and independent entity entropy. Accepted saves are retained before
+  later callbacks run; partial/failing attempts are not retried as fresh spawns.
 - Server `World::chunk`, `World::generate`, queued jobs and world clones use one
   `GenerationWorld`. `World::try_generate` returns both a `ChunkColumn` and its
   `GenerationCoverage`; `generation_progress` exposes live claims. Persistence
@@ -270,17 +279,20 @@ terrain reproduces the history of an already partially generated world.
 
 ### Coverage is distinct from native completion
 
-The FULL request currently executes supported work through LIGHT in the native
+The FULL request currently executes supported work through SPAWN in the native
 FULL dependency envelope. `Partial` means a finished attempt with named omissions;
-it is not a completed native status. SPAWN and FULL remain pending. Structure
+it is not a completed native status. FULL remains pending. SPAWN's server-input
+API is implemented; live clock/settings updates still require hookup. Structure
 density adaptation and noise ore-vein filling are implemented; missing structure
 families and unsupported callbacks still appear in coverage.
 
 WG maps freeze after CARVERS and remain available to subsequent features. Native
 FULL conversion removes them. BCore retains them until that conversion is actually
-implemented, so their presence still differs on FULL requests. Native deferred
-`DUMMY` block-entity tags before materialization also remain observable differences;
-the comparator preserves them rather than treating eager defaults as equivalent.
+implemented, so their presence still differs on FULL requests. FULL-request
+snapshots explicitly materialize the target's block entities, but that BE-only
+boundary does not complete FULL. Pending `DUMMY` tags remain observable beforehand.
+The LIGHT-history's final read follows an implicit native FULL completion, exposing
+36 BE fields until BCore implements the real ticket-driven lifecycle transition.
 
 `incoming_sources_finished` means all possible direct incoming writers have finished
 their supported attempts. It does not mean all features, lighting or native ticking

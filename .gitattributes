@@ -1,0 +1,7 @@
+# Native probe sources are byte-hashed by the reference fixtures.
+# Keep checkout bytes stable on Windows and Linux without changing git config.
+*.java text eol=lf
+*.py text eol=lf
+*.rs text eol=lf
+*.json text eol=lf
+*.zip binary

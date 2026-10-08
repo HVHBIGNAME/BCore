@@ -10,6 +10,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -40,13 +41,33 @@ def replay(directory):
             raise ValueError("reused binary identity changed")
     if build.get("build_returncode") != 0:
         raise ValueError(f"replay lacks a successful build: {directory}")
+    build_directory = Path(provenance.get("reused_build", directory))
+    source_archive = build_directory / "source.zip"
+    if sha(source_archive) != build["source_zip_sha256"]:
+        raise ValueError("frozen source archive differs from recorded build")
+    with zipfile.ZipFile(source_archive) as archive:
+        actual = {name: hashlib.sha256(archive.read(name)).hexdigest() for name in archive.namelist()}
+    if actual != build["source_sha256"]:
+        raise ValueError("frozen source manifest differs from archive contents")
     if sha(Path(provenance["run_command"][0])) != provenance["binary_sha256"]:
         raise ValueError("frozen replay executable differs from recorded binary")
     if sha(directory / "chunks.jsonl") != data["rust_output_sha256"]:
         raise ValueError("replay output differs from scored comparison")
+    if data["rust_output_sha256"] != provenance["result_sha256"]:
+        raise ValueError("scored output differs from the recorded replay result")
+    if data["native_provenance_sha256"] != provenance["native_provenance_sha256"]:
+        raise ValueError("comparison and replay refer to different native captures")
+    capture = Path(data["capture"])
+    if not capture.is_absolute():
+        # Worker captures record paths relative to their own worktree, not main.
+        worktree = next(parent for parent in directory.resolve().parents if (parent / ".git").exists())
+        capture = worktree / capture
+    if sha(capture / "provenance.json") != data["native_provenance_sha256"]:
+        raise ValueError("native capture provenance differs from the scored comparison")
     result = {"name": Path(data["capture"].replace("\\", "/")).name,
               "comparison": relative(path), "comparison_sha256": sha(path),
               "binary_sha256": provenance["binary_sha256"],
+              "source_zip_sha256": build["source_zip_sha256"],
               "native_provenance_sha256": data["native_provenance_sha256"],
               "comparator_sha256": data["comparator_sha256"], "requests": []}
     for row in data["requests"]:
@@ -78,6 +99,8 @@ def main():
     status = read(args.tests)
     if status.get("state") != "finished" or status.get("exit_code") != 0:
         raise ValueError("only a completed successful workspace run can be published")
+    if status["command"][:2] != ["cargo", "test"] or "--workspace" not in status["command"]:
+        raise ValueError("the test checkpoint must be a workspace test run")
     log = args.tests.with_suffix(".log")
     text = log.read_text(encoding="utf-8", errors="replace")
     summaries = re.findall(r"test result: (ok|FAILED)\. (\d+) passed; (\d+) failed; (\d+) ignored", text)
@@ -95,6 +118,8 @@ def main():
     histories.extend(map(replay, args.replay))
     if len({h["name"] for h in histories}) != len(histories):
         raise ValueError("duplicate replay history")
+    if len({h["binary_sha256"] for h in histories}) != 1:
+        raise ValueError("the combined checkpoint must use one frozen executable")
     rows = [row for history in histories for row in history["requests"]]
     totals = {"histories": len(histories), "requests": len(rows),
               "complete_requests": sum(r["complete"] for r in rows),
@@ -115,6 +140,8 @@ def main():
         specs = lambda history: [(r["chunk"], r["status"]) for r in history["requests"]]
         if specs(before) != specs(after):
             raise ValueError("before/after must compare the same native request history")
+        if before["native_provenance_sha256"] != after["native_provenance_sha256"]:
+            raise ValueError("before/after must use the identical native capture")
         before_after.append({"history": before["name"], "requests": len(before["requests"]),
                              "before_state_differences": sum(r["states"]["mismatches"] for r in before["requests"]),
                              "after_state_differences": sum(r["states"]["mismatches"] for r in after["requests"]),
@@ -123,7 +150,7 @@ def main():
     result = {"schema": 1, "published_date": dt.datetime.now(dt.timezone.utc).date().isoformat(),
               "minecraft": "26.1", "protocol": 775, "tests": tests, "totals": totals,
               "scope": "Matched bootstrap/request/source histories. Counts include repeated snapshots and air; they are not a percentage of all generator features implemented.",
-              "remaining": ["SPAWN runtime integration", "FULL conversion", "deferred DUMMY block-entity materialization",
+              "remaining": ["live server clock/settings hookup for SPAWN", "FULL conversion and ticket-driven completion",
                             "WG heightmap lifetime after FULL", "tick-container lifecycle", "other structures/features",
                             "saved-holder hydration", "Nether/End pipelines"],
               "histories": histories, "before_after": before_after}

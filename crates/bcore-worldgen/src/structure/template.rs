@@ -644,7 +644,7 @@ impl BlockRegistry {
     pub(crate) fn new(
         rows: Vec<StateRow>,
         defaults: BTreeMap<String, u32>,
-        block_entities: BTreeMap<String, BlockEntityType>,
+        mut block_entities: BTreeMap<String, BlockEntityType>,
         water_fluid_id: u32,
     ) -> Result<Self> {
         let count = rows.len() as u32;
@@ -652,6 +652,44 @@ impl BlockRegistry {
             if row.0 != i as u32 || row.2.iter().chain(&row.3).any(|v| *v >= count) {
                 return Err(invalid("non-dense or invalid block-state registry"));
             }
+        }
+        // The original structure-only asset capture did not contain hive
+        // factories. Both blocks use this native empty hive payload, verified
+        // independently in deferred_block_entities_26_1_v1.json. Position and id
+        // metadata are attached by TemplateBlockEntity::full_data below.
+        for name in ["minecraft:bee_nest", "minecraft:beehive"] {
+            if defaults.contains_key(name) {
+                block_entities
+                    .entry(name.into())
+                    .or_insert_with(|| BlockEntityType {
+                        type_id: 34,
+                        id: "minecraft:beehive".into(),
+                        randomizable: false,
+                        nbt: Nbt::Compound(BTreeMap::from([
+                            ("components".into(), Nbt::empty_compound()),
+                            (
+                                "bees".into(),
+                                Nbt::List {
+                                    element_type: 0,
+                                    values: Vec::new(),
+                                },
+                            ),
+                        ])),
+                    });
+            }
+        }
+        if defaults.contains_key("minecraft:comparator") {
+            block_entities
+                .entry("minecraft:comparator".into())
+                .or_insert_with(|| BlockEntityType {
+                    type_id: 19,
+                    id: "minecraft:comparator".into(),
+                    randomizable: false,
+                    nbt: Nbt::Compound(BTreeMap::from([
+                        ("components".into(), Nbt::empty_compound()),
+                        ("OutputSignal".into(), Nbt::Int(0)),
+                    ])),
+                });
         }
         let states = rows.iter().map(|r| (r.1.clone(), r.0)).collect();
         Ok(Self {
@@ -1122,6 +1160,7 @@ pub struct TemplateEntity {
 #[derive(Debug, Clone)]
 pub enum TemplateEffect {
     ClearBlockEntity(Pos),
+    /// Native getBlockEntity/loadWithComponents, not a bare block write.
     BlockEntity(TemplateBlockEntity),
     Entity(TemplateEntity),
 }
@@ -1138,6 +1177,9 @@ pub struct PlacementResult {
     /// Native success means a usable template, even if every block was clipped.
     pub placed: bool,
     pub blocks_written: usize,
+    /// Materializable data for component observers. A block with no saved NBT
+    /// has factory defaults here, but remains pending in a proto region until
+    /// looked up; only BlockEntity effects request runtime installation.
     pub block_entities: BTreeMap<Pos, TemplateBlockEntity>,
     pub cleared_block_entities: BTreeSet<Pos>,
     pub entities: Vec<TemplateEntity>,
@@ -1387,7 +1429,9 @@ impl StructureTemplate {
                 (0, false)
             };
             let state = registry.transform(info.state, settings.mirror, settings.rotation)?;
-            if registry.flags(previous)? & 8 != 0 {
+            if registry.flags(previous)? & 8 != 0
+                && (info.nbt.is_some() || registry.flags(state)? & 8 == 0)
+            {
                 result.cleared_block_entities.insert(pos);
                 result.block_entities.remove(&pos);
                 effects(world, TemplateEffect::ClearBlockEntity(pos))?;
@@ -1412,9 +1456,12 @@ impl StructureTemplate {
                         .compound_mut()?
                         .insert("LootTableSeed".into(), Nbt::Long(random.next_long()));
                 }
+                let has_load_data = info.nbt.is_some();
                 let load_data = info.nbt.unwrap_or_else(Nbt::empty_compound);
                 let entity = TemplateBlockEntity::from_load(registry, state, pos, load_data)?;
-                effects(world, TemplateEffect::BlockEntity(entity.clone()))?;
+                if has_load_data {
+                    effects(world, TemplateEffect::BlockEntity(entity.clone()))?;
+                }
                 result.block_entities.insert(pos, entity);
             }
             if settings.apply_waterlogging {

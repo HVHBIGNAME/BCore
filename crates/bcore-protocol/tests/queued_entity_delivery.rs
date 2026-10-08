@@ -200,7 +200,7 @@ fn queued_persisted_carts_keep_identity_through_handoff_and_unload() {
         for ((x, z), column) in [(CART_CHUNK, column), (EXIT_CHUNK, &empty)] {
             store.save(x, z, column).unwrap();
             let saved = fs::read(store.chunk_path(x, z)).unwrap();
-            assert_eq!(&saved[..6], b"BCC1\x04\x00", "persist BCC version 4");
+            assert_eq!(&saved[..6], b"BCC1\x05\x00", "persist BCC version 5");
         }
     }
     let first_payload = first_column.encode_payload(CART_CHUNK.0, CART_CHUNK.1);
@@ -301,4 +301,137 @@ fn queued_persisted_carts_keep_identity_through_handoff_and_unload() {
             Some(column)
         );
     }
+}
+
+#[test]
+fn queued_native_mobs_keep_saved_uuids_and_pairing_across_views_reload_and_failed_writes() {
+    use bcore_protocol::entity::{LoadedGeneratedMob, CB_ENTITY_ATTRIBUTES, CB_ENTITY_METADATA};
+    use bcore_worldgen::{
+        generated_entity::GeneratedMob, spawn::SpawnTag, structure::template::Nbt,
+    };
+    let data: serde_json::Value = serde_json::from_str(include_str!(
+        "../../bcore-worldgen/data/generation_spawn_handoff_26_1.json"
+    ))
+    .unwrap();
+    let case = data["cases"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|case| case["input"]["forced"] == "horse")
+        .unwrap();
+    let mut column = ChunkColumn::flat();
+    let mut mobs = Vec::new();
+    for native in case["entities"].as_array().unwrap() {
+        let logical = SpawnTag::from_native_json(&native["typed_nbt"])
+            .unwrap()
+            .native_json();
+        let mut nbt = Nbt::from_logical_typed_json(&logical).unwrap();
+        let Nbt::List { values, .. } = nbt.compound_mut().unwrap().get_mut("Pos").unwrap() else {
+            panic!("native position");
+        };
+        for (index, delta) in [(0, CART_CHUNK.0 * 16), (2, CART_CHUNK.1 * 16)] {
+            let Nbt::Double(value) = &mut values[index] else {
+                panic!("native double");
+            };
+            *value += f64::from(delta);
+        }
+        let mob = GeneratedMob::from_typed_data(nbt.typed_json()).unwrap();
+        assert!(column.add_entity(
+            ChunkPos::new(CART_CHUNK.0, CART_CHUNK.1),
+            GeneratedEntity::Mob(Box::new(mob.clone()))
+        ));
+        mobs.push(mob);
+    }
+    let scratch = Scratch::new();
+    let store = ChunkStore::at(scratch.0.join("mobs"));
+    store.save(CART_CHUNK.0, CART_CHUNK.1, &column).unwrap();
+    store
+        .save(EXIT_CHUNK.0, EXIT_CHUNK.1, &ChunkColumn::flat())
+        .unwrap();
+    let world = World::with_store(42, store.clone());
+    wait_cached(&world, CART_CHUNK);
+    struct Failed;
+    impl std::io::Write for Failed {
+        fn write(&mut self, _: &[u8]) -> std::io::Result<usize> {
+            Err(std::io::Error::new(
+                std::io::ErrorKind::BrokenPipe,
+                "injected",
+            ))
+        }
+        fn flush(&mut self) -> std::io::Result<()> {
+            Ok(())
+        }
+    }
+    let mut first = view();
+    assert!(first.stream_chunks_from(&mut Failed, &world).is_err());
+    assert_eq!(first.loaded_chunks().count(), 0);
+    let packets = stream_one(&mut first, &world);
+    assert_eq!(packets[3].0, CB_CHUNK_BATCH_FINISHED);
+    let mut ids = Vec::new();
+    let mut offset = 4;
+    for mob in &mobs {
+        assert_eq!(packets[offset].0, CB_SPAWN_ENTITY);
+        let mut data = Cursor::new(&packets[offset].1);
+        let id = read_varint(&mut data).unwrap();
+        let mut uuid = [0; 16];
+        data.read_exact(&mut uuid).unwrap();
+        assert_eq!(uuid, mob.uuid());
+        let bytes = LoadedGeneratedMob::load(mob)
+            .unwrap()
+            .pairing_packets(id)
+            .unwrap();
+        let mut input = Cursor::new(&bytes);
+        let mut expected = Vec::new();
+        while input.position() < bytes.len() as u64 {
+            expected.push(read_frame(&mut input).unwrap());
+        }
+        assert_eq!(
+            expected.iter().map(|p| p.0).collect::<Vec<_>>(),
+            [CB_SPAWN_ENTITY, CB_ENTITY_METADATA, CB_ENTITY_ATTRIBUTES]
+        );
+        assert_eq!(&packets[offset..offset + expected.len()], expected);
+        offset += expected.len();
+        ids.push(id);
+    }
+    assert_eq!(offset, packets.len());
+    let mut peer = view();
+    assert_eq!(stream_one(&mut peer, &world.clone()), packets);
+    world.clear_cache();
+    wait_cached(&world, CART_CHUNK);
+    let mut after_eviction = view();
+    assert_eq!(stream_one(&mut after_eviction, &world), packets);
+    let reopened = World::with_store(-123, store);
+    wait_cached(&reopened, CART_CHUNK);
+    let reloaded = stream_one(&mut view(), &reopened);
+    for (index, spawn) in reloaded
+        .iter()
+        .filter(|p| p.0 == CB_SPAWN_ENTITY)
+        .enumerate()
+    {
+        let mut input = Cursor::new(&spawn.1);
+        assert_ne!(read_varint(&mut input).unwrap(), ids[index]);
+        let mut uuid = [0; 16];
+        input.read_exact(&mut uuid).unwrap();
+        assert_eq!(
+            uuid,
+            mobs[index].uuid(),
+            "UUID belongs to the save, not the world seed"
+        );
+    }
+    first.teleport(-24.5, 72.0, 56.5);
+    let mut adopted = view();
+    adopted
+        .adopt_delivery_state(first.into_delivery_state())
+        .unwrap();
+    assert!(adopted.stream_chunks_from(&mut Failed, &world).is_err());
+    let repeated = stream_one(&mut adopted, &world);
+    assert_eq!(repeated[1].0, CB_REMOVE_ENTITIES);
+    assert_eq!(varints(&repeated[1].1)[1..], ids);
+    assert_eq!(&repeated[3..], &packets[1..]);
+    wait_cached(&world, EXIT_CHUNK);
+    adopted.x += 16.0;
+    let unloaded = stream_one(&mut adopted, &world);
+    let removed = unloaded.iter().find(|p| p.0 == CB_REMOVE_ENTITIES).unwrap();
+    assert_eq!(varints(&removed.1)[1..], ids);
+    assert!(unloaded.iter().all(|p| p.0 != CB_SPAWN_ENTITY));
 }

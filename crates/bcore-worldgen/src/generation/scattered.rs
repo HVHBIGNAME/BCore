@@ -21,6 +21,8 @@ impl GenerationState {
         source: ChunkPos,
         kind: ScatteredKind,
         random: &mut WorldgenRandom,
+        region_random: &mut crate::noise_perlin::Xoroshiro,
+        world_seed: i64,
     ) -> Result<(bool, usize), String> {
         let references = self.holders[&(source.x, source.z)]
             .structures
@@ -44,22 +46,29 @@ impl GenerationState {
                 .scattered_starts
                 .get_mut(kind.name())
                 .unwrap();
-            let result = scattered::place_in_chunk(
-                start,
-                &mut ScatteredRegion {
-                    region: &mut self.region,
-                    source,
-                },
-                random,
-                clip,
-            );
+            let mut world = ScatteredRegion {
+                region: &mut self.region,
+                source,
+            };
+            let result = if kind == ScatteredKind::DesertPyramid {
+                scattered::desert_pyramid::place_in_chunk(
+                    start,
+                    &mut world,
+                    random,
+                    region_random,
+                    world_seed,
+                    clip,
+                )
+            } else {
+                scattered::place_in_chunk(start, &mut world, random, clip)
+            };
             // Preserve piece flags and bounds even when a later callback fails.
             let start_pos = ChunkPos::new(x, z);
             if self.region.owned_chunk(start_pos).is_some() {
                 self.region.owned_chunk_mut(start_pos).structures = holder.structures.clone();
             }
             let result = result.map_err(|error| error.to_string())?;
-            placed |= result.status == ScatteredStatus::Processed;
+            placed |= result.status == ScatteredStatus::Processed || result.blocks_written != 0;
             pending += result.mob_requests;
         }
         Ok((placed, pending))
@@ -93,32 +102,8 @@ impl FeatureWorld for ScatteredRegion<'_> {
     fn can_write_feature(&self, pos: Pos) -> bool {
         self.region.can_write_feature(pos)
     }
-    fn set_feature_block(&mut self, pos @ (x, y, z): Pos, state: u32, flags: i32) -> bool {
-        if !self.region.set_feature_block(pos, state, flags) {
-            return false;
-        }
-        let local = ((x & 15) as usize, y, (z & 15) as usize);
-        let owner = ChunkPos::new(x >> 4, z >> 4);
-        let exists = {
-            let chunk = self
-                .region
-                .owned_chunk(owner)
-                .expect("accepted scattered write");
-            chunk.feature_block_entities().contains_key(&local)
-                || chunk.block_entities().contains_key(&local)
-        };
-        if !exists {
-            if let Some(entity) = StructureAssets::bundled()
-                .blocks
-                .default_block_entity(state, pos)
-                .expect("native scattered block-entity defaults")
-            {
-                self.region
-                    .apply_template_effect(self.source, TemplateEffect::BlockEntity(entity))
-                    .expect("native scattered block-entity factory");
-            }
-        }
-        true
+    fn set_feature_block(&mut self, pos: Pos, state: u32, flags: i32) -> bool {
+        self.region.set_feature_block(pos, state, flags)
     }
     fn mark_feature_postprocessing(&mut self, pos: Pos) {
         self.region.mark_feature_postprocessing(pos);
@@ -133,6 +118,13 @@ impl ScatteredWorld for ScatteredRegion<'_> {
         crate::MIN_Y
     }
     fn has_structure_block_entity(&self, pos @ (x, y, z): Pos, id: &str) -> bool {
+        if !self
+            .region
+            .materialize_block_entity_at(pos)
+            .expect("native scattered lookup")
+        {
+            return false;
+        }
         let chunk = self
             .region
             .chunk_at_status(ChunkPos::new(x >> 4, z >> 4), ChunkStatus::Empty)
@@ -226,3 +218,7 @@ impl ScatteredWorld for ScatteredRegion<'_> {
 #[cfg(test)]
 #[path = "scattered_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "desert_pyramid_tests.rs"]
+mod desert_pyramid_tests;

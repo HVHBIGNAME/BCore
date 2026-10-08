@@ -251,11 +251,14 @@ public final class GenerationSpawnProbe {
         Object tag=call(out,"buildResult");
         ByteArrayOutputStream bytes=new ByteArrayOutputStream();
         call(type("nbt.NbtIo"),"write",tag,new DataOutputStream(bytes));
-        return map("type",entityName(call(entity,"getType")),"typed_nbt",typedNbt(tag),
+        Map<String,Object> result=map("type",entityName(call(entity,"getType")),"typed_nbt",typedNbt(tag),
             "nbt_hex",HexFormat.of().formatHex(bytes.toByteArray()),"problems",call(problems,"getReport"),
             "position",List.of(call(entity,"getX"),call(entity,"getY"),call(entity,"getZ")),
             "rotation",List.of(call(entity,"getYRot"),call(entity,"getXRot")),
             "head_yaw",field(entity,"yHeadRot"),"sensors",sensors(entity),"is_baby",call(entity,"isBaby"));
+        if(config.get("mode").equals("handoff") && !GenerationSpawnHandoff.observing)
+            result.put("handoff",GenerationSpawnHandoff.observe(entity,tag));
+        return result;
     }
     static List<Object> sensors(Object entity) throws Exception {
         List<Object> result=new ArrayList<>();
@@ -515,6 +518,23 @@ public final class GenerationSpawnProbe {
             "entity_entropy","Explicit independent LegacyRandomSource seeds replace ONLY Entity constructor RandomSource.create; native UUID and all subsequent draws remain native.");
         @SuppressWarnings("unchecked") Map<String,Object> nativeCatalog=(Map<String,Object>)catalog();
         result.put("catalog",nativeCatalog);
+        if(config.get("mode").equals("inputs")) result.put("world_inputs",GenerationSpawnInputs.capture());
+        if(config.get("mode").equals("handoff")) {
+            result.put("handoff_catalog",GenerationSpawnHandoff.catalog((List<?>)nativeCatalog.get("types")));
+            for(String t:List.of("sheep","pig","cow","chicken","rabbit","mooshroom","horse","donkey","llama","polar_bear","parrot","turtle","wolf","fox","panda","frog","camel","armadillo","goat")) {
+                for(int sample=0;sample<6;sample++) {
+                    String biome=List.of("plains","snowy_plains","savanna","jungle","taiga","swamp").get(sample);
+                    Map<String,Object> row=input("handoff-"+t+"-"+sample,biome,4096,0,0,t);
+                    row.put("probability",0.12f); row.put("min",4); row.put("max",4);
+                    row.put("environment_seed",Integer.toString(sample*17));
+                    row.put("entity_seed",Long.toString(sample%2==0?Long.MIN_VALUE:1000L));
+                    row.put("ground",t.equals("mooshroom")?"mycelium":t.equals("camel")||t.equals("turtle")?"sand":"grass_block");
+                    if(t.equals("turtle")) row.put("ground_y",63);
+                    if(t.equals("camel")) row.put("game_time","10000");
+                    sample(row);
+                }
+            }
+        }
         if(config.get("mode").equals("assets")) {
             result.put("blocks",blockMetadata((List<?>)nativeCatalog.get("types")));
             result.put("constructors",templates((List<?>)nativeCatalog.get("types")));

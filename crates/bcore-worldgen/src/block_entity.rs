@@ -1,6 +1,10 @@
 //! Generated block-entity data, before gameplay or loot unpacking.
 use serde_json::{json, Value};
 
+mod pending;
+pub(crate) use pending::has_block_entity;
+pub use pending::{MaterializedBlockEntity, PendingBlockEntity};
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SpawnerMob {
     Skeleton,

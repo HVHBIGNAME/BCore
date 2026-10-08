@@ -12,6 +12,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("capture", type=Path)
     parser.add_argument("destination", type=Path)
+    parser.add_argument("--handoff-catalog", type=Path,
+                        help="also export the native registry/default catalog, without cases")
     args = parser.parse_args()
     source = args.capture.resolve()
     destination = args.destination.resolve()
@@ -26,6 +28,17 @@ def main():
     data["provenance"] = json.loads((source / "provenance.json").read_text(encoding="utf-8"))
     data["provenance"]["capture_sha256"] = hashlib.sha256(document.read_bytes()).hexdigest()
     data["provenance"]["capture_directory"] = str(source.relative_to(ROOT)).replace("\\", "/")
+    if args.handoff_catalog:
+        catalog_path = args.handoff_catalog.resolve()
+        if not catalog_path.is_relative_to(ROOT) or catalog_path.exists():
+            parser.error("catalog must be a new workspace file")
+        catalog = {
+            "minecraft": data["minecraft"], "protocol": data["protocol"],
+            "provenance": data["provenance"], **data["handoff_catalog"],
+        }
+        with catalog_path.open("x", encoding="utf-8") as file:
+            json.dump(catalog, file, separators=(",", ":"))
+            file.write("\n")
     with destination.open("x", encoding="utf-8") as file:
         json.dump(data, file, separators=(",", ":"))
         file.write("\n")

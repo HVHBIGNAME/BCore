@@ -1,7 +1,7 @@
 # BCore
 
 <p align="center">
-  <img src="site/assets/overview.svg" alt="BCore checkpoint: 628 passing tests, 69 native requests in 11 histories, 31 matching scored light snapshots. Alpha; full parity remains incomplete." width="100%" />
+  <img src="site/assets/overview.svg" alt="BCore checkpoint: 662 passing tests, 88 native requests in 14 histories, 40 matching scored light snapshots. Alpha; full parity remains incomplete." width="100%" />
 </p>
 
 <p align="center">
@@ -27,27 +27,35 @@ BCore is an **independent implementation** (not a fork) aiming for vanilla parit
 
 ## Generation accuracy
 
-<img src="site/assets/generation-accuracy.svg" alt="Latest matched-history checks: zero state or biome differences in 69 requests; 31 scored light snapshots match. The older three-region snapshot has 96.99% exact-state matches. NBT and FULL-lifecycle differences remain." width="100%" />
+<img src="site/assets/generation-accuracy.svg" alt="Latest matched-history checks: zero state or biome differences in 88 requests; 40 scored light snapshots match. The older three-region snapshot has 96.99% exact-state matches. NBT and FULL-lifecycle differences remain." width="100%" />
 
-**Latest checkpoint:** 69 requests across 11 matching native execution histories,
+**Latest checkpoint:** 88 requests across 14 matching native execution histories,
 with **0 block-state, biome, source-order or scored-light differences**. That is
-6,782,976 block-state observations, including air and repeated snapshots.
+8,650,752 block-state observations, including air and repeated snapshots.
+The [2026-10-08 evidence](docs/metrics/checkpoint-2026-10-08.json) records the
+per-request results, frozen-source hashes and **662 passing workspace tests**.
 
 The older three-region comparison remains **286,047 / 294,912 states (96.99%)**,
 768/768 terrain heights and 4,608/4,608 biome cells. It uses an older executable
 and a different capture history. **Neither result means 100% worldgen completion.**
-Deferred block-entity materialization, FULL conversion and other omissions are
-tracked in the [detailed report](docs/parity-report.md).
+The remaining **36 NBT field differences** and **70 WG-heightmap presence differences**
+are tracked with FULL conversion and other omissions in the
+[detailed report](docs/parity-report.md).
 
 ### Concrete fixes
 
-<img src="site/assets/regression-fixes.svg" alt="Before/after on the same histories: trial-chamber state differences 36 to zero across eight requests; scattered/jungle adjacency differences 450 to zero across twelve requests, counting repeated snapshots." width="100%" />
+<img src="site/assets/regression-fixes.svg" alt="Before/after on identical native histories: fossil state differences 269 to zero across eight requests and 103 to zero across three FULL requests; desert-pyramid differences 7627 to zero across eight requests. Counts include repeated snapshots." width="100%" />
 
 - **Trial chambers:** native decorated-pot NBT handoff now lets the neighbouring
   andesite stream finish. All nine before/after dependency chunks and RNG
   continuation witnesses match the native capture.
 - **Jungle adjacency:** 10,212 native stair updates and 9,360 bamboo updates verify
   live neighbour reads, shape changes and scheduled-tick order.
+- **Fossils and desert pyramids:** three parallel repair tracks reproduced missing
+  terrain and deferred-NBT behavior. Fossils remove **269 + 103** differing block
+  observations; desert pyramids remove **7,627**. The integrated histories match
+  their native templates, shared RNG, geometry, chest flags and archaeology.
+  [Implementation and native evidence](docs/generation-milestone-2026-10-07.md).
 
 ## Performance comparison
 
@@ -60,21 +68,21 @@ generation stages, storage, packets and gameplay. It is **not a full-server TPS
 ranking**. Bars show medians; whiskers show variation between fresh processes.
 
 At four workers this local test measures **5.83 chunks/s for BCore** and
-**168.49 chunks/s for Vanilla**. Improving the current BCore fill kernel remains
-performance work ahead.
+**168.49 chunks/s for Vanilla**. The next optimization pass targets this gap with
+hot-path profiling and must preserve exact block and ordered-effect fingerprints.
 
 [Exact timings, hardware and reproduction commands](docs/performance.md) ·
 [Raw measurements and hashes](docs/metrics/noise-fill-2026-10-05.json)
 
 ## Current work
 
-<img src="site/assets/generation-pipeline.svg" alt="Runtime pipeline through LIGHT, with partial structure and feature coverage. SPAWN and FULL integration are next." width="100%" />
+<img src="site/assets/generation-pipeline.svg" alt="Runtime pipeline through SPAWN with explicit inputs and partial coverage. FULL conversion, live clock hookup and remaining terrain families are incomplete." width="100%" />
 
 | Delivered | Current focus | Following work |
 |---|---|---|
-| Shared cross-chunk generation; native light storage and updates | Connect all 19 tested overworld CREATURE finalizers to runtime SPAWN | FULL conversion, deferred NBT and tick lifecycle |
-| Villages, ancient cities, trail ruins, trial chambers, treasure, huts and jungle pyramids | Preserve mob identity/data through storage and network delivery | Remaining structure families, saved-holder hydration, Nether/End |
-| Typed block-entity NBT, ordered effects and `.bcc` persistence | Extend matched-history integration checks | Broader performance work after correctness checks |
+| Shared cross-chunk generation; native light storage and updates | Missing terrain features and broader seed/biome comparisons | Ticket-driven FULL conversion and tick lifecycle |
+| Fossils; villages, ancient cities, trail/trial jigsaws; treasure, huts, jungle and desert pyramids | Preserve real native behavior across combined request histories | Remaining structure families, saved-holder hydration, Nether/End |
+| Pending/materialized typed NBT; `.bcc` v5; retained SPAWN and 456 native mob handoffs | Finish live clock/settings integration and FULL boundaries | Broader performance work after correctness checks |
 
 Project updates and evidence are published together in the
 [tracker](https://HVHBIGNAME.github.io/BCore/), [parity report](docs/parity-report.md)

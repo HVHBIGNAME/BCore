@@ -58,6 +58,11 @@ fn snapshot(chunk: &GeneratedChunk) -> Value {
         let p = (chunk.pos.x * 16 + x as i32, y, chunk.pos.z * 16 + z as i32);
         json!({"pos": p, "type": entity.type_id, "nbt": entity.full_data, "typed_nbt": entity.typed_data})
     }));
+    block_entities.extend(chunk.pending_block_entities().iter().map(|(&(x, y, z), entity)| {
+        let p = (chunk.pos.x * 16 + x as i32, y, chunk.pos.z * 16 + z as i32);
+        let nbt = entity.full_nbt().expect("validated pending proto NBT");
+        json!({"pos": p, "pending": true, "nbt": nbt.to_json(), "typed_nbt": entity.typed_data})
+    }));
     let entities: Vec<_> = chunk
         .entities()
         .iter()

@@ -1,7 +1,8 @@
 # Generated tree effects and tick preparation (26.1)
 
 Generated beehive occupants and deferred block/fluid tick requests now transfer
-from `TreeEffects` into their owning chunks and survive **`.bcc` v4** save/load.
+from `TreeEffects` into their owning chunks and survive **`.bcc` v5** save/load
+(readers retain v1–v4 compatibility).
 Native-reference-tested helpers also implement chunk-local tick containers.
 The server's shared generation context retains neighbouring effects across
 requests. Native schedule parity, runtime tick-queue handoff and gameplay tick
@@ -65,12 +66,13 @@ saved-data representation therefore does not impose that limit. General mutable
 bee/entity data, nectar gathering and occupant simulation remain outside this
 generated-data contract.
 
-The protocol block-entity type is **34**. Client update data is an empty compound,
-encoded as **`0a00`**; occupants stay server-side. Persisted hive entries appear in
-the owning chunk's `map_chunk` payload, including the queued saved-chunk load path.
+The protocol block-entity type is **34**. Standalone update data is an empty compound,
+encoded as **`0a00`**; the chunk-packet entry projects it to null NBT **`00`**.
+Occupants stay server-side. Materialized hive entries appear in the owning chunk's
+`map_chunk` payload; pending proto tags require an explicit lookup first.
 Deferred tick requests add no client packet fields.
 
-## Deferred requests and `.bcc` v4
+## Deferred requests and `.bcc` v5
 
 `tick_request::TickRequest` stores an absolute block position, a `TickTarget` and
 an `i32` relative delay. Feature requests have **NORMAL priority (0)**. Block
@@ -80,13 +82,14 @@ block-state range **0..29873** and fluid range **0..5** (upper bounds exclusive)
 Callers supply canonical target identities; storage does not normalize states.
 It also does not cancel a request when the current block changes.
 
-The format in `crates/bcore-protocol/src/chunk_store.rs` now writes version **4**
-and reads **1, 2, 3 and 4**:
+The format in `crates/bcore-protocol/src/chunk_store.rs` now writes version **5**
+and reads **1 through 5**. V4 introduced tick/mark records; v5 adds pending NBT:
 
 | Addition | Encoding |
 |---|---|
 | Beehive block entity | Kind `3`, `u32` occupant count, then one `i32` age per occupant |
 | Generated sculk block entity | Kind `4`, `u32` JSON byte length, then `FeatureBlockEntity` including typed full NBT, update data, type and valid state range |
+| Pending proto block entity | Kind `5` (v5), `u32` JSON byte length, then `PendingBlockEntity` with physical typed NBT; no eager materialization |
 | Deferred requests, after structure data | `u32` count, then 14 bytes per request: `u8` kind (`1` block / `2` fluid), `u8` packed local X/Z, `i32` Y, `u32` target ID, `i32` delay |
 | Unconsumed postprocessing marks | Header flag bit `0`; after requests: `u32` count, then `u8` packed local X/Z and `i32` Y per mark |
 
@@ -110,8 +113,9 @@ changes; storage does not execute them.
 types. The current codec validates **generated defaults**, not mutable gameplay
 NBT, against the pinned sculk factory, state range and absolute owning position.
 
-Native types **35** (sensor), **37** (catalyst) and **38** (shrieker) send an empty
-chunk update compound, `0a00`; full data stays server-side. All **106 compatible
+Native types **35** (sensor), **37** (catalyst) and **38** (shrieker) have empty
+standalone update compounds (`0a00`), projected as null (`00`) in chunk entries;
+full data stays server-side. All **106 compatible
 states** from `sculk_states_26_1.json` are tested through `.bcc` save/load/save and
 chunk packet encoding. Tests additionally cover mixed hive/sculk records, exact
 NBT widths, state replacement, corrupt metadata with valid checksums, marks and

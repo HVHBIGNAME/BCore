@@ -421,6 +421,22 @@ fn expected_chunks(sample: &Sample, bases: &Chunks) -> Chunks {
             .postprocessing
             .push(((x & 15) as usize, y, (z & 15) as usize));
     }
+    // The native bee decorator explicitly looks up each recorded hive. That
+    // lookup materializes its factory before the buffered occupant transfer.
+    // Occupant values themselves are checked against native data in assert_effects
+    // and again on every owning chunk after transfer, below.
+    for entity in &sample.block_entities {
+        let [x, y, z] = entity.pos;
+        let chunk = Arc::make_mut(expected.get_mut(&(x >> 4, z >> 4)).unwrap());
+        assert!(chunk.set_block_entity(
+            (x & 15) as usize,
+            y,
+            (z & 15) as usize,
+            crate::block_entity::BlockEntity::Beehive {
+                ticks_in_hive: Vec::new(),
+            },
+        ));
+    }
     expected
 }
 
@@ -434,6 +450,16 @@ fn assert_chunks(sample: &Sample, region: &FeatureRegion, expected: &Chunks) {
         sample.seed
     );
     for (&pos, chunk) in actual.iter() {
+        assert_eq!(
+            chunk.block_entities(),
+            expected[&pos].block_entities(),
+            "materialized hive map before transfer at {pos:?}"
+        );
+        assert_eq!(
+            chunk.pending_block_entities(),
+            expected[&pos].pending_block_entities(),
+            "pending tags before transfer at {pos:?}"
+        );
         assert_eq!(
             chunk.as_ref(),
             expected[&pos].as_ref(),

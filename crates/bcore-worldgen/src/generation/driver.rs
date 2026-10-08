@@ -124,6 +124,8 @@ impl GenerationState {
         };
         let mut random = WorldgenRandom::new(seed);
         let decoration_seed = random.set_decoration_seed(seed, source.x * 16, source.z * 16);
+        let mut region_random =
+            crate::structure::scattered::desert_pyramid::region_random(seed, source);
         let mut cave_random = crate::dripstone::CaveRandomState::default();
         let mut interrupted: Option<String> = None;
         let structures = structure_slots();
@@ -148,9 +150,13 @@ impl GenerationState {
                     SourceStructure::Jigsaw(name) => {
                         self.place_jigsaw_source(seed, source, name, &mut random, &mut cave_random)
                     }
-                    SourceStructure::Scattered(kind) => {
-                        self.place_scattered_source(source, kind, &mut random)
-                    }
+                    SourceStructure::Scattered(kind) => self.place_scattered_source(
+                        source,
+                        kind,
+                        &mut random,
+                        &mut region_random,
+                        seed,
+                    ),
                 };
                 match result {
                     Ok((placed, pending_entities)) => {

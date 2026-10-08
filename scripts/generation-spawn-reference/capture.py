@@ -21,7 +21,7 @@ def sha(path):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--mode", choices=("catalog", "assets", "callbacks", "boundaries", "suite", "entry"), default="suite")
+    parser.add_argument("--mode", choices=("catalog", "assets", "callbacks", "boundaries", "suite", "entry", "handoff", "inputs"), default="suite")
     parser.add_argument("--seed", type=int, default=846692123413862008)
     parser.add_argument("--timeout", type=int, default=900)
     args = parser.parse_args()
@@ -38,7 +38,8 @@ def main():
     server = output / "server"
     build.mkdir()
     server.mkdir()
-    sources = [HERE / "GenerationSpawnAgent.java", HERE / "GenerationSpawnProbe.java",
+    sources = [HERE / "GenerationSpawnAgent.java", HERE / "GenerationSpawnProbe.java", HERE / "GenerationSpawnHandoff.java",
+               HERE / "GenerationSpawnInputs.java",
                ROOT / "scripts/native-generation-reference/NativeAccess.java"]
     for source in sources:
         (build / source.name).write_bytes(source.read_bytes())

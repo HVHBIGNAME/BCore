@@ -9,10 +9,15 @@ use std::sync::{Arc, Mutex, Weak};
 
 use crate::packet::write_packet;
 
+mod mob;
+pub use mob::LoadedGeneratedMob;
+
 pub const CB_SPAWN_ENTITY: i32 = 0x01;
 pub const CB_ENTITY_METADATA: i32 = 0x63;
 pub const CB_REMOVE_ENTITIES: i32 = 0x4d;
 pub const CB_ENTITY_TELEPORT: i32 = 0x7d;
+pub const CB_ENTITY_ATTRIBUTES: i32 = 0x83;
+pub const CB_ENTITY_EQUIPMENT: i32 = 0x66;
 
 /// Monotonically allocates positive protocol entity ids.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -110,6 +115,19 @@ pub fn encode_spawn_entity(
     entity_type: i32,
     position: Position,
 ) -> Vec<u8> {
+    encode_spawn_entity_rotated(id, uuid, entity_type, position, [0.0; 2], 0.0)
+}
+
+/// Native Mth.packDegrees uses f32 multiplication/division followed by floor,
+/// including for negative angles. The saved body rotation supplies the load pose.
+pub fn encode_spawn_entity_rotated(
+    id: i32,
+    uuid: [u8; 16],
+    entity_type: i32,
+    position: Position,
+    rotation: [f32; 2],
+    head_yaw: f32,
+) -> Vec<u8> {
     let mut data = Vec::new();
     encode_varint(id, &mut data);
     data.extend_from_slice(&uuid);
@@ -118,7 +136,8 @@ pub fn encode_spawn_entity(
     data.extend_from_slice(&position.y.to_be_bytes());
     data.extend_from_slice(&position.z.to_be_bytes());
     data.push(0); // Native LpVec3 encodes the zero vector with one byte.
-    data.extend_from_slice(&[0, 0, 0]); // pitch, yaw, headPitch
+    let angle = |v: f32| (v * 256.0 / 360.0).floor() as i32 as u8;
+    data.extend_from_slice(&[angle(rotation[1]), angle(rotation[0]), angle(head_yaw)]);
     encode_varint(0, &mut data); // objectData
     let mut packet = Vec::new();
     write_packet(&mut packet, CB_SPAWN_ENTITY, &data);
@@ -206,14 +225,16 @@ impl TrackedEntity {
         for coordinate in generated.block_pos() {
             digest.update(coordinate.to_le_bytes());
         }
-        match &generated {
+        let uuid = match &generated {
             GeneratedEntity::ChestMinecart { loot_seed, .. } => {
-                digest.update(loot_seed.to_le_bytes())
+                digest.update(loot_seed.to_le_bytes());
+                let mut uuid: [u8; 16] = digest.finalize()[..16].try_into().unwrap();
+                uuid[6] = (uuid[6] & 0x0f) | 0x80;
+                uuid[8] = (uuid[8] & 0x3f) | 0x80;
+                uuid
             }
-        }
-        let mut uuid: [u8; 16] = digest.finalize()[..16].try_into().unwrap();
-        uuid[6] = (uuid[6] & 0x0f) | 0x80; // UUID v8: application-defined SHA-256 identity.
-        uuid[8] = (uuid[8] & 0x3f) | 0x80;
+            GeneratedEntity::Mob(mob) => mob.uuid(),
+        };
         Self {
             id,
             uuid,
@@ -223,12 +244,29 @@ impl TrackedEntity {
 
     pub fn spawn_packet(&self) -> Vec<u8> {
         let [x, y, z] = self.generated.position();
-        encode_spawn_entity(
+        let rotation = match &self.generated {
+            GeneratedEntity::Mob(mob) => mob.rotation(),
+            _ => [0.0; 2],
+        };
+        let head_yaw = match &self.generated {
+            GeneratedEntity::Mob(mob) => mob::loaded_head_yaw(mob.kind(), rotation[0]),
+            _ => rotation[0],
+        };
+        encode_spawn_entity_rotated(
             self.id,
             self.uuid,
             self.generated.type_id() as i32,
             Position { x, y, z },
+            rotation,
+            head_yaw,
         )
+    }
+
+    pub fn pairing_packets(&self) -> Result<Vec<u8>, crate::packet::PacketError> {
+        match &self.generated {
+            GeneratedEntity::Mob(mob) => LoadedGeneratedMob::load(mob)?.pairing_packets(self.id),
+            _ => Ok(self.spawn_packet()),
+        }
     }
 }
 

@@ -31,6 +31,69 @@ impl FeatureBlockEntity {
         (self.valid_states[0]..self.valid_states[1]).contains(&state)
     }
 
+    /// A tree callback can encounter a hive that a template/saved-tag lookup
+    /// already materialized. Preserve its existing occupants and typed fields.
+    pub(crate) fn bee_ticks(&self) -> Result<Vec<i32>, FeatureError> {
+        let full = self.full_nbt()?;
+        if full.get("id").and_then(Nbt::string) != Some("minecraft:beehive") {
+            return Err(FeatureError::InvalidConfig(
+                "bee callback on another block entity".into(),
+            ));
+        }
+        full.get("bees")
+            .and_then(Nbt::list)
+            .ok_or_else(|| FeatureError::InvalidConfig("missing saved hive occupants".into()))?
+            .iter()
+            .map(|bee| {
+                bee.get("ticks_in_hive")
+                    .and_then(Nbt::int)
+                    .ok_or_else(|| FeatureError::InvalidConfig("invalid saved hive age".into()))
+            })
+            .collect()
+    }
+
+    pub(crate) fn with_bee_ticks(
+        &self,
+        state: u32,
+        pos: Pos,
+        ticks: &[i32],
+    ) -> Result<Self, FeatureError> {
+        self.bee_ticks()?;
+        let mut full = self.full_nbt()?;
+        let previous = full.get("bees").and_then(Nbt::list).unwrap();
+        let values = ticks
+            .iter()
+            .enumerate()
+            .map(|(index, &ticks)| {
+                let mut bee = previous.get(index).cloned().unwrap_or_else(|| {
+                    Nbt::Compound(std::collections::BTreeMap::from([
+                        (
+                            "entity_data".into(),
+                            Nbt::Compound(std::collections::BTreeMap::from([(
+                                "id".into(),
+                                Nbt::String("minecraft:bee".into()),
+                            )])),
+                        ),
+                        ("min_ticks_in_hive".into(), Nbt::Int(600)),
+                    ]))
+                });
+                bee.compound_mut()?
+                    .insert("ticks_in_hive".into(), Nbt::Int(ticks));
+                Ok(bee)
+            })
+            .collect::<Result<Vec<_>, FeatureError>>()?;
+        full.compound_mut()?.insert(
+            "bees".into(),
+            Nbt::List {
+                element_type: if values.is_empty() { 0 } else { 10 },
+                values,
+            },
+        );
+        let entity =
+            TemplateBlockEntity::from_load(&StructureAssets::bundled().blocks, state, pos, full)?;
+        Self::from_template(&entity)
+    }
+
     /// Validate the generated sculk defaults, including NBT widths and ownership.
     /// Live block-entity mutations need their own codec when they are implemented.
     pub fn valid_for(&self, state: u32, pos: Pos) -> bool {
@@ -57,6 +120,14 @@ impl FeatureBlockEntity {
         let blocks = &StructureAssets::bundled().blocks;
         let definition =
             crate::block_predicate::catalog().definition(&blocks.state(entity.state)?.name)?;
+        let valid_states = if entity.id == "minecraft:beehive" {
+            // One native BE type serves both adjacent nest and hive state ranges.
+            let nest = crate::block_predicate::catalog().definition("bee_nest")?;
+            let hive = crate::block_predicate::catalog().definition("beehive")?;
+            [nest.first, hive.first + hive.count]
+        } else {
+            [definition.first, definition.first + definition.count]
+        };
         let full = entity.full_data();
         let update = template_update(entity, &full)?;
         Ok(Self {
@@ -64,7 +135,7 @@ impl FeatureBlockEntity {
             full_data: full.to_json(),
             update_data: update.to_json(),
             typed_data: full.typed_json(),
-            valid_states: [definition.first, definition.first + definition.count],
+            valid_states,
             template_load_data: Some(entity.load_data.typed_json()),
             typed_update_data: Some(update.typed_json()),
         })

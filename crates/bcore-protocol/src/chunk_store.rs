@@ -15,7 +15,7 @@
 //!
 //! ```text
 //! magic:          4 bytes  "BCC1"
-//! version:        u16      = 4 (versions 1, 2 and 3 are still readable)
+//! version:        u16      = 5 (versions 1 through 4 are still readable)
 //! flags:          u16      v4: bit 0 marks; bit 1 structure entities; bit 2 light
 //! chunk_x:        i32
 //! chunk_z:        i32
@@ -35,8 +35,12 @@
 //!                 kind 3 (v4): u32 bee count, then i32 ticks_in_hive per bee.
 //!                 kind 4 (v4): u32 byte length, then FeatureBlockEntity JSON,
 //!                 retaining typed full NBT and the native update data.
+//!                 kind 5 (v5): u32 byte length, then PendingBlockEntity JSON.
+//!                 Raw typed proto NBT stays pending, separate from update data.
 //! entities:       u32 count; entries: u8 kind (1 chest minecart),
 //!                 u8 packedXZ, i32 y, i64 loot seed. Added in v3.
+//!                 kind 2 (v4): u32 byte length, then physical typed proto-mob NBT
+//!                 as JSON. Preserves UUID, position, rotation and numeric widths.
 //! structures:     u32 byte length, then UTF-8 StructureData JSON (0 = empty).
 //!                 Added in v3; coordinates/bounds are validated on load.
 //! tick_requests:  u32 count; entries: u8 kind (1 block, 2 fluid), u8 packedXZ,
@@ -69,7 +73,7 @@ use crate::chunk::{ChunkColumn, MIN_Y, SECTION_BIOMES, SECTION_COUNT, WORLD_HEIG
 /// File magic: BCore Chunk v1.
 pub const MAGIC: &[u8; 4] = b"BCC1";
 /// Format version written into every file.
-pub const FORMAT_VERSION: u16 = 4;
+pub const FORMAT_VERSION: u16 = 5;
 /// Default directory chunks are stored under, relative to the server's cwd.
 pub const DEFAULT_WORLD_DIR: &str = "world";
 
@@ -84,6 +88,7 @@ const POSTPROCESSING_FLAG: u16 = 1;
 const STRUCTURE_ENTITIES_FLAG: u16 = 2;
 const LIGHT_FLAG: u16 = 4;
 const MAX_STRUCTURE_ENTITY_BYTES: usize = 1024 * 1024;
+const MAX_GENERATED_MOB_BYTES: usize = 1024 * 1024;
 const POSTPROCESSING_BYTES: usize = 1 + 4;
 
 /// Something went wrong reading or writing a chunk file.
@@ -404,7 +409,9 @@ pub fn encode_chunk(x: i32, z: i32, column: &ChunkColumn) -> Vec<u8> {
     }
 
     use bcore_worldgen::block_entity::{BlockEntity, SpawnerMob};
-    let block_entity_count = column.block_entities().len() + column.feature_block_entities().len();
+    let block_entity_count = column.block_entities().len()
+        + column.feature_block_entities().len()
+        + column.pending_block_entities().len();
     out.extend_from_slice(&(block_entity_count as u32).to_le_bytes());
     for (&(lx, y, lz), data) in column.block_entities() {
         out.push(((lx << 4) | lz) as u8);
@@ -453,12 +460,32 @@ pub fn encode_chunk(x: i32, z: i32, column: &ChunkColumn) -> Vec<u8> {
         out.extend_from_slice(&bytes);
     }
 
+    for (&(lx, y, lz), data) in column.pending_block_entities() {
+        let wx = x.checked_mul(16).and_then(|v| v.checked_add(lx as i32));
+        let wz = z.checked_mul(16).and_then(|v| v.checked_add(lz as i32));
+        assert!(
+            wx.zip(wz).is_some_and(|(wx, wz)| {
+                column
+                    .get(lx, y, lz)
+                    .is_some_and(|state| data.valid_for(state, (wx, y, wz)))
+            }),
+            "pending block entity must match its saved owner"
+        );
+        let bytes = serde_json::to_vec(data).expect("serializable pending block entity");
+        assert!(bytes.len() <= MAX_BLOCK_ENTITY_BYTES);
+        out.push(((lx << 4) | lz) as u8);
+        out.extend_from_slice(&y.to_le_bytes());
+        out.push(5);
+        out.extend_from_slice(&(bytes.len() as u32).to_le_bytes());
+        out.extend_from_slice(&bytes);
+    }
+
     use bcore_worldgen::generated_entity::GeneratedEntity;
     out.extend_from_slice(&(column.entities().len() as u32).to_le_bytes());
     for entity in column.entities() {
         let [ex, ey, ez] = entity.block_pos();
         assert!(
-            ex >> 4 == x && ez >> 4 == z && (MIN_Y..MIN_Y + WORLD_HEIGHT).contains(&ey),
+            entity.valid_for(bcore_core::ChunkPos::new(x, z)),
             "entity must belong to the saved chunk"
         );
         match entity {
@@ -467,6 +494,13 @@ pub fn encode_chunk(x: i32, z: i32, column: &ChunkColumn) -> Vec<u8> {
                 out.push((((ex & 15) << 4) | (ez & 15)) as u8);
                 out.extend_from_slice(&ey.to_le_bytes());
                 out.extend_from_slice(&loot_seed.to_le_bytes());
+            }
+            GeneratedEntity::Mob(mob) => {
+                let bytes = serde_json::to_vec(mob.typed_data()).expect("serializable mob save");
+                assert!(bytes.len() <= MAX_GENERATED_MOB_BYTES);
+                out.push(2);
+                out.extend_from_slice(&(bytes.len() as u32).to_le_bytes());
+                out.extend_from_slice(&bytes);
             }
         }
     }
@@ -722,10 +756,29 @@ pub fn decode_chunk_at(bytes: &[u8]) -> Result<(i32, i32, ChunkColumn), ChunkSto
             let y = cur.i32()?;
             if column.block_entities().contains_key(&(lx, y, lz))
                 || column.feature_block_entities().contains_key(&(lx, y, lz))
+                || column.pending_block_entities().contains_key(&(lx, y, lz))
             {
                 return Err(ChunkStoreError::InvalidBlockEntity);
             }
             let kind = cur.u8()?;
+            if kind == 5 && version >= 5 {
+                let length = cur.u32()? as usize;
+                if length > MAX_BLOCK_ENTITY_BYTES {
+                    return Err(ChunkStoreError::InvalidBlockEntity);
+                }
+                let data = serde_json::from_slice(cur.take(length)?)
+                    .map_err(|_| ChunkStoreError::InvalidBlockEntity)?;
+                if !column.set_pending_block_entity(
+                    bcore_core::ChunkPos::new(x, z),
+                    lx,
+                    y,
+                    lz,
+                    data,
+                ) {
+                    return Err(ChunkStoreError::InvalidBlockEntity);
+                }
+                continue;
+            }
             if kind == 4 && version >= 4 {
                 let length = cur.u32()? as usize;
                 if length > MAX_BLOCK_ENTITY_BYTES {
@@ -788,6 +841,20 @@ pub fn decode_chunk_at(bytes: &[u8]) -> Result<(i32, i32, ChunkColumn), ChunkSto
         }
         for _ in 0..count {
             let kind = cur.u8()?;
+            if kind == 2 && version >= 4 {
+                let length = cur.u32()? as usize;
+                if length > MAX_GENERATED_MOB_BYTES {
+                    return Err(ChunkStoreError::InvalidEntity);
+                }
+                let value = serde_json::from_slice(cur.take(length)?)
+                    .map_err(|_| ChunkStoreError::InvalidEntity)?;
+                let mob = bcore_worldgen::generated_entity::GeneratedMob::from_typed_data(value)
+                    .map_err(|_| ChunkStoreError::InvalidEntity)?;
+                if !column.add_entity(owner, GeneratedEntity::Mob(Box::new(mob))) {
+                    return Err(ChunkStoreError::InvalidEntity);
+                }
+                continue;
+            }
             if kind != 1 {
                 return Err(ChunkStoreError::InvalidEntity);
             }

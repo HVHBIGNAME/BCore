@@ -53,14 +53,14 @@ fn fast_world(seed: i64) -> GenerationWorld {
 }
 
 #[test]
-fn requests_use_accumulated_layers_but_leave_unrun_spawn_and_full_pending() {
+fn requests_use_accumulated_layers_through_spawn_but_leave_full_pending() {
     let world = fast_world(42);
     let result = world.generate_chunk(ChunkPos::new(-2, 3)).unwrap();
     let state = world.state.lock().unwrap();
     assert_eq!(state.holders.len(), 529);
     for (status, expected) in ChunkStatus::ALL
         .into_iter()
-        .zip([529, 529, 49, 49, 25, 25, 25, 9, 9, 1, 0, 0])
+        .zip([529, 529, 49, 49, 25, 25, 25, 9, 9, 1, 1, 0])
     {
         assert_eq!(
             state
@@ -72,7 +72,8 @@ fn requests_use_accumulated_layers_but_leave_unrun_spawn_and_full_pending() {
             "{status}"
         );
     }
-    for status in [ChunkStatus::Spawn, ChunkStatus::Full] {
+    assert_eq!(result.coverage.target.stage(ChunkStatus::Spawn).attempts, 1);
+    for status in [ChunkStatus::Full] {
         assert_eq!(
             result.coverage.target.stage(status).state,
             StageState::Pending
@@ -81,6 +82,46 @@ fn requests_use_accumulated_layers_but_leave_unrun_spawn_and_full_pending() {
     }
     assert!(result.coverage.incoming_sources_finished);
     assert!(!result.coverage.is_complete());
+}
+
+#[test]
+fn deferred_full_request_materializes_target_only_and_keeps_conversion_pending() {
+    fn stage(status: ChunkStatus, pos: ChunkPos, region: &mut FeatureRegion) -> Result<(), String> {
+        if status == ChunkStatus::Features {
+            let state = crate::structure::template_pool::StructureAssets::bundled()
+                .blocks
+                .default_state("sculk_sensor")
+                .unwrap();
+            region.set_feature_block((pos.x * 16, 80, pos.z * 16), state, 18);
+        }
+        Ok(())
+    }
+    let world = GenerationWorld::new(846692123413862008);
+    world.state.lock().unwrap().test_stage = Some(stage);
+    let target = ChunkPos::new(0, 0);
+    let proto = world
+        .generate_to_status(target, ChunkStatus::Features)
+        .unwrap();
+    assert_eq!(proto.chunk.pending_block_entities().len(), 1);
+    assert!(proto.chunk.feature_block_entities().is_empty());
+    let full = world.generate_chunk(target).unwrap();
+    assert!(full.chunk.pending_block_entities().is_empty());
+    assert_eq!(full.chunk.feature_block_entities().len(), 1);
+    let conversion = full.coverage.target.stage(ChunkStatus::Full);
+    assert_eq!(conversion.state, StageState::Pending);
+    assert_eq!(conversion.attempts, 0);
+    assert!(!full.coverage.is_complete());
+    let neighbour = world.chunk_snapshot(ChunkPos::new(1, 0)).unwrap().unwrap();
+    assert_eq!(neighbour.pending_block_entities().len(), 1);
+    assert!(neighbour.feature_block_entities().is_empty());
+    assert_eq!(
+        world
+            .generate_to_status(target, ChunkStatus::Features)
+            .unwrap()
+            .chunk,
+        full.chunk,
+        "a later lower-status read must preserve earlier materialization"
+    );
 }
 
 #[test]

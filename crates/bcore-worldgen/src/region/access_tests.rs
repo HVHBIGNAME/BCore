@@ -169,6 +169,9 @@ fn sculk_entity_defaults_keep_typed_nbt_and_survive_compatible_writes() {
         let definition = crate::block_predicate::catalog().definition(name).unwrap();
         let pos = (-1, 80, z as i32);
         assert!(region.set_feature_block(pos, definition.default_state, 3));
+        assert!(region.chunk(-1, 0).feature_block_entities().is_empty());
+        assert_eq!(region.chunk(-1, 0).pending_block_entities().len(), 1);
+        assert!(region.materialize_block_entity_at(pos).unwrap());
         let expected = crate::sculk::generated_block_entity(definition.default_state, pos)
             .unwrap()
             .unwrap();

@@ -326,6 +326,7 @@ fn check_configured(document: &Value, name: Option<&str>, depth: usize) -> Featu
         "simple_block" | "block_column" | "disk" | "spring_feature" | "lake" | "seagrass"
         | "pointed_dripstone" | "dripstone_cluster" | "large_dripstone" | "sculk_patch" => Ok(()),
         "geode" => crate::geode::check_configured("geode", config),
+        "fossil" => crate::fossil::check_configured(config),
         "underwater_magma"
         | "bamboo"
         | "vines"
@@ -419,6 +420,18 @@ impl ConfiguredFeatureDispatcher for AdditionalFeatures<'_> {
         let feature_type = kind(document)?;
         let config = &document["config"];
         match feature_type {
+            "fossil" => {
+                let effects = self.tree_effects.clone();
+                crate::fossil::place(
+                    config,
+                    world,
+                    random,
+                    origin,
+                    &mut |world, positions, flags| {
+                        tree_world::update_template_shapes(world, effects.clone(), positions, flags)
+                    },
+                )
+            }
             "geode" => crate::geode::place_configured_with(
                 feature_type,
                 config,
@@ -578,3 +591,7 @@ mod biome_bridge_tests;
 #[cfg(test)]
 #[path = "lighting_environment_tests.rs"]
 mod lighting_environment_tests;
+
+#[cfg(test)]
+#[path = "fossil_tests.rs"]
+mod fossil_tests;
