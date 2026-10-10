@@ -61,6 +61,6 @@
 <text x="38" y="479" font-size="13" fill="#e8f0fc" font-weight="400" text-anchor="start" >AMD Ryzen 7 5700X · Windows 11 · 8 fresh chunks per batch</text>
 <text x="38" y="502" font-size="12" fill="#a7bad2" font-weight="400" text-anchor="start" >3 fresh processes × 10 timed batches per configuration; 10 warmup batches per process.</text>
 <text x="38" y="524" font-size="12" fill="#a7bad2" font-weight="400" text-anchor="start" >Bars: median of process medians. Whiskers: process-median range. No concurrent benchmark jobs.</text>
-<text x="38" y="546" font-size="12" fill="#a7bad2" font-weight="400" text-anchor="start" >4 workers: BCore 44.1 vs 5.8 chunks/s before this optimization series (7.6x), on a different timed contract.</text>
+<text x="38" y="546" font-size="12" fill="#a7bad2" font-weight="400" text-anchor="start" >Timed contract: noise-fill-wg-v2. The October 5 contract differs; no before/after ratio is shown.</text>
 <text x="38" y="574" font-size="12" fill="#f5c36c" font-weight="600" text-anchor="start" >KERNEL SCOPE ONLY — excludes full chunk generation, server startup, I/O, packets and gameplay/TPS.</text>
 </g></svg>

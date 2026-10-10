@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="364" viewBox="0 0 1000 364" role="img" aria-labelledby="title desc">
 <title id="title">BCore verified development checkpoint</title>
-<desc id="desc">665 passing tests, 88 native requests in 14 histories. 40 matching scored light snapshots. Full parity remains incomplete.</desc>
+<desc id="desc">665 passing tests, 91 native requests in 15 histories. 40 matching scored light snapshots. Full parity remains incomplete.</desc>
 <defs><linearGradient id="background" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#13243a"/><stop offset="1" stop-color="#0b1220"/></linearGradient><pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32,0 H0 V32" fill="none" stroke="#547294" stroke-opacity=".12"/></pattern></defs>
 <g font-family="Segoe UI, Ubuntu, Arial, sans-serif">
 <rect x="1" y="1" width="998" height="362" rx="20" fill="url(#background)" stroke="#26374e" />
@@ -26,12 +26,12 @@
 <text x="53" y="274" font-size="11" fill="#a7bad2" font-weight="400" text-anchor="start" >0 failed · 4 ignored</text>
 <rect x="272" y="178" width="222" height="112" rx="12" fill="#111e31" stroke="#26374e" />
 <rect x="288" y="194" width="4" height="28" rx="2" fill="#73aaff" stroke="none" />
-<text x="304" y="224" font-size="36" fill="#73aaff" font-weight="700" text-anchor="start" >88</text>
+<text x="304" y="224" font-size="36" fill="#73aaff" font-weight="700" text-anchor="start" >91</text>
 <text x="289" y="251" font-size="16" fill="#e8f0fc" font-weight="600" text-anchor="start" >native requests</text>
 <text x="289" y="274" font-size="11" fill="#a7bad2" font-weight="400" text-anchor="start" >matched execution histories</text>
 <rect x="508" y="178" width="222" height="112" rx="12" fill="#111e31" stroke="#26374e" />
 <rect x="524" y="194" width="4" height="28" rx="2" fill="#b89bff" stroke="none" />
-<text x="540" y="224" font-size="36" fill="#b89bff" font-weight="700" text-anchor="start" >14</text>
+<text x="540" y="224" font-size="36" fill="#b89bff" font-weight="700" text-anchor="start" >15</text>
 <text x="525" y="251" font-size="16" fill="#e8f0fc" font-weight="600" text-anchor="start" >history scenarios</text>
 <text x="525" y="274" font-size="11" fill="#a7bad2" font-weight="400" text-anchor="start" >adjacency · repeats · stages</text>
 <rect x="744" y="178" width="222" height="112" rx="12" fill="#111e31" stroke="#26374e" />
@@ -40,5 +40,5 @@
 <text x="761" y="251" font-size="16" fill="#e8f0fc" font-weight="600" text-anchor="start" >light snapshots match</text>
 <text x="761" y="274" font-size="11" fill="#a7bad2" font-weight="400" text-anchor="start" >scored storage and bytes</text>
 <text x="39" y="322" font-size="13" fill="#f5c36c" font-weight="400" text-anchor="start" >ALPHA / Terrain parity first. FULL conversion and remaining worldgen families are next.</text>
-<text x="960" y="346" font-size="11" fill="#a7bad2" font-weight="400" text-anchor="end" >Verified checkpoint · 2026-10-08</text>
+<text x="960" y="346" font-size="11" fill="#a7bad2" font-weight="400" text-anchor="end" >Verified checkpoint · 2026-10-10</text>
 </g></svg>

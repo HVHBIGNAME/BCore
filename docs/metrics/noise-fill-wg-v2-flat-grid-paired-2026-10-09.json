@@ -1,0 +1,2649 @@
+{
+  "contract": {
+    "chunks": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        -64,
+        -32
+      ],
+      [
+        -63,
+        -32
+      ],
+      [
+        62,
+        0
+      ],
+      [
+        -125,
+        187
+      ]
+    ],
+    "excluded": [
+      "build and process/world startup",
+      "initial chunk allocation",
+      "fingerprinting/JSON",
+      "BIOMES stage (Rust surface-biome bookkeeping remains timed)",
+      "structure generation",
+      "SURFACE/CARVERS/FEATURES/LIGHT/SPAWN/FULL",
+      "packets/disk I/O/gameplay"
+    ],
+    "fingerprints": "SHA-256: block IDs u32 LE Y/Z/X; marks i32 LE X/Y/Z grouped by ascending section, insertion order/duplicates retained; each WG map 256 first-free i32 LE Y heights in Z/X order",
+    "height": 384,
+    "historical_comparability": "new boundary, not an optimization of schema 1 noise-fill-kernel",
+    "implementation_costs": {
+      "BCore": [
+        "production surface-biome bookkeeping (256 column lookups/chunk)",
+        "column scratch, per-column material resources, density cache cleanup, mark ordering",
+        "normal post-NOISE capture_worldgen_heightmaps(false)"
+      ],
+      "Vanilla 26.1": [
+        "reflection lookup/invocation per chunk, async submission/join",
+        "NoiseChunk/aquifer setup, scratch/palette growth, section acquire/release",
+        "in-task WG heightmap creation/updates"
+      ]
+    },
+    "initial_state": "fresh empty chunks, empty structure references, empty Blender",
+    "method": "serial fresh processes in alternating engine order; median of process-median measured batch times; warmups excluded",
+    "min_y": -64,
+    "schema": 2,
+    "scope": "noise-fill-wg-v2",
+    "timed": [
+      "entry-point dispatch and completion",
+      "fresh per-chunk density/cache/aquifer setup",
+      "complete material fill including noise ore veins",
+      "fluid postprocessing requests",
+      "both WORLD_SURFACE_WG and OCEAN_FLOOR_WG heightmaps"
+    ],
+    "warmup": "positive fixed count; all durations retained; lazy Rust seeded resources warm on workers; convergence requires review",
+    "worker_budgets": [
+      1,
+      2,
+      4
+    ],
+    "worker_contract": "Rayon N; actual native ForkJoinPool parallelism N, ActiveProcessorCount=N+1; not an OS CPU-affinity limit"
+  },
+  "environment": {
+    "fixed": {
+      "CARGO_BUILD_JOBS": "1",
+      "CARGO_INCREMENTAL": "0",
+      "RAYON_NUM_THREADS": "2"
+    },
+    "policy": "project-pinned toolchain; default release flags; no ambient JVM/datapack overrides",
+    "removed_override_names": [
+      "CARGO_BUILD_JOBS"
+    ]
+  },
+  "fingerprints": [
+    {
+      "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+      "chunk": [
+        0,
+        0
+      ],
+      "marks": 0,
+      "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ocean_floor_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835",
+      "world_surface_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835"
+    },
+    {
+      "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+      "chunk": [
+        1,
+        0
+      ],
+      "marks": 0,
+      "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ocean_floor_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392",
+      "world_surface_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392"
+    },
+    {
+      "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+      "chunk": [
+        0,
+        1
+      ],
+      "marks": 0,
+      "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ocean_floor_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73",
+      "world_surface_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73"
+    },
+    {
+      "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+      "chunk": [
+        1,
+        1
+      ],
+      "marks": 0,
+      "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ocean_floor_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da",
+      "world_surface_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da"
+    },
+    {
+      "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+      "chunk": [
+        -64,
+        -32
+      ],
+      "marks": 27,
+      "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+      "ocean_floor_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966",
+      "world_surface_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966"
+    },
+    {
+      "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+      "chunk": [
+        -63,
+        -32
+      ],
+      "marks": 147,
+      "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+      "ocean_floor_wg_sha256": "04c42568b2d4dd40bd9f6069ae10f554c899525e2b26c105c7a387f6cba1739a",
+      "world_surface_wg_sha256": "b2b8b0d1100a8041072557577502733528bf843b8a0f9cdf89ec558db3d29c93"
+    },
+    {
+      "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+      "chunk": [
+        62,
+        0
+      ],
+      "marks": 0,
+      "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ocean_floor_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a",
+      "world_surface_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a"
+    },
+    {
+      "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+      "chunk": [
+        -125,
+        187
+      ],
+      "marks": 110,
+      "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+      "ocean_floor_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52",
+      "world_surface_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52"
+    }
+  ],
+  "inputs": {
+    "after": {
+      "bcore_executable_sha256": "58c40e05ce9b4eb0343279d86333e6a47bf3c8a7987ee4fd290484d9315bd0e8",
+      "results_path": "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-20261009-01\\results.json",
+      "results_sha256": "cf1cff835614a7cc112abe9ad13df2c6c94e5f1423a34c7ae92a554a522738a5",
+      "source_archive_sha256": "1f7c6fc8abb5532ff896785e8094666b9a0e7ca4267acfafed4ef398b218209b"
+    },
+    "before": {
+      "bcore_executable_sha256": "2eacc419c42ef98927a0f89113e2c4f76804ee4150894c828b4c134cf2482e68",
+      "results_path": "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-phase3-final-01\\results.json",
+      "results_sha256": "dcd3e6dd8c1f31774f39682249ccda4f44b5d1180c64778918515d01404b5304",
+      "source_archive_sha256": "47765c369d35d16f3e3ad008def8fea7be6ea7f4b5195aaa4e848df1f4ea3499"
+    }
+  },
+  "method": "BCore-only fresh processes, alternating before/after order for each pair; same recorded workload",
+  "recorded_utc": "2026-10-09T12:11:25.781407+00:00",
+  "samples": [
+    {
+      "artifacts_verified_before_after": true,
+      "chunks_per_batch": 8,
+      "command": [
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\before.exe",
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\before-1w-1.request.json"
+      ],
+      "engine": "BCore",
+      "fingerprints": [
+        {
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "chunk": [
+            0,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835",
+          "world_surface_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835"
+        },
+        {
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "chunk": [
+            1,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392",
+          "world_surface_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392"
+        },
+        {
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "chunk": [
+            0,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73",
+          "world_surface_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73"
+        },
+        {
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "chunk": [
+            1,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da",
+          "world_surface_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da"
+        },
+        {
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "chunk": [
+            -64,
+            -32
+          ],
+          "marks": 27,
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "ocean_floor_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966",
+          "world_surface_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966"
+        },
+        {
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "chunk": [
+            -63,
+            -32
+          ],
+          "marks": 147,
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "ocean_floor_wg_sha256": "04c42568b2d4dd40bd9f6069ae10f554c899525e2b26c105c7a387f6cba1739a",
+          "world_surface_wg_sha256": "b2b8b0d1100a8041072557577502733528bf843b8a0f9cdf89ec558db3d29c93"
+        },
+        {
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "chunk": [
+            62,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a",
+          "world_surface_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a"
+        },
+        {
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "chunk": [
+            -125,
+            187
+          ],
+          "marks": 110,
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "ocean_floor_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52",
+          "world_surface_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52"
+        }
+      ],
+      "log_sha256": "c0a084bd68912b33020b45497f76a1d67168427a5b9f82a5895afd2cdec78186",
+      "process": 1,
+      "request_sha256": "6d8236c064c6c392d4334750cc1df87644a5ee17609572f113dc0b4fd4669cff",
+      "schema": 2,
+      "scope": "noise-fill-wg-v2",
+      "seconds": [
+        1.0353851,
+        1.0021135,
+        0.999074,
+        0.9983978,
+        1.0072325,
+        0.9938362,
+        1.0026376,
+        0.9986764,
+        0.9791321,
+        0.9938463
+      ],
+      "seed": "846692123413862008",
+      "variant": "before",
+      "warmup_batches": 10,
+      "warmup_seconds": [
+        0.6987181,
+        0.7035316,
+        0.8814357,
+        1.068214,
+        1.0915742,
+        1.1775484,
+        1.1167865,
+        1.1555651,
+        1.0690076,
+        1.1234802
+      ],
+      "workers": 1
+    },
+    {
+      "artifacts_verified_before_after": true,
+      "chunks_per_batch": 8,
+      "command": [
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\after.exe",
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\after-1w-1.request.json"
+      ],
+      "engine": "BCore",
+      "fingerprints": [
+        {
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "chunk": [
+            0,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835",
+          "world_surface_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835"
+        },
+        {
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "chunk": [
+            1,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392",
+          "world_surface_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392"
+        },
+        {
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "chunk": [
+            0,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73",
+          "world_surface_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73"
+        },
+        {
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "chunk": [
+            1,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da",
+          "world_surface_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da"
+        },
+        {
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "chunk": [
+            -64,
+            -32
+          ],
+          "marks": 27,
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "ocean_floor_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966",
+          "world_surface_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966"
+        },
+        {
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "chunk": [
+            -63,
+            -32
+          ],
+          "marks": 147,
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "ocean_floor_wg_sha256": "04c42568b2d4dd40bd9f6069ae10f554c899525e2b26c105c7a387f6cba1739a",
+          "world_surface_wg_sha256": "b2b8b0d1100a8041072557577502733528bf843b8a0f9cdf89ec558db3d29c93"
+        },
+        {
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "chunk": [
+            62,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a",
+          "world_surface_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a"
+        },
+        {
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "chunk": [
+            -125,
+            187
+          ],
+          "marks": 110,
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "ocean_floor_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52",
+          "world_surface_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52"
+        }
+      ],
+      "log_sha256": "702a5b164e71a8c63e29cb4fd0161c0b057cc5aa26e2c797e6f222735d0bf0a4",
+      "process": 1,
+      "request_sha256": "6d8236c064c6c392d4334750cc1df87644a5ee17609572f113dc0b4fd4669cff",
+      "schema": 2,
+      "scope": "noise-fill-wg-v2",
+      "seconds": [
+        1.0724554,
+        1.0601535,
+        1.106311,
+        1.1189273,
+        1.153811,
+        1.1135652,
+        1.0883187,
+        1.0671432,
+        1.0726749,
+        1.0734312
+      ],
+      "seed": "846692123413862008",
+      "variant": "after",
+      "warmup_batches": 10,
+      "warmup_seconds": [
+        0.8446694,
+        0.8682989,
+        0.9313229,
+        1.0218738,
+        1.0750784,
+        1.0804034,
+        1.1142709,
+        1.0442834,
+        1.0534045,
+        1.0572321
+      ],
+      "workers": 1
+    },
+    {
+      "artifacts_verified_before_after": true,
+      "chunks_per_batch": 8,
+      "command": [
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\after.exe",
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\after-1w-2.request.json"
+      ],
+      "engine": "BCore",
+      "fingerprints": [
+        {
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "chunk": [
+            0,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835",
+          "world_surface_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835"
+        },
+        {
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "chunk": [
+            1,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392",
+          "world_surface_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392"
+        },
+        {
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "chunk": [
+            0,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73",
+          "world_surface_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73"
+        },
+        {
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "chunk": [
+            1,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da",
+          "world_surface_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da"
+        },
+        {
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "chunk": [
+            -64,
+            -32
+          ],
+          "marks": 27,
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "ocean_floor_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966",
+          "world_surface_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966"
+        },
+        {
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "chunk": [
+            -63,
+            -32
+          ],
+          "marks": 147,
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "ocean_floor_wg_sha256": "04c42568b2d4dd40bd9f6069ae10f554c899525e2b26c105c7a387f6cba1739a",
+          "world_surface_wg_sha256": "b2b8b0d1100a8041072557577502733528bf843b8a0f9cdf89ec558db3d29c93"
+        },
+        {
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "chunk": [
+            62,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a",
+          "world_surface_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a"
+        },
+        {
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "chunk": [
+            -125,
+            187
+          ],
+          "marks": 110,
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "ocean_floor_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52",
+          "world_surface_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52"
+        }
+      ],
+      "log_sha256": "7e8ca1b306378a38f077493637a7a1d489513718b19318d60b4e6580d843fb19",
+      "process": 2,
+      "request_sha256": "6d8236c064c6c392d4334750cc1df87644a5ee17609572f113dc0b4fd4669cff",
+      "schema": 2,
+      "scope": "noise-fill-wg-v2",
+      "seconds": [
+        1.048217,
+        1.0998777,
+        1.0553881999999999,
+        1.0331014,
+        1.0369883,
+        1.1729898,
+        1.1279644,
+        1.1387521,
+        1.0570857,
+        1.0296479
+      ],
+      "seed": "846692123413862008",
+      "variant": "after",
+      "warmup_batches": 10,
+      "warmup_seconds": [
+        0.9134077,
+        0.9264656,
+        0.8797155,
+        1.0733513,
+        1.076321,
+        1.1421374,
+        1.0606334,
+        1.1033965000000001,
+        1.0672758,
+        1.0502991
+      ],
+      "workers": 1
+    },
+    {
+      "artifacts_verified_before_after": true,
+      "chunks_per_batch": 8,
+      "command": [
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\before.exe",
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\before-1w-2.request.json"
+      ],
+      "engine": "BCore",
+      "fingerprints": [
+        {
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "chunk": [
+            0,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835",
+          "world_surface_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835"
+        },
+        {
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "chunk": [
+            1,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392",
+          "world_surface_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392"
+        },
+        {
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "chunk": [
+            0,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73",
+          "world_surface_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73"
+        },
+        {
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "chunk": [
+            1,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da",
+          "world_surface_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da"
+        },
+        {
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "chunk": [
+            -64,
+            -32
+          ],
+          "marks": 27,
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "ocean_floor_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966",
+          "world_surface_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966"
+        },
+        {
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "chunk": [
+            -63,
+            -32
+          ],
+          "marks": 147,
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "ocean_floor_wg_sha256": "04c42568b2d4dd40bd9f6069ae10f554c899525e2b26c105c7a387f6cba1739a",
+          "world_surface_wg_sha256": "b2b8b0d1100a8041072557577502733528bf843b8a0f9cdf89ec558db3d29c93"
+        },
+        {
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "chunk": [
+            62,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a",
+          "world_surface_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a"
+        },
+        {
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "chunk": [
+            -125,
+            187
+          ],
+          "marks": 110,
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "ocean_floor_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52",
+          "world_surface_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52"
+        }
+      ],
+      "log_sha256": "e09fd7c2959f4333cdb44a404e4f75e7b973a766261f359047e79da100f9be0c",
+      "process": 2,
+      "request_sha256": "6d8236c064c6c392d4334750cc1df87644a5ee17609572f113dc0b4fd4669cff",
+      "schema": 2,
+      "scope": "noise-fill-wg-v2",
+      "seconds": [
+        0.9006937,
+        0.8433355,
+        0.8357881,
+        0.9410266,
+        0.9237966,
+        0.9932149,
+        0.9139095,
+        0.9207774,
+        0.9471826,
+        0.8619681
+      ],
+      "seed": "846692123413862008",
+      "variant": "before",
+      "warmup_batches": 10,
+      "warmup_seconds": [
+        0.7324568,
+        0.7261377,
+        0.737634,
+        0.7504931,
+        1.0184219,
+        1.0202799,
+        0.9670766,
+        0.8329518,
+        0.8480101,
+        0.9978078
+      ],
+      "workers": 1
+    },
+    {
+      "artifacts_verified_before_after": true,
+      "chunks_per_batch": 8,
+      "command": [
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\before.exe",
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\before-1w-3.request.json"
+      ],
+      "engine": "BCore",
+      "fingerprints": [
+        {
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "chunk": [
+            0,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835",
+          "world_surface_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835"
+        },
+        {
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "chunk": [
+            1,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392",
+          "world_surface_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392"
+        },
+        {
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "chunk": [
+            0,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73",
+          "world_surface_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73"
+        },
+        {
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "chunk": [
+            1,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da",
+          "world_surface_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da"
+        },
+        {
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "chunk": [
+            -64,
+            -32
+          ],
+          "marks": 27,
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "ocean_floor_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966",
+          "world_surface_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966"
+        },
+        {
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "chunk": [
+            -63,
+            -32
+          ],
+          "marks": 147,
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "ocean_floor_wg_sha256": "04c42568b2d4dd40bd9f6069ae10f554c899525e2b26c105c7a387f6cba1739a",
+          "world_surface_wg_sha256": "b2b8b0d1100a8041072557577502733528bf843b8a0f9cdf89ec558db3d29c93"
+        },
+        {
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "chunk": [
+            62,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a",
+          "world_surface_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a"
+        },
+        {
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "chunk": [
+            -125,
+            187
+          ],
+          "marks": 110,
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "ocean_floor_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52",
+          "world_surface_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52"
+        }
+      ],
+      "log_sha256": "e61d71f37c2882df6cd9d693c516f354179f763a2b6bec3d81a3b550b61736e8",
+      "process": 3,
+      "request_sha256": "6d8236c064c6c392d4334750cc1df87644a5ee17609572f113dc0b4fd4669cff",
+      "schema": 2,
+      "scope": "noise-fill-wg-v2",
+      "seconds": [
+        0.9535427,
+        0.8301887,
+        0.9677369,
+        0.9067166,
+        0.9312027,
+        0.9816745,
+        0.9047628,
+        1.0324167,
+        1.0915683,
+        0.9101116
+      ],
+      "seed": "846692123413862008",
+      "variant": "before",
+      "warmup_batches": 10,
+      "warmup_seconds": [
+        0.8039676,
+        0.76107,
+        0.7986469,
+        0.8729522,
+        0.8312823,
+        0.8880171,
+        0.8307114,
+        0.8954309,
+        1.0168783,
+        1.1014893
+      ],
+      "workers": 1
+    },
+    {
+      "artifacts_verified_before_after": true,
+      "chunks_per_batch": 8,
+      "command": [
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\after.exe",
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\after-1w-3.request.json"
+      ],
+      "engine": "BCore",
+      "fingerprints": [
+        {
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "chunk": [
+            0,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835",
+          "world_surface_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835"
+        },
+        {
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "chunk": [
+            1,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392",
+          "world_surface_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392"
+        },
+        {
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "chunk": [
+            0,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73",
+          "world_surface_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73"
+        },
+        {
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "chunk": [
+            1,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da",
+          "world_surface_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da"
+        },
+        {
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "chunk": [
+            -64,
+            -32
+          ],
+          "marks": 27,
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "ocean_floor_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966",
+          "world_surface_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966"
+        },
+        {
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "chunk": [
+            -63,
+            -32
+          ],
+          "marks": 147,
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "ocean_floor_wg_sha256": "04c42568b2d4dd40bd9f6069ae10f554c899525e2b26c105c7a387f6cba1739a",
+          "world_surface_wg_sha256": "b2b8b0d1100a8041072557577502733528bf843b8a0f9cdf89ec558db3d29c93"
+        },
+        {
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "chunk": [
+            62,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a",
+          "world_surface_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a"
+        },
+        {
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "chunk": [
+            -125,
+            187
+          ],
+          "marks": 110,
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "ocean_floor_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52",
+          "world_surface_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52"
+        }
+      ],
+      "log_sha256": "29c17045dcbc17f977673ff9c492ad6917e1a7f41615b6517864af0c7f550858",
+      "process": 3,
+      "request_sha256": "6d8236c064c6c392d4334750cc1df87644a5ee17609572f113dc0b4fd4669cff",
+      "schema": 2,
+      "scope": "noise-fill-wg-v2",
+      "seconds": [
+        0.862197,
+        0.8802321,
+        0.9228453,
+        0.9840276,
+        1.057531,
+        1.0562244,
+        1.0556587,
+        1.0550732,
+        1.0648437,
+        1.0631976
+      ],
+      "seed": "846692123413862008",
+      "variant": "after",
+      "warmup_batches": 10,
+      "warmup_seconds": [
+        1.1307086,
+        1.0406675,
+        0.9354963,
+        1.2968042,
+        1.1011057,
+        1.0100463,
+        1.0713916,
+        1.0588696,
+        1.0171631,
+        0.8404894
+      ],
+      "workers": 1
+    },
+    {
+      "artifacts_verified_before_after": true,
+      "chunks_per_batch": 8,
+      "command": [
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\before.exe",
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\before-2w-1.request.json"
+      ],
+      "engine": "BCore",
+      "fingerprints": [
+        {
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "chunk": [
+            0,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835",
+          "world_surface_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835"
+        },
+        {
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "chunk": [
+            1,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392",
+          "world_surface_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392"
+        },
+        {
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "chunk": [
+            0,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73",
+          "world_surface_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73"
+        },
+        {
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "chunk": [
+            1,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da",
+          "world_surface_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da"
+        },
+        {
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "chunk": [
+            -64,
+            -32
+          ],
+          "marks": 27,
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "ocean_floor_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966",
+          "world_surface_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966"
+        },
+        {
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "chunk": [
+            -63,
+            -32
+          ],
+          "marks": 147,
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "ocean_floor_wg_sha256": "04c42568b2d4dd40bd9f6069ae10f554c899525e2b26c105c7a387f6cba1739a",
+          "world_surface_wg_sha256": "b2b8b0d1100a8041072557577502733528bf843b8a0f9cdf89ec558db3d29c93"
+        },
+        {
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "chunk": [
+            62,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a",
+          "world_surface_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a"
+        },
+        {
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "chunk": [
+            -125,
+            187
+          ],
+          "marks": 110,
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "ocean_floor_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52",
+          "world_surface_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52"
+        }
+      ],
+      "log_sha256": "1f2b13cadec11248688700b2641d1d915448cb02c3132f2c8d735989b034aaf1",
+      "process": 1,
+      "request_sha256": "a1e5ffaff1380f69a4ec30e3126feb9a50b90ad541c5dd2566bb859ba9ee8929",
+      "schema": 2,
+      "scope": "noise-fill-wg-v2",
+      "seconds": [
+        0.5469674,
+        0.5384771,
+        0.537979,
+        0.5504545,
+        0.5699965,
+        0.5375688,
+        0.5396324,
+        0.5307096,
+        0.5423013,
+        0.5376053
+      ],
+      "seed": "846692123413862008",
+      "variant": "before",
+      "warmup_batches": 10,
+      "warmup_seconds": [
+        0.5080967,
+        0.5983894,
+        0.5655698,
+        0.5618725,
+        0.5510122,
+        0.6269147,
+        0.557909,
+        0.5733555,
+        0.5546924,
+        0.5381663
+      ],
+      "workers": 2
+    },
+    {
+      "artifacts_verified_before_after": true,
+      "chunks_per_batch": 8,
+      "command": [
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\after.exe",
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\after-2w-1.request.json"
+      ],
+      "engine": "BCore",
+      "fingerprints": [
+        {
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "chunk": [
+            0,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835",
+          "world_surface_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835"
+        },
+        {
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "chunk": [
+            1,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392",
+          "world_surface_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392"
+        },
+        {
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "chunk": [
+            0,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73",
+          "world_surface_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73"
+        },
+        {
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "chunk": [
+            1,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da",
+          "world_surface_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da"
+        },
+        {
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "chunk": [
+            -64,
+            -32
+          ],
+          "marks": 27,
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "ocean_floor_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966",
+          "world_surface_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966"
+        },
+        {
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "chunk": [
+            -63,
+            -32
+          ],
+          "marks": 147,
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "ocean_floor_wg_sha256": "04c42568b2d4dd40bd9f6069ae10f554c899525e2b26c105c7a387f6cba1739a",
+          "world_surface_wg_sha256": "b2b8b0d1100a8041072557577502733528bf843b8a0f9cdf89ec558db3d29c93"
+        },
+        {
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "chunk": [
+            62,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a",
+          "world_surface_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a"
+        },
+        {
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "chunk": [
+            -125,
+            187
+          ],
+          "marks": 110,
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "ocean_floor_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52",
+          "world_surface_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52"
+        }
+      ],
+      "log_sha256": "e7866b250b034faeb5dcb448e5bb862af2f7d5bc57ea6532ebce2c1f3a91749b",
+      "process": 1,
+      "request_sha256": "a1e5ffaff1380f69a4ec30e3126feb9a50b90ad541c5dd2566bb859ba9ee8929",
+      "schema": 2,
+      "scope": "noise-fill-wg-v2",
+      "seconds": [
+        0.5662428,
+        0.5795369,
+        0.5794855,
+        0.579083,
+        0.5770171,
+        0.5715063,
+        0.5678479,
+        0.5719369,
+        0.5639909,
+        0.5586515
+      ],
+      "seed": "846692123413862008",
+      "variant": "after",
+      "warmup_batches": 10,
+      "warmup_seconds": [
+        0.4280194,
+        0.4270785,
+        0.4911087,
+        0.4835736,
+        0.4440532,
+        0.4310399,
+        0.4985038,
+        0.5873384,
+        0.567198,
+        0.561542
+      ],
+      "workers": 2
+    },
+    {
+      "artifacts_verified_before_after": true,
+      "chunks_per_batch": 8,
+      "command": [
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\after.exe",
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\after-2w-2.request.json"
+      ],
+      "engine": "BCore",
+      "fingerprints": [
+        {
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "chunk": [
+            0,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835",
+          "world_surface_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835"
+        },
+        {
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "chunk": [
+            1,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392",
+          "world_surface_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392"
+        },
+        {
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "chunk": [
+            0,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73",
+          "world_surface_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73"
+        },
+        {
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "chunk": [
+            1,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da",
+          "world_surface_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da"
+        },
+        {
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "chunk": [
+            -64,
+            -32
+          ],
+          "marks": 27,
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "ocean_floor_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966",
+          "world_surface_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966"
+        },
+        {
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "chunk": [
+            -63,
+            -32
+          ],
+          "marks": 147,
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "ocean_floor_wg_sha256": "04c42568b2d4dd40bd9f6069ae10f554c899525e2b26c105c7a387f6cba1739a",
+          "world_surface_wg_sha256": "b2b8b0d1100a8041072557577502733528bf843b8a0f9cdf89ec558db3d29c93"
+        },
+        {
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "chunk": [
+            62,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a",
+          "world_surface_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a"
+        },
+        {
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "chunk": [
+            -125,
+            187
+          ],
+          "marks": 110,
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "ocean_floor_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52",
+          "world_surface_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52"
+        }
+      ],
+      "log_sha256": "83b84503bf38ed8a23a2917203df2d1342c398de451abd8d10e43d4ddb0d6ddc",
+      "process": 2,
+      "request_sha256": "a1e5ffaff1380f69a4ec30e3126feb9a50b90ad541c5dd2566bb859ba9ee8929",
+      "schema": 2,
+      "scope": "noise-fill-wg-v2",
+      "seconds": [
+        0.4736394,
+        0.457648,
+        0.5007397,
+        0.5538969,
+        0.5708328,
+        0.5679551,
+        0.4942504,
+        0.4953745,
+        0.5559418,
+        0.5859844
+      ],
+      "seed": "846692123413862008",
+      "variant": "after",
+      "warmup_batches": 10,
+      "warmup_seconds": [
+        0.5070277,
+        0.4720065,
+        0.4902573,
+        0.4531453,
+        0.4837603,
+        0.439057,
+        0.4965764,
+        0.5126154,
+        0.4654418,
+        0.4794362
+      ],
+      "workers": 2
+    },
+    {
+      "artifacts_verified_before_after": true,
+      "chunks_per_batch": 8,
+      "command": [
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\before.exe",
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\before-2w-2.request.json"
+      ],
+      "engine": "BCore",
+      "fingerprints": [
+        {
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "chunk": [
+            0,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835",
+          "world_surface_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835"
+        },
+        {
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "chunk": [
+            1,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392",
+          "world_surface_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392"
+        },
+        {
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "chunk": [
+            0,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73",
+          "world_surface_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73"
+        },
+        {
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "chunk": [
+            1,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da",
+          "world_surface_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da"
+        },
+        {
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "chunk": [
+            -64,
+            -32
+          ],
+          "marks": 27,
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "ocean_floor_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966",
+          "world_surface_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966"
+        },
+        {
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "chunk": [
+            -63,
+            -32
+          ],
+          "marks": 147,
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "ocean_floor_wg_sha256": "04c42568b2d4dd40bd9f6069ae10f554c899525e2b26c105c7a387f6cba1739a",
+          "world_surface_wg_sha256": "b2b8b0d1100a8041072557577502733528bf843b8a0f9cdf89ec558db3d29c93"
+        },
+        {
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "chunk": [
+            62,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a",
+          "world_surface_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a"
+        },
+        {
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "chunk": [
+            -125,
+            187
+          ],
+          "marks": 110,
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "ocean_floor_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52",
+          "world_surface_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52"
+        }
+      ],
+      "log_sha256": "7350b1fdf56b24beeaa49a76a6fab7882bcb619537453a44a9fb0281ced8abd1",
+      "process": 2,
+      "request_sha256": "a1e5ffaff1380f69a4ec30e3126feb9a50b90ad541c5dd2566bb859ba9ee8929",
+      "schema": 2,
+      "scope": "noise-fill-wg-v2",
+      "seconds": [
+        0.4476188,
+        0.4684063,
+        0.4798327,
+        0.4889144,
+        0.480734,
+        0.4781281,
+        0.5139734,
+        0.499962,
+        0.451251,
+        0.4523923
+      ],
+      "seed": "846692123413862008",
+      "variant": "before",
+      "warmup_batches": 10,
+      "warmup_seconds": [
+        0.4855017,
+        0.4494119,
+        0.4460319,
+        0.4360404,
+        0.4459956,
+        0.4738405,
+        0.4508013,
+        0.4478255,
+        0.4255065,
+        0.4245598
+      ],
+      "workers": 2
+    },
+    {
+      "artifacts_verified_before_after": true,
+      "chunks_per_batch": 8,
+      "command": [
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\before.exe",
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\before-2w-3.request.json"
+      ],
+      "engine": "BCore",
+      "fingerprints": [
+        {
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "chunk": [
+            0,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835",
+          "world_surface_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835"
+        },
+        {
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "chunk": [
+            1,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392",
+          "world_surface_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392"
+        },
+        {
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "chunk": [
+            0,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73",
+          "world_surface_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73"
+        },
+        {
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "chunk": [
+            1,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da",
+          "world_surface_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da"
+        },
+        {
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "chunk": [
+            -64,
+            -32
+          ],
+          "marks": 27,
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "ocean_floor_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966",
+          "world_surface_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966"
+        },
+        {
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "chunk": [
+            -63,
+            -32
+          ],
+          "marks": 147,
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "ocean_floor_wg_sha256": "04c42568b2d4dd40bd9f6069ae10f554c899525e2b26c105c7a387f6cba1739a",
+          "world_surface_wg_sha256": "b2b8b0d1100a8041072557577502733528bf843b8a0f9cdf89ec558db3d29c93"
+        },
+        {
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "chunk": [
+            62,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a",
+          "world_surface_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a"
+        },
+        {
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "chunk": [
+            -125,
+            187
+          ],
+          "marks": 110,
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "ocean_floor_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52",
+          "world_surface_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52"
+        }
+      ],
+      "log_sha256": "0a755b8193e7bb8d98a4195b2f7a90484f3e37f97aaf49be90697341a65571da",
+      "process": 3,
+      "request_sha256": "a1e5ffaff1380f69a4ec30e3126feb9a50b90ad541c5dd2566bb859ba9ee8929",
+      "schema": 2,
+      "scope": "noise-fill-wg-v2",
+      "seconds": [
+        0.4247963,
+        0.4251618,
+        0.4117603,
+        0.4184166,
+        0.4412498,
+        0.439544,
+        0.4737104,
+        0.4989022,
+        0.5098225,
+        0.5094712
+      ],
+      "seed": "846692123413862008",
+      "variant": "before",
+      "warmup_batches": 10,
+      "warmup_seconds": [
+        0.4370224,
+        0.4371183,
+        0.4596146,
+        0.447073,
+        0.4331691,
+        0.4498487,
+        0.4854036,
+        0.443103,
+        0.4098802,
+        0.4250121
+      ],
+      "workers": 2
+    },
+    {
+      "artifacts_verified_before_after": true,
+      "chunks_per_batch": 8,
+      "command": [
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\after.exe",
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\after-2w-3.request.json"
+      ],
+      "engine": "BCore",
+      "fingerprints": [
+        {
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "chunk": [
+            0,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835",
+          "world_surface_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835"
+        },
+        {
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "chunk": [
+            1,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392",
+          "world_surface_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392"
+        },
+        {
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "chunk": [
+            0,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73",
+          "world_surface_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73"
+        },
+        {
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "chunk": [
+            1,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da",
+          "world_surface_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da"
+        },
+        {
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "chunk": [
+            -64,
+            -32
+          ],
+          "marks": 27,
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "ocean_floor_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966",
+          "world_surface_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966"
+        },
+        {
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "chunk": [
+            -63,
+            -32
+          ],
+          "marks": 147,
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "ocean_floor_wg_sha256": "04c42568b2d4dd40bd9f6069ae10f554c899525e2b26c105c7a387f6cba1739a",
+          "world_surface_wg_sha256": "b2b8b0d1100a8041072557577502733528bf843b8a0f9cdf89ec558db3d29c93"
+        },
+        {
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "chunk": [
+            62,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a",
+          "world_surface_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a"
+        },
+        {
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "chunk": [
+            -125,
+            187
+          ],
+          "marks": 110,
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "ocean_floor_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52",
+          "world_surface_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52"
+        }
+      ],
+      "log_sha256": "6b81729d37593981afe5955b4d079009df7f9252a2b0d8938f7eb59af699dc04",
+      "process": 3,
+      "request_sha256": "a1e5ffaff1380f69a4ec30e3126feb9a50b90ad541c5dd2566bb859ba9ee8929",
+      "schema": 2,
+      "scope": "noise-fill-wg-v2",
+      "seconds": [
+        0.4356907,
+        0.4805439,
+        0.4632554,
+        0.4895056,
+        0.4755236,
+        0.4737449,
+        0.4411827,
+        0.4423021,
+        0.462698,
+        0.5058132
+      ],
+      "seed": "846692123413862008",
+      "variant": "after",
+      "warmup_batches": 10,
+      "warmup_seconds": [
+        0.5137598,
+        0.4850796,
+        0.4513604,
+        0.4434812,
+        0.4443532,
+        0.4264786,
+        0.4462392,
+        0.4368486,
+        0.4561494,
+        0.4408491
+      ],
+      "workers": 2
+    },
+    {
+      "artifacts_verified_before_after": true,
+      "chunks_per_batch": 8,
+      "command": [
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\before.exe",
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\before-4w-1.request.json"
+      ],
+      "engine": "BCore",
+      "fingerprints": [
+        {
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "chunk": [
+            0,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835",
+          "world_surface_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835"
+        },
+        {
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "chunk": [
+            1,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392",
+          "world_surface_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392"
+        },
+        {
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "chunk": [
+            0,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73",
+          "world_surface_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73"
+        },
+        {
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "chunk": [
+            1,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da",
+          "world_surface_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da"
+        },
+        {
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "chunk": [
+            -64,
+            -32
+          ],
+          "marks": 27,
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "ocean_floor_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966",
+          "world_surface_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966"
+        },
+        {
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "chunk": [
+            -63,
+            -32
+          ],
+          "marks": 147,
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "ocean_floor_wg_sha256": "04c42568b2d4dd40bd9f6069ae10f554c899525e2b26c105c7a387f6cba1739a",
+          "world_surface_wg_sha256": "b2b8b0d1100a8041072557577502733528bf843b8a0f9cdf89ec558db3d29c93"
+        },
+        {
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "chunk": [
+            62,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a",
+          "world_surface_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a"
+        },
+        {
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "chunk": [
+            -125,
+            187
+          ],
+          "marks": 110,
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "ocean_floor_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52",
+          "world_surface_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52"
+        }
+      ],
+      "log_sha256": "97ef564ff3d50ce347b0e59776532c8de4899fab1ab728a881eca5efe480b6b3",
+      "process": 1,
+      "request_sha256": "44a3aaa51a62eb7a8035f9e08ef2c0e12fbdecf0f7f19842e03aa6533ed92a10",
+      "schema": 2,
+      "scope": "noise-fill-wg-v2",
+      "seconds": [
+        0.2320093,
+        0.2217937,
+        0.2302133,
+        0.2272197,
+        0.2405323,
+        0.22745,
+        0.2593848,
+        0.2508641,
+        0.2509524,
+        0.243498
+      ],
+      "seed": "846692123413862008",
+      "variant": "before",
+      "warmup_batches": 10,
+      "warmup_seconds": [
+        0.2392433,
+        0.2205738,
+        0.2263652,
+        0.2523238,
+        0.2642996,
+        0.2503225,
+        0.251323,
+        0.2300779,
+        0.2476147,
+        0.2344031
+      ],
+      "workers": 4
+    },
+    {
+      "artifacts_verified_before_after": true,
+      "chunks_per_batch": 8,
+      "command": [
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\after.exe",
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\after-4w-1.request.json"
+      ],
+      "engine": "BCore",
+      "fingerprints": [
+        {
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "chunk": [
+            0,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835",
+          "world_surface_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835"
+        },
+        {
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "chunk": [
+            1,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392",
+          "world_surface_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392"
+        },
+        {
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "chunk": [
+            0,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73",
+          "world_surface_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73"
+        },
+        {
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "chunk": [
+            1,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da",
+          "world_surface_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da"
+        },
+        {
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "chunk": [
+            -64,
+            -32
+          ],
+          "marks": 27,
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "ocean_floor_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966",
+          "world_surface_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966"
+        },
+        {
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "chunk": [
+            -63,
+            -32
+          ],
+          "marks": 147,
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "ocean_floor_wg_sha256": "04c42568b2d4dd40bd9f6069ae10f554c899525e2b26c105c7a387f6cba1739a",
+          "world_surface_wg_sha256": "b2b8b0d1100a8041072557577502733528bf843b8a0f9cdf89ec558db3d29c93"
+        },
+        {
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "chunk": [
+            62,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a",
+          "world_surface_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a"
+        },
+        {
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "chunk": [
+            -125,
+            187
+          ],
+          "marks": 110,
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "ocean_floor_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52",
+          "world_surface_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52"
+        }
+      ],
+      "log_sha256": "76dee03de19892527e150476f50a0dabe0f316e8a7319f45d5b4f9b8ba03ea9a",
+      "process": 1,
+      "request_sha256": "44a3aaa51a62eb7a8035f9e08ef2c0e12fbdecf0f7f19842e03aa6533ed92a10",
+      "schema": 2,
+      "scope": "noise-fill-wg-v2",
+      "seconds": [
+        0.289001,
+        0.3232089,
+        0.3061378,
+        0.2838745,
+        0.2813426,
+        0.2808864,
+        0.2569962,
+        0.2633468,
+        0.2469274,
+        0.232561
+      ],
+      "seed": "846692123413862008",
+      "variant": "after",
+      "warmup_batches": 10,
+      "warmup_seconds": [
+        0.2393435,
+        0.233099,
+        0.2427897,
+        0.2550088,
+        0.261961,
+        0.297674,
+        0.2760723,
+        0.2623333,
+        0.2550573,
+        0.2621343
+      ],
+      "workers": 4
+    },
+    {
+      "artifacts_verified_before_after": true,
+      "chunks_per_batch": 8,
+      "command": [
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\after.exe",
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\after-4w-2.request.json"
+      ],
+      "engine": "BCore",
+      "fingerprints": [
+        {
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "chunk": [
+            0,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835",
+          "world_surface_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835"
+        },
+        {
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "chunk": [
+            1,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392",
+          "world_surface_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392"
+        },
+        {
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "chunk": [
+            0,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73",
+          "world_surface_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73"
+        },
+        {
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "chunk": [
+            1,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da",
+          "world_surface_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da"
+        },
+        {
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "chunk": [
+            -64,
+            -32
+          ],
+          "marks": 27,
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "ocean_floor_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966",
+          "world_surface_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966"
+        },
+        {
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "chunk": [
+            -63,
+            -32
+          ],
+          "marks": 147,
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "ocean_floor_wg_sha256": "04c42568b2d4dd40bd9f6069ae10f554c899525e2b26c105c7a387f6cba1739a",
+          "world_surface_wg_sha256": "b2b8b0d1100a8041072557577502733528bf843b8a0f9cdf89ec558db3d29c93"
+        },
+        {
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "chunk": [
+            62,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a",
+          "world_surface_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a"
+        },
+        {
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "chunk": [
+            -125,
+            187
+          ],
+          "marks": 110,
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "ocean_floor_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52",
+          "world_surface_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52"
+        }
+      ],
+      "log_sha256": "a731030000e14b887aa0aa25dd5448dbf811a056222281f5543f31d34d231ede",
+      "process": 2,
+      "request_sha256": "44a3aaa51a62eb7a8035f9e08ef2c0e12fbdecf0f7f19842e03aa6533ed92a10",
+      "schema": 2,
+      "scope": "noise-fill-wg-v2",
+      "seconds": [
+        0.2574476,
+        0.2562677,
+        0.2582786,
+        0.2592179,
+        0.2736693,
+        0.2700058,
+        0.2583548,
+        0.2633033,
+        0.2795627,
+        0.2737128
+      ],
+      "seed": "846692123413862008",
+      "variant": "after",
+      "warmup_batches": 10,
+      "warmup_seconds": [
+        0.2338728,
+        0.2873623,
+        0.2901044,
+        0.2804649,
+        0.256591,
+        0.2623444,
+        0.2548235,
+        0.2558324,
+        0.3005737,
+        0.2471354
+      ],
+      "workers": 4
+    },
+    {
+      "artifacts_verified_before_after": true,
+      "chunks_per_batch": 8,
+      "command": [
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\before.exe",
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\before-4w-2.request.json"
+      ],
+      "engine": "BCore",
+      "fingerprints": [
+        {
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "chunk": [
+            0,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835",
+          "world_surface_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835"
+        },
+        {
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "chunk": [
+            1,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392",
+          "world_surface_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392"
+        },
+        {
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "chunk": [
+            0,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73",
+          "world_surface_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73"
+        },
+        {
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "chunk": [
+            1,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da",
+          "world_surface_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da"
+        },
+        {
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "chunk": [
+            -64,
+            -32
+          ],
+          "marks": 27,
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "ocean_floor_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966",
+          "world_surface_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966"
+        },
+        {
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "chunk": [
+            -63,
+            -32
+          ],
+          "marks": 147,
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "ocean_floor_wg_sha256": "04c42568b2d4dd40bd9f6069ae10f554c899525e2b26c105c7a387f6cba1739a",
+          "world_surface_wg_sha256": "b2b8b0d1100a8041072557577502733528bf843b8a0f9cdf89ec558db3d29c93"
+        },
+        {
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "chunk": [
+            62,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a",
+          "world_surface_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a"
+        },
+        {
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "chunk": [
+            -125,
+            187
+          ],
+          "marks": 110,
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "ocean_floor_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52",
+          "world_surface_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52"
+        }
+      ],
+      "log_sha256": "e2e2b803fcbf9b0fb64fa6b296b0f9e4255b09aab7ba52a2bdbabe13f18b32c3",
+      "process": 2,
+      "request_sha256": "44a3aaa51a62eb7a8035f9e08ef2c0e12fbdecf0f7f19842e03aa6533ed92a10",
+      "schema": 2,
+      "scope": "noise-fill-wg-v2",
+      "seconds": [
+        0.2708997,
+        0.2635295,
+        0.2787385,
+        0.2591915,
+        0.2495056,
+        0.2544544,
+        0.2474343,
+        0.2484084,
+        0.2501473,
+        0.2713811
+      ],
+      "seed": "846692123413862008",
+      "variant": "before",
+      "warmup_batches": 10,
+      "warmup_seconds": [
+        0.2471383,
+        0.2534993,
+        0.3236915,
+        0.334785,
+        0.2978677,
+        0.2762109,
+        0.265863,
+        0.2663011,
+        0.2677396,
+        0.2644783
+      ],
+      "workers": 4
+    },
+    {
+      "artifacts_verified_before_after": true,
+      "chunks_per_batch": 8,
+      "command": [
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\before.exe",
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\before-4w-3.request.json"
+      ],
+      "engine": "BCore",
+      "fingerprints": [
+        {
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "chunk": [
+            0,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835",
+          "world_surface_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835"
+        },
+        {
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "chunk": [
+            1,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392",
+          "world_surface_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392"
+        },
+        {
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "chunk": [
+            0,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73",
+          "world_surface_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73"
+        },
+        {
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "chunk": [
+            1,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da",
+          "world_surface_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da"
+        },
+        {
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "chunk": [
+            -64,
+            -32
+          ],
+          "marks": 27,
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "ocean_floor_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966",
+          "world_surface_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966"
+        },
+        {
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "chunk": [
+            -63,
+            -32
+          ],
+          "marks": 147,
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "ocean_floor_wg_sha256": "04c42568b2d4dd40bd9f6069ae10f554c899525e2b26c105c7a387f6cba1739a",
+          "world_surface_wg_sha256": "b2b8b0d1100a8041072557577502733528bf843b8a0f9cdf89ec558db3d29c93"
+        },
+        {
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "chunk": [
+            62,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a",
+          "world_surface_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a"
+        },
+        {
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "chunk": [
+            -125,
+            187
+          ],
+          "marks": 110,
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "ocean_floor_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52",
+          "world_surface_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52"
+        }
+      ],
+      "log_sha256": "22c5361a4912bee06ed32259f3441d44947b9d5fec3686e9cd0bd715cdfdc2a7",
+      "process": 3,
+      "request_sha256": "44a3aaa51a62eb7a8035f9e08ef2c0e12fbdecf0f7f19842e03aa6533ed92a10",
+      "schema": 2,
+      "scope": "noise-fill-wg-v2",
+      "seconds": [
+        0.276813,
+        0.2896346,
+        0.2849052,
+        0.2884401,
+        0.2816294,
+        0.2644348,
+        0.2584419,
+        0.2648675,
+        0.2666206,
+        0.2331143
+      ],
+      "seed": "846692123413862008",
+      "variant": "before",
+      "warmup_batches": 10,
+      "warmup_seconds": [
+        0.2782895,
+        0.2715494,
+        0.2803781,
+        0.2516226,
+        0.3073848,
+        0.2895317,
+        0.311237,
+        0.3005842,
+        0.2920528,
+        0.274482
+      ],
+      "workers": 4
+    },
+    {
+      "artifacts_verified_before_after": true,
+      "chunks_per_batch": 8,
+      "command": [
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\after.exe",
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-fill-wg-v2-flat-grid-paired-20261009-01\\after-4w-3.request.json"
+      ],
+      "engine": "BCore",
+      "fingerprints": [
+        {
+          "blocks_sha256": "fa3714b1fd631c05fc95021ccacc1369514a71b2b727dd6575a3b51e7477d2f3",
+          "chunk": [
+            0,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835",
+          "world_surface_wg_sha256": "d9321f4e07a0cf4e1f963f1bef6a2125f378e8809b9750a5c00cfda7b5881835"
+        },
+        {
+          "blocks_sha256": "bbeb65151e8cfe398d6f16787edcf0664bdd50d5b761e51b92a16c36c0843544",
+          "chunk": [
+            1,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392",
+          "world_surface_wg_sha256": "782b249076a30927b21be512e5f0907c5fb66e4c688ef66322cba2959fac8392"
+        },
+        {
+          "blocks_sha256": "bf333ffd89d45bd59e2e27282837bf860ce6d1bb48cacc70a6659ff6fa8ff415",
+          "chunk": [
+            0,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73",
+          "world_surface_wg_sha256": "6ea899fdc741786bee15fde5297e97f0d7c921d0dec1c54313792a6be0072f73"
+        },
+        {
+          "blocks_sha256": "00a3f4b5b1852c6b9b96b1a4de5529cd09ca3b7c2e5f768d0b5b76a636cf4629",
+          "chunk": [
+            1,
+            1
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da",
+          "world_surface_wg_sha256": "a5f39996bbafc834af5a1cd76f49c17db5b34b7b7b576629ac76916bc729d8da"
+        },
+        {
+          "blocks_sha256": "5aab82eb396955c4f56a9dc76d53ff119c9ebd5f0edc82a7016ac583a0bef7de",
+          "chunk": [
+            -64,
+            -32
+          ],
+          "marks": 27,
+          "marks_sha256": "e6633d6becd983491d43a1e1d9e2e157ed0276a1f09af79cdbfeab3a1f7699f6",
+          "ocean_floor_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966",
+          "world_surface_wg_sha256": "0290e2e8aced1dac3ac5bfd71c243a29c6591f6ac3bd480704884d79c6880966"
+        },
+        {
+          "blocks_sha256": "2232a65d8bcf233d23a3b6a1760883c86cad513ad22d168255fc51661bc12b3a",
+          "chunk": [
+            -63,
+            -32
+          ],
+          "marks": 147,
+          "marks_sha256": "818e3a6792934cef9a0aaa64a6626fae595caadd9395f739e021c4251e2477a6",
+          "ocean_floor_wg_sha256": "04c42568b2d4dd40bd9f6069ae10f554c899525e2b26c105c7a387f6cba1739a",
+          "world_surface_wg_sha256": "b2b8b0d1100a8041072557577502733528bf843b8a0f9cdf89ec558db3d29c93"
+        },
+        {
+          "blocks_sha256": "cd3cb9fe0ba57e3071b4e08f6f0925d3d8129d525b9455f76f9879ffc861cf2e",
+          "chunk": [
+            62,
+            0
+          ],
+          "marks": 0,
+          "marks_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ocean_floor_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a",
+          "world_surface_wg_sha256": "04ba3bb70798eb9708ee524c63a9c35d4585f555f797c2cf6db08dca1b414b4a"
+        },
+        {
+          "blocks_sha256": "664c1530738c14f58f60b6390c3695f62bab1fbde44d27825ad91d8bbf173607",
+          "chunk": [
+            -125,
+            187
+          ],
+          "marks": 110,
+          "marks_sha256": "c83f344c1dc990c2178dc3cdcba6818678117301fc7707cd1b17020589f7db5b",
+          "ocean_floor_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52",
+          "world_surface_wg_sha256": "a1e4eb2634601b73b518800db5968a9cf2fa224707dcb19efba103089091fd52"
+        }
+      ],
+      "log_sha256": "31b39b5700ba254213d0801e4a6aca55b01b3b7a6cb1a70a26850adf593e5bc5",
+      "process": 3,
+      "request_sha256": "44a3aaa51a62eb7a8035f9e08ef2c0e12fbdecf0f7f19842e03aa6533ed92a10",
+      "schema": 2,
+      "scope": "noise-fill-wg-v2",
+      "seconds": [
+        0.2568088,
+        0.2614455,
+        0.3078376,
+        0.2969397,
+        0.2593285,
+        0.2631111,
+        0.2835983,
+        0.2577536,
+        0.2827246,
+        0.2958193
+      ],
+      "seed": "846692123413862008",
+      "variant": "after",
+      "warmup_batches": 10,
+      "warmup_seconds": [
+        0.2514879,
+        0.2447492,
+        0.2529849,
+        0.2490884,
+        0.2616761,
+        0.2481943,
+        0.2615109,
+        0.2439231,
+        0.2550222,
+        0.2580357
+      ],
+      "workers": 4
+    }
+  ],
+  "schema": 1,
+  "scope": "noise-fill-wg-v2",
+  "seed": "846692123413862008",
+  "summary": [
+    {
+      "after": {
+        "chunks_per_second": 7.574058074753019,
+        "process_median_seconds": [
+          1.0808749500000001,
+          1.05623695,
+          1.05536595
+        ]
+      },
+      "before": {
+        "chunks_per_second": 8.48921026680845,
+        "process_median_seconds": [
+          0.9988752000000001,
+          0.91734345,
+          0.9423727
+        ]
+      },
+      "speedup": 0.8921981947327255,
+      "workers": 1
+    },
+    {
+      "after": {
+        "chunks_per_second": 15.171102539016756,
+        "process_median_seconds": [
+          0.5717216,
+          0.5273183,
+          0.46850015
+        ]
+      },
+      "before": {
+        "chunks_per_second": 16.702144805925254,
+        "process_median_seconds": [
+          0.53905475,
+          0.4789804,
+          0.4403969
+        ]
+      },
+      "speedup": 0.9083325953224076,
+      "workers": 2
+    },
+    {
+      "after": {
+        "chunks_per_second": 29.312850002299225,
+        "process_median_seconds": [
+          0.2811145,
+          0.2612606,
+          0.27291785
+        ]
+      },
+      "before": {
+        "chunks_per_second": 31.149864137920698,
+        "process_median_seconds": [
+          0.2362708,
+          0.25682295,
+          0.2717168
+        ]
+      },
+      "speedup": 0.9410265763122492,
+      "workers": 4
+    }
+  ],
+  "verified_matching_outputs": true,
+  "workers": [
+    1,
+    2,
+    4
+  ],
+  "capture_results_sha256": "029f2342b531e6fee8849a7ca3e5195fe2fc34c496f230c11c72db4578699516",
+  "experiment_decision": "rejected"
+}

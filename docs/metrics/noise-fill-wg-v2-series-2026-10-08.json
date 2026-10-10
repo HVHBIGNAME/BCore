@@ -1,0 +1,137 @@
+{
+  "schema": 1,
+  "scope": "noise-fill-wg-v2",
+  "measurement_date": "2026-10-08",
+  "method": "Each process_median_seconds array is in process ID order [1, 2, 3], computed from that process's ten timed batch durations, excluding warmups. chunks_per_second = 8 / median(process_median_seconds).",
+  "chunks_per_batch": 8,
+  "workers": [1, 2, 4],
+  "processes_per_configuration": 3,
+  "measured_batches_per_process": 10,
+  "warmup_batches_per_process": 10,
+  "shared_reference": {
+    "path": "docs/metrics/noise-fill-wg-v2-2026-10-08.json",
+    "sha256": "a5daa680f954d5856fe485a8601fc0d5fe0a320aaa09af68c9d44a1e3d71703f",
+    "fields_identical_in_every_run": ["schema", "scope", "contract", "fingerprints", "hardware", "chunks", "height", "min_y", "seed", "minecraft", "protocol", "workers", "processes_per_configuration", "measured_batches_per_process", "warmup_batches_per_process"],
+    "provenance_fields_identical_in_every_run": ["cargo", "rustc", "java", "javac", "java_flags", "cargo_config_sha256", "environment", "harness_source_sha256", "native_classes_sha256", "native_jar_sha256", "native_libraries_sha256", "runtime_sha256", "git_head"]
+  },
+  "artifact_paths_relative_to_results_directory": {
+    "bcore_executable_sha256": "bin/noise_bench.exe",
+    "source_archive_sha256": "source.zip",
+    "source_manifest_sha256": "source-manifest.json"
+  },
+  "provenance_note": "raw_results_sha256 hashes the actual results.json bytes. recorded_artifact_hashes are copied from each result's provenance; this summary does not reverify those build artifacts. All runs record git_head 3eb15d389241cbd0334d5410b5c7b1996fa5f2ba, but the passes used different source snapshots; git_head alone is not their identity.",
+  "availability": "Result paths are repository-relative historical local target/ paths. Logs, binaries and source snapshots may be pruned. These hashes and process medians are not a downloadable replay bundle; raw batches and complete build inputs are not embedded here. The shared reference contains the full final phase-3 result only.",
+  "interpretation": "Unisolated local kernel measurements, not server TPS or full-generation parity. Compare only within noise-fill-wg-v2, not the October 5 noise-fill-kernel contract. Retain the baseline repeat when interpreting machine variation; it is a separate run, not an optimization pass.",
+  "runs": [
+    {
+      "stage": "baseline",
+      "label": "baseline-3eb15d3",
+      "recorded_utc": "2026-10-08T12:39:11.755511+00:00",
+      "results_path": "target/parallel-20261008/bench-harness/target/noise-fill-wg-v2-baseline-final-01/results.json",
+      "raw_results_sha256": "108dad6ba28ddd1d6662ccad5dff539cd36aa3224f45b50dee1253abbeadb335",
+      "comparison_baseline_stage": null,
+      "verified_matching_outputs": true,
+      "recorded_artifact_hashes": {
+        "bcore_executable_sha256": "03e42e84df6e012e1754c3f7df18faa7dd885fd58ddcb967b68162ed0ba0bbb4",
+        "source_archive_sha256": "d934af1c939ad105d297ef9c00c16da3ad0a6afc8700a5deb71ebdde660ed383",
+        "source_manifest_sha256": "2816e48c437df0d4f757a21883b366f2aaeef0b5d43d31b2d3085ecf411bf474"
+      },
+      "summary": [
+        {"engine": "Vanilla 26.1", "workers": 1, "process_median_seconds": [0.24560125, 0.1406054, 0.1449149], "chunks_per_second": 55.20481330767229},
+        {"engine": "BCore", "workers": 1, "process_median_seconds": [4.23747, 3.9267965, 3.70845405], "chunks_per_second": 2.037284081311573},
+        {"engine": "Vanilla 26.1", "workers": 2, "process_median_seconds": [0.1049679, 0.120892, 0.10833435], "chunks_per_second": 73.845460834906},
+        {"engine": "BCore", "workers": 2, "process_median_seconds": [2.4675844, 2.2710804500000004, 2.64593315], "chunks_per_second": 3.2420370302227557},
+        {"engine": "Vanilla 26.1", "workers": 4, "process_median_seconds": [0.04699335, 0.0486358, 0.07485095], "chunks_per_second": 164.4878875231825},
+        {"engine": "BCore", "workers": 4, "process_median_seconds": [1.8563303, 1.8927352000000002, 1.8550613], "chunks_per_second": 4.309577880617474}
+      ]
+    },
+    {
+      "stage": "baseline-repeat",
+      "label": "baseline-3eb15d3-repeat",
+      "recorded_utc": "2026-10-08T15:29:20.785041+00:00",
+      "results_path": "target/parallel-20261008/bench-harness/target/noise-fill-wg-v2-baseline-repeat-02/results.json",
+      "raw_results_sha256": "9ac44f20dc5636b04d1ed62d3a9eb76c15016173b0cf5f9b496e740112c6e4b9",
+      "comparison_baseline_stage": null,
+      "verified_matching_outputs": true,
+      "recorded_artifact_hashes": {
+        "bcore_executable_sha256": "825499c692e075c1cc409cd0284010f2b2002acd898886a369ce218861df4340",
+        "source_archive_sha256": "d934af1c939ad105d297ef9c00c16da3ad0a6afc8700a5deb71ebdde660ed383",
+        "source_manifest_sha256": "2816e48c437df0d4f757a21883b366f2aaeef0b5d43d31b2d3085ecf411bf474"
+      },
+      "summary": [
+        {"engine": "Vanilla 26.1", "workers": 1, "process_median_seconds": [0.2342962, 0.2115834, 0.1740091], "chunks_per_second": 37.81014956749915},
+        {"engine": "BCore", "workers": 1, "process_median_seconds": [3.90322195, 3.8833161499999997, 3.7118161], "chunks_per_second": 2.0600949526089964},
+        {"engine": "Vanilla 26.1", "workers": 2, "process_median_seconds": [0.10366775, 0.09014785, 0.101506], "chunks_per_second": 78.8130750891573},
+        {"engine": "BCore", "workers": 2, "process_median_seconds": [2.29063485, 2.26320355, 2.2587477], "chunks_per_second": 3.5348124122551856},
+        {"engine": "Vanilla 26.1", "workers": 4, "process_median_seconds": [0.0498667, 0.051775550000000004, 0.0417298], "chunks_per_second": 160.42770024886346},
+        {"engine": "BCore", "workers": 4, "process_median_seconds": [1.5847087000000002, 1.6095074, 1.62361375], "chunks_per_second": 4.970464876396344}
+      ]
+    },
+    {
+      "stage": "phase1",
+      "label": "optimized",
+      "recorded_utc": "2026-10-08T14:57:46.528740+00:00",
+      "results_path": "target/noise-fill-wg-v2-optimized-final-01/results.json",
+      "raw_results_sha256": "c75ca253dc264be8328fed5ec66c345784c0de51ff2d5ef6fba668ac486daa23",
+      "comparison_baseline_stage": "baseline",
+      "verified_matching_outputs": true,
+      "recorded_artifact_hashes": {
+        "bcore_executable_sha256": "ecabb0cec40b836e1b827b9b9bc90cbae1ebc320e08f64940afa78b129aa0899",
+        "source_archive_sha256": "cc5f470efc1708dc80f6375c5adb9dfe1e0c77186455785e3e94d495e25216d4",
+        "source_manifest_sha256": "87816a888e778ac403a5f7fac8c6c97da21ed2da51f2b0cac59b6dfa058f700b"
+      },
+      "summary": [
+        {"engine": "Vanilla 26.1", "workers": 1, "process_median_seconds": [0.30387735000000005, 0.31803895000000004, 0.28348249999999997], "chunks_per_second": 26.326410968109332},
+        {"engine": "BCore", "workers": 1, "process_median_seconds": [1.99363035, 1.9362332, 1.9823320500000001], "chunks_per_second": 4.035650838617072},
+        {"engine": "Vanilla 26.1", "workers": 2, "process_median_seconds": [0.11926335, 0.1224604, 0.14131715], "chunks_per_second": 65.3272404793713},
+        {"engine": "BCore", "workers": 2, "process_median_seconds": [1.2516661999999998, 1.2761320999999999, 1.2317138], "chunks_per_second": 6.391480412269662},
+        {"engine": "Vanilla 26.1", "workers": 4, "process_median_seconds": [0.06701685, 0.0643168, 0.06730710000000001], "chunks_per_second": 119.3729636651081},
+        {"engine": "BCore", "workers": 4, "process_median_seconds": [1.03677065, 0.9228278999999999, 0.9586429999999999], "chunks_per_second": 8.345129521625882}
+      ]
+    },
+    {
+      "stage": "phase2",
+      "label": "phase2",
+      "recorded_utc": "2026-10-08T16:22:39.287932+00:00",
+      "results_path": "target/noise-fill-wg-v2-phase2-final-01/results.json",
+      "raw_results_sha256": "418d533b1c8d449fe95576194da84383d43dff27ca45b2a3c06cb215446353fc",
+      "comparison_baseline_stage": "phase1",
+      "verified_matching_outputs": true,
+      "recorded_artifact_hashes": {
+        "bcore_executable_sha256": "b3cce8ad7a705a8a6c7da73d463edf38100f80f4f588b3567f18149a7e8437a7",
+        "source_archive_sha256": "ae47bfbaf2f32ac8faf247721381171eeed8246a96120d9ea015d6cb52e95217",
+        "source_manifest_sha256": "3070a2508b379c5e44ca7868cfdb4bcd7b0a9302c840cc7d701d42998b4f0fe8"
+      },
+      "summary": [
+        {"engine": "Vanilla 26.1", "workers": 1, "process_median_seconds": [0.2499762, 0.1182348, 0.15124959999999998], "chunks_per_second": 52.892701864996674},
+        {"engine": "BCore", "workers": 1, "process_median_seconds": [0.73574555, 0.708253, 0.6942434], "chunks_per_second": 11.29539867815597},
+        {"engine": "Vanilla 26.1", "workers": 2, "process_median_seconds": [0.09352484999999999, 0.11947189999999999, 0.08722564999999999], "chunks_per_second": 85.53876322709954},
+        {"engine": "BCore", "workers": 2, "process_median_seconds": [0.6456779500000001, 0.6295327, 0.63489895], "chunks_per_second": 12.600430351948134},
+        {"engine": "Vanilla 26.1", "workers": 4, "process_median_seconds": [0.03914535, 0.05325165, 0.0410694], "chunks_per_second": 194.79222973795575},
+        {"engine": "BCore", "workers": 4, "process_median_seconds": [0.51599075, 0.51323695, 0.54956025], "chunks_per_second": 15.504153901983706}
+      ]
+    },
+    {
+      "stage": "phase3",
+      "label": "phase3",
+      "recorded_utc": "2026-10-08T16:39:59.805460+00:00",
+      "results_path": "target/noise-fill-wg-v2-phase3-final-01/results.json",
+      "raw_results_sha256": "dcd3e6dd8c1f31774f39682249ccda4f44b5d1180c64778918515d01404b5304",
+      "comparison_baseline_stage": "phase2",
+      "verified_matching_outputs": true,
+      "recorded_artifact_hashes": {
+        "bcore_executable_sha256": "2eacc419c42ef98927a0f89113e2c4f76804ee4150894c828b4c134cf2482e68",
+        "source_archive_sha256": "47765c369d35d16f3e3ad008def8fea7be6ea7f4b5195aaa4e848df1f4ea3499",
+        "source_manifest_sha256": "3002a14965c38648dca00cf55d515287d2da82c3de9ad6274b9208c81c333306"
+      },
+      "summary": [
+        {"engine": "Vanilla 26.1", "workers": 1, "process_median_seconds": [0.1209107, 0.15934645, 0.1191913], "chunks_per_second": 66.16453299832025},
+        {"engine": "BCore", "workers": 1, "process_median_seconds": [0.6655639, 0.6601972, 0.65930415], "chunks_per_second": 12.117591531742333},
+        {"engine": "Vanilla 26.1", "workers": 2, "process_median_seconds": [0.09069295, 0.10493155000000001, 0.10905999999999999], "chunks_per_second": 76.24017752525336},
+        {"engine": "BCore", "workers": 2, "process_median_seconds": [0.490699, 0.49536990000000003, 0.4933938], "chunks_per_second": 16.214228877622702},
+        {"engine": "Vanilla 26.1", "workers": 4, "process_median_seconds": [0.0377407, 0.03945435, 0.04568965], "chunks_per_second": 202.76598144437813},
+        {"engine": "BCore", "workers": 4, "process_median_seconds": [0.18125445, 0.18062475, 0.18223519999999999], "chunks_per_second": 44.1368473987811}
+      ]
+    }
+  ]
+}

@@ -17,9 +17,8 @@ import xml.etree.ElementTree as ET
 ROOT = Path(__file__).resolve().parents[1]
 METRICS = ROOT / "docs/metrics"
 ASSETS = ROOT / "site/assets"
-CHECKPOINT = METRICS / "checkpoint-2026-10-08-optimized.json"
+CHECKPOINT = METRICS / "checkpoint-2026-10-10.json"
 BENCHMARK = METRICS / "noise-fill-wg-v2-2026-10-08.json"
-PREVIOUS_BENCHMARK = METRICS / "noise-fill-2026-10-05.json"
 BG, CARD, LINE = "#0b1220", "#111e31", "#26374e"
 FG, MUTED = "#e8f0fc", "#a7bad2"
 TEAL, BLUE, VIOLET, AMBER = "#50e3c2", "#73aaff", "#b89bff", "#f5c36c"
@@ -142,8 +141,10 @@ def accuracy(checkpoint, historical):
 
 
 def fixes(checkpoint):
+    historical = any("carried_from" in row for row in checkpoint["before_after"])
     e = [text(36, 43, "From witness to fix", 27, FG, 650),
-         text(36, 70, "Same request histories before and after the integration fixes.", 14, MUTED)]
+         text(36, 70, ("Historical before/after integration fixes; carried comparisons retain their original hashes."
+                       if historical else "Same request histories before and after the integration fixes."), 14, MUTED)]
     labels = {"fossil-history-native-01": ("Fossils / feature boundaries", "Shared RNG, templates and cross-chunk shapes"),
               "fossil-full-native-01": ("Fossils / FULL requests", "Repeated and adjacent native requests"),
               "desert-pyramid-history-01": ("Desert pyramids", "Native geometry, cellar and archaeology")}
@@ -170,7 +171,7 @@ def nice_max(value):
     return math.ceil(value / magnitude) * magnitude
 
 
-def performance(data, previous):
+def performance(data):
     groups = sorted({row["workers"] for row in data["summary"]})
     max_value = nice_max(max(len(data["chunks"]) / row["min_process_median_seconds"] for row in data["summary"]) * 1.05)
     chart_x, chart_w = 224, 650
@@ -209,13 +210,11 @@ def performance(data, previous):
     build = re.search(r"Windows-.*?10\.0\.(\d+)", os_name)
     if build and int(build.group(1)) >= 22000:
         os_name = "Windows 11"
-    old = next(r for r in previous["summary"] if r["engine"] == "BCore" and r["workers"] == max(groups))
-    current = next(r for r in data["summary"] if r["engine"] == "BCore" and r["workers"] == max(groups))
     e += [line(30, 452, 970, 452),
           text(38, 479, f'{cpu_name} · {os_name} · {len(data["chunks"])} fresh chunks per batch', 13),
           text(38, 502, f'{data["processes_per_configuration"]} fresh processes × {data["measured_batches_per_process"]} timed batches per configuration; {data["warmup_batches_per_process"]} warmup batches per process.', 12, MUTED),
           text(38, 524, "Bars: median of process medians. Whiskers: process-median range. No concurrent benchmark jobs.", 12, MUTED),
-          text(38, 546, f'{max(groups)} workers: BCore {current["chunks_per_second"]:.1f} vs {old["chunks_per_second"]:.1f} chunks/s before this optimization series ({current["chunks_per_second"] / old["chunks_per_second"]:.1f}x), on a different timed contract.', 12, MUTED),
+          text(38, 546, f'Timed contract: {contract.get("scope", "unknown")}. The October 5 contract differs; no before/after ratio is shown.', 12, MUTED),
           text(38, 574, "KERNEL SCOPE ONLY — excludes full chunk generation, server startup, I/O, packets and gameplay/TPS.", 12, AMBER, 600)]
     return document(598, "Measured NOISE kernel throughput: BCore versus Vanilla",
                     "; ".join(description) + f'. Timed contract {contract.get("scope", "unknown")}. This is not a full-server benchmark.', e)
@@ -242,8 +241,8 @@ def pipeline():
 
 def import_benchmark(path):
     data = load(path)
-    if data.get("verified_matching_outputs") is not True or data["scope"] != "noise-fill-kernel":
-        raise ValueError("benchmark must have completed with matching outputs")
+    if data.get("verified_matching_outputs") is not True or data["scope"] != "noise-fill-wg-v2":
+        raise ValueError("benchmark must have completed under noise-fill-wg-v2 with matching outputs")
     for sample in data["samples"]:
         if sample["fingerprints"] != data["fingerprints"] or not all(t > 0 and math.isfinite(t) for t in sample["seconds"]):
             raise ValueError("invalid benchmark sample")
@@ -271,7 +270,7 @@ def main():
     historical = load(ROOT / "docs/parity-live-generation.json")
     benchmark = load(BENCHMARK)
     files = {"overview.svg": overview(checkpoint), "generation-accuracy.svg": accuracy(checkpoint, historical),
-             "regression-fixes.svg": fixes(checkpoint), "performance.svg": performance(benchmark, load(PREVIOUS_BENCHMARK)),
+             "regression-fixes.svg": fixes(checkpoint), "performance.svg": performance(benchmark),
              "generation-pipeline.svg": pipeline()}
     for name, contents in files.items():
         ET.fromstring(contents)

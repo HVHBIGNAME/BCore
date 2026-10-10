@@ -158,10 +158,16 @@
         `<p>Differences in these histories: ${c.state_differences} block states, ${c.biome_differences} biomes and ${c.source_order_differences} source-order entries.</p>` +
         `<p class="caveat">Full parity remains incomplete: ${c.remaining_nbt_field_differences} NBT field differences and ${c.remaining_wg_presence_differences} WG-presence differences remain across repeated snapshots. Ticket-driven FULL conversion, ticking and remaining terrain families are next; live SPAWN clock/settings hookup is still pending.</p>` +
         `<p><a href="${escapeHtml(c.report)}">Detailed report</a> · <a href="${escapeHtml(c.data)}">Published evidence</a></p>`;
+      if (c.tests_note) {
+        const note = document.createElement('p');
+        note.className = 'caveat';
+        note.textContent = c.tests_note;
+        latest.appendChild(note);
+      }
       container.appendChild(latest);
       const plots = document.createElement('section');
       plots.innerHTML = `<a class="chart-link" href="${escapeHtml(c.report)}"><img class="chart" src="assets/generation-accuracy.svg" alt="Matched-history accuracy and the separately preserved historical region sample" width="1000" height="614" loading="lazy" /></a>` +
-        `<a class="chart-link" href="https://github.com/HVHBIGNAME/BCore/blob/main/docs/performance.md"><img class="chart" src="assets/performance.svg" alt="Measured BCore versus Vanilla NOISE-kernel throughput at one, two and four workers; this is not a complete-server benchmark" width="1000" height="576" loading="lazy" /></a>`;
+        `<a class="chart-link" href="https://github.com/HVHBIGNAME/BCore/blob/main/docs/performance.md"><img class="chart" src="assets/performance.svg" alt="Measured BCore versus Vanilla NOISE-kernel throughput at one, two and four workers; this is not a complete-server benchmark" width="1000" height="598" loading="lazy" /></a>`;
       container.appendChild(plots);
     }
     if (data.parity) {

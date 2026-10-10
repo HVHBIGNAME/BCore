@@ -23,6 +23,13 @@ def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def published_sha(path):
+    # .gitattributes publishes JSON with LF. Locally generated older checkpoints
+    # can still have CRLF, so reference their published bytes rather than a
+    # Windows-only working copy. Raw replay/artifact hashes above stay byte-exact.
+    return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+
+
 def relative(path):
     return path.resolve().relative_to(ROOT).as_posix()
 
@@ -155,20 +162,34 @@ def main():
     if args.carry_before_after:
         # The frozen replays behind these rows were pruned after publication, so
         # the rows are carried verbatim from the already published checkpoint
-        # instead of being recomputed. Only their recorded hashes change.
+        # instead of being recomputed. Their recorded comparison hashes stay
+        # historical; they must not be relabelled as this wave's comparisons.
         carried = read(args.carry_before_after)
         if not carried.get("before_after"):
             raise ValueError("carried checkpoint has no before/after rows")
-        names = {h["name"] for h in histories}
+        current = {h["name"]: h for h in histories}
+        previous = {h["name"]: h for h in carried["histories"]}
+        specs = lambda history: [(r["chunk"], r["status"]) for r in history["requests"]]
         for row in carried["before_after"]:
-            if row["history"] not in names:
+            name = row["history"]
+            if name not in current or name not in previous:
                 raise ValueError(f"carried history is absent from this wave: {row['history']}")
+            if (current[name]["native_provenance_sha256"] != previous[name]["native_provenance_sha256"]
+                    or specs(current[name]) != specs(previous[name])
+                    or row["requests"] != len(current[name]["requests"])):
+                raise ValueError(f"carried history has different native inputs: {name}")
+            if row["after_state_differences"] != sum(r["states"]["mismatches"] for r in current[name]["requests"]):
+                raise ValueError(f"carried historical result differs from current wave: {name}")
+            if row["after_comparison_sha256"] != previous[name]["comparison_sha256"]:
+                raise ValueError(f"carried historical comparison identity differs: {name}; use the original checkpoint")
         before_after = [{"history": row["history"], "requests": row["requests"],
                          "before_state_differences": row["before_state_differences"],
                          "after_state_differences": row["after_state_differences"],
                          "before_comparison_sha256": row["before_comparison_sha256"],
                          "after_comparison_sha256": row["after_comparison_sha256"],
-                         "carried_from": relative(args.carry_before_after)}
+                         "carried_from": relative(args.carry_before_after),
+                         "carried_from_sha256": published_sha(args.carry_before_after),
+                         "comparison_scope": "historical before/after, not recomputed for this wave"}
                         for row in carried["before_after"]]
         if args.before:
             raise ValueError("--before and --carry-before-after are exclusive")
@@ -181,7 +202,7 @@ def main():
               "histories": histories, "before_after": before_after}
     if not args.output.resolve().is_relative_to(ROOT / "docs/metrics"):
         parser.error("published output must be under docs/metrics")
-    with args.output.open("x", encoding="utf-8") as stream:
+    with args.output.open("x", encoding="utf-8", newline="\n") as stream:
         json.dump(result, stream, indent=2)
         stream.write("\n")
     print(json.dumps({"output": relative(args.output), "tests": tests, "totals": totals,

@@ -1,7 +1,7 @@
 # BCore
 
 <p align="center">
-  <img src="site/assets/overview.svg" alt="BCore checkpoint: 665 passing tests, 88 native requests in 14 histories, 40 matching scored light snapshots. Alpha; full parity remains incomplete." width="100%" />
+  <img src="site/assets/overview.svg" alt="BCore checkpoint: 665 passing tests on unchanged production code, 91 native requests in 15 histories, 40 matching scored light snapshots. Alpha; full parity remains incomplete." width="100%" />
 </p>
 
 <p align="center">
@@ -27,14 +27,15 @@ BCore is an **independent implementation** (not a fork) aiming for vanilla parit
 
 ## Generation accuracy
 
-<img src="site/assets/generation-accuracy.svg" alt="Latest matched-history checks: zero state or biome differences in 88 requests; 40 scored light snapshots match. The older three-region snapshot has 96.99% exact-state matches. NBT and FULL-lifecycle differences remain." width="100%" />
+<img src="site/assets/generation-accuracy.svg" alt="Latest matched-history checks: zero state or biome differences in 91 requests; 40 scored light snapshots match. The older three-region snapshot has 96.99% exact-state matches. NBT and FULL-lifecycle differences remain." width="100%" />
 
-**Latest checkpoint:** 88 requests across 14 matching native execution histories,
+**Latest checkpoint:** 91 requests across 15 matching native execution histories,
 with **0 block-state, biome, source-order or scored-light differences**. That is
-8,650,752 block-state observations, including air and repeated snapshots.
-The [2026-10-08 evidence](docs/metrics/checkpoint-2026-10-08-optimized.json)
-records the per-request results, frozen-source hashes and **665 passing workspace
-tests**.
+8,945,664 block-state observations, including air and repeated snapshots.
+The [2026-10-10 evidence](docs/metrics/checkpoint-2026-10-10.json) adds the
+three-request desert-well witness on the same published executable. It retains
+the October 8 **665 passing workspace tests** on unchanged Rust sources; this is
+an expanded replay checkpoint, not a newly run full test suite.
 
 The older three-region comparison remains **286,047 / 294,912 states (96.99%)**,
 768/768 terrain heights and 4,608/4,608 biome cells. It uses an older executable
@@ -57,6 +58,9 @@ are tracked with FULL conversion and other omissions in the
   observations; desert pyramids remove **7,627**. The integrated histories match
   their native templates, shared RNG, geometry, chest flags and archaeology.
   [Implementation and native evidence](docs/generation-milestone-2026-10-07.md).
+- **Desert wells:** the published main executable also matches the three-request
+  seed-42 witness, including the adjacent chunk, repeated request and archaeology
+  block-entity data.
 
 ## Performance comparison
 
@@ -70,15 +74,22 @@ storage, packets and gameplay. It is **not a full-server TPS ranking**.
 Bars show medians; whiskers show variation between fresh processes.
 
 At four workers this local test measures **44.14 chunks/s for BCore** and
-**202.77 chunks/s for Vanilla**, i.e. a gap of about **4.6×** instead of the
-roughly 29× recorded before the optimization series. Three exact-behavior passes
+**202.77 chunks/s for Vanilla**, i.e. BCore is about **4.6× slower** in this run.
+Three exact-behavior passes
 (aquifer/preliminary-surface reuse, cheaper internal lookup tables and seeded
 noise lookups, and chunk-scoped material caches) took BCore from 4.31 to
-44.14 chunks/s on the same contract while every native fingerprint stayed
-identical.
+44.14 chunks/s on the same contract while every benchmark fingerprint stayed
+identical: **10.24×** against the first baseline, **8.88×** against its repeat.
+The [recorded series](docs/metrics/noise-fill-wg-v2-series-2026-10-08.json)
+preserves both baselines; the older October 5 result uses a different contract.
 
 [Exact timings, optimization series, hardware and reproduction commands](docs/performance.md) ·
 [Raw measurements and hashes](docs/metrics/noise-fill-wg-v2-2026-10-08.json)
+
+Two further October 9 cache prototypes were **not accepted**: one regressed,
+the other gave mixed throughput across worker counts. Their
+[complete experiments and alternating-binary measurements](docs/performance-experiments-2026-10-09.md)
+are recorded separately. No additional production speedup is claimed.
 
 ## Current work
 

@@ -5,7 +5,7 @@
 <g font-family="Segoe UI, Ubuntu, Arial, sans-serif">
 <rect x="1" y="1" width="998" height="487" rx="20" fill="url(#background)" stroke="#26374e" />
 <text x="36" y="43" font-size="27" fill="#e8f0fc" font-weight="650" text-anchor="start" >From witness to fix</text>
-<text x="36" y="70" font-size="14" fill="#a7bad2" font-weight="400" text-anchor="start" >Same request histories before and after the integration fixes.</text>
+<text x="36" y="70" font-size="14" fill="#a7bad2" font-weight="400" text-anchor="start" >Historical before/after integration fixes; carried comparisons retain their original hashes.</text>
 <rect x="30" y="94" width="940" height="103" rx="12" fill="#111e31" stroke="#26374e" />
 <text x="50" y="124" font-size="18" fill="#e8f0fc" font-weight="600" text-anchor="start" >Fossils / feature boundaries</text>
 <text x="50" y="150" font-size="12" fill="#a7bad2" font-weight="400" text-anchor="start" >Shared RNG, templates and cross-chunk shapes</text>

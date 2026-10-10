@@ -3,9 +3,45 @@
 **Worldgen parity is incomplete.** Component checks and the whole-chunk snapshot
 below have different coverage; neither establishes all-world/all-dimension parity.
 
-Latest full workspace verification: **665 passed, 0 failed, 4 ignored** in
+Latest full workspace verification (October 8, retained on unchanged Rust):
+**665 passed, 0 failed, 4 ignored** in
 release, including **397 worldgen and 259 protocol** tests. The 662-pass and 628-pass
 checkpoints and earlier [regression suites](#regression-suites) remain recorded below.
+
+## Desert-well main replay and rejected optimizations — 2026-10-10
+
+The [expanded checkpoint](metrics/checkpoint-2026-10-10.json) combines the
+previous 88-request wave with a fresh three-request desert-well replay on the
+**same published executable**. Seed 42 visits `(-223,-250)`, then `(-223,-251)`,
+then repeats the source chunk. Blocks, biomes, logical structures, ordered marks,
+archaeology block-entity data and WG maps match in all three requests. This
+witness has no scored light snapshots and still reports incomplete coverage.
+
+| Scored output | Observations | Differences |
+|---|---:|---:|
+| Block states | 8,945,664 | 0 |
+| Quart-biome cells | 139,776 | 0 |
+| FEATURES source order | 91 request snapshots | 0 |
+| Serialized light | 40 scored snapshots | 0 |
+| Logical structures and ordered postprocessing | All scored snapshots | 0 |
+| Block-entity payloads | Logical fields | 36 |
+| WG heightmap presence | Repeated snapshots | 70 |
+
+All **91 requests / 15 histories** use replay binary
+`c4a93cd8995af7d9fd6272790ce2f937b319b3c5297e8b324d9fccc2fcf9dfe8`
+and source archive
+`380285a15ebd818e36a297a69e9823df0979433287a2e468f8ca95e6d56bacdc`.
+The 665-test workspace result is the October 8 run on unchanged Rust, not a fresh
+October 10 full suite. Local new replay:
+`target/full-parity-20261003/published-main-desert-well-20261009-01/`
+(directory label predates its October 10 execution).
+
+The two [October 9 performance prototypes](performance-experiments-2026-10-09.md)
+preserved tested outputs but did not demonstrate a consistent speed gain. Both
+were removed. Their statistics, including negative and mixed results, are
+published separately from the accepted implementation's benchmark. Carried
+fossil/pyramid before-and-after rows retain their historical comparison hashes;
+they were not recomputed for this export.
 
 ## Terrain, lifecycle and NOISE optimization — 2026-10-08
 
@@ -42,10 +78,13 @@ heightmaps and verifies native executor parallelism):
 | Faster internal lookup tables, allocation-free seeded noise lookup | 11.30 / 12.60 / 15.50 |
 | Chunk-scoped material caches (native lifetime) | 12.12 / 16.21 / 44.14 |
 
-Every pass reproduces the frozen native histories with zero differences, and the
-final workspace run passes 665 tests. The measured gap to Vanilla at four workers
-is now about 4.6x under this contract, down from roughly 29x under the earlier
-one. Details, caveats and reproduction are in [performance.md](performance.md).
+Every pass matches the benchmark's blocks, ordered marks and both WG maps.
+Separate 88-request native-history waves verified phase 1 and the final phase 3;
+phase 2 was covered by the benchmark, library tests and the final integrated wave.
+The final workspace run passes 665 tests. BCore is about 4.6x slower than Vanilla
+at four workers in the final run. The older October 5 result has a different
+timed contract and is not a before/after speedup baseline. Details, caveats and
+reproduction are in [performance.md](performance.md).
 
 One frozen replay executable then verified **88 requests across 14 histories**:
 
@@ -74,10 +113,12 @@ per-request counts and artifact hashes. Local evidence:
 - `target/full-parity-20261003/phase3-input-audit-20261008.json`
 - `target/noise-fill-wg-v2-phase3-final-01/results.json`
 
-The audit verifies archive contents, binary/result hashes, native provenance and
-current-source equality. The previous failed test run and older frozen replays
-remain preserved. This checkpoint expands the earlier 69-request corpus; it does
-not replace the separate historical 96.99% region measurement.
+The audit verified archive contents, binary/result hashes, native provenance and
+source equality at capture time. The failed test log and final wave were retained;
+some older frozen replays and worker binaries were subsequently pruned with user
+approval. Their published hashes remain historical records, not an available
+replay bundle. This checkpoint expands the earlier 69-request corpus; it does not
+replace the separate historical 96.99% region measurement.
 
 The current `.bcc` writer is v5 (reads v1–v5). Pending typed NBT is separate from
 materialized entities; a FULL-request BE materialization boundary does not claim
