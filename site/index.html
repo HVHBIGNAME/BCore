@@ -161,6 +161,19 @@
       section.innerHTML += `<a class="chart-link" href="${escapeHtml(m.benchmark_data)}"><img class="chart" src="assets/performance-26_2.svg" alt="Current 26.2 NOISE baseline: BCore 47.79 / 83.98 / 156.81 chunks per second; Vanilla 49.77 / 74.03 / 215.35 at one, two and four workers. Kernel scope only." width="1000" height="598" loading="lazy" /></a>`;
       container.appendChild(section);
     }
+    if (data.admission) {
+      const a = data.admission;
+      const section = document.createElement('section');
+      section.className = 'category parity';
+      section.innerHTML = `<h2>Canonical saved chunk admission</h2>` +
+        `<div class="checkpoint-grid">` +
+        `<div class="checkpoint-stat"><strong>${a.tests_passed}</strong><span>release tests · ${a.tests_failed} failed · ${a.tests_ignored} ignored</span></div>` +
+        `<div class="checkpoint-stat"><strong>${a.integration_tests}</strong><span>saved admission integration tests</span></div>` +
+        `<div class="checkpoint-stat"><strong>${a.suite_count}</strong><span>workspace suites · source inputs unchanged</span></div></div>` +
+        `<p class="caveat">${escapeHtml(a.scope)}</p>` +
+        `<p><a href="${escapeHtml(a.report)}">Admission and review regressions</a> · <a href="${escapeHtml(a.data)}">Source-bound validation</a></p>`;
+      container.appendChild(section);
+    }
     if (data.maintenance) {
       const m = data.maintenance;
       const section = document.createElement('section');
@@ -171,7 +184,8 @@
         `<div class="checkpoint-stat"><strong>${m.verified_source_archives}</strong><span>expanded copies verified before removal; source.zip retained</span></div>` +
         `<div class="checkpoint-stat"><strong>${m.replay_tests_passed}</strong><span>replay evidence tests passed</span></div></div>` +
         `<p>Native fixture bytes survive Git checkout unchanged. Frozen binaries, raw measurements and user world data are retained.</p>` +
-        `<p><a href="${escapeHtml(m.status_report)}">Latest work log</a> · <a href="${escapeHtml(m.cleanup_data)}">Cleanup evidence</a> · <a href="${escapeHtml(m.roadmap)}">Complete roadmap and requirements</a></p>`;
+        `<p><a href="${escapeHtml(m.status_report)}">Latest work log</a> · <a href="${escapeHtml(m.cleanup_data)}">Cleanup evidence</a> · <a href="${escapeHtml(m.roadmap)}">Complete roadmap and requirements</a></p>` +
+        `<p><a href="${escapeHtml(m.requirements_issue)}">Requirements progress</a> · <a href="${escapeHtml(m.saved_admission_issue)}">Saved chunk admission</a> · <a href="${escapeHtml(m.gameplay_issue)}">Creative break/place</a> · <a href="${escapeHtml(m.performance_issue)}">26.2 performance</a></p>`;
       container.appendChild(section);
     }
     if (data.checkpoint) {

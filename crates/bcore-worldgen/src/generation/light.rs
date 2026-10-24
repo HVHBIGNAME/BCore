@@ -79,6 +79,9 @@ impl GenerationState {
     fn invalidate_light(&mut self, reason: String) {
         self.light_missing = Some(reason.clone());
         for (&(x, z), holder) in &mut self.holders {
+            if holder.saved {
+                continue;
+            }
             if self.region.owned_chunk(ChunkPos::new(x, z)).is_some() {
                 self.region.owned_chunk_mut(ChunkPos::new(x, z)).light = None;
             }
@@ -92,9 +95,14 @@ impl GenerationState {
         }
     }
 
-    fn capture_light_outputs(&mut self) {
+    pub(super) fn capture_light_outputs(&mut self) {
         for pos in self.light.take_changed_columns() {
-            if self.region.owned_chunk(pos).is_none() {
+            if self.region.owned_chunk(pos).is_none()
+                || self
+                    .holders
+                    .get(&(pos.x, pos.z))
+                    .is_some_and(|holder| holder.saved)
+            {
                 continue;
             }
             let snapshot = self.light.chunk_light(pos);

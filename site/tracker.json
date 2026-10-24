@@ -1,7 +1,7 @@
 {
   "project": "BCore",
   "version": "0.7.0-alpha.1",
-  "updated": "2026-10-24",
+  "updated": "2026-10-25",
   "minecraft": "26.2",
   "protocol": 776,
   "maintenance": {
@@ -11,7 +11,11 @@
     "world_data_unchanged": true,
     "status_report": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/development-status-2026-10-24.md",
     "cleanup_data": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/metrics/storage-cleanup-2026-10-24.json",
-    "roadmap": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/roadmap.md"
+    "roadmap": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/roadmap.md",
+    "requirements_issue": "https://github.com/HVHBIGNAME/BCore/issues/4",
+    "saved_admission_issue": "https://github.com/HVHBIGNAME/BCore/issues/1",
+    "gameplay_issue": "https://github.com/HVHBIGNAME/BCore/issues/3",
+    "performance_issue": "https://github.com/HVHBIGNAME/BCore/issues/2"
   },
   "migration": {
     "data_version": 4903,
@@ -27,6 +31,16 @@
     "persistence": "Production BCC v6 edit observed in native-decoded terrain after restart; saved bytes unchanged.",
     "report": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/migration-26.2.md",
     "data": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/metrics/protocol-26_2-validation-2026-10-24.json"
+  },
+  "admission": {
+    "tests_passed": 903,
+    "tests_failed": 0,
+    "tests_ignored": 4,
+    "suite_count": 70,
+    "integration_tests": 13,
+    "report": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/saved-chunk-admission-2026-10-25.md",
+    "data": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/metrics/saved-chunk-admission-validation-2026-10-25.json",
+    "scope": "Canonical BCC data, retained futures/cache, saved neighbours, stored lighting and restart. Imported history remains Partial with zero attempts; full world registration and gameplay are open."
   },
   "checkpoint": {
     "tests_passed": 665,
@@ -102,7 +116,7 @@
         { "name": "Native stair and bamboo updateShape callbacks", "status": "done" },
         { "name": "Biome identity bridge (13932 historical 26.1 feature-membership checks)", "status": "done" },
         { "name": "Job-local density-cache reuse and context/unwind isolation", "status": "done" },
-        { "name": "Persisted generation holders and saved-neighbour hydration", "status": "planned" },
+        { "name": "Persisted generation history/holder graph and bounded eviction", "status": "planned" },
         { "name": "Tick preparation and runtime integration (native container fixtures)", "status": "partial" },
         { "name": "Nether and End parity", "status": "planned" },
         { "name": "Skylight/blocklight: native initialization, propagation and ordered updates", "status": "partial" }
@@ -118,6 +132,7 @@
         { "name": "World save/load (persistence)", "status": "done" },
         { "name": "Generated NBT, raw ticks, deferred marks and native light (.bcc v6)", "status": "done" },
         { "name": "Registry-bound BCC v6 admission; incompatible/unidentified saves rejected", "status": "done" },
+        { "name": "Canonical Level/Imposter data admission, saved neighbours and stored light", "status": "done" },
         { "name": "Fresh-world native-decoded reconnect, clean shutdown and persisted edit after restart", "status": "done" },
         { "name": "Decorated-pot full/update NBT and scattered piece-state persistence", "status": "done" },
         { "name": "Region format (.mca) compat", "status": "planned" }

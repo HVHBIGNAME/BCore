@@ -18,8 +18,9 @@
 //! ```
 //!
 //! Fresh generation shares status claims, structure starts and neighbouring
-//! feature writes for the lifetime of this world. The store round-trips returned
-//! columns exactly; the generation history itself is currently in-memory.
+//! feature writes for the lifetime of this world. Saved columns are admitted into
+//! the same canonical region before fresh generation. Native generation history
+//! and world registration are not stored in BCC v6.
 //!
 //! Persistence errors stop admission/loading. An unreadable or incompatible
 //! saved chunk is never treated as an absent chunk.
@@ -105,8 +106,9 @@ fn payload_shard(x: i32, z: i32) -> usize {
 
 use bcore_core::ChunkPos;
 use bcore_worldgen::generation::{
+    graph::layer_positions,
     request::{NativeChunkRequests, NativeRequestError},
-    ChunkStatus, ReturnedChunk,
+    ChunkPyramid, ChunkStatus, ReturnedChunk, StageState,
 };
 use bcore_worldgen::{
     block, generation::ChunkProgress, GenerationCoverage, GenerationError, GenerationResult,
@@ -132,6 +134,7 @@ pub enum ChunkOrigin {
 #[derive(Debug, Clone)]
 pub enum WorldError {
     Generation(GenerationError),
+    Native(NativeRequestError),
     Store(Arc<ChunkStoreError>),
 }
 
@@ -139,6 +142,7 @@ impl std::fmt::Display for WorldError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Generation(error) => write!(f, "{error}"),
+            Self::Native(error) => write!(f, "{error}"),
             Self::Store(error) => write!(f, "{error}"),
         }
     }
@@ -148,6 +152,7 @@ impl std::error::Error for WorldError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             Self::Generation(error) => Some(error),
+            Self::Native(error) => Some(error),
             Self::Store(error) => Some(error.as_ref()),
         }
     }
@@ -162,6 +167,15 @@ impl From<GenerationError> for WorldError {
 impl From<ChunkStoreError> for WorldError {
     fn from(error: ChunkStoreError) -> Self {
         Self::Store(Arc::new(error))
+    }
+}
+
+impl From<NativeRequestError> for WorldError {
+    fn from(error: NativeRequestError) -> Self {
+        match error {
+            NativeRequestError::Generation(error) => Self::Generation(error),
+            error => Self::Native(error),
+        }
     }
 }
 
@@ -289,10 +303,20 @@ impl World {
         z: i32,
         status: ChunkStatus,
         create: bool,
-    ) -> Result<Option<ReturnedChunk>, NativeRequestError> {
+    ) -> Result<Option<ReturnedChunk>, WorldError> {
         let pos = ChunkPos::new(x, z);
         NativeChunkRequests::validate_position(pos)?;
-        self.native_requests()?.get_chunk(pos, status, create)
+        if let Some(requests) = self.inner.native_requests.get() {
+            requests.as_ref().map_err(Clone::clone)?.check_admission()?;
+        }
+        if create {
+            self.hydrate_saved_neighbors(pos)?;
+        }
+        let requests = self.native_requests()?;
+        if self.inner.generation.is_saved_chunk(pos)? {
+            requests.admit_saved_chunk(pos)?;
+        }
+        Ok(requests.get_chunk(pos, status, create)?)
     }
 
     /// The chunk store, if this world persists chunks.
@@ -314,15 +338,33 @@ impl World {
 
     /// Load or generate, releasing the shard lock before returning either error.
     pub fn try_chunk(&self, x: i32, z: i32) -> Result<(ChunkColumn, ChunkOrigin), WorldError> {
+        let pos = ChunkPos::new(x, z);
+        NativeChunkRequests::validate_position(pos)?;
         let _generation = self.inner.generation_locks[payload_shard(x, z)]
             .lock()
             .expect("chunk generation lock");
         if let Some(store) = &self.inner.store {
             if let Some(column) = store.load(x, z)? {
-                return Ok((column, ChunkOrigin::Loaded));
+                if self
+                    .inner
+                    .generation
+                    .chunk_access(pos, ChunkStatus::Full)?
+                    .is_none()
+                {
+                    self.inner
+                        .generation
+                        .admit_saved_chunks(vec![column.into_saved_data(pos)])?;
+                }
+                let chunk = self
+                    .inner
+                    .generation
+                    .chunk_snapshot(pos)?
+                    .expect("admitted level chunk");
+                return Ok((ChunkColumn::from_generated(&chunk), ChunkOrigin::Loaded));
             }
         }
 
+        self.hydrate_saved_neighbors(pos)?;
         let result = self.generate_retained(x, z)?;
         let column = if self.inner.store.is_some() {
             // Generation queues are still pending; no world clock has unpacked them.
@@ -335,6 +377,37 @@ impl World {
             store.save(x, z, &column)?;
         }
         Ok((column, ChunkOrigin::Generated))
+    }
+
+    fn hydrate_saved_neighbors(&self, pos: ChunkPos) -> Result<(), WorldError> {
+        let Some(store) = &self.inner.store else {
+            return Ok(());
+        };
+        let radius = ChunkPyramid::Generation
+            .step(ChunkStatus::Full)
+            .accumulated
+            .radius();
+        let mut saved = Vec::new();
+        for source in layer_positions(pos, radius) {
+            if self
+                .inner
+                .generation
+                .progress(source)?
+                .is_some_and(|progress| {
+                    progress
+                        .stages
+                        .iter()
+                        .any(|stage| stage.state != StageState::Pending)
+                })
+            {
+                continue;
+            }
+            if let Some(column) = store.load(source.x, source.z)? {
+                saved.push(column.into_saved_data(source));
+            }
+        }
+        self.inner.generation.admit_saved_chunks(saved)?;
+        Ok(())
     }
 
     /// Generate a chunk without consulting or touching the disk.
@@ -408,7 +481,7 @@ impl World {
         )
     }
 
-    /// Live generation claims; a column served only from disk has no live history.
+    /// Live generation claims; saved admission has Partial data and zero attempts.
     pub fn generation_progress(
         &self,
         x: i32,

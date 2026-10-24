@@ -1,8 +1,6 @@
 use bcore_protocol::chunk::ChunkColumn;
-use bcore_protocol::world_state::World;
-use bcore_worldgen::generation::{
-    request::NativeRequestError, ChunkAccessKind, ChunkStatus, GenerationError, StageState,
-};
+use bcore_protocol::world_state::{World, WorldError};
+use bcore_worldgen::generation::{ChunkAccessKind, ChunkStatus, GenerationError, StageState};
 
 #[test]
 fn invalid_first_native_request_does_not_bind_the_world_to_the_rejected_thread() {
@@ -12,7 +10,7 @@ fn invalid_first_native_request_does_not_bind_the_world_to_the_rejected_thread()
         for (x, z) in [(i32::MAX, 0), (0, i32::MIN)] {
             assert!(matches!(
                 other.request_native_chunk(x, z, ChunkStatus::Light, true),
-                Err(NativeRequestError::Generation(
+                Err(WorldError::Generation(
                     GenerationError::CoordinateOutOfRange(_)
                 ))
             ));

@@ -1,0 +1,58 @@
+{
+  "schema": "bcore.saved-chunk-admission-checkpoint.v1",
+  "date": "2026-10-25",
+  "minecraft": "26.2",
+  "protocol": 776,
+  "data_version": 4903,
+  "registry_fingerprint": "1affd10b6938b00feda7fb9e22a00c5ff5b76a34446c6176059ade9ac22264ef",
+  "status": "pass",
+  "source_unchanged": true,
+  "source_manifest_encoding": "UTF-8 JSON, sorted keys, compact separators",
+  "source_files": 501,
+  "source_manifest_sha256": "898cc39ae831bf22a95e3f42b8da4ec85fd53ee1c5dc2eb0f5a723e951185e65",
+  "raw_validation": "target/saved-admission-validation-20261025-02/validation.json",
+  "raw_validation_sha256": "aa7fd416869e6401eb2d7ac034500e09db5d6b6b0243682caccf72092c964eae",
+  "totals": { "passed": 903, "failed": 0, "ignored": 4, "filtered_out": 0 },
+  "suite_count": 70,
+  "admission_integration_tests": 13,
+  "scope": "Canonical BCC v6 data admission, retained future ownership, saved-neighbour hydration, shared stored lighting, and persistence. Native generation history, full ticket/registration lifecycle, gameplay and GUI remain separate boundaries.",
+  "review_regressions": [
+    "admission_completes_issued_futures_and_retires_their_pending_generation",
+    "saved_admission_resolves_retained_full_accessibility_and_cancels_queued_conversion",
+    "saved_light_contributes_across_a_fresh_chunk_boundary_without_rewriting_disk",
+    "saved_only_neighborhood_has_no_finished_incoming_feature_history",
+    "imported_layers_preserve_presence_empty_flags_and_nibble_order",
+    "absent_saved_light_registers_blocks_without_enabling_or_fabricating_layers",
+    "incoming_sky_does_not_replace_an_absent_layer_whose_inherited_light_is_brighter"
+  ],
+  "checks": [
+    {
+      "name": "format",
+      "command": ["cargo", "fmt", "--all", "--check"],
+      "exit_code": 0,
+      "log": "target/saved-admission-validation-20261025-02/format.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "build",
+      "command": ["cargo", "build", "--workspace", "--release", "--locked", "-j", "1"],
+      "exit_code": 0,
+      "log": "target/saved-admission-validation-20261025-02/build.log",
+      "log_sha256": "73231173a86662a24a5519b26e3300acd2235e1eedecef5fa561392a41fed677"
+    },
+    {
+      "name": "workspace-tests",
+      "command": ["cargo", "test", "--workspace", "--release", "--locked", "--no-fail-fast", "-j", "1", "--", "--test-threads=2", "-Z", "unstable-options", "--format=json", "--report-time"],
+      "exit_code": 0,
+      "log": "target/saved-admission-validation-20261025-02/workspace-tests.log",
+      "log_sha256": "a9a887103fa6327aba534c62cd12cc254a07633c6549cd330f501dd8cee0624b"
+    },
+    {
+      "name": "standalone-replay",
+      "command": ["cargo", "build", "--manifest-path", "scripts/native-generation-reference/Cargo.toml", "--release", "--locked", "-j", "1", "--bins"],
+      "exit_code": 0,
+      "log": "target/saved-admission-validation-20261025-02/standalone-replay.log",
+      "log_sha256": "12be14411ac17e5d2b53c0943773333bdc87352ee0c53d38935a9d5631b833a5"
+    }
+  ]
+}

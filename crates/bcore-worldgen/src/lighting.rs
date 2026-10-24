@@ -14,6 +14,7 @@ use crate::block_predicate::{catalog, read_block, Direction, FeatureResult};
 use crate::feature_world::{FeatureError, FeatureWorld, Pos};
 use crate::{GeneratedChunk, MAX_Y, MIN_Y, SEA_LEVEL};
 
+mod saved;
 mod updates;
 pub use updates::has_different_light_properties;
 
@@ -260,6 +261,8 @@ type ColumnKey = (i32, i32);
 struct StoredSection {
     sky: Vec<u8>,
     block: Vec<u8>,
+    sky_present: bool,
+    block_present: bool,
     sky_empty: bool,
     block_empty: bool,
 }
@@ -344,22 +347,7 @@ impl GenerationLight {
     /// before INITIALIZE_LIGHT. Registration alone creates no light sections;
     /// sky source heights still have the native constructor's -infinity values.
     pub fn register_chunk(&mut self, pos: ChunkPos, states: &[u32]) -> FeatureResult<()> {
-        if states.len() != self.height as usize * 256 {
-            return Err(FeatureError::InvalidConfig(
-                "light block snapshot length".into(),
-            ));
-        }
-        if [pos.x, pos.z].into_iter().any(|c| {
-            i64::from(c) * 16 - 16 < i64::from(i32::MIN)
-                || i64::from(c) * 16 + 31 > i64::from(i32::MAX)
-        }) {
-            return Err(FeatureError::InvalidConfig(
-                "light chunk coordinates overflow padding".into(),
-            ));
-        }
-        for &state in states {
-            state_light(state)?;
-        }
+        self.validate_chunk_inputs(pos, states)?;
         if let Some(old) = self.columns.get_mut(&(pos.x, pos.z)) {
             if old.states == states {
                 return Ok(());
@@ -401,6 +389,26 @@ impl GenerationLight {
         Ok(())
     }
 
+    fn validate_chunk_inputs(&self, pos: ChunkPos, states: &[u32]) -> FeatureResult<()> {
+        if states.len() != self.height as usize * 256 {
+            return Err(FeatureError::InvalidConfig(
+                "light block snapshot length".into(),
+            ));
+        }
+        if [pos.x, pos.z].into_iter().any(|c| {
+            i64::from(c) * 16 - 16 < i64::from(i32::MIN)
+                || i64::from(c) * 16 + 31 > i64::from(i32::MAX)
+        }) {
+            return Err(FeatureError::InvalidConfig(
+                "light chunk coordinates overflow padding".into(),
+            ));
+        }
+        for &state in states {
+            state_light(state)?;
+        }
+        Ok(())
+    }
+
     /// Registers native nonempty sections and all 26 neighbouring padding
     /// sections; computes the exact face/opacity sky-source heightmap.
     pub fn initialize_chunk(&mut self, pos: ChunkPos, states: &[u32]) -> FeatureResult<()> {
@@ -408,38 +416,11 @@ impl GenerationLight {
         if self.columns[&(pos.x, pos.z)].initialized {
             return Ok(());
         }
-        let mut sources = SkyLightSources {
-            lowest_source_y: vec![i32::MIN; 256],
-        };
+        let sources = sky_light_sources(self.min_y, states)?;
         let occupied: Vec<_> = states
             .chunks_exact(4096)
             .map(|section| section.iter().any(|&state| !crate::is_air(state)))
             .collect();
-        for z in 0..16 {
-            for x in 0..16 {
-                let mut above = crate::block::AIR;
-                'column: for section in (0..occupied.len()).rev() {
-                    if !occupied[section] {
-                        // Native fillFrom skips WHOLE empty sections and resets
-                        // the preceding state to AIR. In particular it does not
-                        // test the bottom face of a slab at the preceding edge.
-                        above = crate::block::AIR;
-                        continue;
-                    }
-                    for ry in (0..16).rev() {
-                        let dy = section * 16 + ry;
-                        let state = states[dy * 256 + z * 16 + x];
-                        if state_light(state)?.dampening != 0
-                            || face_occludes(above, state, Direction::Down)?
-                        {
-                            sources.lowest_source_y[z * 16 + x] = self.min_y + dy as i32 + 1;
-                            break 'column;
-                        }
-                        above = state;
-                    }
-                }
-            }
-        }
         for (index, &occupied) in occupied.iter().enumerate() {
             if !occupied {
                 continue;
@@ -465,7 +446,7 @@ impl GenerationLight {
         let above = self
             .sections
             .range((cx, sy, i32::MIN)..=(cx, i32::MAX, i32::MAX))
-            .find(|((_, y, z), _)| *z == cz && *y > sy);
+            .find(|((_, y, z), section)| *z == cz && *y > sy && section.sky_present);
         let (sky, sky_empty) = if let Some((_, section)) = above {
             (
                 (0..4096).map(|i| section.sky[i & 255]).collect(),
@@ -484,6 +465,8 @@ impl GenerationLight {
             StoredSection {
                 sky,
                 block: vec![0; 4096],
+                sky_present: self.has_sky,
+                block_present: true,
                 sky_empty,
                 block_empty: true,
             },
@@ -543,12 +526,12 @@ impl GenerationLight {
             return 0;
         }
         let (cx, sy, cz) = Self::key(pos);
-        if let Some(section) = self.sections.get(&(cx, sy, cz)) {
+        if let Some(section) = self.sections.get(&(cx, sy, cz)).filter(|s| s.sky_present) {
             return section.sky[Self::index(pos)];
         }
         self.sections
             .range((cx, sy, i32::MIN)..=(cx, i32::MAX, i32::MAX))
-            .find(|((_, y, z), _)| *z == cz && *y > sy)
+            .find(|((_, y, z), section)| *z == cz && *y > sy && section.sky_present)
             .map_or(15, |(_, section)| {
                 section.sky[((pos.2 & 15) * 16 + (pos.0 & 15)) as usize]
             })
@@ -599,6 +582,7 @@ impl GenerationLight {
                         state_light(column.states[dy as usize * 256 + (i & 255)])?.emission;
                     if emission > section.block[i] {
                         section.block[i] = emission;
+                        section.block_present = true;
                         section.block_empty = false;
                         block_queue.push_back(Increase {
                             pos: p,
@@ -632,6 +616,7 @@ impl GenerationLight {
                             let p = (wx, y, wz);
                             let section = self.sections.get_mut(&(cx, sy, cz)).unwrap();
                             section.sky[Self::index(p)] = 15;
+                            section.sky_present = true;
                             section.sky_empty = false;
                             let mut directions = u8::from(y == lowest);
                             for direction in [
@@ -659,6 +644,7 @@ impl GenerationLight {
                 }
             }
         }
+        self.queue_neighbour_light(pos, &mut block_queue, &mut sky_queue);
         self.propagate(&mut block_queue, false)?;
         self.propagate(&mut sky_queue, true)?;
         Ok(())
@@ -706,13 +692,13 @@ impl GenerationLight {
                     continue;
                 }
                 let next = direction.step(pos);
-                let Some(section) = self.sections.get(&Self::key(next)) else {
+                if !self.sections.contains_key(&Self::key(next)) {
                     continue;
-                };
+                }
                 let old = if sky {
-                    section.sky[Self::index(next)]
+                    self.sky_brightness(next)
                 } else {
-                    section.block[Self::index(next)]
+                    self.block_brightness(next)
                 };
                 if old >= value - 1 {
                     continue;
@@ -726,9 +712,11 @@ impl GenerationLight {
                 self.changed_columns.insert((next.0 >> 4, next.2 >> 4));
                 if sky {
                     section.sky[Self::index(next)] = level;
+                    section.sky_present = true;
                     section.sky_empty = false;
                 } else {
                     section.block[Self::index(next)] = level;
+                    section.block_present = true;
                     section.block_empty = false;
                 }
                 let directions = 63 ^ (1 << (direction as u8 ^ 1));
@@ -796,6 +784,7 @@ impl GenerationLight {
             for y in (y_section * 16..y_section * 16 + 16).rev() {
                 let p = (pos.0, y, pos.2);
                 section.sky[Self::index(p)] = level;
+                section.sky_present = true;
                 section.sky_empty = false;
                 if level > 1 {
                     queue.push_back(Increase {
@@ -820,10 +809,10 @@ impl GenerationLight {
         let sections = (min_section_y..min_section_y + self.height / 16 + 2)
             .map(|y| match self.sections.get(&(pos.x, y, pos.z)) {
                 Some(section) => LightSection {
-                    sky: self.has_sky.then(|| pack(&section.sky)),
-                    block: Some(pack(&section.block)),
-                    sky_empty: self.has_sky && section.sky_empty,
-                    block_empty: section.block_empty,
+                    sky: (self.has_sky && section.sky_present).then(|| pack(&section.sky)),
+                    block: section.block_present.then(|| pack(&section.block)),
+                    sky_empty: self.has_sky && section.sky_present && section.sky_empty,
+                    block_empty: section.block_present && section.block_empty,
                 },
                 None => LightSection::default(),
             })
@@ -840,4 +829,38 @@ fn section_counts(states: &[u32]) -> Vec<u16> {
         .chunks_exact(4096)
         .map(|s| s.iter().filter(|&&state| !crate::is_air(state)).count() as u16)
         .collect()
+}
+
+fn sky_light_sources(min_y: i32, states: &[u32]) -> FeatureResult<SkyLightSources> {
+    let mut sources = SkyLightSources {
+        lowest_source_y: vec![i32::MIN; 256],
+    };
+    let occupied: Vec<_> = states
+        .chunks_exact(4096)
+        .map(|section| section.iter().any(|&state| !crate::is_air(state)))
+        .collect();
+    for z in 0..16 {
+        for x in 0..16 {
+            let mut above = crate::block::AIR;
+            'column: for section in (0..occupied.len()).rev() {
+                if !occupied[section] {
+                    // Native fillFrom skips whole empty sections and resets AIR.
+                    above = crate::block::AIR;
+                    continue;
+                }
+                for ry in (0..16).rev() {
+                    let dy = section * 16 + ry;
+                    let state = states[dy * 256 + z * 16 + x];
+                    if state_light(state)?.dampening != 0
+                        || face_occludes(above, state, Direction::Down)?
+                    {
+                        sources.lowest_source_y[z * 16 + x] = min_y + dy as i32 + 1;
+                        break 'column;
+                    }
+                    above = state;
+                }
+            }
+        }
+    }
+    Ok(sources)
 }

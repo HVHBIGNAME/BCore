@@ -326,6 +326,27 @@ pub struct ChunkColumn {
 }
 
 impl ChunkColumn {
+    /// Transfer a decoded storage snapshot for validated canonical admission.
+    pub fn into_saved_data(
+        self,
+        pos: bcore_core::ChunkPos,
+    ) -> bcore_worldgen::generation::SavedChunkData {
+        bcore_worldgen::generation::SavedChunkData {
+            pos,
+            states: self.states,
+            biomes: self.biomes,
+            block_entities: self.block_entities,
+            feature_block_entities: self.feature_block_entities,
+            pending_block_entities: self.pending_block_entities,
+            entities: self.entities,
+            structure_entities: self.structure_entities,
+            tick_requests: self.tick_requests,
+            postprocessing: self.postprocessing,
+            light: self.light,
+            structures: self.structures,
+        }
+    }
+
     /// An all-air column with every biome cell set to `biome`.
     pub fn new(biome: u32) -> Self {
         assert!((biome as usize) < BIOME_COUNT, "registered column biome");

@@ -2,8 +2,8 @@ use bcore_core::ChunkPos;
 
 use super::graph::ChunkStatus;
 
-/// `Partial` is a finished attempt with known omissions, never a native completed
-/// status. `Pending` and `Failed` are not promoted by the scheduler.
+/// `Partial` has available data with known omissions, never a native completed
+/// status. Saved admission does not count as a generation attempt.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub enum StageState {
     #[default]

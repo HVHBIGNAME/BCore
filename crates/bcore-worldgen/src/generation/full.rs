@@ -7,7 +7,8 @@ use super::{ChunkStatus, GenerationError, GenerationState, GenerationWorld};
 use crate::block_entity::BlockEntity;
 use crate::feature_world::{FeatureError, FeatureHeightmap};
 use crate::structure::template::Nbt;
-use crate::tick_queue::{LevelTickQueue, PreparedTickQueues, SavedTick};
+use crate::tick_queue::{LevelTickQueue, PreparedTickQueues, SavedTick, TickPriority};
+use crate::tick_request::TickTarget;
 use crate::{GeneratedChunk, RuntimeHeightmaps, WorldgenHeightmaps};
 
 pub(super) enum ChunkLifecycle {
@@ -26,6 +27,32 @@ pub struct LevelChunkState {
 }
 
 impl LevelChunkState {
+    pub(super) fn from_saved(chunk: &GeneratedChunk) -> Self {
+        let mut blocks = Vec::new();
+        let mut fluids = Vec::new();
+        for request in chunk.tick_requests() {
+            let (queue, target) = match request.target {
+                TickTarget::Block(id) => (&mut blocks, id),
+                TickTarget::Fluid(id) => (&mut fluids, id),
+            };
+            queue.push(SavedTick {
+                block_pos: request.block_pos,
+                target,
+                delay: request.delay,
+                priority: TickPriority::Normal,
+            });
+        }
+        Self {
+            block_ticks: LevelTickQueue::from_saved(blocks),
+            fluid_ticks: LevelTickQueue::from_saved(fluids),
+            retired_proto_heightmaps: None,
+            retained_proto: super::objects::RetainedProtoMetadata::capture(
+                chunk,
+                ChunkStatus::Full,
+            ),
+        }
+    }
+
     fn from_proto(chunk: &mut GeneratedChunk, ticks: PreparedTickQueues) -> Self {
         let retained_proto =
             super::objects::RetainedProtoMetadata::capture(chunk, ChunkStatus::Spawn);

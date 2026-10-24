@@ -153,9 +153,11 @@ impl GenerationLight {
             .expect("stored light section");
         if sky {
             section.sky[Self::index(pos)] = value;
+            section.sky_present = true;
             section.sky_empty = false;
         } else {
             section.block[Self::index(pos)] = value;
+            section.block_present = true;
             section.block_empty = false;
         }
     }

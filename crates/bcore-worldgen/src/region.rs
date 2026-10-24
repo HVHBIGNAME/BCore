@@ -381,6 +381,12 @@ impl FeatureRegion {
         )
     }
 
+    pub(crate) fn insert_owned_chunk(&mut self, chunk: GeneratedChunk) {
+        self.chunks
+            .get_mut()
+            .insert((chunk.pos.x, chunk.pos.z), Arc::new(chunk));
+    }
+
     fn check_access(
         &self,
         destination: ChunkPos,

@@ -430,7 +430,10 @@ impl GeneratedChunk {
 
     /// The surface biome at a chunk-local `(x, z)`.
     pub fn biome_at(&self, x: usize, z: usize) -> Biome {
-        self.biomes[z * CHUNK_SIZE + x]
+        *self
+            .biomes
+            .get(z * CHUNK_SIZE + x)
+            .expect("surface biome aliases unavailable in saved chunk data")
     }
 
     pub fn noise_biome_at(&self, x: usize, y: i32, z: usize) -> biome::BiomeId {
@@ -443,7 +446,10 @@ impl GeneratedChunk {
 
     /// The terrain height at a chunk-local `(x, z)` (topmost solid terrain Y).
     pub fn height_at(&self, x: usize, z: usize) -> i32 {
-        self.heights[z * CHUNK_SIZE + x]
+        *self
+            .heights
+            .get(z * CHUNK_SIZE + x)
+            .expect("pre-feature terrain heights unavailable in saved chunk data")
     }
 
     /// Highest non-air Y at `(x, z)`, or `None` for an empty column.

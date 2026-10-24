@@ -77,6 +77,7 @@ pub struct RequestHolderSnapshot {
     /// Scheduler notification only; world registration/ticking remains Partial.
     pub promotion_callback_executed: bool,
     pub ready_statuses: Vec<ChunkStatus>,
+    pub saved_data_admitted: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -160,6 +161,81 @@ impl NativeChunkRequests {
         }
     }
 
+    /// Storage owners validate this boundary before doing admission work.
+    pub fn check_admission(&self) -> Result<(), NativeRequestError> {
+        self.check_main_thread()?;
+        lock(&self.shared.state).check_open()
+    }
+
+    /// Publish already admitted storage data through the existing holder futures
+    /// and four-slot cache. No generation, tickets or promotion are scheduled.
+    pub fn admit_saved_chunk(&self, pos: ChunkPos) -> Result<(), NativeRequestError> {
+        Self::validate_position(pos)?;
+        self.check_admission()?;
+        if !self.shared.world.is_saved_chunk(pos)? {
+            return Err(NativeRequestError::Admission {
+                pos,
+                status: ChunkStatus::Full,
+            });
+        }
+        let level = self
+            .shared
+            .world
+            .returned_chunk(pos, ChunkStatus::Full)?
+            .ok_or(NativeRequestError::Admission {
+                pos,
+                status: ChunkStatus::Full,
+            })?;
+        let imposter = self
+            .shared
+            .world
+            .returned_chunk(pos, ChunkStatus::Empty)?
+            .ok_or(NativeRequestError::Admission {
+                pos,
+                status: ChunkStatus::Empty,
+            })?;
+        let mut state = lock(&self.shared.state);
+        state.check_open()?;
+        let owner = state.owner.clone();
+        let holder = state
+            .holders
+            .entry((pos.x, pos.z))
+            .or_insert_with(RequestHolder::new);
+        if holder.saved {
+            return Ok(());
+        }
+        holder.saved = true;
+        holder.allowed = Some(ChunkStatus::Full);
+        for future in holder.futures[..ChunkStatus::Full.index()].iter().flatten() {
+            future.complete(Ok(Some(imposter.clone())));
+        }
+        if let Some(future) = &holder.futures[ChunkStatus::Full.index()] {
+            future.complete(Ok(Some(level.clone())));
+        }
+        if let Some(supplier) = &holder.full_supplier {
+            supplier.complete(Ok(Some(level.clone())));
+        }
+        holder.target = None;
+        holder.revision += 1;
+        holder.main_queued = false;
+        let lower = ChunkFuture::completed(&owner, Ok(Some(imposter)));
+        for slot in &mut holder.futures[..ChunkStatus::Full.index()] {
+            *slot = Some(lower.clone());
+        }
+        holder.futures[ChunkStatus::Full.index()] =
+            Some(ChunkFuture::completed(&owner, Ok(Some(level))));
+        state.pending.retain(|task| task.pos != pos);
+        state.worker_queue.retain(|task| task.pos != pos);
+        state
+            .main
+            .retain(|task| !matches!(task, MainTask::Full(task) if task.pos == pos));
+        state.refresh_accessibility_near(pos);
+        state.cache.clear();
+        state.cache_invalidations += 1;
+        self.shared.wake.notify_all();
+        Ok(())
+    }
+
     /// ServerChunkCache.getChunk: exact four-slot lookup, requested-future wait,
     /// then a store. Neither cache hits nor completed futures drain main work.
     pub fn get_chunk(&self, pos: ChunkPos, status: ChunkStatus, create: bool) -> Outcome {
@@ -201,7 +277,7 @@ impl NativeChunkRequests {
             state
                 .holders
                 .get(&(pos.x, pos.z))
-                .is_none_or(|holder| holder.level > level)
+                .is_none_or(|holder| !holder.saved && holder.level > level)
         };
         if create && absent {
             self.run_distance_updates()?;
@@ -212,7 +288,7 @@ impl NativeChunkRequests {
             if state
                 .holders
                 .get(&(pos.x, pos.z))
-                .is_none_or(|holder| holder.level > level)
+                .is_none_or(|holder| !holder.saved && holder.level > level)
             {
                 return if create {
                     Err(NativeRequestError::Admission { pos, status })
@@ -325,7 +401,11 @@ impl NativeChunkRequests {
                     .entry((pos.x, pos.z))
                     .or_insert_with(RequestHolder::new);
                 holder.level = level;
-                holder.allowed = generation_status(level);
+                holder.allowed = if holder.saved {
+                    Some(ChunkStatus::Full)
+                } else {
+                    generation_status(level)
+                };
             }
             let mut admissions = Vec::new();
             let owner = state.owner.clone();
@@ -424,6 +504,7 @@ impl NativeChunkRequests {
                             .is_some_and(ChunkFuture::is_done)
                     })
                     .collect(),
+                saved_data_admitted: holder.saved,
             })
     }
 
@@ -554,6 +635,7 @@ impl Accessibility {
 }
 
 struct RequestHolder {
+    saved: bool,
     level: u8,
     allowed: Option<ChunkStatus>,
     accessible: bool,
@@ -569,6 +651,7 @@ struct RequestHolder {
 impl RequestHolder {
     fn new() -> Self {
         Self {
+            saved: false,
             level: maximum_loading_level() + 1,
             allowed: None,
             accessible: false,

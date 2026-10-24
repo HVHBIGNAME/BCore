@@ -279,31 +279,33 @@ terrain reproduces the history of an already partially generated world.
 
 ### Coverage is distinct from native completion
 
-The FULL request currently executes supported work through SPAWN in the native
-FULL dependency envelope. `Partial` means a finished attempt with named omissions;
-it is not a completed native status. FULL remains pending. SPAWN's server-input
-API is implemented; live clock/settings updates still require hookup. Structure
+Current FULL requests execute supported work and retained object conversion in the
+native FULL dependency envelope. A Level object is not a complete native world
+registration/ticking claim. `Partial` generation work has named omissions;
+saved-data admission has Partial data with zero attempts instead. SPAWN's server-input
+API is implemented; complete live settings/spawn coverage still requires validation. Structure
 density adaptation and noise ore-vein filling are implemented; missing structure
 families and unsupported callbacks still appear in coverage.
 
-WG maps freeze after CARVERS and remain available to subsequent features. Native
-FULL conversion removes them. BCore retains them until that conversion is actually
-implemented, so their presence still differs on FULL requests. FULL-request
-snapshots explicitly materialize the target's block entities, but that BE-only
-boundary does not complete FULL. Pending `DUMMY` tags remain observable beforehand.
-The LIGHT-history's final read follows an implicit native FULL completion, exposing
-36 BE fields until BCore implements the real ticket-driven lifecycle transition.
+WG maps freeze after CARVERS. Retained FULL conversion retires them from Level and
+ImposterProto views while old Proto outcomes preserve their metadata. Level-save
+materialization and ticking readiness are explicit, separate boundaries. The earlier
+26.1 matched-history checkpoint still records its 36 BE-field and 70 WG-presence
+differences; newer conversion/data-admission work does not relabel that evidence.
 
-`incoming_sources_finished` means all possible direct incoming writers have finished
-their supported attempts. It does not mean all features, lighting or native ticking
+`incoming_sources_finished` requires actual finished FEATURES attempts for all
+possible direct incoming writers. Saved-only neighbours with zero attempts do not
+satisfy it. It does not mean all features, lighting or native ticking
 preparation succeeded. Query `coverage.is_complete()` and the missing-work lists.
 The server reports partial coverage once per world and exposes details through
 `try_generate`; diagnostic output retains those details on every requested chunk.
 
-The store currently saves column snapshots, not the live holder graph. A loaded-only
-column has no live progress entry. Hydration of saved neighbours, persisted claims,
-cross-restart ownership of unreturned neighbours and bounded holder eviction still
-need integration. The loading pyramid metadata is not evidence of that runtime path.
+The store saves column snapshots, not the live holder graph. Current 26.2 BCC data
+is admitted into canonical Level storage with Partial progress, zero attempts and
+shared stored lighting before fresh neighbour generation. See the
+[saved-admission checkpoint](saved-chunk-admission-2026-10-25.md). Persisted generation
+claims, cross-restart ownership of unreturned effects and bounded holder eviction
+still need integration. Loading-pyramid metadata alone is not runtime evidence.
 
 ## Remaining integration and validation
 

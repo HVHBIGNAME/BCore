@@ -1,7 +1,9 @@
 use super::*;
 use crate::block;
 use crate::block_entity::{BlockEntity, PendingBlockEntity};
-use crate::generation::{ChunkAccessKind, ReturnedChunk, StageState};
+use crate::generation::{
+    graph::layer_positions, ChunkAccessKind, ChunkPyramid, ReturnedChunk, StageState,
+};
 use crate::region::FeatureRegion;
 use crate::structure::template::Nbt;
 use crate::tick_request::{TickRequest, TickTarget};
@@ -208,6 +210,92 @@ fn native_ticket_table_uses_accumulated_full_radii_and_allowed_ceilings() {
     }
     assert_eq!(generation_status(45), None);
     assert_eq!(generation_status(u8::MAX), None);
+}
+
+#[test]
+fn saved_admission_resolves_retained_full_accessibility_and_cancels_queued_conversion() {
+    let (world, runtime) = fixture();
+    let pos = ChunkPos::new(3, -2);
+    let first = layer_positions(
+        pos,
+        ChunkPyramid::Generation
+            .step(ChunkStatus::Full)
+            .layer_radius(ChunkStatus::Empty)
+            .unwrap(),
+    )
+    .next()
+    .unwrap();
+    runtime.shared.control.arm(first, ChunkStatus::Empty, false);
+    let full = runtime
+        .request_future(pos, ChunkStatus::Full, true)
+        .unwrap();
+    runtime
+        .shared
+        .control
+        .reached(first, ChunkStatus::Empty, false);
+    let accessibility = runtime
+        .holder(pos)
+        .unwrap()
+        .full_accessibility_future
+        .unwrap();
+    assert!(!full.is_done());
+    assert!(!accessibility.is_done());
+    let positions: Vec<_> = layer_positions(pos, 1).collect();
+    let data = positions
+        .iter()
+        .map(|&pos| crate::generation::SavedChunkData {
+            pos,
+            states: vec![block::AIR; crate::WORLD_HEIGHT as usize * 256],
+            biomes: vec![0; crate::WORLD_HEIGHT as usize * 4],
+            block_entities: Default::default(),
+            feature_block_entities: Default::default(),
+            pending_block_entities: Default::default(),
+            entities: Vec::new(),
+            structure_entities: Vec::new(),
+            tick_requests: Vec::new(),
+            postprocessing: Vec::new(),
+            light: None,
+            structures: Default::default(),
+        })
+        .collect();
+    world.admit_saved_chunks(data).unwrap();
+    for saved in positions {
+        runtime.admit_saved_chunk(saved).unwrap();
+    }
+    let old = full
+        .get_now()
+        .expect("retained FULL must resolve")
+        .unwrap()
+        .unwrap();
+    let current = runtime
+        .get_chunk(pos, ChunkStatus::Full, false)
+        .unwrap()
+        .unwrap();
+    assert!(old.same_object(&current));
+    let accessible = accessibility
+        .get_now()
+        .expect("retained dependencies must resolve")
+        .unwrap()
+        .unwrap();
+    assert!(accessible.same_object(&current));
+    runtime
+        .shared
+        .control
+        .release(first, ChunkStatus::Empty, false);
+    idle_worker(&runtime);
+    assert!(full_queue(&runtime).is_empty());
+    assert_eq!(runtime.holder(pos).unwrap().generation_target, None);
+    assert_eq!(
+        world
+            .progress(pos)
+            .unwrap()
+            .unwrap()
+            .stage(ChunkStatus::Empty)
+            .attempts,
+        0
+    );
+    runtime.shutdown();
+    assert!(full.join().unwrap().unwrap().same_object(&current));
 }
 
 #[test]

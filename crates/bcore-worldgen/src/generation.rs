@@ -17,6 +17,7 @@ mod light;
 mod objects;
 mod placed;
 pub mod request;
+mod saved;
 mod scattered;
 mod spawn;
 mod structures;
@@ -32,6 +33,7 @@ pub use effects::{FeatureBlockEntity, StructureEntityRequest};
 pub use full::{ChunkAccess, ChunkAccessKind, ChunkRead, LevelChunkSave, LevelChunkState};
 pub use graph::{ChunkPyramid, ChunkStatus};
 pub use objects::{ReturnedChunk, ReturnedChunkSave, ReturnedChunkView};
+pub use saved::SavedChunkData;
 pub use spawn::{SpawnInputs, SpawnSettings, WorldSpawnInputs};
 
 use std::collections::{BTreeMap, BTreeSet};
@@ -51,6 +53,11 @@ type Key = (i32, i32);
 pub enum GenerationError {
     CoordinateOutOfRange(ChunkPos),
     NotConverted(ChunkPos),
+    InvalidSavedChunk {
+        pos: ChunkPos,
+        detail: String,
+    },
+    SavedChunkConflict(ChunkPos),
     BlockEntityFailed {
         pos: ChunkPos,
         boundary: &'static str,
@@ -72,6 +79,15 @@ impl std::fmt::Display for GenerationError {
                 "generation dependencies exceed block coordinate bounds for {pos:?}"
             ),
             Self::NotConverted(pos) => write!(f, "no retained level chunk at {pos:?}"),
+            Self::InvalidSavedChunk { pos, detail } => {
+                write!(f, "invalid saved chunk at {pos:?}: {detail}")
+            }
+            Self::SavedChunkConflict(pos) => {
+                write!(
+                    f,
+                    "saved chunk conflicts with an existing generation claim at {pos:?}"
+                )
+            }
             Self::BlockEntityFailed {
                 pos,
                 boundary,
@@ -99,7 +115,8 @@ pub struct GenerationResult {
 
 /// Share one instance (or an `Arc<GenerationWorld>`) for the lifetime of a world.
 /// Constructing another instance deliberately creates an independent history,
-/// even when its seed is the same. This context does not load persisted chunks.
+/// even when its seed is the same. Storage owners can admit validated saved data;
+/// this context itself performs no disk I/O.
 pub struct GenerationWorld {
     generator: WorldGenerator,
     state: Mutex<GenerationState>,
@@ -168,6 +185,7 @@ struct ChunkHolder {
     progress: ChunkProgress,
     lifecycle: full::ChunkLifecycle,
     objects: objects::ChunkObjects,
+    saved: bool,
     structures: StructureData,
     features: Option<SourceFeatureCoverage>,
     spawn: Option<crate::spawn::SpawnReport>,
@@ -185,6 +203,7 @@ impl ChunkHolder {
             },
             lifecycle: full::ChunkLifecycle::Proto,
             objects: objects::ChunkObjects::default(),
+            saved: false,
             structures: StructureData::default(),
             features: None,
             spawn: None,
@@ -231,6 +250,21 @@ impl GenerationState {
         pos: ChunkPos,
         target: ChunkStatus,
     ) -> Result<GenerationResult, GenerationError> {
+        if self
+            .holders
+            .get(&(pos.x, pos.z))
+            .is_some_and(|holder| holder.saved)
+        {
+            return Ok(GenerationResult {
+                chunk: self
+                    .region
+                    .owned_chunk(pos)
+                    .expect("admitted saved chunk")
+                    .as_ref()
+                    .clone(),
+                coverage: self.coverage(pos, target),
+            });
+        }
         let step = ChunkPyramid::Generation.step(target);
         for status in ChunkStatus::ALL {
             let Some(radius) = step.layer_radius(status) else {
@@ -557,11 +591,8 @@ impl GenerationState {
             self.holders
                 .get(&(source.x, source.z))
                 .is_some_and(|holder| {
-                    holder
-                        .progress
-                        .stage(ChunkStatus::Features)
-                        .state
-                        .has_data()
+                    let stage = holder.progress.stage(ChunkStatus::Features);
+                    stage.attempts > 0 && stage.state.has_data()
                 })
         });
         GenerationCoverage {

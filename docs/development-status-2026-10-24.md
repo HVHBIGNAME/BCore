@@ -1,4 +1,4 @@
-# Статус разработки — 24 октября 2026
+# Статус разработки — обновлено 25 октября 2026
 
 Цель проекта: все механики **Minecraft Java 26.2 / protocol 776 / data version
 4903**, с проверкой поведения против закреплённого оригинального сервера.
@@ -9,7 +9,11 @@
 
 - Переход общих registry IDs, protocol admission и BCC v6 на 26.2; исторические
   эталоны 26.1 остаются явно историческими.
-- Последний workspace checkpoint: **886 passed / 0 failed / 4 ignored**.
+- Migration checkpoint: **886 passed / 0 failed / 4 ignored**.
+- Canonical BCC admission и shared saved lighting: новый workspace checkpoint
+  **903 passed / 0 failed / 4 ignored**, 70 suites; 13 admission integration tests.
+  Исправлены потеря pending futures, отсутствующий shared light import и ложная
+  FEATURES history flag. [Отчёт admission](saved-chunk-admission-2026-10-25.md).
 - Нативные codecs декодировали **1179 пакетов**, включая **127 terrain packets**,
   в трёх сессиях BCore; сохранённое изменение блока наблюдалось после restart.
 - Новый NOISE baseline: совпали blocks, ordered marks и обе WG maps во всех
@@ -34,7 +38,7 @@
 | Этап | Статус и ближайшая проверяемая граница |
 |---|---|
 | Полный Overworld и ticket-driven FULL | Partial; нужны сохранение/восстановление canonical holders и полные межчанковые истории |
-| Saved-column admission | При загрузке BCC streaming и retained generation runtime ещё расходятся; импорт должен сохранять пользовательские edits без повторной decoration |
+| Saved-column admission | Выполнен data-admission slice: canonical Level/Imposter data, futures/cache, saved neighbours, stored light и restart проверены; generation history/registration остаются Partial |
 | Ломка/установка блоков | Planned; authoritative mutation, ответы клиенту/viewers, dirty save и restart/reload |
 | Физика и инвентарь | Planned; AABB/collision/gravity, hotbar/slots, menu ownership и click transactions |
 | Игрок, mobs, redstone и жидкости | Открыты соответствующие фазы дорожной карты |
