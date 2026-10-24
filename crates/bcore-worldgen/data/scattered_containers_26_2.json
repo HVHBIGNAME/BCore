@@ -1,0 +1,498 @@
+{
+  "containers": {
+    "cases": [
+      {
+        "full": {
+          "nbt": {
+            "Compound": {
+              "LootTable": {
+                "String": "minecraft:chests/buried_treasure"
+              },
+              "components": {
+                "Compound": {}
+              },
+              "id": {
+                "String": "minecraft:chest"
+              },
+              "x": {
+                "Int": -17
+              },
+              "y": {
+                "Int": 61
+              },
+              "z": {
+                "Int": 32
+              }
+            }
+          }
+        },
+        "pos": [
+          -17,
+          61,
+          32
+        ],
+        "seed": 0,
+        "state": 3988,
+        "table": "minecraft:chests/buried_treasure",
+        "update": {
+          "nbt": {
+            "Compound": {}
+          }
+        }
+      },
+      {
+        "full": {
+          "nbt": {
+            "Compound": {
+              "LootTable": {
+                "String": "minecraft:chests/buried_treasure"
+              },
+              "LootTableSeed": {
+                "Long": 1
+              },
+              "components": {
+                "Compound": {}
+              },
+              "id": {
+                "String": "minecraft:chest"
+              },
+              "x": {
+                "Int": -17
+              },
+              "y": {
+                "Int": 61
+              },
+              "z": {
+                "Int": 32
+              }
+            }
+          }
+        },
+        "pos": [
+          -17,
+          61,
+          32
+        ],
+        "seed": 1,
+        "state": 3988,
+        "table": "minecraft:chests/buried_treasure",
+        "update": {
+          "nbt": {
+            "Compound": {}
+          }
+        }
+      },
+      {
+        "full": {
+          "nbt": {
+            "Compound": {
+              "LootTable": {
+                "String": "minecraft:chests/buried_treasure"
+              },
+              "LootTableSeed": {
+                "Long": -1
+              },
+              "components": {
+                "Compound": {}
+              },
+              "id": {
+                "String": "minecraft:chest"
+              },
+              "x": {
+                "Int": -17
+              },
+              "y": {
+                "Int": 61
+              },
+              "z": {
+                "Int": 32
+              }
+            }
+          }
+        },
+        "pos": [
+          -17,
+          61,
+          32
+        ],
+        "seed": -1,
+        "state": 3988,
+        "table": "minecraft:chests/buried_treasure",
+        "update": {
+          "nbt": {
+            "Compound": {}
+          }
+        }
+      },
+      {
+        "full": {
+          "nbt": {
+            "Compound": {
+              "LootTable": {
+                "String": "minecraft:chests/buried_treasure"
+              },
+              "LootTableSeed": {
+                "Long": -9223372036854775808
+              },
+              "components": {
+                "Compound": {}
+              },
+              "id": {
+                "String": "minecraft:chest"
+              },
+              "x": {
+                "Int": -17
+              },
+              "y": {
+                "Int": 61
+              },
+              "z": {
+                "Int": 32
+              }
+            }
+          }
+        },
+        "pos": [
+          -17,
+          61,
+          32
+        ],
+        "seed": -9223372036854775808,
+        "state": 3988,
+        "table": "minecraft:chests/buried_treasure",
+        "update": {
+          "nbt": {
+            "Compound": {}
+          }
+        }
+      },
+      {
+        "full": {
+          "nbt": {
+            "Compound": {
+              "LootTable": {
+                "String": "minecraft:chests/buried_treasure"
+              },
+              "LootTableSeed": {
+                "Long": 9223372036854775807
+              },
+              "components": {
+                "Compound": {}
+              },
+              "id": {
+                "String": "minecraft:chest"
+              },
+              "x": {
+                "Int": -17
+              },
+              "y": {
+                "Int": 61
+              },
+              "z": {
+                "Int": 32
+              }
+            }
+          }
+        },
+        "pos": [
+          -17,
+          61,
+          32
+        ],
+        "seed": 9223372036854775807,
+        "state": 3988,
+        "table": "minecraft:chests/buried_treasure",
+        "update": {
+          "nbt": {
+            "Compound": {}
+          }
+        }
+      },
+      {
+        "full": {
+          "nbt": {
+            "Compound": {
+              "LootTable": {
+                "String": "minecraft:chests/jungle_temple_dispenser"
+              },
+              "components": {
+                "Compound": {}
+              },
+              "id": {
+                "String": "minecraft:dispenser"
+              },
+              "x": {
+                "Int": -17
+              },
+              "y": {
+                "Int": 61
+              },
+              "z": {
+                "Int": 32
+              }
+            }
+          }
+        },
+        "pos": [
+          -17,
+          61,
+          32
+        ],
+        "seed": 0,
+        "state": 567,
+        "table": "minecraft:chests/jungle_temple_dispenser",
+        "update": {
+          "nbt": {
+            "Compound": {}
+          }
+        }
+      },
+      {
+        "full": {
+          "nbt": {
+            "Compound": {
+              "LootTable": {
+                "String": "minecraft:chests/jungle_temple_dispenser"
+              },
+              "LootTableSeed": {
+                "Long": 1
+              },
+              "components": {
+                "Compound": {}
+              },
+              "id": {
+                "String": "minecraft:dispenser"
+              },
+              "x": {
+                "Int": -17
+              },
+              "y": {
+                "Int": 61
+              },
+              "z": {
+                "Int": 32
+              }
+            }
+          }
+        },
+        "pos": [
+          -17,
+          61,
+          32
+        ],
+        "seed": 1,
+        "state": 567,
+        "table": "minecraft:chests/jungle_temple_dispenser",
+        "update": {
+          "nbt": {
+            "Compound": {}
+          }
+        }
+      },
+      {
+        "full": {
+          "nbt": {
+            "Compound": {
+              "LootTable": {
+                "String": "minecraft:chests/jungle_temple_dispenser"
+              },
+              "LootTableSeed": {
+                "Long": -1
+              },
+              "components": {
+                "Compound": {}
+              },
+              "id": {
+                "String": "minecraft:dispenser"
+              },
+              "x": {
+                "Int": -17
+              },
+              "y": {
+                "Int": 61
+              },
+              "z": {
+                "Int": 32
+              }
+            }
+          }
+        },
+        "pos": [
+          -17,
+          61,
+          32
+        ],
+        "seed": -1,
+        "state": 567,
+        "table": "minecraft:chests/jungle_temple_dispenser",
+        "update": {
+          "nbt": {
+            "Compound": {}
+          }
+        }
+      },
+      {
+        "full": {
+          "nbt": {
+            "Compound": {
+              "LootTable": {
+                "String": "minecraft:chests/jungle_temple_dispenser"
+              },
+              "LootTableSeed": {
+                "Long": -9223372036854775808
+              },
+              "components": {
+                "Compound": {}
+              },
+              "id": {
+                "String": "minecraft:dispenser"
+              },
+              "x": {
+                "Int": -17
+              },
+              "y": {
+                "Int": 61
+              },
+              "z": {
+                "Int": 32
+              }
+            }
+          }
+        },
+        "pos": [
+          -17,
+          61,
+          32
+        ],
+        "seed": -9223372036854775808,
+        "state": 567,
+        "table": "minecraft:chests/jungle_temple_dispenser",
+        "update": {
+          "nbt": {
+            "Compound": {}
+          }
+        }
+      },
+      {
+        "full": {
+          "nbt": {
+            "Compound": {
+              "LootTable": {
+                "String": "minecraft:chests/jungle_temple_dispenser"
+              },
+              "LootTableSeed": {
+                "Long": 9223372036854775807
+              },
+              "components": {
+                "Compound": {}
+              },
+              "id": {
+                "String": "minecraft:dispenser"
+              },
+              "x": {
+                "Int": -17
+              },
+              "y": {
+                "Int": 61
+              },
+              "z": {
+                "Int": 32
+              }
+            }
+          }
+        },
+        "pos": [
+          -17,
+          61,
+          32
+        ],
+        "seed": 9223372036854775807,
+        "state": 567,
+        "table": "minecraft:chests/jungle_temple_dispenser",
+        "update": {
+          "nbt": {
+            "Compound": {}
+          }
+        }
+      }
+    ],
+    "defaults": {
+      "minecraft:chest": {
+        "full": {
+          "nbt": {
+            "Compound": {
+              "Items": {
+                "List": {
+                  "element_type": 0,
+                  "values": []
+                }
+              },
+              "components": {
+                "Compound": {}
+              },
+              "id": {
+                "String": "minecraft:chest"
+              },
+              "x": {
+                "Int": 0
+              },
+              "y": {
+                "Int": 0
+              },
+              "z": {
+                "Int": 0
+              }
+            }
+          }
+        },
+        "id": "minecraft:chest",
+        "type_id": 1,
+        "update": {
+          "nbt": {
+            "Compound": {}
+          }
+        }
+      },
+      "minecraft:dispenser": {
+        "full": {
+          "nbt": {
+            "Compound": {
+              "Items": {
+                "List": {
+                  "element_type": 0,
+                  "values": []
+                }
+              },
+              "components": {
+                "Compound": {}
+              },
+              "id": {
+                "String": "minecraft:dispenser"
+              },
+              "x": {
+                "Int": 0
+              },
+              "y": {
+                "Int": 0
+              },
+              "z": {
+                "Int": 0
+              }
+            }
+          }
+        },
+        "id": "minecraft:dispenser",
+        "type_id": 5,
+        "update": {
+          "nbt": {
+            "Compound": {}
+          }
+        }
+      }
+    }
+  },
+  "jar_sha256": "183c0499c5f855570ee487dd38e141a53f0121f83a0b07a3bac2d8b6698823e8",
+  "minecraft": "26.2",
+  "probe_sha256": "2d3805f09576eeec732ebabcd7d4ef4da7e19ecb57ab18f181b02ba73044e1c7",
+  "protocol": 776
+}

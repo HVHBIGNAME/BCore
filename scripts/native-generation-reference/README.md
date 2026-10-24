@@ -91,33 +91,117 @@ and effects. All terminal stage entry/exit pairs are validated.
 
 ## Replay BCore with the same requests
 
-Use the coordinator-supplied `CARGO_TARGET_DIR`:
+On the shared validation host, submit heavy commands through the serialized
+runner. It supplies `CARGO_TARGET_DIR` and retains job status and full logs in
+`target/generation-checks/`:
 
 ```powershell
-python scripts/native-generation-reference/replay_bcore.py target/native-history/my-new-run --output target/native-history/my-new-bcore-run
+python scripts/run_generation_check.py --background native-history-fresh -- python -B scripts/native-generation-reference/replay_bcore.py target/native-history/my-new-run --output target/native-history/my-new-bcore-run --timeout 3600
 ```
 
 This tool snapshots the actual production source/data read-only into the new
 target directory, archives it, and builds the diagnostic against that frozen
 copy using **`cargo build --release -j 1 --locked`**. This avoids mixed-revision
-builds while other workers edit their own runtime files. The production APIs
-used are `GenerationWorld::generate_to_status`, `chunk_snapshot` and coverage.
-One `GenerationWorld` is retained for the entire history. Recorded synchronous
-bootstrap requests are replayed too, preserving duplicates and order.
+builds while other workers edit their own runtime files. One
+`Arc<GenerationWorld>` and one production `NativeChunkRequests` runtime are
+retained for the entire history. Each request uses `get_chunk(pos, status,
+create)` and retains the actual `ReturnedChunk`. The cache, conditional owner
+thread pumping and background generation therefore use the production request
+route.
 
-The output includes binary/source/input digests, exact build/run commands,
-`chunks.jsonl`, coverage/missing work, and a comparison locating the first
-state/biome/source-order difference. Native write attribution includes the
-feature, source, event and RNG state when available. Native metadata/effects
-remain available in full; they are not all scored by this comparator.
+### Schema 3: returned objects and holder watches
+
+The plan, every JSONL row and the executable's `--version` response advertise
+`schema: 3` and `observation_contract: native_get_chunk_returned_object_v3`.
+History build provenance additionally records `replay_schema: 3` and
+`snapshot_boundary_version: 3`. Schema 1/2 history executables and JSONL outputs
+are rejected; create a fresh build for this contract.
+
+- `seed` and `game_time` are exact signed-i64 strings. This fresh-world contract
+  requires recorded **zero** game time and zero gameplay ticks. The plan checks
+  the observed bootstrap seed against the exact config seed.
+- The plan and rows carry `native_provenance_sha256`, `native_events_sha256`,
+  `native_config_sha256` and `native_registry_sha256`. Original native capture
+  receipts validate config, event and provenance hashes. Historical native
+  observer hashes remain those of their capture.
+- `bootstrap_requests` is explicit. Native synchronous `getChunk` calls retain
+  order, duplicates and their `create` flags. Bootstrap rows have negative
+  request indices, `phase: bootstrap`, `snapshot: null` and `watch: []`.
+  They collect inert coverage, adding no scripted save observations. Scripted
+  request indices start at zero; the unchanged Java probe uses `create=true`.
+- For each scripted request, **watches run first**, in configured order. They
+  observe the canonical holder through `chunk_access`, `chunk_snapshot` and
+  `progress`. A converted holder crosses `prepare_chunk_save(game_time)`;
+  a proto watch copies pending tags and packs saved queues without loading BEs.
+  Their `snapshot_origin` is `holder_latest`.
+- The requested snapshot then calls **that returned object's**
+  `prepare_save(game_time)`. It serializes `saved.view.chunk` and the returned
+  saved BE/tick data, with `snapshot_origin: returned_object`. A cached OLD Proto
+  remains Proto even when the preceding watch saved the holder's LevelChunk.
+- `raw_object_kind` retains `Proto`, `ImposterProto` or `Level`. Imposters use
+  wrapped level storage and map to LevelChunk **only for serialization/class**,
+  matching `HistoryProbe.snapshot`. `snapshot_boundary` is `proto_save` or
+  `level_save`. `persisted_status` and `serialized_status` are the saved view's
+  status. The comparator checks them separately against native's later observed
+  status and its NBT `Status`, since native work may advance between them.
+- Every observation has its own position. Explicit `absent: true` scores chunk
+  presence; a missing snapshot is an error. Missing, duplicate, reordered or
+  wrong-position watches are rejected, as are mismatched request/phase indices,
+  specs, origins, input hashes and referenced native NBT positions.
+
+The shared snapshot comparator scores requested **and** watch states, quart
+biomes, WG/runtime heightmap presence/values, serialized sky/block light,
+logical structures, saved BE payloads and `keepPacked`, ordered saved tick
+entries, per-section postprocessing, class and statuses. **LIGHT/SPAWN variation
+is never normalized.** Every measured mismatch is retained in `differences`,
+including unequal-length tails; `first` and `examples` are previews only.
+
+`comparison.json.requests` retains the requested score fields at their original
+locations and adds ordered `watch` scores. `requested_scored_matches` applies
+only to that returned snapshot; the row's `scored_matches` also includes watches
+and FEATURES source order. Top-level `scored_matches` aggregates those rows.
+`matches: false` means a measured mismatch; `matches: null` leaves full parity
+unproven even when measured fields agree. A watch can report an exact match of
+**absence only**. Missing optional observations and unsupported/unknown fields
+are explicitly unscored. Typed NBT widths/wire order, saved-vs-live heightmap
+filtering, `isLightOn`, entities and world registration are outside these scores.
+
+`complete`, `coverage_status`, ordered stage states/missing reasons and feature
+coverage remain implementation diagnostics. In particular, a LevelChunk's FULL
+coverage can remain **Partial**. Saved queue contents do not establish tick
+registration or execution. Native write attribution retains the feature,
+source, event and RNG state when available, bounded by the request-exit event.
+The native watch has no separate timestamp for exact concurrent write attribution.
 
 To compare further captures against **the same frozen BCore build**:
 
 ```powershell
-python scripts/native-generation-reference/replay_bcore.py target/native-history/other-capture --output target/native-history/other-bcore-run --reuse-build target/native-history/my-new-bcore-run
+python scripts/run_generation_check.py --background native-history-reuse -- python -B scripts/native-generation-reference/replay_bcore.py target/native-history/other-capture --output target/native-history/other-bcore-run --reuse-build target/native-history/my-new-bcore-run --timeout 3600
 ```
 
-The binary is copied and its digest checked against the previous provenance.
+Wait for the fresh job to finish successfully before submitting dependent reuse
+jobs. Reuse checks the exact program/version, successful compile receipt,
+binary hash, `source.zip` hash and every archive member against `source_sha256`,
+the previous plan and its input hashes, and previous tool provenance. Missing,
+extra, duplicate or noncanonical archive members fail validation. The copied
+binary must advertise the schema 3 contract via `--version` before replay.
+
+`source.zip` retains the build's production core, registry and worldgen
+Rust/JSON/manifests/lockfile and
+toolchain plus the then-current observer Rust, Python, Java and README sources.
+Archived Cargo path dependencies are checked before compiling and on reuse;
+historical builds keep their own dependency graph rather than acquiring current
+registry inputs.
+It stays byte-identical on reuse. Each invocation also writes **`tools.zip`**
+with the current Python tools, README and serialized check runner, recording
+`tool_sha256` and `tools_zip_sha256`. `runner_sha256`/`comparator_sha256` identify
+those current invocation tools, independently of the frozen build. Binary,
+plan, native identity and invocation tools are checked again after execution.
+
+Source order and optional feature-boundary tracing remain available:
+`--trace-feature "0,0,minecraft:patch_grass_forest"` records
+`feature_traces.jsonl` with the original production RNG continuation and chunk
+snapshots. Reused traced builds require `feature_trace_version: 1`.
 
 ## Causal forest-grass diagnostic
 
@@ -159,7 +243,8 @@ their source/provenance, complete snapshot blobs and a per-file digest manifest.
 The native worlds themselves are unnecessary for replaying these observations.
 
 ```powershell
-python scripts/native-generation-reference/test_oracle.py -v
+python scripts/run_generation_check.py --background native-history-python -- python -B scripts/native-generation-reference/test_oracle.py -v
+python scripts/run_generation_check.py --background native-history-rustfmt -- rustfmt --check --edition 2021 scripts/native-generation-reference/replay.rs
 python scripts/native-generation-reference/oracle.py native-diff target/native-history/direct --other target/native-history/reverse
 python scripts/native-generation-reference/pack_fixture.py target/native-history/my-new-run --output scripts/native-generation-reference/fixtures/a-new-name.zip
 ```
@@ -171,6 +256,18 @@ history counterexample. Four identical FEATURES sources in opposite request
 orders differ in **1129** states of `(0,0)`, first `(2,-52,0)` sculk versus
 deepslate. Independent same-history recapture matched all four final raw NBT
 blobs exactly.
+
+Schema 3 contract tests additionally exercise exact i64/version handling,
+bootstrap call preservation, old-Proto versus canonical-Level watches, absent
+and missing observations, duplicates/order/position rejection, metadata and
+LIGHT/SPAWN differences, unscored fields, complete mismatch retention, and
+binary/archive/manifest/plan/tool reuse validation. Synthetic contract cases
+are temporary test inputs, independent of the immutable native fixtures.
+
+Observer update receipt: `target/native-request-replay-handoff-20261015-01.md`.
+Rustfmt verifies syntax/formatting; it does not compile or type-check the Rust
+observer. Production replay integration against N1, N2 and B1 remains pending
+the coordinator's fresh build and subsequent reuse runs.
 
 Do not overwrite successful native captures or edit fixture values to fit
 BCore. Fix and document an actual probe bug before obtaining replacement

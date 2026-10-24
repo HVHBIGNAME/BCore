@@ -6,7 +6,7 @@ use std::sync::OnceLock;
 pub fn bundled() -> &'static BTreeMap<String, Value> {
     static ASSETS: OnceLock<BTreeMap<String, Value>> = OnceLock::new();
     ASSETS.get_or_init(|| {
-        serde_json::from_str(include_str!("../data/vanilla_worldgen.json"))
+        serde_json::from_str(include_str!("../data/vanilla_worldgen_26_2.json"))
             .expect("valid bundled vanilla worldgen data")
     })
 }

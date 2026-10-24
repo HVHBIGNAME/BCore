@@ -200,7 +200,12 @@ fn queued_persisted_carts_keep_identity_through_handoff_and_unload() {
         for ((x, z), column) in [(CART_CHUNK, column), (EXIT_CHUNK, &empty)] {
             store.save(x, z, column).unwrap();
             let saved = fs::read(store.chunk_path(x, z)).unwrap();
-            assert_eq!(&saved[..6], b"BCC1\x05\x00", "persist BCC version 5");
+            assert_eq!(&saved[..4], b"BCC1");
+            assert_eq!(
+                &saved[4..6],
+                &bcore_protocol::chunk_store::FORMAT_VERSION.to_le_bytes(),
+                "persist the registry-bound BCC format",
+            );
         }
     }
     let first_payload = first_column.encode_payload(CART_CHUNK.0, CART_CHUNK.1);

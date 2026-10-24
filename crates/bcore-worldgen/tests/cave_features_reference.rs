@@ -1,18 +1,24 @@
 //! Standalone integration before the scheduler exports the new cave modules.
-pub use bcore_worldgen::{feature_world, mth, sculk, simplex, tick_request, MAX_Y, MIN_Y};
+pub use bcore_worldgen::{
+    block, block_predicate, feature_world, mth, sculk, simplex, tick_request, MAX_Y, MIN_Y,
+};
 #[path = "../src/dripstone.rs"]
 mod dripstone;
 #[path = "../src/lush_caves.rs"]
 mod lush_caves;
+#[path = "support/registry_26_1.rs"]
+mod registry_26_1;
 
 use bcore_worldgen::ore::OreWorld;
 use bcore_worldgen::tick_request::TickRequest;
 use feature_world::{FeatureError, FeatureHeightmap, FeatureWorld, Pos};
 use serde_json::Value;
+use sha2::{Digest, Sha256};
 use simplex::WorldgenRandom;
 use std::collections::BTreeMap;
 
 struct World {
+    historical: bool,
     floor: i32,
     ceiling: i32,
     rock: u32,
@@ -37,12 +43,20 @@ fn pos(v: &Value) -> Pos {
 }
 
 impl World {
-    fn from_sample(v: &Value) -> Self {
+    fn from_sample(v: &Value, historical: bool) -> Self {
+        let input = |state: u32| {
+            if historical {
+                registry_26_1::target_state(state)
+            } else {
+                state
+            }
+        };
         Self {
+            historical,
             floor: v["floor"].as_i64().unwrap() as i32,
             ceiling: v["ceiling"].as_i64().unwrap() as i32,
-            rock: v["rock"].as_u64().unwrap() as u32,
-            fill: v["fill"].as_u64().unwrap() as u32,
+            rock: input(v["rock"].as_u64().unwrap() as u32),
+            fill: input(v["fill"].as_u64().unwrap() as u32),
             fill_top: v["fill_top"].as_i64().unwrap() as i32,
             reject: v["reject"].as_bool().unwrap(),
             deny_origin: v["deny_origin"].as_bool().unwrap(),
@@ -51,7 +65,7 @@ impl World {
                 .as_array()
                 .unwrap()
                 .iter()
-                .map(|row| (pos(row), row[3].as_u64().unwrap() as u32))
+                .map(|row| (pos(row), input(row[3].as_u64().unwrap() as u32)))
                 .collect(),
             writes: BTreeMap::new(),
             calls: Vec::new(),
@@ -60,27 +74,43 @@ impl World {
         }
     }
 
+    fn observed_state(&self, state: u32) -> u32 {
+        if self.historical {
+            registry_26_1::historical_state(state)
+        } else {
+            state
+        }
+    }
+
     fn assert_snapshot(&self, v: &Value, label: &str) {
         let expected: Vec<[i32; 6]> = serde_json::from_value(v["write_calls"].clone()).unwrap();
-        if self.calls != expected {
-            let index = self
-                .calls
+        let calls: Vec<_> = self
+            .calls
+            .iter()
+            .copied()
+            .map(|mut row| {
+                row[3] = self.observed_state(row[3] as u32) as i32;
+                row
+            })
+            .collect();
+        if calls != expected {
+            let index = calls
                 .iter()
                 .zip(&expected)
                 .position(|(a, b)| a != b)
-                .unwrap_or(self.calls.len().min(expected.len()));
+                .unwrap_or(calls.len().min(expected.len()));
             panic!(
                 "{label}: write {index}: actual {:?}, expected {:?}; lengths {} != {}",
-                self.calls.get(index),
+                calls.get(index),
                 expected.get(index),
-                self.calls.len(),
+                calls.len(),
                 expected.len()
             );
         }
         let actual: Vec<[i32; 4]> = self
             .writes
             .iter()
-            .map(|(&(x, y, z), &s)| [x, y, z, s as i32])
+            .map(|(&(x, y, z), &s)| [x, y, z, self.observed_state(s) as i32])
             .collect();
         assert_eq!(
             serde_json::to_value(actual).unwrap(),
@@ -102,7 +132,7 @@ impl World {
             .iter()
             .map(|request| {
                 let (target, fluid) = match request.target {
-                    tick_request::TickTarget::Block(id) => (id, 0),
+                    tick_request::TickTarget::Block(id) => (self.observed_state(id), 0),
                     tick_request::TickTarget::Fluid(id) => (id, 1),
                 };
                 let [x, y, z] = request.block_pos;
@@ -194,13 +224,13 @@ fn fixture() -> Value {
     serde_json::from_str(include_str!("../data/cave_features_26_1.json")).unwrap()
 }
 
-fn check_sample(sample: &Value) {
+fn check_sample(sample: &Value, historical: bool) {
     let kind = sample["document"]["type"].as_str().unwrap();
     let label = format!(
         "{} / {} / {}",
         sample["name"], sample["scenario"], sample["seed"]
     );
-    let mut world = World::from_sample(sample);
+    let mut world = World::from_sample(sample, historical);
     let seed = sample["seed"].as_i64().unwrap();
     let mut rng = WorldgenRandom::new(seed);
     let mut native_source = simplex::Xoroshiro128::new(seed);
@@ -218,7 +248,9 @@ fn check_sample(sample: &Value) {
         }
         let actual = if matches!(
             kind,
-            "minecraft:pointed_dripstone"
+            "minecraft:speleothem"
+                | "minecraft:speleothem_cluster"
+                | "minecraft:pointed_dripstone"
                 | "minecraft:large_dripstone"
                 | "minecraft:dripstone_cluster"
         ) {
@@ -285,16 +317,66 @@ fn native_dripstone_features() {
             continue;
         }
         cases += 1;
-        check_sample(sample);
+        check_sample(sample, true);
     }
     assert_eq!(cases, 77);
+}
+
+fn target_speleothems() -> Value {
+    let source = include_bytes!("../data/speleothem_26_2.json");
+    assert_eq!(
+        format!("{:x}", Sha256::digest(source)),
+        "1e3e0873f05f865ed4a069798eafb9b3eefc25d22fafb7a424dd5734ca126ffb"
+    );
+    let data: Value = serde_json::from_slice(source).unwrap();
+    assert_eq!(data["minecraft"], "26.2");
+    assert_eq!(data["protocol"], 776);
+    assert_eq!(data["jar_sha256"], bcore_registry::SERVER_JAR_SHA256);
+    data
+}
+
+#[test]
+fn native_26_2_speleothems_preserve_materials_growth_order_flags_and_rng() {
+    let data = target_speleothems();
+    let samples = data["samples"].as_array().unwrap();
+    assert_eq!(samples.len(), 102);
+    assert_eq!(data["configs"].as_object().unwrap().len(), 4);
+    for sample in samples {
+        check_sample(sample, false);
+    }
+}
+
+#[test]
+fn native_26_2_speleothem_codec_admission_preserves_numeric_coercion_and_bounds() {
+    let data = target_speleothems();
+    let rows = data["admission"].as_array().unwrap();
+    assert_eq!(rows.len(), 18);
+    for row in rows {
+        let document = &row["document"];
+        let kind = document["type"]
+            .as_str()
+            .unwrap()
+            .strip_prefix("minecraft:")
+            .unwrap();
+        let admitted = dripstone::check_speleothem(kind, &document["config"]).is_ok();
+        assert_eq!(
+            admitted,
+            row["admitted"].as_bool().unwrap(),
+            "{}",
+            row["name"]
+        );
+        if admitted {
+            let canonical = &row["canonical_document"];
+            dripstone::check_speleothem(kind, &canonical["config"]).unwrap();
+        }
+    }
 }
 
 #[test]
 fn unavailable_reads_and_unknown_configs_fail_explicitly() {
     let data = fixture();
     let sample = &data["samples"][0];
-    let mut world = World::from_sample(sample);
+    let mut world = World::from_sample(sample, true);
     let origin = pos(&sample["origin"]);
     world.missing = Some((origin.0, origin.1 + 1, origin.2));
     let mut rng = WorldgenRandom::new(0);
@@ -339,7 +421,7 @@ fn native_lush_cave_features() {
             continue;
         }
         cases += 1;
-        check_sample(sample);
+        check_sample(sample, true);
     }
     assert_eq!(cases, 167);
 }
@@ -353,7 +435,7 @@ fn external_child_errors_are_not_successful_root_systems() {
         .iter()
         .find(|v| v["scenario"] == "rooted_stone")
         .unwrap();
-    let mut world = World::from_sample(sample);
+    let mut world = World::from_sample(sample, true);
     let mut random = WorldgenRandom::new(17);
     let mut random_state = dripstone::CaveRandomState::default();
     let origin = pos(&sample["origin"]);
@@ -397,7 +479,7 @@ fn external_child_errors_are_not_successful_root_systems() {
 fn unsupported_lush_provider_and_predicate_do_not_consume_rng() {
     let fixture = fixture();
     let sample = &fixture["samples"][0];
-    let mut world = World::from_sample(sample);
+    let mut world = World::from_sample(sample, true);
     let mut random = WorldgenRandom::new(42);
     let mut random_state = dripstone::CaveRandomState::default();
     let origin = pos(&sample["origin"]);
@@ -440,7 +522,14 @@ fn native_catalog_and_feature_fixtures_have_matching_provenance() {
     }
     assert_eq!(catalog["state_count"], 29_873);
     assert_eq!(fixture["configs"].as_object().unwrap().len(), 17);
-    for (name, document) in fixture["configs"].as_object().unwrap() {
+    let target: Value =
+        serde_json::from_str(include_str!("../data/cave_feature_data_26_2.json")).unwrap();
+    assert_eq!(target["minecraft"], "26.2");
+    assert_eq!(target["protocol"], 776);
+    assert_eq!(target["jar_sha256"], bcore_registry::SERVER_JAR_SHA256);
+    assert_eq!(target["state_count"], bcore_registry::BLOCK_STATE_COUNT);
+    assert_eq!(target["configs"].as_object().unwrap().len(), 17);
+    for (name, document) in target["configs"].as_object().unwrap() {
         assert_eq!(
             dripstone::configured_feature(name).unwrap(),
             document,
@@ -467,6 +556,7 @@ fn shape_block_name(catalog: &Value, state: u32) -> &str {
 
 fn lichen_shape_world(support: Pos, state: u32) -> World {
     World {
+        historical: true,
         floor: MIN_Y - 1,
         ceiling: MAX_Y + 1,
         rock: 1,
@@ -475,7 +565,7 @@ fn lichen_shape_world(support: Pos, state: u32) -> World {
         reject: false,
         deny_origin: false,
         missing: None,
-        initial: BTreeMap::from([(support, state)]),
+        initial: BTreeMap::from([(support, registry_26_1::target_state(state))]),
         writes: BTreeMap::new(),
         calls: Vec::new(),
         marks: Vec::new(),
@@ -507,14 +597,15 @@ fn native_multiface_masks_preserve_neighbour_direction_conventions() {
     );
     let mut cached = 0;
     for state in 0..native["state_count"].as_u64().unwrap() as u32 {
-        let cave = dripstone::state_info(state).unwrap();
+        let mapped = registry_26_1::target_state(state);
+        let cave = dripstone::state_info(mapped).unwrap();
         if cave.attach < 0 {
             continue;
         }
         cached += 1;
         for direction in 0..6 {
             assert_eq!(
-                sculk::multiface_can_attach_to(state, direction).unwrap(),
+                sculk::multiface_can_attach_to(mapped, direction).unwrap(),
                 cave.attach & (1 << (direction ^ 1)) != 0,
                 "cached state {state}, toward-neighbour direction {direction}"
             );
@@ -527,7 +618,8 @@ fn native_multiface_masks_preserve_neighbour_direction_conventions() {
     for observation in observations {
         let state = observation[0].as_u64().unwrap() as u32;
         let attachment_mask = observation[2][2].as_u64().unwrap() as u8;
-        assert_eq!(dripstone::state_info(state).unwrap().attach, -1);
+        let mapped = registry_26_1::target_state(state);
+        assert_eq!(dripstone::state_info(mapped).unwrap().attach, -1);
         if let Some(previous) = states.insert(state, attachment_mask) {
             assert_eq!(
                 previous, attachment_mask,
@@ -536,7 +628,7 @@ fn native_multiface_masks_preserve_neighbour_direction_conventions() {
         }
         for direction in 0..6 {
             assert_eq!(
-                sculk::multiface_can_attach_to(state, direction).unwrap(),
+                sculk::multiface_can_attach_to(mapped, direction).unwrap(),
                 attachment_mask & (1 << direction) != 0,
                 "native uncached state {state}, position {}, direction {direction}",
                 observation[1]
@@ -569,7 +661,7 @@ fn lichen_handles_native_uncached_shapes_at_reported_failure_positions() {
         .map(|mask| {
             let state = (0..native["state_count"].as_u64().unwrap() as u32)
                 .find(|&state| {
-                    let info = dripstone::state_info(state).unwrap();
+                    let info = dripstone::state_info(registry_26_1::target_state(state)).unwrap();
                     info.attach >= 0
                         && info.flags & 31 == 0
                         && (0..6).all(|direction| {
@@ -649,8 +741,10 @@ fn lichen_handles_native_uncached_shapes_at_reported_failure_positions() {
             let mut control = lichen_shape_world(support, control_state);
             for direction in [0, 1, 2, 3] {
                 let p = dripstone::offset(origin, direction);
-                world.initial.insert(p, state);
-                control.initial.insert(p, control_state);
+                world.initial.insert(p, registry_26_1::target_state(state));
+                control
+                    .initial
+                    .insert(p, registry_26_1::target_state(control_state));
             }
             let stone = dripstone::block_id("stone").unwrap();
             world.initial.insert(dripstone::offset(origin, 5), stone);
@@ -703,7 +797,7 @@ fn lichen_retains_errors_for_unproven_context_dependent_shapes() {
         for state in start..end {
             for direction in 0..6 {
                 assert!(matches!(
-                    sculk::multiface_can_attach_to(state, direction),
+                    sculk::multiface_can_attach_to(registry_26_1::target_state(state), direction),
                     Err(FeatureError::Unsupported(_))
                 ));
             }
@@ -729,7 +823,7 @@ fn lichen_retains_errors_for_unproven_context_dependent_shapes() {
         Err(FeatureError::InvalidConfig(_))
     ));
     assert!(matches!(
-        sculk::multiface_can_attach_to(29_873, 0),
+        sculk::multiface_can_attach_to(bcore_registry::BLOCK_STATE_COUNT as u32, 0),
         Err(FeatureError::MissingData(_))
     ));
 }

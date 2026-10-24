@@ -21,8 +21,8 @@
 //! feature writes for the lifetime of this world. The store round-trips returned
 //! columns exactly; the generation history itself is currently in-memory.
 //!
-//! Persistence failures are **non-fatal**: a read-only world directory degrades
-//! to pure generation (with a one-time warning) rather than dropping players.
+//! Persistence errors stop admission/loading. An unreadable or incompatible
+//! saved chunk is never treated as an absent chunk.
 
 use std::collections::{HashMap, HashSet};
 use std::sync::{mpsc, Arc, Mutex, OnceLock, RwLock};
@@ -57,7 +57,9 @@ impl GenerationJob {
 
     fn run(self) {
         let (x, z) = self.position;
-        let _ = self.world.chunk_payload(x, z);
+        if let Err(error) = self.world.try_chunk_payload(x, z) {
+            eprintln!("[bcore] queued chunk ({x}, {z}) failed: {error}");
+        }
     }
 }
 
@@ -102,13 +104,17 @@ fn payload_shard(x: i32, z: i32) -> usize {
 }
 
 use bcore_core::ChunkPos;
+use bcore_worldgen::generation::{
+    request::{NativeChunkRequests, NativeRequestError},
+    ChunkStatus, ReturnedChunk,
+};
 use bcore_worldgen::{
-    block, generation::ChunkProgress, GenerationCoverage, GenerationError, GenerationWorld,
-    WorldGenerator,
+    block, generation::ChunkProgress, GenerationCoverage, GenerationError, GenerationResult,
+    GenerationWorld, WorldGenerator,
 };
 
 use crate::chunk::ChunkColumn;
-use crate::chunk_store::ChunkStore;
+use crate::chunk_store::{ChunkStore, ChunkStoreError};
 
 /// The default world seed. `/seed` reports this.
 pub const DEFAULT_SEED: i64 = 0x0BC0_0E00_1234_5678u64 as i64;
@@ -120,6 +126,43 @@ pub enum ChunkOrigin {
     Generated,
     /// Read back from `world/chunks/`.
     Loaded,
+}
+
+/// Loading/persistence errors are distinct from generation-only failures.
+#[derive(Debug, Clone)]
+pub enum WorldError {
+    Generation(GenerationError),
+    Store(Arc<ChunkStoreError>),
+}
+
+impl std::fmt::Display for WorldError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Generation(error) => write!(f, "{error}"),
+            Self::Store(error) => write!(f, "{error}"),
+        }
+    }
+}
+
+impl std::error::Error for WorldError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Generation(error) => Some(error),
+            Self::Store(error) => Some(error.as_ref()),
+        }
+    }
+}
+
+impl From<GenerationError> for WorldError {
+    fn from(error: GenerationError) -> Self {
+        Self::Generation(error)
+    }
+}
+
+impl From<ChunkStoreError> for WorldError {
+    fn from(error: ChunkStoreError) -> Self {
+        Self::Store(Arc::new(error))
+    }
 }
 
 /// A shared handle to a seeded world, its cache and optional disk persistence.
@@ -134,28 +177,44 @@ pub struct World {
 #[derive(Debug)]
 struct WorldInner {
     generator: WorldGenerator,
-    generation: GenerationWorld,
+    generation: Arc<GenerationWorld>,
+    native_requests: OnceLock<Result<NativeChunkRequests, NativeRequestError>>,
     store: Option<ChunkStore>,
     /// Encoded `map_chunk` payloads, keyed by chunk position.
     payloads: [PayloadShard; PAYLOAD_SHARDS],
     /// Coalesce concurrent cache misses before loading/generating the same chunk.
     generation_locks: [Mutex<()>; PAYLOAD_SHARDS],
     in_flight: Mutex<HashSet<(i32, i32)>>,
+    payload_errors: Mutex<HashMap<(i32, i32), WorldError>>,
     entities: crate::entity::EntityTracker,
-    /// Set once the first persistence error has been reported.
-    warned: Mutex<bool>,
     warned_generation: OnceLock<()>,
 }
 
 impl World {
     /// A world that generates terrain and persists it under `world/`.
     pub fn new(seed: i64) -> Self {
-        Self::with_store(seed, ChunkStore::new())
+        Self::open(seed, ChunkStore::new())
+            .unwrap_or_else(|error| panic!("cannot admit the default world: {error}"))
     }
 
-    /// A world rooted at a specific directory (used by tests).
+    /// Low-level world over a chunk store. Live server admission uses [`Self::open`].
     pub fn with_store(seed: i64, store: ChunkStore) -> Self {
         Self::with_optional_store(seed, Some(store))
+    }
+
+    /// Admit an existing authenticated world or initialize an empty directory.
+    /// Validation precedes generation, queue startup, and any chunk writes.
+    pub fn open(seed: i64, store: ChunkStore) -> Result<Self, ChunkStoreError> {
+        store.prepare_world(seed)?;
+        let store = ChunkStore::at(std::fs::canonicalize(store.root())?);
+        Ok(Self::with_store(seed, store))
+    }
+
+    pub fn prepare_store(&self) -> Result<(), ChunkStoreError> {
+        if let Some(store) = self.store() {
+            store.prepare_world(self.seed())?;
+        }
+        Ok(())
     }
 
     /// A world that never touches the disk (used by tests and benchmarks).
@@ -167,13 +226,14 @@ impl World {
         Self {
             inner: Arc::new(WorldInner {
                 generator: WorldGenerator::new(seed),
-                generation: GenerationWorld::new(seed),
+                generation: Arc::new(GenerationWorld::new(seed)),
+                native_requests: OnceLock::new(),
                 store,
                 payloads: std::array::from_fn(|_| RwLock::new(HashMap::new())),
                 generation_locks: std::array::from_fn(|_| Mutex::new(())),
                 in_flight: Mutex::new(HashSet::new()),
+                payload_errors: Mutex::new(HashMap::new()),
                 entities: Default::default(),
-                warned: Mutex::new(false),
                 warned_generation: OnceLock::new(),
             }),
         }
@@ -208,18 +268,36 @@ impl World {
         self.inner.generator
     }
 
+    /// Native-style fresh-world admission/cache/main-executor route. The first
+    /// caller becomes its owner thread; subsequent admission and pumping must run
+    /// there. `try_generate` remains the generation-only compatibility route.
+    pub fn native_requests(&self) -> Result<&NativeChunkRequests, NativeRequestError> {
+        self.inner
+            .native_requests
+            .get_or_init(|| NativeChunkRequests::new(self.inner.generation.clone()))
+            .as_ref()
+            .map_err(Clone::clone)
+    }
+
+    /// Returns the actual object selected by the four-slot native request cache.
+    /// Use `ReturnedChunk::view` for an inert snapshot or `prepare_save` for its
+    /// explicit save boundary, then `ChunkColumn::from_generated` on that output.
+    /// This route shares the world's production generation claims and storage.
+    pub fn request_native_chunk(
+        &self,
+        x: i32,
+        z: i32,
+        status: ChunkStatus,
+        create: bool,
+    ) -> Result<Option<ReturnedChunk>, NativeRequestError> {
+        let pos = ChunkPos::new(x, z);
+        NativeChunkRequests::validate_position(pos)?;
+        self.native_requests()?.get_chunk(pos, status, create)
+    }
+
     /// The chunk store, if this world persists chunks.
     pub fn store(&self) -> Option<&ChunkStore> {
         self.inner.store.as_ref()
-    }
-
-    /// Report a persistence problem once, then stay quiet.
-    fn warn_once(&self, context: &str, error: &dyn std::fmt::Display) {
-        let mut warned = self.inner.warned.lock().expect("world warn lock");
-        if !*warned {
-            *warned = true;
-            eprintln!("[bcore] world persistence disabled for this run: {context}: {error}");
-        }
     }
 
     /// Load a chunk from disk, or generate (and save) it.
@@ -234,25 +312,27 @@ impl World {
         })
     }
 
-    /// Load or generate, releasing the shard lock before returning a generation error.
-    pub fn try_chunk(&self, x: i32, z: i32) -> Result<(ChunkColumn, ChunkOrigin), GenerationError> {
+    /// Load or generate, releasing the shard lock before returning either error.
+    pub fn try_chunk(&self, x: i32, z: i32) -> Result<(ChunkColumn, ChunkOrigin), WorldError> {
         let _generation = self.inner.generation_locks[payload_shard(x, z)]
             .lock()
             .expect("chunk generation lock");
         if let Some(store) = &self.inner.store {
-            match store.load(x, z) {
-                Ok(Some(column)) => return Ok((column, ChunkOrigin::Loaded)),
-                Ok(None) => {}
-                Err(e) => self.warn_once(&format!("cannot read chunk ({x}, {z})"), &e),
+            if let Some(column) = store.load(x, z)? {
+                return Ok((column, ChunkOrigin::Loaded));
             }
         }
 
-        let (column, _) = self.try_generate(x, z)?;
+        let result = self.generate_retained(x, z)?;
+        let column = if self.inner.store.is_some() {
+            // Generation queues are still pending; no world clock has unpacked them.
+            self.prepare_generated_chunk_save(x, z, 0)?
+        } else {
+            ChunkColumn::from_generated(&result.chunk)
+        };
 
         if let Some(store) = &self.inner.store {
-            if let Err(e) = store.save(x, z, &column) {
-                self.warn_once(&format!("cannot write chunk ({x}, {z})"), &e);
-            }
+            store.save(x, z, &column)?;
         }
         Ok((column, ChunkOrigin::Generated))
     }
@@ -270,11 +350,17 @@ impl World {
     }
 
     /// Generate using this world's retained history and return its actual coverage.
+    /// Publication is a snapshot; saving or explicit lookup materializes pending BEs.
     pub fn try_generate(
         &self,
         x: i32,
         z: i32,
     ) -> Result<(ChunkColumn, GenerationCoverage), GenerationError> {
+        let result = self.generate_retained(x, z)?;
+        Ok((ChunkColumn::from_generated(&result.chunk), result.coverage))
+    }
+
+    fn generate_retained(&self, x: i32, z: i32) -> Result<GenerationResult, GenerationError> {
         let result = self.inner.generation.generate_chunk(ChunkPos::new(x, z))?;
         if !result.coverage.is_complete() {
             self.inner.warned_generation.get_or_init(|| {
@@ -288,7 +374,38 @@ impl World {
                 );
             });
         }
-        Ok((ChunkColumn::from_generated(&result.chunk), result.coverage))
+        Ok(result)
+    }
+
+    /// Explicit level-save lookup on an already retained generated chunk. This
+    /// materializes supported pending BEs but performs no generation or disk I/O.
+    /// `ChunkStore::save` itself remains an inert BCC snapshot encoder.
+    pub fn prepare_generated_chunk_save(
+        &self,
+        x: i32,
+        z: i32,
+        game_time: i64,
+    ) -> Result<ChunkColumn, GenerationError> {
+        let saved = self
+            .inner
+            .generation
+            .prepare_chunk_save(ChunkPos::new(x, z), game_time)?;
+        Ok(ChunkColumn::from_generated(&saved.chunk))
+    }
+
+    /// Null-player lazy-inventory access on this world's retained level chunk.
+    /// Coordinates are absolute blocks. Saving uses prepare_generated_chunk_save;
+    /// this does not admit unloaded chunks, select player context or create menus.
+    pub fn unpack_generated_chest(
+        &self,
+        x: i32,
+        y: i32,
+        z: i32,
+    ) -> Result<Option<bcore_worldgen::block_entity::ChestInventory>, GenerationError> {
+        self.inner.generation.unpack_chest(
+            ChunkPos::new(x.div_euclid(16), z.div_euclid(16)),
+            (x.rem_euclid(16) as usize, y, z.rem_euclid(16) as usize),
+        )
     }
 
     /// Live generation claims; a column served only from disk has no live history.
@@ -323,7 +440,7 @@ impl World {
     }
 
     fn reserve_generation(&self, x: i32, z: i32) -> Option<GenerationJob> {
-        if self.cached_chunk(x, z).is_some() {
+        if self.cached_chunk(x, z).is_some() || self.payload_error(x, z).is_some() {
             return None;
         }
         let key = (x, z);
@@ -350,11 +467,38 @@ impl World {
 
     /// The encoded `map_chunk` payload for `(x, z)`, cached across calls.
     pub fn chunk_payload(&self, x: i32, z: i32) -> Vec<u8> {
+        self.try_chunk_payload(x, z).unwrap_or_else(|error| {
+            panic!(
+                "cannot encode chunk ({x}, {z}) for seed {}: {error}",
+                self.seed()
+            )
+        })
+    }
+
+    pub fn try_chunk_payload(&self, x: i32, z: i32) -> Result<Vec<u8>, WorldError> {
         if let Some(hit) = self.cached_chunk(x, z) {
-            return hit.payload.as_ref().clone();
+            return Ok(hit.payload.as_ref().clone());
         }
-        let (column, _origin) = self.chunk(x, z);
-        self.cache_column(x, z, &column).payload.as_ref().clone()
+        match self.try_chunk(x, z) {
+            Ok((column, _origin)) => Ok(self.cache_column(x, z, &column).payload.as_ref().clone()),
+            Err(error) => {
+                self.inner
+                    .payload_errors
+                    .lock()
+                    .expect("payload error lock")
+                    .insert((x, z), error.clone());
+                Err(error)
+            }
+        }
+    }
+
+    pub(crate) fn payload_error(&self, x: i32, z: i32) -> Option<WorldError> {
+        self.inner
+            .payload_errors
+            .lock()
+            .expect("payload error lock")
+            .get(&(x, z))
+            .cloned()
     }
 
     pub(crate) fn cache_column(&self, x: i32, z: i32, column: &ChunkColumn) -> CachedChunk {
@@ -371,6 +515,11 @@ impl World {
                     .for_chunk(self.seed(), (x, z), column.entities()),
             })
             .clone();
+        self.inner
+            .payload_errors
+            .lock()
+            .expect("payload error lock")
+            .remove(&(x, z));
         if self.cached_payloads() > MAX_CACHED_PAYLOADS {
             self.clear_cache();
         }
@@ -383,6 +532,11 @@ impl World {
             shard.write().expect("world payload shard lock").clear();
         }
         self.inner.entities.prune();
+        self.inner
+            .payload_errors
+            .lock()
+            .expect("payload error lock")
+            .clear();
     }
 
     /// How many payloads are currently cached.
@@ -394,41 +548,61 @@ impl World {
             .sum()
     }
 
+    /// Reserved queued jobs, including the dispatcher job currently running.
+    pub fn pending_payloads(&self) -> usize {
+        self.inner
+            .in_flight
+            .lock()
+            .expect("generation reservation lock")
+            .len()
+    }
+
     /// A safe spawn position: the terrain surface at `(x, z)`, plus one block.
     pub fn spawn_position(&self, x: f64, z: f64) -> (f64, f64, f64) {
+        self.try_spawn_position(x, z)
+            .unwrap_or_else(|error| panic!("cannot select spawn for seed {}: {error}", self.seed()))
+    }
+
+    pub fn try_spawn_position(&self, x: f64, z: f64) -> Result<(f64, f64, f64), WorldError> {
         let bx = x.floor() as i32;
         let bz = z.floor() as i32;
-        let (column, _) = self.chunk(bx.div_euclid(16), bz.div_euclid(16));
+        let (column, _) = self.try_chunk(bx.div_euclid(16), bz.div_euclid(16))?;
         let y = column
             .surface_y(bx.rem_euclid(16) as usize, bz.rem_euclid(16) as usize)
             .unwrap_or(crate::chunk::SEA_LEVEL)
             + 1;
-        (x, y as f64, z)
+        Ok((x, y as f64, z))
     }
 
     /// A spawn on the nearest column whose actual vanilla-generated surface is
     /// land above sea level. The search retains the original chunk spiral, but
     /// never uses the approximate noise height for this decision or Y value.
     pub fn land_spawn(&self, x0: i32, z0: i32) -> (f64, f64, f64) {
+        self.try_land_spawn(x0, z0).unwrap_or_else(|error| {
+            panic!("cannot select land spawn for seed {}: {error}", self.seed())
+        })
+    }
+
+    pub fn try_land_spawn(&self, x0: i32, z0: i32) -> Result<(f64, f64, f64), WorldError> {
         let (mut bx, mut bz) = (x0, z0);
-        let actual_surface = |x: i32, z: i32| {
+        let actual_surface = |x: i32, z: i32| -> Result<Option<(i32, u32)>, WorldError> {
             let cx = x.div_euclid(16);
             let cz = z.div_euclid(16);
             let lx = x.rem_euclid(16) as usize;
             let lz = z.rem_euclid(16) as usize;
-            let (chunk, _) = self.chunk(cx, cz);
-            chunk
+            let (chunk, _) = self.try_chunk(cx, cz)?;
+            Ok(chunk
                 .surface_y(lx, lz)
-                .map(|y| (y, chunk.get(lx, y, lz).expect("surface block")))
+                .map(|y| (y, chunk.get(lx, y, lz).expect("surface block"))))
         };
-        let is_land = |x: i32, z: i32| {
-            actual_surface(x, z).is_some_and(|(y, state)| {
+        let is_land = |x: i32, z: i32| -> Result<bool, WorldError> {
+            Ok(actual_surface(x, z)?.is_some_and(|(y, state)| {
                 y >= crate::chunk::SEA_LEVEL && state != block::WATER && state != block::LAVA
-            })
+            }))
         };
-        if is_land(bx, bz) {
-            let y = actual_surface(bx, bz).expect("land surface").0 + 1;
-            return (bx as f64, y as f64, bz as f64);
+        if is_land(bx, bz)? {
+            let y = actual_surface(bx, bz)?.expect("land surface").0 + 1;
+            return Ok((bx as f64, y as f64, bz as f64));
         }
         let mut radius = 1;
         'outer: loop {
@@ -438,7 +612,7 @@ impl World {
                         continue;
                     }
                     let (tx, tz) = (bx + dx * 16, bz + dz * 16);
-                    if is_land(tx, tz) {
+                    if is_land(tx, tz)? {
                         bx = tx;
                         bz = tz;
                         break 'outer;
@@ -450,22 +624,19 @@ impl World {
                 break;
             }
         }
-        let y = actual_surface(bx, bz)
+        let y = actual_surface(bx, bz)?
             .map(|(surface, _)| surface)
             .unwrap_or(crate::chunk::SEA_LEVEL)
             + 1;
-        (bx as f64, y as f64, bz as f64)
+        Ok((bx as f64, y as f64, bz as f64))
     }
 }
 
-/// The process-wide world, created on first use.
-///
-/// The play loop needs one shared world across every connection thread so two
-/// players standing in the same chunk see the same blocks and the chunk is only
-/// generated once.
+/// Compatibility world for callers without a server owner. It never persists;
+/// live connections use their `ServerState`'s world instead.
 pub fn shared() -> &'static World {
     static WORLD: OnceLock<World> = OnceLock::new();
-    WORLD.get_or_init(|| World::new(DEFAULT_SEED))
+    WORLD.get_or_init(|| World::in_memory(DEFAULT_SEED))
 }
 
 #[cfg(test)]
@@ -667,6 +838,10 @@ mod tests {
         let b = shared();
         assert!(std::ptr::eq(a, b));
         assert_eq!(a.seed(), DEFAULT_SEED);
+        assert!(
+            a.store().is_none(),
+            "compatibility world must not touch disk"
+        );
     }
 }
 
@@ -873,6 +1048,44 @@ mod queue_tests {
         assert!(world.inner.in_flight.lock().unwrap().is_empty());
         assert!(world.cached_chunk(POSITION.0, POSITION.1).is_none());
         world.request_payload(POSITION.0, POSITION.1);
+        saved.assert_cached(&world, &wait_cached(&world));
+    }
+
+    #[test]
+    fn corrupt_queued_load_releases_its_reservation_without_generating_or_overwriting() {
+        let saved = SavedChunk::new(block::STONE, 50);
+        let world = saved.world(47);
+        let path = saved.store.chunk_path(POSITION.0, POSITION.1);
+        let original = std::fs::read(&path).unwrap();
+        let mut corrupt = original.clone();
+        let middle = corrupt.len() / 2;
+        corrupt[middle] ^= 1;
+        std::fs::write(&path, &corrupt).unwrap();
+        world
+            .reserve_generation(POSITION.0, POSITION.1)
+            .unwrap()
+            .run();
+        assert_eq!(world.pending_payloads(), 0);
+        assert!(matches!(
+            world.payload_error(POSITION.0, POSITION.1),
+            Some(WorldError::Store(error))
+                if matches!(error.as_ref(), ChunkStoreError::ChecksumMismatch { .. })
+        ));
+        assert!(world.cached_chunk(POSITION.0, POSITION.1).is_none());
+        assert!(world
+            .generation_progress(POSITION.0, POSITION.1)
+            .unwrap()
+            .is_none());
+        assert!(world.reserve_generation(POSITION.0, POSITION.1).is_none());
+        assert_eq!(std::fs::read(&path).unwrap(), corrupt);
+
+        // Repair is an explicit operation; cache invalidation then permits retry.
+        std::fs::write(&path, original).unwrap();
+        world.clear_cache();
+        world
+            .reserve_generation(POSITION.0, POSITION.1)
+            .unwrap()
+            .run();
         saved.assert_cached(&world, &wait_cached(&world));
     }
 

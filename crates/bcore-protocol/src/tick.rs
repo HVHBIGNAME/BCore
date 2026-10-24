@@ -5,9 +5,6 @@ use std::sync::Arc;
 use std::thread;
 use std::time::{Duration, Instant};
 
-use crate::gameplay::{
-    encode_update_time, ClockUpdate, CLOCK_DAY_TIME, CLOCK_WORLD_AGE, TICKS_PER_DAY,
-};
 use crate::shared::SharedServer;
 
 const TICK_INTERVAL: Duration = Duration::from_millis(50);
@@ -49,21 +46,16 @@ fn run(server: SharedServer, state: Arc<TickState>) {
         if now < next_tick {
             thread::sleep(next_tick - now);
         }
+        if server.is_shutting_down() {
+            break;
+        }
         let tick = state.total_ticks.fetch_add(1, Ordering::Relaxed) + 1;
         ticks_since_report += 1;
         state.last_second_ticks.store(
             (tick as f64 / started.elapsed().as_secs_f64().max(1.0)).round() as u64,
             Ordering::Relaxed,
         );
-        let day_time = (1000 + tick as i64).rem_euclid(TICKS_PER_DAY);
-        let packet = encode_update_time(
-            tick as i64,
-            &[
-                ClockUpdate::running(CLOCK_WORLD_AGE, tick as i64),
-                ClockUpdate::running(CLOCK_DAY_TIME, day_time),
-            ],
-        );
-        server.broadcast(&packet);
+        server.tick_clock();
         next_tick += TICK_INTERVAL;
         if next_tick < Instant::now() {
             next_tick = Instant::now() + TICK_INTERVAL;

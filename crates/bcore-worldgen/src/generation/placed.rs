@@ -19,9 +19,8 @@ pub(super) enum Outcome {
     Unavailable(String),
 }
 
-/// Region biome IDs belong to BCore's wire/save registry, not the native catalog.
-/// Resolve resource identities once. This unit environment represents untouched
-/// pre-light storage (native sky=15, block=0), not a height-based approximation.
+/// Biome IDs use the shared target registry. This unit environment represents
+/// untouched pre-light storage (native sky=15, block=0).
 /// Use `with_light` when the world already has initialized neighbouring sections.
 pub struct GenerationEnvironment;
 
@@ -31,6 +30,7 @@ pub struct GenerationLightEnvironment<'a> {
 }
 
 impl GenerationEnvironment {
+    #[cfg(test)]
     pub fn with_light(light: &crate::lighting::GenerationLight) -> GenerationLightEnvironment<'_> {
         GenerationLightEnvironment {
             light,
@@ -83,41 +83,6 @@ impl FeatureEnvironment for GenerationEnvironment {
     fn should_snow(&self, world: &dyn FeatureWorld, pos: Pos) -> FeatureResult<bool> {
         crate::lighting::should_snow(world, world.feature_biome(pos), pos, 0)
     }
-
-    fn biome_has_feature(&self, biome: u32, feature: &str) -> FeatureResult<bool> {
-        static NATIVE_IDS: OnceLock<FeatureResult<BTreeMap<u32, u32>>> = OnceLock::new();
-        let ids = NATIVE_IDS
-            .get_or_init(|| {
-                let native = catalog().documents["biome_ids"]
-                    .as_object()
-                    .ok_or_else(|| {
-                        FeatureError::MissingData("native feature biome registry".into())
-                    })?;
-                native
-                    .iter()
-                    .map(|(name, id)| {
-                        let wire = crate::biome::id(name).ok_or_else(|| {
-                            FeatureError::MissingData(format!("BCore biome identity {name}"))
-                        })?;
-                        let native = id
-                            .as_u64()
-                            .and_then(|id| u32::try_from(id).ok())
-                            .ok_or_else(|| {
-                                FeatureError::InvalidConfig(format!("native biome ID for {name}"))
-                            })?;
-                        Ok((wire, native))
-                    })
-                    .collect()
-            })
-            .as_ref()
-            .map_err(|error| error.clone())?;
-        let native = ids.get(&biome).copied().ok_or_else(|| {
-            FeatureError::MissingData(format!(
-                "native feature biome for BCore wire/save ID {biome}"
-            ))
-        })?;
-        catalog().biome_has_feature(native, feature)
-    }
 }
 
 impl FeatureEnvironment for GenerationLightEnvironment<'_> {
@@ -167,6 +132,7 @@ impl FeatureEnvironment for GenerationLightEnvironment<'_> {
     }
 }
 
+#[cfg(test)]
 pub(super) fn place_named(
     name: &str,
     world: &mut crate::region::FeatureRegion,
@@ -192,20 +158,13 @@ pub(super) fn place_named_with_environment(
     cave_random: &mut CaveRandomState,
     environment: &dyn FeatureEnvironment,
 ) -> Result<Outcome, String> {
-    let program = match programs()
-        .get(name)
-        .expect("sorted top-level placed feature")
-    {
+    let program = match program(name) {
         Ok(program) => program,
         Err(error) => return Ok(Outcome::Unavailable(error.to_string())),
     };
     let world_seed = world.world_seed();
     let mut world = EffectWorld::new(world);
-    let mut dispatcher = BaseFeatures::with_dispatcher(AdditionalFeatures {
-        cave_random,
-        tree_effects: world.effects.clone(),
-        world_seed,
-    });
+    let mut dispatcher = dispatcher(cave_random, world.effects.clone(), world_seed);
     program
         .place(
             Some(name),
@@ -219,26 +178,7 @@ pub(super) fn place_named_with_environment(
         .map_err(|error| error.to_string())
 }
 
-/// Synchronous jigsaw FeaturePoolElement callback. Nested placement has no
-/// top-level feature identity; biome filters retain native nested semantics.
-/// Gaussian state and the feature RNG belong to the entire source task.
-pub(super) fn place_structure_feature(
-    name: &str,
-    world: &mut crate::region::FeatureRegion,
-    random: &mut WorldgenRandom,
-    origin: Pos,
-    cave_random: &mut CaveRandomState,
-) -> FeatureResult<bool> {
-    place_placed(
-        &Value::String(name.into()),
-        world,
-        random,
-        origin,
-        cave_random,
-        &GenerationEnvironment,
-    )
-}
-
+/// Synchronous nested placement retains caller-owned Gaussian and feature RNG state.
 pub(super) fn place_placed(
     reference: &Value,
     world: &mut crate::region::FeatureRegion,
@@ -250,11 +190,7 @@ pub(super) fn place_placed(
     check_nested(reference, 0)?;
     let world_seed = world.world_seed();
     let mut world = EffectWorld::new(world);
-    let mut dispatcher = BaseFeatures::with_dispatcher(AdditionalFeatures {
-        cave_random,
-        tree_effects: world.effects.clone(),
-        world_seed,
-    });
+    let mut dispatcher = dispatcher(cave_random, world.effects.clone(), world_seed);
     placement::place_nested(
         reference,
         &mut world,
@@ -267,6 +203,7 @@ pub(super) fn place_placed(
 
 /// Direct configured-feature callback with the same guarded world/effect and
 /// caller-owned RNG contracts as nested placement.
+#[cfg(test)]
 pub(super) fn place_configured(
     document: &Value,
     name: Option<&str>,
@@ -279,34 +216,34 @@ pub(super) fn place_configured(
     check_configured(document, name, 0)?;
     let world_seed = world.world_seed();
     let mut world = EffectWorld::new(world);
-    let mut dispatcher = BaseFeatures::with_dispatcher(AdditionalFeatures {
-        cave_random,
-        tree_effects: world.effects.clone(),
-        world_seed,
-    });
+    let mut dispatcher = dispatcher(cave_random, world.effects.clone(), world_seed);
     dispatcher.place_configured(document, name, &mut world, random, origin, environment)
 }
 
-fn programs() -> &'static BTreeMap<String, FeatureResult<PlacementProgram>> {
-    static PROGRAMS: OnceLock<BTreeMap<String, FeatureResult<PlacementProgram>>> = OnceLock::new();
+fn program(name: &str) -> FeatureResult<&'static PlacementProgram> {
+    programs()
+        .get(name)
+        .ok_or_else(|| crate::block_predicate::missing(format!("sorted placed feature {name}")))?
+        .get_or_init(|| {
+            let program = PlacementProgram::parse(catalog().placed(name)?)?;
+            check_configured(&program.configured, program.configured_name.as_deref(), 0)?;
+            Ok(program)
+        })
+        .as_ref()
+        .map_err(Clone::clone)
+}
+
+type ProgramCache = BTreeMap<String, OnceLock<FeatureResult<PlacementProgram>>>;
+
+fn programs() -> &'static ProgramCache {
+    static PROGRAMS: OnceLock<ProgramCache> = OnceLock::new();
     PROGRAMS.get_or_init(|| {
         let mut programs = BTreeMap::new();
-        for step in 0..11 {
+        for step in 0..crate::feature_sorter::sorter().step_count() {
             for name in
                 (0..).map_while(|index| crate::feature_sorter::sorter().feature_name(step, index))
             {
-                let program = catalog()
-                    .placed(name)
-                    .and_then(PlacementProgram::parse)
-                    .and_then(|program| {
-                        check_configured(
-                            &program.configured,
-                            program.configured_name.as_deref(),
-                            0,
-                        )?;
-                        Ok(program)
-                    });
-                programs.insert(name.into(), program);
+                programs.insert(name.into(), OnceLock::new());
             }
         }
         programs
@@ -323,9 +260,10 @@ fn check_configured(document: &Value, name: Option<&str>, depth: usize) -> Featu
     }
     let config = &document["config"];
     match kind(document)? {
-        "simple_block" | "block_column" | "disk" | "spring_feature" | "lake" | "seagrass"
+        "simple_block" | "block_column" | "disk" | "spring_feature" | "seagrass"
         | "pointed_dripstone" | "dripstone_cluster" | "large_dripstone" | "sculk_patch"
         | "desert_well" => Ok(()),
+        "lake" => crate::base_features::check_lake_config(config),
         "geode" => crate::geode::check_configured("geode", config),
         "fossil" => crate::fossil::check_configured(config),
         "underwater_magma"
@@ -367,11 +305,22 @@ fn check_configured(document: &Value, name: Option<&str>, depth: usize) -> Featu
             check_nested(&config["feature_true"], depth + 1)?;
             check_nested(&config["feature_false"], depth + 1)
         }
-        "simple_random_selector" => {
-            for child in crate::block_predicate::array(&config["features"])? {
+        "simple_random_selector" | "sequence" => {
+            for child in crate::base_features::composite_features(config)? {
                 check_nested(child, depth + 1)?;
             }
             Ok(())
+        }
+        "weighted_random_selector" => {
+            let (children, _) = crate::base_features::weighted_features(config)?;
+            for child in children {
+                check_nested(&child["data"], depth + 1)?;
+            }
+            Ok(())
+        }
+        "template" => super::template_feature::check_configured(config),
+        feature_type @ ("speleothem" | "speleothem_cluster") => {
+            crate::dripstone::check_speleothem(feature_type, config)
         }
         "random_selector" => {
             for child in crate::block_predicate::array(&config["features"])? {
@@ -385,7 +334,7 @@ fn check_configured(document: &Value, name: Option<&str>, depth: usize) -> Featu
     }
 }
 
-fn check_nested(reference: &Value, depth: usize) -> FeatureResult<()> {
+pub(super) fn check_nested(reference: &Value, depth: usize) -> FeatureResult<()> {
     let document = match reference.as_str() {
         Some(name) => catalog().placed(name)?,
         None => reference,
@@ -396,6 +345,18 @@ fn check_nested(reference: &Value, depth: usize) -> FeatureResult<()> {
         program.configured_name.as_deref(),
         depth,
     )
+}
+
+pub(super) fn dispatcher(
+    cave_random: &mut CaveRandomState,
+    tree_effects: SharedTreeEffects,
+    world_seed: i64,
+) -> impl ConfiguredFeatureDispatcher + '_ {
+    BaseFeatures::with_dispatcher(AdditionalFeatures {
+        cave_random,
+        tree_effects,
+        world_seed,
+    })
 }
 
 struct AdditionalFeatures<'a> {
@@ -421,6 +382,14 @@ impl ConfiguredFeatureDispatcher for AdditionalFeatures<'_> {
         let feature_type = kind(document)?;
         let config = &document["config"];
         match feature_type {
+            "template" => super::template_feature::place(
+                config,
+                world,
+                random,
+                origin,
+                self.world_seed,
+                self.tree_effects.clone(),
+            ),
             "desert_well" => crate::desert_well::place(world, random, origin),
             "fossil" => {
                 let effects = self.tree_effects.clone();
@@ -475,16 +444,15 @@ impl ConfiguredFeatureDispatcher for AdditionalFeatures<'_> {
                 origin,
                 self.tree_effects.clone(),
             ),
-            "pointed_dripstone" | "dripstone_cluster" | "large_dripstone" => {
-                crate::dripstone::place_configured(
-                    feature_type,
-                    config,
-                    &mut WorldView(world),
-                    random,
-                    origin,
-                    self.cave_random,
-                )
-            }
+            "pointed_dripstone" | "dripstone_cluster" | "large_dripstone" | "speleothem"
+            | "speleothem_cluster" => crate::dripstone::place_configured(
+                feature_type,
+                config,
+                &mut WorldView(world),
+                random,
+                origin,
+                self.cave_random,
+            ),
             "sculk_patch" => crate::sculk::place(
                 world,
                 random,
@@ -584,6 +552,28 @@ impl FeatureWorld for WorldView<'_> {
     fn schedule_feature_tick(&mut self, request: TickRequest) -> bool {
         self.0.schedule_feature_tick(request)
     }
+    fn apply_feature_template_effect(
+        &mut self,
+        effect: crate::structure::template::TemplateEffect,
+    ) -> FeatureResult<()> {
+        self.0.apply_feature_template_effect(effect)
+    }
+    fn update_feature_neighbours(&mut self, pos: Pos, state: u32) -> FeatureResult<()> {
+        self.0.update_feature_neighbours(pos, state)
+    }
+    fn has_feature_tick(
+        &self,
+        pos: Pos,
+        target: crate::tick_request::TickTarget,
+    ) -> FeatureResult<bool> {
+        self.0.has_feature_tick(pos, target)
+    }
+    fn reset_feature_potent_sulfur(&mut self, pos: Pos) -> FeatureResult<bool> {
+        self.0.reset_feature_potent_sulfur(pos)
+    }
+    fn lookup_feature_beehive(&mut self, pos: Pos) -> FeatureResult<Option<Vec<i32>>> {
+        self.0.lookup_feature_beehive(pos)
+    }
     fn set_feature_brushable_loot(
         &mut self,
         pos: Pos,
@@ -609,3 +599,7 @@ mod fossil_tests;
 #[cfg(test)]
 #[path = "desert_well_tests.rs"]
 mod desert_well_tests;
+
+#[cfg(test)]
+#[path = "feature_schema_tests.rs"]
+mod feature_schema_tests;

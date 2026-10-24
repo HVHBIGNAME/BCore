@@ -1418,8 +1418,10 @@ fn iceberg_sin_cos(angle: f64) -> (f64, f64) {
     }
     static DATA: OnceLock<Numbers> = OnceLock::new();
     let data = DATA.get_or_init(|| {
-        let input: Data = serde_json::from_str(include_str!("../data/misc_feature_trig_26_1.json"))
-            .expect("independently derived compensated trig constants");
+        let input: Data = crate::block_predicate::parse_catalog(include_str!(
+            "../data/misc_feature_trig_26_2.json"
+        ))
+        .expect("independently derived compensated trig constants");
         assert_eq!(input.table.len(), 64);
         Numbers {
             inverse: f64::from_bits(input.pi32_inverse),

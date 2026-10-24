@@ -19,13 +19,13 @@ import statistics
 import subprocess
 import time
 
-from provenance import (JAVA_SOURCES, cargo_config_hashes, controlled_environment, freeze_copy, sha,
-                        snapshot, source_hashes, verify_files, write_json)
+from provenance import (cargo_config_hashes, controlled_environment, freeze_copy, sha,
+                         snapshot, source_hashes, verify_files, write_json)
+import targets
 
 ROOT = Path(__file__).resolve().parents[2]
 SCHEMA = 2
 SCOPE = "noise-fill-wg-v2"
-JAR_SHA = "a7fed6f7d88379349e35ae0c6e9881d4484605132f6f620376a3868eea6cce52"
 CHUNKS = [[0, 0], [1, 0], [0, 1], [1, 1], [-64, -32], [-63, -32], [62, 0], [-125, 187]]
 HASH_FIELDS = ("blocks_sha256", "marks_sha256", "world_surface_wg_sha256", "ocean_floor_wg_sha256")
 CONTRACT = {
@@ -75,9 +75,11 @@ def validate_sample(sample, engine, request):
         if not isinstance(values, list) or len(values) != count or any(
                 type(v) not in (int, float) or not math.isfinite(v) or v <= 0 for v in values):
             raise ValueError(f"invalid benchmark {key}")
-    if engine == "Vanilla 26.1" and (sample.get("native_executor") != "ForkJoinPool"
+    if engine in ("Vanilla 26.1", "Vanilla 26.2") and (sample.get("native_executor") != "ForkJoinPool"
             or sample.get("available_processors") != request["workers"] + 1):
         raise ValueError("native executor verification missing or inconsistent")
+    if engine == "Vanilla 26.2" and (sample.get("minecraft"), sample.get("protocol"), sample.get("data_version")) != ("26.2", 776, 4903):
+        raise ValueError("native benchmark runtime version proof is missing or inconsistent")
     fingerprints = sample.get("fingerprints")
     if not isinstance(fingerprints, list) or len(fingerprints) != len(CHUNKS):
         raise ValueError("missing chunk fingerprints")
@@ -88,10 +90,10 @@ def validate_sample(sample, engine, request):
             raise ValueError("missing or invalid block/mark/WG digest")
 
 
-def summaries(samples, workers):
+def summaries(samples, workers, native_engine="Vanilla 26.1"):
     result = []
     for count in workers:
-        for engine in ("Vanilla 26.1", "BCore"):
+        for engine in (native_engine, "BCore"):
             medians = [statistics.median(s["seconds"]) for s in samples
                        if s["engine"] == engine and s["workers"] == count]
             median = statistics.median(medians)
@@ -102,6 +104,9 @@ def summaries(samples, workers):
 
 
 def compare_contract(baseline, current):
+    for field in ("minecraft", "protocol"):
+        if baseline.get(field) != current.get(field):
+            raise ValueError(f"comparison target differs: {field}")
     for field in ("schema", "scope", "contract", "seed", "chunks", "workers", "hardware",
                   "processes_per_configuration", "warmup_batches_per_process", "measured_batches_per_process"):
         if baseline.get(field) != current[field]:
@@ -116,12 +121,12 @@ def compare_contract(baseline, current):
 
 def run(args, output):
     env, environment = controlled_environment()
-    jar = ROOT / "target/vanilla-775/versions/26.1/server-26.1.jar"
-    if sha(jar) != JAR_SHA:
-        raise ValueError("native JAR digest differs from pinned 26.1")
-    libraries = sorted((ROOT / "target/vanilla-775/libraries").rglob("*.jar"))
-    if not libraries:
-        raise ValueError("missing native libraries")
+    target = targets.TARGETS[args.minecraft]
+    jar, libraries, version = targets.authenticate(ROOT, target)
+    library_root = ROOT / f"target/{target.directory}/libraries"
+    contract = {**CONTRACT, "implementation_costs": {
+        **{key: value for key, value in CONTRACT["implementation_costs"].items() if key != "Vanilla 26.1"},
+        target.engine: CONTRACT["implementation_costs"]["Vanilla 26.1"]}}
     initial = source_hashes(ROOT)
     source, provenance = snapshot(ROOT, output, initial)
     native_build = output / "native-build"
@@ -135,7 +140,8 @@ def run(args, output):
                      "--release", "--locked", "--verbose", "-j", "1", "--features", "diagnostics",
                      "--example", "noise_bench", "--target-dir", str(target_dir)]
     java = str(args.java.resolve())
-    javac_command = ["javac", "-d", str(native_build), *[str(source / p) for p in JAVA_SOURCES]]
+    java_sources, derived = targets.sources(source, output, target)
+    javac_command = ["javac", "-d", str(native_build), *map(str, java_sources)]
     provenance.update({"git_head": command_version(["git", "--no-optional-locks", "rev-parse", "HEAD"], ROOT, env),
                        "rustc": command_version(["rustc", "-Vv"], source, env),
                        "cargo": command_version(["cargo", "--version"], source, env),
@@ -144,8 +150,9 @@ def run(args, output):
                        "environment": environment, "build_command": build_command, "javac_command": javac_command,
                        "cargo_config_sha256": cargo_config_hashes(source, env),
                        "java_flags": ["-Xmx2G", "-XX:ActiveProcessorCount=N+1", "-Dmax.bg.threads=N"],
-                       "native_jar_sha256": JAR_SHA,
-                       "native_libraries_sha256": {p.relative_to(ROOT / "target/vanilla-775/libraries").as_posix(): sha(p) for p in libraries}})
+                        "native_jar_sha256": target.jar_sha256, "native_version": version,
+                        "native_source_derivation": derived,
+                        "native_libraries_sha256": {p.relative_to(library_root).as_posix(): sha(p) for p in libraries}})
     runtime_files = [Path(java)]
     for name in ("release", "lib/modules"):
         path = Path(java).parent.parent / name
@@ -173,8 +180,8 @@ def run(args, output):
         query = "Get-CimInstance Win32_Processor | Select-Object Name,NumberOfCores,NumberOfLogicalProcessors | ConvertTo-Json -Compress"
         hardware["cpu"] = json.loads(command_version(["powershell", "-NoProfile", "-Command", query], source, env))
     result = {"schema": SCHEMA, "scope": SCOPE, "label": args.label,
-              "recorded_utc": dt.datetime.now(dt.timezone.utc).isoformat(), "contract": CONTRACT,
-              "minecraft": "26.1", "protocol": 775, "seed": str(args.seed), "chunks": CHUNKS,
+               "recorded_utc": dt.datetime.now(dt.timezone.utc).isoformat(), "contract": contract,
+               "minecraft": target.minecraft, "protocol": target.protocol, "seed": str(args.seed), "chunks": CHUNKS,
               "min_y": -64, "height": 384, "workers": args.workers, "hardware": hardware,
               "processes_per_configuration": args.processes, "warmup_batches_per_process": args.warmup,
               "measured_batches_per_process": args.batches, "provenance": provenance, "samples": []}
@@ -184,10 +191,13 @@ def run(args, output):
         compare_contract(baseline, result)
         result["comparison_baseline"] = {"path": str(args.compare_to.resolve()), "sha256": sha(args.compare_to)}
     classpath = os.pathsep.join(map(str, [native_build, jar, *libraries]))
-    guards = {str(executable): provenance["bcore_executable_sha256"], str(jar): JAR_SHA,
+    guards = {str(executable): provenance["bcore_executable_sha256"], str(jar): target.jar_sha256,
               str(output / "source.zip"): provenance["source_archive_sha256"],
               str(output / "source-manifest.json"): provenance["source_manifest_sha256"]}
-    guards.update({str(p): provenance["native_libraries_sha256"][p.relative_to(ROOT / "target/vanilla-775/libraries").as_posix()] for p in libraries})
+    guards.update({str(p): provenance["native_libraries_sha256"][p.relative_to(library_root).as_posix()] for p in libraries})
+    guards.update({str(output / name): receipt["sha256"] for name, receipt in derived.items()})
+    if derived:
+        guards[str(output / "native-source-derivation.json")] = sha(output / "native-source-derivation.json")
     guards.update({str(p): provenance["runtime_sha256"][p.relative_to(Path(java).parent.parent).as_posix()] for p in runtime_files})
     guards.update({str(native_build / name): digest for name, digest in provenance["native_classes_sha256"].items()})
     guards[str(output / "provenance.json")] = sha(output / "provenance.json")
@@ -197,7 +207,7 @@ def run(args, output):
     reference = baseline["fingerprints"] if baseline else None
     for workers in args.workers:
         for process in range(args.processes):
-            for engine in (["Vanilla 26.1", "BCore"] if process % 2 == 0 else ["BCore", "Vanilla 26.1"]):
+            for engine in ([target.engine, "BCore"] if process % 2 == 0 else ["BCore", target.engine]):
                 name = f"{engine.split()[0].lower()}-{workers}w-{process + 1}"
                 request = {"schema": SCHEMA, "scope": SCOPE, "seed": str(args.seed), "workers": workers,
                            "warmup_batches": args.warmup, "measured_batches": args.batches, "chunks": CHUNKS}
@@ -224,14 +234,14 @@ def run(args, output):
                     raise ValueError(f"block/mark/WG hashes differ: {name}")
                 result["samples"].append({**sample, "process": process + 1, "command": command,
                     "request_sha256": sha(request_path), "log_sha256": sha(log), "artifacts_verified_before_after": True,
-                    "launched_artifact_sha256": provenance["bcore_executable_sha256"] if engine == "BCore" else JAR_SHA})
+                    "launched_artifact_sha256": provenance["bcore_executable_sha256"] if engine == "BCore" else target.jar_sha256})
                 write_json(output / "progress.json", result, exclusive=False)
                 time.sleep(1)
     verify_files(output, guards)
     verify_files(source, initial)
     if source_hashes(ROOT) != initial:
         raise ValueError("working sources changed while measuring; retain this failed attempt")
-    result.update(summary=summaries(result["samples"], args.workers), fingerprints=reference, verified_matching_outputs=True)
+    result.update(summary=summaries(result["samples"], args.workers, target.engine), fingerprints=reference, verified_matching_outputs=True)
     write_json(output / "results.json", result)
     print(json.dumps({"output": str(output), "scope": SCOPE, "summary": result["summary"],
                       "verified_matching_outputs": True, "results_sha256": sha(output / "results.json")}, indent=2))
@@ -242,6 +252,7 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--target-dir", type=Path, default=Path(os.environ.get("CARGO_TARGET_DIR", ROOT / "target/build")))
     parser.add_argument("--java", type=Path, default=ROOT / "target/jre25/jdk-25.0.4.1+1-jre/bin/java.exe")
+    parser.add_argument("--minecraft", choices=tuple(targets.TARGETS), default="26.1")
     parser.add_argument("--seed", type=int, default=846692123413862008)
     parser.add_argument("--workers", nargs="+", type=int, choices=(1, 2, 4), default=[1, 2, 4])
     parser.add_argument("--processes", type=int, default=3)

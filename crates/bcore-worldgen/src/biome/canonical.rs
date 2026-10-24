@@ -3,8 +3,7 @@ use super::{id, BiomeId, BiomeParameters, ClimateRange};
 use serde::Deserialize;
 use std::sync::OnceLock;
 
-pub(super) const JAR_SHA256: &str =
-    "a7fed6f7d88379349e35ae0c6e9881d4484605132f6f620376a3868eea6cce52";
+pub(super) const JAR_SHA256: &str = bcore_registry::SERVER_JAR_SHA256;
 
 #[derive(Deserialize)]
 pub(super) struct CapturedRow {
@@ -39,9 +38,9 @@ pub(super) fn rows() -> &'static [(BiomeId, BiomeParameters)] {
             rows: Vec<CapturedRow>,
         }
         let capture: Capture =
-            serde_json::from_str(include_str!("../../data/biome_parameters_26_1.json"))
+            serde_json::from_str(include_str!("../../data/biome_parameters_26_2.json"))
                 .expect("bundled native climate parameters");
-        assert_eq!(capture.minecraft, "26.1");
+        assert_eq!(capture.minecraft, bcore_registry::MC_VERSION);
         assert_eq!(capture.jar_sha256, JAR_SHA256);
         capture
             .rows

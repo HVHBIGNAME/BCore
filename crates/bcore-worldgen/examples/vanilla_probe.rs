@@ -1,10 +1,14 @@
 //! Compare BCore surface vs vanilla (chunk -34,3).
 use bcore_core::ChunkPos;
-use bcore_worldgen::WorldGenerator;
+use bcore_worldgen::GenerationWorld;
 
 fn main() {
-    let gen = WorldGenerator::new(1234);
-    let c = gen.generate_chunk_vanilla(ChunkPos::new(-34, 3));
+    let world = GenerationWorld::new(1234);
+    let result = world
+        .generate_chunk(ChunkPos::new(-34, 3))
+        .expect("chunk generation failed");
+    eprintln!("coverage complete: {}", result.coverage.is_complete());
+    let c = result.chunk;
     let vanilla = [
         77, 76, 78, 79, 79, 79, 78, 64, 63, 64, 64, 64, 64, 64, 65, 65,
     ];

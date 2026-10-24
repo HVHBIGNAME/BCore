@@ -35,8 +35,10 @@ fn data() -> &'static (Vec<State>, u32, [i32; 2]) {
             bee_nest_south: u32,
             water_fluid_ids: [i32; 2],
         }
-        let data: Data = serde_json::from_str(include_str!("../../data/standing_blocks_26_1.json"))
-            .expect("native tree block predicates");
+        let data: Data = crate::block_predicate::parse_catalog(include_str!(
+            "../../data/standing_blocks_26_2.json"
+        ))
+        .expect("native tree block predicates");
         let mut states = Vec::with_capacity(data.state_count);
         for [start, end, flags, distance, shape, default, attach] in data.ranges {
             assert_eq!(start as usize, states.len());
@@ -65,8 +67,9 @@ pub(super) fn bee_nest_state() -> u32 {
 }
 
 fn vine_faces(state: u32) -> u32 {
-    if (8358..=8389).contains(&state) {
-        31 - (state - 8358)
+    let vine = &super::extra_data::catalog().blocks["minecraft:vine"];
+    if (vine.first..vine.end).contains(&state) {
+        vine.end - 1 - state
     } else {
         0
     }
@@ -79,6 +82,10 @@ pub(super) fn attaches<W: StandingTreeWorld + ?Sized>(
     let state = world.get_block(pos);
     let mask = get(state).attach;
     if mask < 0 {
+        // Offset speleothem shapes never cover a full attachment face.
+        if super::extra_data::block(state).update_shape == "SpeleothemBlock" {
+            return Ok(false);
+        }
         return Err(UnsupportedShape { pos, state });
     }
     Ok(mask & (1 << dir) != 0)
@@ -132,7 +139,7 @@ pub(super) fn update<W: StandingTreeWorld + ?Sized>(
             Ok(if faces == 0 {
                 crate::block::AIR
             } else {
-                8358 + 31 - faces
+                super::extra_data::catalog().blocks["minecraft:vine"].end - 1 - faces
             })
         }
         4 => {

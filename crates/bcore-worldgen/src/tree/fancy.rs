@@ -48,14 +48,17 @@ fn limb<P: ShapeSink + ?Sized>(
         };
         if write {
             if chunk.valid_state(state) {
-                let log = if dx == 0 && dz == 0 {
-                    config.log
+                let axis = if dx == 0 && dz == 0 {
+                    "y"
                 } else if dx.abs() >= dz.abs() {
-                    config.log - 1 // axis=x
+                    "x"
                 } else {
-                    config.log + 1 // axis=z
+                    "z"
                 };
-                chunk.log(pos, log);
+                chunk.log(
+                    pos,
+                    super::extra_data::with_property(config.log, "axis", axis),
+                );
             }
         } else if !chunk.free_state(state) {
             return false;
@@ -76,6 +79,9 @@ pub(super) fn place_trunk<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
     let total_height = height + 2;
     let trunk_top = oy + (total_height as f64 * 0.618).floor() as i32;
     place_below_trunk_block(chunk, random, config, (ox, oy - 1, oz));
+    if chunk.failed() {
+        return;
+    }
     let mut clusters = vec![((ox, oy + total_height - 5, oz), trunk_top)];
     // Vanilla's min(1, floor(1.382 + (height / 13)^2)) is one for tree heights.
     for layer in (0..=total_height - 5).rev() {

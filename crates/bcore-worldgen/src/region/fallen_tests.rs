@@ -50,7 +50,12 @@ fn fixture_region(sample: &Sample) -> (FeatureRegion, Chunks) {
             if sample.flat_ground && (MIN_Y..=MAX_Y).contains(&sample.floor_y) {
                 for x in 0..16 {
                     for z in 0..16 {
-                        chunk.set(x, sample.floor_y, z, sample.soil);
+                        chunk.set(
+                            x,
+                            sample.floor_y,
+                            z,
+                            crate::registry_26_1::target_state(sample.soil),
+                        );
                     }
                 }
             }
@@ -63,7 +68,7 @@ fn fixture_region(sample: &Sample) -> (FeatureRegion, Chunks) {
                 (x & 15) as usize,
                 y,
                 (z & 15) as usize,
-                state as u32,
+                crate::registry_26_1::target_state(state as u32),
             );
         }
     }
@@ -100,9 +105,12 @@ struct AuditedRegion<'a> {
 impl TreeWorld for AuditedRegion<'_> {
     fn get_block(&self, pos: Pos) -> u32 {
         let state = TreeWorld::get_block(self.region, pos);
-        self.reads
-            .borrow_mut()
-            .push([pos.0, pos.1, pos.2, state as i32]);
+        self.reads.borrow_mut().push([
+            pos.0,
+            pos.1,
+            pos.2,
+            crate::registry_26_1::historical_state(state) as i32,
+        ]);
         state
     }
 
@@ -114,7 +122,7 @@ impl TreeWorld for AuditedRegion<'_> {
             pos.0,
             pos.1,
             pos.2,
-            state as i32,
+            crate::registry_26_1::historical_state(state) as i32,
             flags,
             i32::from(accepted),
         ]);
@@ -158,7 +166,11 @@ fn native_cases_match_through_region_cache_and_live_feature_rng() {
         let [x, y, z] = sample.origin;
         for &(state, supported) in &sample.cached_up_support {
             assert_eq!(
-                TreeWorld::is_face_sturdy_up(&region, state, (x, y, z)),
+                TreeWorld::is_face_sturdy_up(
+                    &region,
+                    crate::registry_26_1::target_state(state),
+                    (x, y, z)
+                ),
                 supported,
                 "native UP/FULL state={state}: {label}"
             );
@@ -228,7 +240,7 @@ fn native_cases_match_through_region_cache_and_live_feature_rng() {
                 (x & 15) as usize,
                 y,
                 (z & 15) as usize,
-                state as u32
+                crate::registry_26_1::target_state(state as u32)
             ));
         }
         for &[x, y, z] in &sample.postprocessing {
@@ -253,7 +265,7 @@ fn native_cases_match_through_region_cache_and_live_feature_rng() {
         }
         let mut digest = md5::Context::new();
         for &state in actual[&(sample.chunk[0], sample.chunk[1])].states() {
-            digest.consume(state.to_le_bytes());
+            digest.consume(crate::registry_26_1::historical_state(state).to_le_bytes());
         }
         assert_eq!(
             format!("{:x}", digest.compute()),

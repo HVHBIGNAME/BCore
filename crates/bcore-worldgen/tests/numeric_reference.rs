@@ -41,7 +41,61 @@ fn reversed_inputs_and_four_workers_preserve_native_values() {
             .rev()
             .map(|case| {
                 let points = &fixture.points[&case.points];
-                let kernel = case.prepare(points).unwrap();
+                let kernel = fixture.prepare(case, points).unwrap();
+                let mut values = vec![0.0; points.len()];
+                for (i, p) in points.iter().enumerate().rev() {
+                    values[i] = kernel.sample(*p);
+                }
+                let mut values = values.into_iter();
+                numeric::compare(case, points, fixture.reference(case).unwrap(), |_| {
+                    values.next().unwrap()
+                })
+                .unwrap()
+            })
+            .filter(|report| report.mismatches != 0)
+            .collect()
+    });
+    assert!(failures.is_empty(), "{failures:#?}");
+}
+
+fn target_fixture() -> Fixture {
+    let fixture: Fixture = serde_json::from_str(include_str!("../data/numeric_26_2.json")).unwrap();
+    fixture.validate(true).unwrap();
+    assert_eq!(fixture.cases.len(), 712);
+    assert_eq!(
+        fixture.samples.iter().map(|s| s.bits.len()).sum::<usize>(),
+        51003
+    );
+    fixture
+}
+
+#[test]
+fn numeric_values_match_native_26_2_bit_for_bit() {
+    let fixture = target_fixture();
+    let failures: Vec<_> = fixture
+        .cases
+        .iter()
+        .map(|case| fixture.check(case).unwrap())
+        .filter(|report| report.mismatches != 0)
+        .collect();
+    assert!(failures.is_empty(), "{failures:#?}");
+}
+
+#[test]
+fn target_reversed_inputs_and_four_workers_preserve_native_values() {
+    let fixture = target_fixture();
+    let pool = rayon::ThreadPoolBuilder::new()
+        .num_threads(4)
+        .build()
+        .unwrap();
+    let failures: Vec<_> = pool.install(|| {
+        fixture
+            .cases
+            .par_iter()
+            .rev()
+            .map(|case| {
+                let points = &fixture.points[&case.points];
+                let kernel = fixture.prepare(case, points).unwrap();
                 let mut values = vec![0.0; points.len()];
                 for (i, p) in points.iter().enumerate().rev() {
                     values[i] = kernel.sample(*p);

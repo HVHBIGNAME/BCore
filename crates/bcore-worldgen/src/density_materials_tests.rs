@@ -5,7 +5,7 @@ use crate::feature_world::Pos;
 use crate::structure::jigsaw::{JigsawPiece, JigsawStart, Junction};
 use crate::structure::template::{BoundingBox, Rotation};
 use crate::structure::template_pool::{PoolElement, SingleElement};
-use crate::{block, ChunkPos, GeneratedChunk, VanillaGraph, WorldGenerator, MAX_Y, MIN_Y};
+use crate::{block, ChunkPos, GeneratedChunk, WorldGenerator, MAX_Y, MIN_Y};
 use serde_json::Value;
 use std::collections::BTreeMap;
 
@@ -172,13 +172,25 @@ fn native_noise_voxels_router_bits_heights_and_ordered_marks() {
         let reference_beard = selected(&case["selected"]);
         assert_eq!(beard.pieces(), reference_beard.pieces(), "{id}");
         assert_eq!(beard.junctions(), reference_beard.junctions(), "{id}");
-        let mut graph = VanillaGraph::load_uncached().unwrap();
+        let mut graph = crate::reference_26_1::graph();
         let functions = case.get("vein_functions").map_or_else(
             || graph.ore_veins.as_ref().unwrap().clone(),
             |functions| crate::ore_vein::VeinFunctions {
-                toggle: density::parse_json(&functions["vein_toggle"].to_string()).unwrap(),
-                ridged: density::parse_json(&functions["vein_ridged"].to_string()).unwrap(),
-                gap: density::parse_json(&functions["vein_gap"].to_string()).unwrap(),
+                toggle: density::parse_historical_26_1_json(
+                    &functions["vein_toggle"].to_string(),
+                    crate::reference_26_1::assets(),
+                )
+                .unwrap(),
+                ridged: density::parse_historical_26_1_json(
+                    &functions["vein_ridged"].to_string(),
+                    crate::reference_26_1::assets(),
+                )
+                .unwrap(),
+                gap: density::parse_historical_26_1_json(
+                    &functions["vein_gap"].to_string(),
+                    crate::reference_26_1::assets(),
+                )
+                .unwrap(),
             },
         );
         std::sync::Arc::get_mut(&mut graph.data).unwrap().ore_veins = case["ore_veins_enabled"]
@@ -208,10 +220,16 @@ fn native_noise_voxels_router_bits_heights_and_ordered_marks() {
         assert_eq!(expected.len(), 98_304);
         let mismatches: Vec<_> = expected
             .iter()
-            .zip(chunk.states())
+            .zip(
+                chunk
+                    .states()
+                    .iter()
+                    .copied()
+                    .map(crate::registry_26_1::historical_state),
+            )
             .enumerate()
-            .filter(|(_, (a, b))| a != b)
-            .map(|(index, (&a, &b))| {
+            .filter(|(_, (a, b))| **a != *b)
+            .map(|(index, (&a, b))| {
                 (
                     index % 16,
                     MIN_Y + (index / 256) as i32,
@@ -335,7 +353,9 @@ fn native_noise_voxels_router_bits_heights_and_ordered_marks() {
         block::LAVA,
     ] {
         assert!(
-            material_counts.get(&state).is_some_and(|&n| n > 0),
+            material_counts
+                .get(&crate::registry_26_1::historical_state(state))
+                .is_some_and(|&n| n > 0),
             "native NOISE corpus missing material {state}: {material_counts:?}"
         );
     }

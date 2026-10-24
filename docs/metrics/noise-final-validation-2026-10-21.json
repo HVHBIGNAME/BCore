@@ -1,0 +1,1039 @@
+{
+  "biome_observations": 124416,
+  "checkpoint": {
+    "path": "target/noise-final-checkpoint-20261021-01/results.json",
+    "sha256": "81c2e8d4e5cf6085416e03ac97bbc9bbf865c85c19e423c364ebea5578d93eba"
+  },
+  "checks": [
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--workspace",
+        "--release",
+        "--locked",
+        "--no-fail-fast",
+        "-j",
+        "1",
+        "--",
+        "--test-threads=2",
+        "-Z",
+        "unstable-options",
+        "--format=json",
+        "--report-time"
+      ],
+      "exit_code": 0,
+      "log_sha256": "a9be3df9e39059c8a9a5614e550b180c58c8af7f95bdd117e6f2a6d37399b927",
+      "name": "workspace"
+    },
+    {
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "format"
+    },
+    {
+      "command": [
+        "cargo",
+        "build",
+        "--workspace",
+        "--release",
+        "--locked",
+        "-j",
+        "1"
+      ],
+      "exit_code": 0,
+      "log_sha256": "76ca4bd20f8f495a50bc044c7c7e905c1c8f3e35523abb5fd75f4a25b490a42a",
+      "name": "build"
+    },
+    {
+      "command": [
+        "cargo",
+        "check",
+        "-p",
+        "bcore-worldgen",
+        "--release",
+        "--locked",
+        "--features",
+        "diagnostics",
+        "--examples",
+        "-j",
+        "1"
+      ],
+      "exit_code": 0,
+      "log_sha256": "7c20904ef75570bc291fb30040cdc4601eb780c78250ab587e695637150eca49",
+      "name": "diagnostics"
+    },
+    {
+      "command": [
+        "C:\\coding\\MINECRAFT\\BCore\\target\\noise-final-checkpoint-20261021-01\\bcore.exe",
+        "--help"
+      ],
+      "exit_code": 0,
+      "log_sha256": "e8742308d35126466d574bd38b6c5161b9a7b35574e06dce546a3339f97d2c05",
+      "name": "server-help"
+    },
+    {
+      "command": [
+        "C:\\Users\\Pisun4ik\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+        "-B",
+        "scripts/native-generation-reference/replay_bcore.py",
+        "target/implicit-full-native-20261015-01",
+        "--output",
+        "target/noise-final-replay-n1-20261021-01"
+      ],
+      "exit_code": 0,
+      "log_sha256": "7c32a6540470204115731cb5a5ad9ae285ab05f42546edae9d0751126cb44f5f",
+      "name": "replay-n1"
+    },
+    {
+      "command": [
+        "C:\\Users\\Pisun4ik\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+        "-B",
+        "scripts/native-generation-reference/replay_bcore.py",
+        "target/implicit-full-native-20261015-02",
+        "--output",
+        "target/noise-final-replay-n2-20261021-01",
+        "--reuse-build",
+        "target/noise-final-replay-n1-20261021-01"
+      ],
+      "exit_code": 0,
+      "log_sha256": "229373df0290d57c0dd6f1fa21d5f512e1656ab8ddea3e8bffb7cc6bb6bb04ff",
+      "name": "replay-n2"
+    },
+    {
+      "command": [
+        "C:\\Users\\Pisun4ik\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+        "-B",
+        "scripts/native-generation-reference/replay_bcore.py",
+        "target/full-boundaries-native-20261014-01",
+        "--output",
+        "target/noise-final-replay-b1-20261021-01",
+        "--reuse-build",
+        "target/noise-final-replay-n1-20261021-01"
+      ],
+      "exit_code": 0,
+      "log_sha256": "03713cdaf7ccba0e372aa5a68b41e6bbc5ed9203010be57204ffd1e295bae466",
+      "name": "replay-b1"
+    },
+    {
+      "command": [
+        "C:\\Users\\Pisun4ik\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+        "-B",
+        "scripts/native-generation-reference/replay_bcore.py",
+        "target/implicit-full-native-20261015-admission-seven-02",
+        "--output",
+        "target/noise-final-replay-repeat-20261021-01",
+        "--reuse-build",
+        "target/noise-final-replay-n1-20261021-01"
+      ],
+      "exit_code": 0,
+      "log_sha256": "1d895ad551f836961c0353067f7d09034d52311ffd0cc19df3d8c71cdcbd910f",
+      "name": "replay-repeat"
+    }
+  ],
+  "histories": [
+    {
+      "all_request_facets_identical_to_previous_checkpoint": true,
+      "binary_sha256": "81bca5a5d3764719536cd0c32e6a42c46f5614ee6d9b2b32cce0dd717ac3ffc0",
+      "capture": "target/implicit-full-native-20261015-01",
+      "comparison": {
+        "path": "target/noise-final-replay-n1-20261021-01/comparison.json",
+        "sha256": "cb5ab288fd27aa34e1da0ae7d3c55361e5ae3c8a826fc097e327298188d9e656"
+      },
+      "implementation_coverage": {
+        "partial": 7
+      },
+      "name": "n1",
+      "native_input_identity": {
+        "native_config_sha256": "869be17bcb696cf9edd227459acd66f66e768c3f41ce68a6ec01c3349482c12b",
+        "native_events_sha256": "12e7a1c6ead7f4b4c375c5c548b2d89a4f4cef508098ae57c963c050f82b314d",
+        "native_provenance_sha256": "71371b82d3c6e0f83d4cfb254c138c5e3dd2d13dae00e58e0624a6f883f176c1",
+        "native_registry_sha256": "9632996df96796cb1e92dfb60bc559b3af8785ad3592fc0cb4a60484927f88a5"
+      },
+      "provenance": {
+        "path": "target/noise-final-replay-n1-20261021-01/provenance.json",
+        "sha256": "0f7ba30998329cc7f6ede76098bb90b9bff8432ce18c00031d4eb162b24fffd3"
+      },
+      "requested": 7,
+      "requested_scored_matches": 7,
+      "source_archive": {
+        "path": "target/noise-final-replay-n1-20261021-01/source.zip",
+        "sha256": "95f0a89a6f7aad536fcb9bb47d033fb8b3e47da0c5a97a1a1bebca4a4da710db"
+      },
+      "watch": 14,
+      "watch_scored_matches": 13
+    },
+    {
+      "all_request_facets_identical_to_previous_checkpoint": true,
+      "binary_sha256": "81bca5a5d3764719536cd0c32e6a42c46f5614ee6d9b2b32cce0dd717ac3ffc0",
+      "capture": "target/implicit-full-native-20261015-02",
+      "comparison": {
+        "path": "target/noise-final-replay-n2-20261021-01/comparison.json",
+        "sha256": "89f0d505cd5bf7a927c68518886a8e26f1fabcecc7a6b218a72db4ad3cad7351"
+      },
+      "implementation_coverage": {
+        "partial": 7
+      },
+      "name": "n2",
+      "native_input_identity": {
+        "native_config_sha256": "ffdaa05109d8e13299ffa37d94761fb5347681989eecb335fac4642ae66c3880",
+        "native_events_sha256": "2fe3cd327baa896a408da4a7816cf42a689b187029db4d3ae3ee3b8f62190e9d",
+        "native_provenance_sha256": "062425241242a0acef0922ec98e01af6584d625d12df99f6a4f194b867551ad9",
+        "native_registry_sha256": "9632996df96796cb1e92dfb60bc559b3af8785ad3592fc0cb4a60484927f88a5"
+      },
+      "provenance": {
+        "path": "target/noise-final-replay-n2-20261021-01/provenance.json",
+        "sha256": "dc0faa584a4270cd18ed7de6d1316b098f5f2ec95b05a4980f0595b9fea3b6bb"
+      },
+      "requested": 7,
+      "requested_scored_matches": 7,
+      "source_archive": {
+        "path": "target/noise-final-replay-n2-20261021-01/source.zip",
+        "sha256": "95f0a89a6f7aad536fcb9bb47d033fb8b3e47da0c5a97a1a1bebca4a4da710db"
+      },
+      "watch": 14,
+      "watch_scored_matches": 13
+    },
+    {
+      "all_request_facets_identical_to_previous_checkpoint": true,
+      "binary_sha256": "81bca5a5d3764719536cd0c32e6a42c46f5614ee6d9b2b32cce0dd717ac3ffc0",
+      "capture": "target/full-boundaries-native-20261014-01",
+      "comparison": {
+        "path": "target/noise-final-replay-b1-20261021-01/comparison.json",
+        "sha256": "ab7257c144a22f3cac6df7f96f7392089377c0697aa349e3bf35066facc17a5b"
+      },
+      "implementation_coverage": {
+        "partial": 6
+      },
+      "name": "b1",
+      "native_input_identity": {
+        "native_config_sha256": "105897197878b6fa07e1be0c7b0b4324ef73c8fd7fcf9ff10b74695f3c061635",
+        "native_events_sha256": "4ba33f564a17368a385f895df8afcafc9f8bdb0de458619ffbc41121f320fc8d",
+        "native_provenance_sha256": "c4bb3f3c71a18a98eb23f8df40920052e5ee120328d71af40a6bbb93c0f70f4c",
+        "native_registry_sha256": "9632996df96796cb1e92dfb60bc559b3af8785ad3592fc0cb4a60484927f88a5"
+      },
+      "provenance": {
+        "path": "target/noise-final-replay-b1-20261021-01/provenance.json",
+        "sha256": "d45d447a354612e4f18d7b47aabee4325c2f4dcb428f00fb68f6ff1b7fe2b9a8"
+      },
+      "requested": 6,
+      "requested_scored_matches": 6,
+      "source_archive": {
+        "path": "target/noise-final-replay-b1-20261021-01/source.zip",
+        "sha256": "95f0a89a6f7aad536fcb9bb47d033fb8b3e47da0c5a97a1a1bebca4a4da710db"
+      },
+      "watch": 12,
+      "watch_scored_matches": 12
+    },
+    {
+      "all_request_facets_identical_to_previous_checkpoint": true,
+      "binary_sha256": "81bca5a5d3764719536cd0c32e6a42c46f5614ee6d9b2b32cce0dd717ac3ffc0",
+      "capture": "target/implicit-full-native-20261015-admission-seven-02",
+      "comparison": {
+        "path": "target/noise-final-replay-repeat-20261021-01/comparison.json",
+        "sha256": "49590b47f7ffb9e4e950b29e72d1772fb9126997dfb7d84d539e9863426efe98"
+      },
+      "implementation_coverage": {
+        "partial": 7
+      },
+      "name": "repeat",
+      "native_input_identity": {
+        "native_config_sha256": "adaf31dc9ff8a0da1fba5780ffd51a0ca57d9bd5aac1c3bd6497d9616f4b2060",
+        "native_events_sha256": "03796adbca7d0af4790e8f1948e6c4320b867ba578e86a59ff2f90fce85a81be",
+        "native_provenance_sha256": "6a4be2240dc64ebae3b400b709cdd6e04f817ffdc9af46286cef6f9b1953edc7",
+        "native_registry_sha256": "9632996df96796cb1e92dfb60bc559b3af8785ad3592fc0cb4a60484927f88a5"
+      },
+      "provenance": {
+        "path": "target/noise-final-replay-repeat-20261021-01/provenance.json",
+        "sha256": "7ef0b693f1966537b764444dc5e05a3dbcfd304dd1e7683f876b14f6d8fbc6d4"
+      },
+      "requested": 7,
+      "requested_scored_matches": 7,
+      "source_archive": {
+        "path": "target/noise-final-replay-repeat-20261021-01/source.zip",
+        "sha256": "95f0a89a6f7aad536fcb9bb47d033fb8b3e47da0c5a97a1a1bebca4a4da710db"
+      },
+      "watch": 14,
+      "watch_scored_matches": 14
+    }
+  ],
+  "limitations": [
+    "The same four LIGHT/SPAWN fields differ in two watch snapshots; implementation coverage remains Partial.",
+    "Four histories do not resolve the wider 91-request corpus or prove all-seed/all-dimension parity.",
+    "Logical replay NBT equality does not score numeric tag widths or wire order.",
+    "Inherited dead-code/deprecated diagnostic warnings remain; no complete aislop scan was available."
+  ],
+  "retained_metadata_differences": [
+    {
+      "actual": "minecraft:spawn",
+      "actual_present": true,
+      "expected": "minecraft:light",
+      "expected_present": true,
+      "field": "chunk_lifecycle",
+      "history": "n1",
+      "path": [
+        "persisted_status"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "request": 2,
+      "snapshot": "watch"
+    },
+    {
+      "actual": "minecraft:spawn",
+      "actual_present": true,
+      "expected": "minecraft:light",
+      "expected_present": true,
+      "field": "chunk_lifecycle",
+      "history": "n1",
+      "path": [
+        "serialized_status"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "request": 2,
+      "snapshot": "watch"
+    },
+    {
+      "actual": "minecraft:spawn",
+      "actual_present": true,
+      "expected": "minecraft:light",
+      "expected_present": true,
+      "field": "chunk_lifecycle",
+      "history": "n2",
+      "path": [
+        "persisted_status"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "request": 2,
+      "snapshot": "watch"
+    },
+    {
+      "actual": "minecraft:spawn",
+      "actual_present": true,
+      "expected": "minecraft:light",
+      "expected_present": true,
+      "field": "chunk_lifecycle",
+      "history": "n2",
+      "path": [
+        "serialized_status"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "request": 2,
+      "snapshot": "watch"
+    }
+  ],
+  "schema": 1,
+  "server_sha256": "a6451f50b4975b74271182389fb5e2839299c2f50207cff812c0dced92e00435",
+  "source_archive_sha256": "56fcf6f3a60b581e90be574bbb61cd42d59e3d00ca480a9fd72e08bf61b1b674",
+  "source_file_count": 419,
+  "source_manifest_sha256": "aa1dc6b2b7572d32c914c22bcdcad7ecaea4baa543e7702d2fc0da1b3f306714",
+  "state_observations": 7962624,
+  "test_timings": {
+    "build_seconds": [
+      1051.0
+    ],
+    "harness_seconds": 247.55109980000003,
+    "log": "C:\\coding\\MINECRAFT\\BCore\\target\\noise-final-checkpoint-20261021-01\\workspace.log",
+    "log_sha256": "a9be3df9e39059c8a9a5614e550b180c58c8af7f95bdd117e6f2a6d37399b927",
+    "target_count": 66,
+    "targets": [
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 11,
+        "seconds": 94.4568617,
+        "target": "Running tests\\chunk_terrain.rs (target\\build\\release\\build\\bcore-protocol/9b0071616d0486be\\out\\chunk_terrain-9b0071616d0486be.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 2,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 348,
+        "seconds": 43.0700515,
+        "target": "Running unittests src\\lib.rs (target\\build\\release\\build\\bcore-worldgen/92508c075a44ddf8\\out\\bcore_worldgen-92508c075a44ddf8.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 15,
+        "seconds": 25.6783952,
+        "target": "Running tests\\chunk_persistence.rs (target\\build\\release\\build\\bcore-protocol/9cc1de7ce0bb5d40\\out\\chunk_persistence-9cc1de7ce0bb5d40.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 5,
+        "seconds": 18.3402614,
+        "target": "Running tests\\pool_alias_trial_native.rs (target\\build\\release\\build\\bcore-worldgen/076e684123c74e84\\out\\pool_alias_trial_native-076e684123c74e84.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 1,
+        "seconds": 12.9700028,
+        "target": "Running tests\\vanilla_reference.rs (target\\build\\release\\build\\bcore-worldgen/6cccaab045bb5497\\out\\vanilla_reference-6cccaab045bb5497.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 165,
+        "seconds": 11.6483674,
+        "target": "Running unittests src\\lib.rs (target\\build\\release\\build\\bcore-protocol/c8a8536788fd4ece\\out\\bcore_protocol-c8a8536788fd4ece.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 1,
+        "seconds": 3.4047913,
+        "target": "Doc-tests bcore_worldgen"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 7,
+        "seconds": 3.0799179,
+        "target": "Running tests\\jigsaw_reference.rs (target\\build\\release\\build\\bcore-worldgen/019b7fee0daba97a\\out\\jigsaw_reference-019b7fee0daba97a.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 1,
+        "seconds": 2.8832847,
+        "target": "Running tests\\parity.rs (target\\build\\release\\build\\bcore-worldgen/33be65bdeceb56c8\\out\\parity-33be65bdeceb56c8.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 3,
+        "seconds": 2.7820593000000002,
+        "target": "Running tests\\mineshaft_blocks_reference.rs (target\\build\\release\\build\\bcore-worldgen/2ba1f53bcec2609f\\out\\mineshaft_blocks_reference-2ba1f53bcec2609f.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 3,
+        "seconds": 2.7208265000000003,
+        "target": "Running tests\\generation_context.rs (target\\build\\release\\build\\bcore-protocol/6bf74ed19101f1a0\\out\\generation_context-6bf74ed19101f1a0.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 3,
+        "seconds": 2.6663888,
+        "target": "Running tests\\desert_pyramid_reference.rs (target\\build\\release\\build\\bcore-worldgen/60ebe14ab95a878e\\out\\desert_pyramid_reference-60ebe14ab95a878e.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 3,
+        "seconds": 2.4640263,
+        "target": "Running tests\\native_requests.rs (target\\build\\release\\build\\bcore-protocol/e9110c6a0eb2ba0f\\out\\native_requests-e9110c6a0eb2ba0f.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 5,
+        "seconds": 2.2668118,
+        "target": "Running tests\\chunk_light_reference.rs (target\\build\\release\\build\\bcore-protocol/e335f41a1f544b3a\\out\\chunk_light_reference-e335f41a1f544b3a.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 3,
+        "seconds": 2.0236328,
+        "target": "Running tests\\surface_builder_reference.rs (target\\build\\release\\build\\bcore-worldgen/e962ad1d1a5380c1\\out\\surface_builder_reference-e962ad1d1a5380c1.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 1,
+        "seconds": 1.4483226,
+        "target": "Running tests\\desert_pyramid_effects.rs (target\\build\\release\\build\\bcore-protocol/70af2005f5e1bf4c\\out\\desert_pyramid_effects-70af2005f5e1bf4c.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 6,
+        "seconds": 1.3157941,
+        "target": "Running tests\\misc_features_reference.rs (target\\build\\release\\build\\bcore-worldgen/e4ed1c863cd8b753\\out\\misc_features_reference-e4ed1c863cd8b753.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 1,
+        "seconds": 1.2697012,
+        "target": "Running tests\\structure_processors_reference.rs (target\\build\\release\\build\\bcore-worldgen/14113cc2f7f8f1c1\\out\\structure_processors_reference-14113cc2f7f8f1c1.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 9,
+        "seconds": 1.0046802,
+        "target": "Running tests\\fallen_tree_reference.rs (target\\build\\release\\build\\bcore-worldgen/ef66c1c858c259d1\\out\\fallen_tree_reference-ef66c1c858c259d1.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 5,
+        "seconds": 0.8981996,
+        "target": "Running tests\\geode_reference.rs (target\\build\\release\\build\\bcore-worldgen/b4ac73a4e76b5945\\out\\geode_reference-b4ac73a4e76b5945.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 2,
+        "seconds": 0.8824967,
+        "target": "Running tests\\dungeon_block_entities.rs (target\\build\\release\\build\\bcore-protocol/4622e0c7592b79d5\\out\\dungeon_block_entities-4622e0c7592b79d5.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 5,
+        "seconds": 0.8208327,
+        "target": "Running tests\\structure_effects.rs (target\\build\\release\\build\\bcore-protocol/0311f761be081b1a\\out\\structure_effects-0311f761be081b1a.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 3,
+        "seconds": 0.7791242,
+        "target": "Running tests\\generation_mob_reference.rs (target\\build\\release\\build\\bcore-protocol/7cc7cafb2b2c6ae1\\out\\generation_mob_reference-7cc7cafb2b2c6ae1.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 12,
+        "seconds": 0.7453942,
+        "target": "Running tests\\generation_spawn_reference.rs (target\\build\\release\\build\\bcore-worldgen/1d207d2ee09ecf71\\out\\generation_spawn_reference-1d207d2ee09ecf71.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 7,
+        "seconds": 0.7322321,
+        "target": "Running tests\\tree_effects.rs (target\\build\\release\\build\\bcore-protocol/bcff91f53e5a3f90\\out\\tree_effects-bcff91f53e5a3f90.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 6,
+        "seconds": 0.6639642,
+        "target": "Running tests\\deferred_block_entities.rs (target\\build\\release\\build\\bcore-protocol/df60c52e542f3778\\out\\deferred_block_entities-df60c52e542f3778.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 6,
+        "seconds": 0.6443669,
+        "target": "Running tests\\sculk_reference.rs (target\\build\\release\\build\\bcore-worldgen/a0fe97f9cdf0df28\\out\\sculk_reference-a0fe97f9cdf0df28.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 4,
+        "seconds": 0.6120701,
+        "target": "Running tests\\sculk_effects.rs (target\\build\\release\\build\\bcore-protocol/2f3ac6bcd036a0a7\\out\\sculk_effects-2f3ac6bcd036a0a7.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 2,
+        "seconds": 0.5869549,
+        "target": "Running tests\\mineshaft_entities.rs (target\\build\\release\\build\\bcore-protocol/36bcd70d1a899306\\out\\mineshaft_entities-36bcd70d1a899306.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 2,
+        "seconds": 0.5719568,
+        "target": "Running tests\\queued_entity_delivery.rs (target\\build\\release\\build\\bcore-protocol/c84b67dc80e110cf\\out\\queued_entity_delivery-c84b67dc80e110cf.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 13,
+        "seconds": 0.530577,
+        "target": "Running tests\\loot_interpreter.rs (target\\build\\release\\build\\bcore-worldgen/70ec486529e609c5\\out\\loot_interpreter-70ec486529e609c5.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 8,
+        "seconds": 0.5296333,
+        "target": "Running tests\\scattered_structures_reference.rs (target\\build\\release\\build\\bcore-worldgen/0be2b1886201b078\\out\\scattered_structures_reference-0be2b1886201b078.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 12,
+        "seconds": 0.4758924,
+        "target": "Running tests\\chat_flow.rs (target\\build\\release\\build\\bcore-protocol/88fa87eed18f713d\\out\\chat_flow-88fa87eed18f713d.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 3,
+        "seconds": 0.4689034,
+        "target": "Running tests\\chest_persistence.rs (target\\build\\release\\build\\bcore-protocol/8a4e20e7894cfa60\\out\\chest_persistence-8a4e20e7894cfa60.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 18,
+        "seconds": 0.4473974,
+        "target": "Running tests\\lighting_reference.rs (target\\build\\release\\build\\bcore-worldgen/1aaae57541b32495\\out\\lighting_reference-1aaae57541b32495.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 4,
+        "seconds": 0.4057706,
+        "target": "Running tests\\terrain_e2e.rs (target\\build\\release\\build\\bcore-protocol/dae1c05d25e9f16f\\out\\terrain_e2e-dae1c05d25e9f16f.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 4,
+        "seconds": 0.2790689,
+        "target": "Running tests\\numeric_reference.rs (target\\build\\release\\build\\bcore-worldgen/2ab1d29182ea6a4a\\out\\numeric_reference-2ab1d29182ea6a4a.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 10,
+        "seconds": 0.2392717,
+        "target": "Running tests\\cave_features_reference.rs (target\\build\\release\\build\\bcore-worldgen/66703f205ff2ef81\\out\\cave_features_reference-66703f205ff2ef81.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 7,
+        "seconds": 0.139881,
+        "target": "Running tests\\base_features_reference.rs (target\\build\\release\\build\\bcore-worldgen/c96d6d95673fdc25\\out\\base_features_reference-c96d6d95673fdc25.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 18,
+        "seconds": 0.1320261,
+        "target": "Running tests\\chest_inventory.rs (target\\build\\release\\build\\bcore-worldgen/ff56f3857c1ddf8f\\out\\chest_inventory-ff56f3857c1ddf8f.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 2,
+        "seconds": 0.1103144,
+        "target": "Running tests\\loot_native_reference.rs (target\\build\\release\\build\\bcore-worldgen/16a24938eda909c0\\out\\loot_native_reference-16a24938eda909c0.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 1,
+        "seconds": 0.093183,
+        "target": "Running tests\\join_flow.rs (target\\build\\release\\build\\bcore-protocol/4eeeda35a00d3b4e\\out\\join_flow-4eeeda35a00d3b4e.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 2,
+        "seconds": 0.0845442,
+        "target": "Running tests\\generation_spawn_entry_reference.rs (target\\build\\release\\build\\bcore-worldgen/25f31a74b93cc438\\out\\generation_spawn_entry_reference-25f31a74b93cc438.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 4,
+        "seconds": 0.0596334,
+        "target": "Running tests\\loot_item_codec.rs (target\\build\\release\\build\\bcore-worldgen/043484b3b5aa6f07\\out\\loot_item_codec-043484b3b5aa6f07.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 2,
+        "seconds": 0.0356994,
+        "target": "Running tests\\ore_reference.rs (target\\build\\release\\build\\bcore-worldgen/e705f74a9a2124e1\\out\\ore_reference-e705f74a9a2124e1.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 8,
+        "seconds": 0.0242575,
+        "target": "Running tests\\tick_queue_reference.rs (target\\build\\release\\build\\bcore-worldgen/def0823661462fb3\\out\\tick_queue_reference-def0823661462fb3.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 1,
+        "seconds": 0.0241692,
+        "target": "Running tests\\status_ping.rs (target\\build\\release\\build\\bcore-protocol/c2a23524b9c441c1\\out\\status_ping-c2a23524b9c441c1.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 4,
+        "seconds": 0.0122413,
+        "target": "Running tests\\pool_alias_native_reference.rs (target\\build\\release\\build\\bcore-worldgen/87c4f541b94aee60\\out\\pool_alias_native_reference-87c4f541b94aee60.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 1,
+        "seconds": 0.0102306,
+        "target": "Running tests\\monster_room_reference.rs (target\\build\\release\\build\\bcore-worldgen/fe6d27f7c3089c78\\out\\monster_room_reference-fe6d27f7c3089c78.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 3,
+        "seconds": 0.0069144,
+        "target": "Running tests\\mth_reference.rs (target\\build\\release\\build\\bcore-worldgen/824c60dd3e68551c\\out\\mth_reference-824c60dd3e68551c.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 3,
+        "seconds": 0.0029197,
+        "target": "Running tests\\chunk_parity_vanilla.rs (target\\build\\release\\build\\bcore-protocol/643a24fb8f21dbc2\\out\\chunk_parity_vanilla-643a24fb8f21dbc2.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 5,
+        "seconds": 0.0016831,
+        "target": "Running tests\\chunk_format.rs (target\\build\\release\\build\\bcore-protocol/ca37ea9c67532e29\\out\\chunk_format-ca37ea9c67532e29.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 1,
+        "seconds": 0.0014423,
+        "target": "Running tests\\random_reference.rs (target\\build\\release\\build\\bcore-worldgen/4cbb34ef9c9dc122\\out\\random_reference-4cbb34ef9c9dc122.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 6,
+        "seconds": 0.0009514,
+        "target": "Running unittests src\\lib.rs (target\\build\\release\\build\\bcore-core/e59f5d207c83ba1f\\out\\bcore_core-e59f5d207c83ba1f.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 1,
+        "seconds": 0.0007209,
+        "target": "Running tests\\nbt_wire_reference.rs (target\\build\\release\\build\\bcore-protocol/513d0b49aeff1991\\out\\nbt_wire_reference-513d0b49aeff1991.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 1,
+        "seconds": 0.0006676,
+        "target": "Running tests\\entity_packets_reference.rs (target\\build\\release\\build\\bcore-protocol/3951ed7fd69ccd19\\out\\entity_packets_reference-3951ed7fd69ccd19.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 3,
+        "seconds": 0.0005121,
+        "target": "Running unittests src\\lib.rs (target\\build\\release\\build\\bcore-plugin/bfa09bd68f8e3e6a\\out\\bcore_plugin-bfa09bd68f8e3e6a.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 1,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 1,
+        "seconds": 0.000314,
+        "target": "Running tests\\parity_suite.rs (target\\build\\release\\build\\bcore-worldgen/aa87ec7fd62fd8b4\\out\\parity_suite-aa87ec7fd62fd8b4.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 1,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 0,
+        "seconds": 0.0001153,
+        "target": "Running unittests src\\lib.rs (target\\build\\release\\build\\bcore-plugin-java/2b8ac4464cc463a5\\out\\bcore_plugin_java-2b8ac4464cc463a5.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 0,
+        "seconds": 7.66e-05,
+        "target": "Running unittests src\\lib.rs (target\\build\\release\\build\\bcore-registry/189199297e83c4a6\\out\\bcore_registry-189199297e83c4a6.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 0,
+        "seconds": 6.61e-05,
+        "target": "Doc-tests bcore_core"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 0,
+        "seconds": 5.8e-05,
+        "target": "Doc-tests bcore_protocol"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 0,
+        "seconds": 5.54e-05,
+        "target": "Doc-tests bcore_registry"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 0,
+        "seconds": 4.79e-05,
+        "target": "Running unittests src\\main.rs (target\\build\\release\\build\\bcore/101e8a212d3c4f83\\out\\bcore-101e8a212d3c4f83.exe)"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 0,
+        "seconds": 4.56e-05,
+        "target": "Doc-tests bcore_plugin"
+      },
+      {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "outcome": "ok",
+        "passed": 0,
+        "seconds": 4.47e-05,
+        "target": "Doc-tests bcore_plugin_java"
+      }
+    ],
+    "totals": {
+      "failed": 0,
+      "filtered_out": 0,
+      "ignored": 4,
+      "measured": 0,
+      "passed": 791
+    }
+  },
+  "totals": {
+    "requested": 27,
+    "requested_scored_matches": 27,
+    "watch": 54,
+    "watch_scored_matches": 52
+  },
+  "workspace": {
+    "failed": 0,
+    "ignored": 4,
+    "passed": 791,
+    "targets": 66
+  }
+}

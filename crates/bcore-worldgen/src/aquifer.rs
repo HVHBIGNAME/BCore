@@ -45,10 +45,15 @@ pub struct Aquifer<'a> {
     centers: FastMap<(i32, i32, i32), (i32, i32, i32)>,
     statuses: FastMap<(i32, i32, i32), FluidStatus>,
     preliminary_levels: FastMap<(i32, i32), i32>,
+    skip_sampling_above_y: i32,
     schedule_fluid_update: bool,
 }
 
 impl<'a> Aquifer<'a> {
+    pub(crate) fn graph(&self) -> &'a VanillaGraph {
+        self.graph
+    }
+
     pub(crate) fn new(seed: i64, graph: &'a VanillaGraph, ctx: density::EvalContext) -> Self {
         let random = Xoroshiro::new(seed)
             .fork_positional()
@@ -63,8 +68,37 @@ impl<'a> Aquifer<'a> {
             centers: FastMap::default(),
             statuses: FastMap::default(),
             preliminary_levels: FastMap::default(),
+            skip_sampling_above_y: i32::MAX,
             schedule_fluid_update: false,
         }
+    }
+
+    /// Full NOISE chunks have an explicit geometry, independent of FlatCache bounds.
+    pub(crate) fn for_chunk(
+        seed: i64,
+        graph: &'a VanillaGraph,
+        ctx: density::EvalContext,
+        pos: crate::ChunkPos,
+    ) -> Self {
+        let mut aquifer = Self::new(seed, graph, ctx);
+        let (base_x, base_z) = (pos.x.wrapping_mul(16), pos.z.wrapping_mul(16));
+        let mut highest = i32::MIN;
+        // Native maxPreliminarySurfaceLevel visits Z then X. The endpoint +25
+        // quantizes to +24; 96 of these 121 points lie outside the 5x5 FlatCache.
+        for dz in (-16..=24).step_by(4) {
+            for dx in (-16..=24).step_by(4) {
+                highest = highest.max(
+                    aquifer.preliminary_level(base_x.wrapping_add(dx), base_z.wrapping_add(dz)),
+                );
+            }
+        }
+        aquifer.skip_sampling_above_y = highest
+            .wrapping_add(20)
+            .div_euclid(Y_SPACING)
+            .wrapping_add(1)
+            .wrapping_mul(Y_SPACING)
+            .wrapping_add(10);
+        aquifer
     }
 
     /// Vanilla returns null for solid; callers map null to stone.
@@ -74,11 +108,9 @@ impl<'a> Aquifer<'a> {
             return block::STONE;
         }
         let global = self.global(y);
-        // Vanilla does not use a fixed Y cutoff here.  The global fluid picker
-        // is only the fallback for cells whose density is already non-solid;
-        // aquifer barriers still decide whether underground air is water or air
-        // at every Y (including above y=40).  The former shortcut flooded every
-        // below-sea-level cavity and made land columns differ from vanilla.
+        if y > self.skip_sampling_above_y {
+            return global.at(y);
+        }
         if global.lava {
             return block::LAVA;
         }
@@ -374,6 +406,10 @@ fn similarity(a: i32, b: i32) -> f64 {
 fn dist(p: (i32, i32, i32), x: i32, y: i32, z: i32) -> i32 {
     (p.0 - x).pow(2) + (p.1 - y).pow(2) + (p.2 - z).pow(2)
 }
+
+#[cfg(test)]
+#[path = "aquifer_bound_tests.rs"]
+mod bound_tests;
 
 #[cfg(test)]
 mod tests {

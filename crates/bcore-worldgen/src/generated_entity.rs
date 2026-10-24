@@ -27,7 +27,7 @@ impl GeneratedEntity {
 
     pub fn type_id(&self) -> u32 {
         match self {
-            Self::ChestMinecart { .. } => 25,
+            Self::ChestMinecart { .. } => bcore_registry::entity_type::CHEST_MINECART,
             Self::Mob(mob) => crate::spawn::spawn_type(mob.kind()).registry_id,
         }
     }

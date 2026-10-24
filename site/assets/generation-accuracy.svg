@@ -8,7 +8,7 @@
 <text x="36" y="73" font-size="14" fill="#a7bad2" font-weight="400" text-anchor="start" >Measured outputs, with the sample boundaries kept visible.</text>
 <rect x="30" y="96" width="455" height="351" rx="12" fill="#111e31" stroke="#26374e" />
 <rect x="503" y="96" width="467" height="351" rx="12" fill="#111e31" stroke="#26374e" />
-<text x="50" y="125" font-size="12" fill="#50e3c2" font-weight="600" text-anchor="start" letter-spacing="1">LATEST / MATCHED NATIVE HISTORIES</text>
+<text x="50" y="125" font-size="12" fill="#50e3c2" font-weight="600" text-anchor="start" letter-spacing="1">HISTORICAL / 26.1 MATCHED HISTORIES</text>
 <text x="50" y="160" font-size="40" fill="#50e3c2" font-weight="700" text-anchor="start" >0</text>
 <text x="87" y="157" font-size="19" fill="#e8f0fc" font-weight="600" text-anchor="start" >block-state differences</text>
 <text x="50" y="184" font-size="12" fill="#a7bad2" font-weight="400" text-anchor="start" >8,945,664 observations · repeated snapshots included</text>

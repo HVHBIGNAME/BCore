@@ -125,39 +125,27 @@ fn canyon_width_factors(r: &mut JavaRandom) -> Vec<f32> {
     width
 }
 
-/// All states accepted by the native 26.1 overworld carver configurations.
-/// `carvers_26_1.json` checks every registered state against `canReplaceBlock`.
-/// Includes noise-fill ore veins, which precede the carver stage.
+/// Replacement membership from the target overworld carver block tag.
 #[inline]
 fn replaceable(s: u32) -> bool {
-    matches!(
-        s,
-        block::STONE
-            | block::GRANITE
-            | block::DIORITE
-            | block::ANDESITE
-            | 8..=13 // grass (both snowy states), dirt, coarse dirt, podzol
-            | 86..=101 // every water level
-            | 118..=128 // sand, suspicious sand, red sand, gravel, suspicious gravel
-            | 131..=132 // iron and deepslate iron ore
-            | 165..=167 // muddy mangrove roots, all axes
-            | block::SANDSTONE
-            | 6919..=6926 // snow layers
-            | block::SNOW_BLOCK
-            | 8918..=8919 // mycelium, both snowy states
-            | 11444..=11459 // dyed terracotta
-            | 12912 // terracotta
-            | 12914 // packed ice
-            | 13247 // red sandstone
-            | block::TUFF
-            | 24687 // calcite
-            | 24689 // powder snow
-            | 25313..=25314 // copper and deepslate copper ore
-            | 27862 // moss block
-            | 27921..=27925 // rooted dirt, mud, deepslate (all axes)
-            | 29577..=29578 // raw iron and raw copper blocks
-            | 29703 // pale moss block
-    )
+    static FLAGS: std::sync::OnceLock<Vec<bool>> = std::sync::OnceLock::new();
+    FLAGS
+        .get_or_init(|| {
+            let catalog = crate::block_predicate::catalog();
+            let members = &catalog.block_tags["minecraft:overworld_carver_replaceables"];
+            let mut flags = vec![false; bcore_registry::BLOCK_STATE_COUNT];
+            for definition in catalog.blocks.values() {
+                if members.contains(&definition.first) {
+                    flags
+                        [definition.first as usize..(definition.first + definition.count) as usize]
+                        .fill(true);
+                }
+            }
+            flags
+        })
+        .get(s as usize)
+        .copied()
+        .unwrap_or(false)
 }
 
 #[derive(Clone, Copy)]
@@ -186,7 +174,7 @@ impl CarvingWorld for ChunkCarvingWorld<'_, '_> {
         // Native ProtoChunk returns VOID_AIR outside its build height.
         self.chunk
             .get((x & 15) as usize, y, (z & 15) as usize)
-            .unwrap_or(15292)
+            .unwrap_or(block::VOID_AIR)
     }
 
     fn set_block(&mut self, [x, y, z]: [i32; 3], state: u32) {
@@ -216,7 +204,7 @@ impl CarvingWorld for ChunkCarvingWorld<'_, '_> {
     }
 
     fn top_material(&mut self, pos: [i32; 3], under_fluid: bool) -> Option<CarveState> {
-        let graph = VanillaGraph::load().expect("overworld generation graph");
+        let graph = self.aquifer.graph();
         let context = carving_surface_context(
             graph,
             self.aquifer.seed(),
@@ -224,14 +212,11 @@ impl CarvingWorld for ChunkCarvingWorld<'_, '_> {
             pos,
             under_fluid,
         );
-        graph
-            .surface_rule
-            .as_ref()
-            .expect("overworld surface rule")
-            .evaluate_in_chunk(&context, self.chunk)
+        let rule = graph.surface_rule.as_ref().expect("overworld surface rule");
+        rule.evaluate_in_chunk(&context, self.chunk)
             .map(|id| CarveState {
                 id,
-                has_fluid: matches!(id, 86..=117),
+                has_fluid: crate::surface_builder::has_fluid(id),
             })
     }
 }
@@ -293,7 +278,9 @@ fn carving_surface_context(
 /// Native `WorldCarver.carveBlock`, with a caller-owned, sticky per-column surface flag.
 fn carve_block(world: &mut impl CarvingWorld, pos: [i32; 3], found_surface: &mut bool) -> bool {
     let old = world.block(pos);
-    if matches!(old, 8..=9 | 8918..=8919) {
+    if (block::GRASS_BLOCK - 1..=block::GRASS_BLOCK).contains(&old)
+        || (block::MYCELIUM - 1..=block::MYCELIUM).contains(&old)
+    {
         *found_surface = true;
     }
     if !replaceable(old) {
@@ -723,6 +710,12 @@ pub(crate) fn apply(
     graph: &VanillaGraph,
     ctx: density::EvalContext,
 ) {
+    graph
+        .surface_rule
+        .as_ref()
+        .expect("overworld surface rule")
+        .check_supported()
+        .expect("supported carving surface rule tree");
     let mut mask = Mask::new();
     let mut aquifer = Aquifer::new(seed, graph, ctx);
     let mut r = JavaRandom::new(0);
@@ -1017,7 +1010,9 @@ mod tests {
                 .collect();
             assert_eq!(expected.len(), 87);
             let differences: Vec<_> = (0..count)
-                .filter(|s| replaceable(*s) != expected.contains(s))
+                .filter(|s| {
+                    replaceable(crate::registry_26_1::target_state(*s)) != expected.contains(s)
+                })
                 .collect();
             assert!(
                 differences.is_empty(),
@@ -1025,7 +1020,7 @@ mod tests {
                 differences.len()
             );
         }
-        assert!(!replaceable(count));
+        assert!(!replaceable(bcore_registry::BLOCK_STATE_COUNT as u32));
         assert!(!replaceable(u32::MAX));
     }
 
@@ -1187,7 +1182,7 @@ mod tests {
             None
         } else {
             Some(CarveState {
-                id: id.try_into().unwrap(),
+                id: crate::registry_26_1::target_state(id.try_into().unwrap()),
                 has_fluid: fixture()["voxel_metadata"]["fluid_states"][id.to_string()]
                     .as_bool()
                     .unwrap(),
@@ -1217,9 +1212,15 @@ mod tests {
             self.storage.set_block([x, y, z], state);
             self.written.insert([x, y, z]);
             // Native ChunkAccess's two-argument overload passes update flags 3.
-            self.events
-                .borrow_mut()
-                .push(json!(["write", x, y, z, old, state, 3]));
+            self.events.borrow_mut().push(json!([
+                "write",
+                x,
+                y,
+                z,
+                crate::registry_26_1::historical_state(old),
+                crate::registry_26_1::historical_state(state),
+                3
+            ]));
         }
 
         fn substance(&mut self, [x, y, z]: [i32; 3], density: f64) -> Option<CarveState> {
@@ -1237,7 +1238,7 @@ mod tests {
                 y,
                 z,
                 format!("{:016x}", density.to_bits()),
-                reply.map_or(-1, |s| s.id as i32),
+                reply.map_or(-1, |s| crate::registry_26_1::historical_state(s.id) as i32),
                 schedule
             ]));
             reply
@@ -1267,7 +1268,7 @@ mod tests {
                 y,
                 z,
                 under_fluid,
-                top.map_or(-1, |s| s.id as i32)
+                top.map_or(-1, |s| crate::registry_26_1::historical_state(s.id) as i32)
             ]));
             top
         }
@@ -1280,10 +1281,17 @@ mod tests {
         assert!(native_aquifer || sample["aquifer"]["mode"] == "scripted_cycle");
         let target = position(&sample["target"]);
         let mut chunk = GeneratedChunk::new(target);
-        chunk.states.fill(sample["fill"].as_u64().unwrap() as u32);
+        chunk.states.fill(crate::registry_26_1::target_state(
+            sample["fill"].as_u64().unwrap() as u32,
+        ));
         for value in sample["overrides"].as_array().unwrap() {
             let [x, y, z] = point(value);
-            chunk.set(x as usize, y, z as usize, value[3].as_u64().unwrap() as u32);
+            chunk.set(
+                x as usize,
+                y,
+                z as usize,
+                crate::registry_26_1::target_state(value[3].as_u64().unwrap() as u32),
+            );
         }
         let seed = sample["surface"]["seed"].as_i64().unwrap_or(0);
         let ctx = density::EvalContext {
@@ -1315,7 +1323,11 @@ mod tests {
             native_aquifer,
         };
         assert_eq!(
-            world.block([target.x * 16, MIN_Y - 1, target.z * 16]),
+            crate::registry_26_1::historical_state(world.block([
+                target.x * 16,
+                MIN_Y - 1,
+                target.z * 16
+            ])),
             fixture()["voxel_metadata"]["void_air_state"]
                 .as_u64()
                 .unwrap() as u32
@@ -1423,7 +1435,14 @@ mod tests {
         }
         let final_states: Vec<_> = checked
             .into_iter()
-            .map(|p| json!([p[0], p[1], p[2], world.block(p)]))
+            .map(|p| {
+                json!([
+                    p[0],
+                    p[1],
+                    p[2],
+                    crate::registry_26_1::historical_state(world.block(p))
+                ])
+            })
             .collect();
         assert_eq!(
             json!(final_states),
@@ -1457,12 +1476,13 @@ mod tests {
                     p,
                     int(&expected["waterHeight"]) != i32::MIN,
                 );
-                assert_surface_context(sample, &c, ctx, world.storage.chunk, expected);
+                assert_surface_context(graph, sample, &c, ctx, world.storage.chunk, expected);
             }
         }
     }
 
     fn assert_surface_context(
+        graph: &VanillaGraph,
         sample: &Value,
         c: &crate::surface_rules::SurfaceContext<'_>,
         ctx: density::EvalContext,
@@ -1496,12 +1516,7 @@ mod tests {
             "{id} minimum surface"
         );
         assert_eq!(
-            json!(preliminary_surface_corners(
-                VanillaGraph::load().unwrap(),
-                &ctx,
-                c.x,
-                c.z
-            )),
+            json!(preliminary_surface_corners(graph, &ctx, c.x, c.z)),
             expected["preliminary_corners"],
             "{id} preliminary corners"
         );
@@ -1557,7 +1572,8 @@ mod tests {
 
     #[test]
     fn evaluated_top_material_and_production_adapter_match_native() {
-        let graph = VanillaGraph::load().unwrap();
+        let historical_graph = crate::reference_26_1::graph();
+        let graph = &historical_graph;
         let mut results = BTreeMap::new();
         for sample in samples("top_material") {
             let seed = sample["seed"].as_i64().unwrap();
@@ -1574,14 +1590,14 @@ mod tests {
             if source != "overworld" {
                 c.biome = crate::biome::id(source).unwrap();
             }
-            assert_surface_context(sample, &c, ctx, &chunk, &sample["context"]);
+            assert_surface_context(graph, sample, &c, ctx, &chunk, &sample["context"]);
             let actual = graph
                 .surface_rule
                 .as_ref()
                 .unwrap()
                 .evaluate_in_chunk(&c, &chunk);
             assert_eq!(
-                actual.map_or(-1, |s| s as i32),
+                actual.map_or(-1, |s| crate::registry_26_1::historical_state(s) as i32),
                 int(&sample["result"]),
                 "{} surface rule",
                 sample["id"]
@@ -1616,9 +1632,9 @@ mod tests {
 
     #[test]
     fn evaluated_surface_voxel_operations_match_native() {
-        let graph = VanillaGraph::load().unwrap();
+        let graph = crate::reference_26_1::graph();
         for sample in samples("surface_voxel") {
-            run_voxel_case(sample, graph);
+            run_voxel_case(sample, &graph);
         }
         for sample in
             samples("surface_voxel").filter(|s| s["id"].as_str().unwrap().contains("water_witness"))
@@ -1656,7 +1672,7 @@ mod tests {
 
     #[test]
     fn bounded_voxel_operations_match_native() {
-        let graph = VanillaGraph::load().unwrap();
+        let graph = crate::reference_26_1::graph();
         assert_eq!(fixture()["voxel_metadata"]["min_y"], MIN_Y);
         assert_eq!(fixture()["voxel_metadata"]["height"], WORLD_HEIGHT);
         assert_eq!(fixture()["voxel_metadata"]["lava_state"], block::LAVA);
@@ -1671,7 +1687,7 @@ mod tests {
         let mut surface_flag_true = 0;
         let mut final_state_cells = 0;
         for sample in samples("voxel") {
-            run_voxel_case(sample, graph);
+            run_voxel_case(sample, &graph);
             passes += sample["returns"].as_array().unwrap().len();
             successes += sample["returns"]
                 .as_array()

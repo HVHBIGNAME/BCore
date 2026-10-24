@@ -157,7 +157,7 @@ impl ScatteredWorld for ScatteredRegion<'_> {
                     .ok_or_else(|| FeatureError::MissingData(format!("scattered block {pos:?}")))?;
                 let chunk = self
                     .region
-                    .owned_chunk(ChunkPos::new(pos.0 >> 4, pos.2 >> 4))
+                    .owned_chunk_ref(ChunkPos::new(pos.0 >> 4, pos.2 >> 4))
                     .unwrap();
                 let local = ((pos.0 & 15) as usize, pos.1, (pos.2 & 15) as usize);
                 let mut load = match chunk.feature_block_entities().get(&local) {
@@ -174,6 +174,7 @@ impl ScatteredWorld for ScatteredRegion<'_> {
                     pos,
                     Nbt::Compound(load),
                 )?;
+                drop(chunk);
                 self.region
                     .apply_template_effect(self.source, TemplateEffect::BlockEntity(entity))
             }

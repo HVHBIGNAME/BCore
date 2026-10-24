@@ -11,9 +11,43 @@ import zipfile
 
 import provenance
 import run
+import targets
 
 
 class ContractTests(unittest.TestCase):
+    def test_26_2_native_sample_requires_observed_runtime_identity(self):
+        sample = self.sample()
+        sample.update(engine="Vanilla 26.2", minecraft="26.2", protocol=776, data_version=4903)
+        run.validate_sample(sample, "Vanilla 26.2", self.request())
+        for field, value in (("minecraft", "26.1"), ("protocol", 775), ("data_version", None)):
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                run.validate_sample({**sample, field: value}, "Vanilla 26.2", self.request())
+
+    def test_native_source_derivation_preserves_the_entire_timed_boundary(self):
+        path = run.ROOT / "scripts/benchmarks/NoiseFillBenchmark.java"
+        original = path.read_bytes()
+        derived = targets.adapt_benchmark(original)
+        start, end = b"            long start = System.nanoTime();", b"            List<Object> hashes"
+        before = original[original.index(start):original.index(end)]
+        after = derived[derived.index(start):derived.index(end)]
+        self.assertEqual(before, after)
+        self.assertIn(b'getResourceAsStream("/version.json")', derived)
+        self.assertIn(b'result.put("engine", "Vanilla 26.2")', derived)
+        self.assertEqual(path.read_bytes(), original)
+        with self.assertRaises(ValueError):
+            targets.adapt_benchmark(original.replace(b'"Vanilla 26.1"', b'"unidentified"'))
+
+    def test_target_comparison_rejects_version_mixing_before_timing(self):
+        with self.assertRaisesRegex(ValueError, "comparison target differs"):
+            run.compare_contract({"minecraft": "26.1", "protocol": 775}, {"minecraft": "26.2", "protocol": 776})
+        with patch.object(targets, "sha", return_value="wrong"), self.assertRaisesRegex(ValueError, "JAR digest"):
+            targets.authenticate(run.ROOT, targets.TARGETS["26.2"])
+
+    def test_target_summaries_do_not_mix_historical_engine_labels(self):
+        samples = [{"engine": engine, "workers": 1, "seconds": [2, 4]}
+                   for engine in ("Vanilla 26.2", "BCore") for _ in range(3)]
+        self.assertEqual([row["engine"] for row in run.summaries(samples, [1], "Vanilla 26.2")], ["Vanilla 26.2", "BCore"])
+
     def request(self):
         return {"seed": "846692123413862008", "workers": 4, "warmup_batches": 2, "measured_batches": 2}
 
@@ -129,6 +163,29 @@ class ContractTests(unittest.TestCase):
             frozen.write_bytes(b"tampered")
             with self.assertRaises(ValueError):
                 provenance.verify_files(Path(temp), {"frozen.exe": digest})
+
+    def test_generated_crate_worlds_do_not_change_source_fingerprints(self):
+        with tempfile.TemporaryDirectory(dir=run.ROOT / "target") as temp:
+            root = Path(temp)
+            inputs = {*provenance.HARNESS_SOURCES, "Cargo.toml", "Cargo.lock", "rust-toolchain.toml",
+                      "crates/bcore-core/src/world/mod.rs", "crates/bcore-core/src/world/chunk.rs",
+                      "crates/bcore-worldgen/data/world/fixture.json"}
+            for name in inputs:
+                path = root / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(name.encode())
+            before = provenance.source_hashes(root)
+            self.assertEqual(set(before), inputs)
+            for crate in ("bcore-protocol", "bcore-core"):
+                save = root / "crates" / crate / "world/chunks/c.0.0.bcc"
+                save.parent.mkdir(parents=True)
+                save.write_bytes(b"generated chunk")
+                self.assertEqual(provenance.source_hashes(root), before)
+                save.write_bytes(b"subsequent runtime save")
+                self.assertEqual(provenance.source_hashes(root), before)
+            real_source = root / "crates/bcore-core/src/world/chunk.rs"
+            real_source.write_bytes(b"changed production world implementation")
+            self.assertNotEqual(provenance.source_hashes(root), before)
 
 
 if __name__ == "__main__":

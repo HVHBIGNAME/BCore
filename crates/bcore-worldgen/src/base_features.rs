@@ -1,4 +1,4 @@
-//! Data-driven base configured features from Java 26.1.
+//! Data-driven base configured features from the authenticated target catalog.
 //!
 //! Patches in this version are placed-feature programs around `simple_block`.
 //! `BaseFeatures` composes with an explicit dispatcher for trees, ores and other
@@ -17,7 +17,6 @@ use crate::noise_perlin::{java_string_hash, lerp, smoothstep, wrap};
 use crate::placement::{self, ConfiguredFeatureDispatcher, IntProvider, RejectUnsupported};
 use crate::simplex::{JavaRandom, SimplexNoise, WorldgenRandom};
 use crate::tick_request::{TickRequest, TickTarget};
-use crate::MIN_Y;
 
 pub struct BaseFeatures<D = RejectUnsupported> {
     pub additional: D,
@@ -70,6 +69,19 @@ impl<D: ConfiguredFeatureDispatcher> ConfiguredFeatureDispatcher for BaseFeature
                 self,
             );
         }
+        if feature_type == "lake" {
+            check_lake_config(config)?;
+        }
+        let weighted = if feature_type == "weighted_random_selector" {
+            Some(weighted_features(config)?)
+        } else {
+            None
+        };
+        let composite = if matches!(feature_type, "sequence" | "simple_random_selector") {
+            Some(composite_features(config)?)
+        } else {
+            None
+        };
         if !world.can_write_feature(origin) {
             return Ok(false);
         }
@@ -80,6 +92,38 @@ impl<D: ConfiguredFeatureDispatcher> ConfiguredFeatureDispatcher for BaseFeature
             "spring_feature" => spring(config, world, origin),
             "lake" => lake(config, world, random, origin, environment, self),
             "seagrass" => seagrass(config, world, random, origin, environment),
+            "sequence" => {
+                for feature in composite.expect("parsed composite feature") {
+                    if !placement::place_nested(feature, world, random, origin, environment, self)?
+                    {
+                        return Ok(false);
+                    }
+                }
+                Ok(true)
+            }
+            "weighted_random_selector" => {
+                let (features, total) = weighted.expect("parsed weighted selector");
+                if total == 0 {
+                    return Ok(false);
+                }
+                // Both native Flat and Compact selectors draw nextInt(total),
+                // including nextInt(1) for a singleton of weight one.
+                let mut pick = random.next_int(total as usize) as i32;
+                for feature in features {
+                    pick -= integer(feature, "weight")?;
+                    if pick < 0 {
+                        return placement::place_nested(
+                            &feature["data"],
+                            world,
+                            random,
+                            origin,
+                            environment,
+                            self,
+                        );
+                    }
+                }
+                unreachable!("validated weighted selector total")
+            }
             "random_boolean_selector" => {
                 let selected = if random.next_bool() {
                     "feature_true"
@@ -89,13 +133,10 @@ impl<D: ConfiguredFeatureDispatcher> ConfiguredFeatureDispatcher for BaseFeature
                 placement::place_nested(&config[selected], world, random, origin, environment, self)
             }
             "simple_random_selector" => {
-                let features = array(&config["features"])?;
-                if features.is_empty() {
-                    return Err(invalid("empty simple selector"));
-                }
+                let features = composite.expect("parsed composite feature");
                 let selected = random.next_int(features.len());
                 placement::place_nested(
-                    &features[selected],
+                    features[selected],
                     world,
                     random,
                     origin,
@@ -131,6 +172,55 @@ impl<D: ConfiguredFeatureDispatcher> ConfiguredFeatureDispatcher for BaseFeature
             }
         }
     }
+}
+
+pub(crate) fn weighted_features(config: &Value) -> FeatureResult<(&[Value], i32)> {
+    let features = array(&config["features"])?;
+    let mut total = 0_i32;
+    for feature in features {
+        let weight = integer(feature, "weight")?;
+        if weight < 0 {
+            return Err(invalid("negative feature weight"));
+        }
+        let child = feature
+            .get("data")
+            .ok_or_else(|| invalid("weighted feature requires data"))?;
+        check_placed_holder(child)?;
+        total = total
+            .checked_add(weight)
+            .ok_or_else(|| invalid("feature weights overflow"))?;
+    }
+    Ok((features, total))
+}
+
+pub(crate) fn composite_features(config: &Value) -> FeatureResult<Vec<&Value>> {
+    let value = &config["features"];
+    let features = if let Some(name) = value.as_str() {
+        if name.starts_with('#') {
+            return Err(crate::feature_world::FeatureError::MissingData(format!(
+                "native placed-feature holder tag {name}"
+            )));
+        }
+        vec![value]
+    } else {
+        array(value)?.iter().collect()
+    };
+    if features.is_empty() {
+        return Err(invalid("composite feature holder set must be nonempty"));
+    }
+    for child in &features {
+        check_placed_holder(child)?;
+    }
+    Ok(features)
+}
+
+fn check_placed_holder(reference: &Value) -> FeatureResult<()> {
+    let document = if let Some(name) = reference.as_str() {
+        catalog().placed(name)?
+    } else {
+        reference
+    };
+    placement::PlacementProgram::parse(document).map(|_| ())
 }
 
 pub fn place(
@@ -962,6 +1052,50 @@ fn seagrass(
     Ok(true)
 }
 
+pub(crate) fn check_lake_config(config: &Value) -> FeatureResult<()> {
+    LakePredicates::parse(config)?;
+    StateProvider::parse(&config["fluid"])?;
+    StateProvider::parse(&config["barrier"])?;
+    Ok(())
+}
+
+struct LakePredicates {
+    admission: BlockPredicate,
+    fill: BlockPredicate,
+    barrier: BlockPredicate,
+}
+
+impl LakePredicates {
+    fn parse(config: &Value) -> FeatureResult<Self> {
+        let fields = [
+            "can_place_feature",
+            "can_replace_with_air_or_fluid",
+            "can_replace_with_barrier",
+        ];
+        // Explicit old configured inputs predate the three required target fields.
+        // Preserve their historical tag predicates only when all three are absent.
+        if fields.iter().all(|field| config.get(*field).is_none()) {
+            let excluded = |tag: &str| {
+                BlockPredicate::parse(&serde_json::json!({
+                    "type": "minecraft:not", "predicate": {
+                        "type": "minecraft:matching_block_tag", "tag": tag
+                    }
+                }))
+            };
+            return Ok(Self {
+                admission: BlockPredicate::True,
+                fill: excluded("minecraft:features_cannot_replace")?,
+                barrier: excluded("minecraft:lava_pool_stone_cannot_replace")?,
+            });
+        }
+        Ok(Self {
+            admission: BlockPredicate::parse(&config[fields[0]])?,
+            fill: BlockPredicate::parse(&config[fields[1]])?,
+            barrier: BlockPredicate::parse(&config[fields[2]])?,
+        })
+    }
+}
+
 fn lake(
     config: &Value,
     world: &mut dyn FeatureWorld,
@@ -972,7 +1106,8 @@ fn lake(
 ) -> FeatureResult<bool> {
     let fluid_provider = StateProvider::parse(&config["fluid"])?;
     let barrier_provider = StateProvider::parse(&config["barrier"])?;
-    if origin.1 <= MIN_Y + 4 {
+    let predicates = LakePredicates::parse(config)?;
+    if origin.1 <= environment.generation_bounds().0.wrapping_add(4) {
         return Ok(false);
     }
     let origin = offset(origin, (-8, -4, -8));
@@ -988,9 +1123,13 @@ fn lake(
                 if !lake_boundary(&shape, x, y, z) {
                     continue;
                 }
-                let state = read_block(world, offset(origin, (x, y, z)))?;
+                let pos = offset(origin, (x, y, z));
+                let state = read_block(world, pos)?;
                 let info = catalog().info(state)?;
                 if (y >= 4 && info.liquid()) || (y < 4 && !info.is_solid() && state != fluid) {
+                    return Ok(false);
+                }
+                if !predicates.admission.test(world, pos, environment)? {
                     return Ok(false);
                 }
             }
@@ -1004,7 +1143,7 @@ fn lake(
                     continue;
                 }
                 let pos = offset(origin, (x, y, z));
-                if catalog().in_block_tag(read_block(world, pos)?, "features_cannot_replace")? {
+                if !predicates.fill.test(world, pos, environment)? {
                     continue;
                 }
                 world.set_feature_block(pos, if y >= 4 { air } else { fluid }, 2);
@@ -1026,7 +1165,7 @@ fn lake(
                     let pos = offset(origin, (x, y, z));
                     let state = read_block(world, pos)?;
                     if catalog().info(state)?.is_solid()
-                        && !catalog().in_block_tag(state, "lava_pool_stone_cannot_replace")?
+                        && predicates.barrier.test(world, pos, environment)?
                     {
                         world.set_feature_block(pos, barrier, 2);
                         mark_above(world, pos)?;
@@ -1039,9 +1178,8 @@ fn lake(
         for x in 0..16 {
             for z in 0..16 {
                 let pos = offset(origin, (x, 4, z));
-                if environment.should_freeze(world, pos)?
-                    && !catalog()
-                        .in_block_tag(read_block(world, pos)?, "features_cannot_replace")?
+                if environment.should_freeze_with_edge(world, pos, false)?
+                    && predicates.fill.test(world, pos, environment)?
                 {
                     world.set_feature_block(pos, catalog().default_state("ice")?, 2);
                 }
@@ -1085,3 +1223,7 @@ fn lake_boundary(shape: &[bool; 2048], x: i32, y: i32, z: i32) -> bool {
             || (y < 7 && shape[lake_index(x, y + 1, z)])
             || (y > 0 && shape[lake_index(x, y - 1, z)]))
 }
+
+#[cfg(test)]
+#[path = "base_features_tests.rs"]
+mod tests;

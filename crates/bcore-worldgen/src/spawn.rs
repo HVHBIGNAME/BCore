@@ -1,4 +1,4 @@
-//! Java 26.1 fresh-chunk creature generation (`NaturalSpawner`, protocol 775).
+//! Fresh-chunk creature generation using target catalogs and Java 26.1 algorithm provenance.
 //!
 //! Placement has a legacy RNG, independent from the region RNG used by spawn
 //! rules/finalization and from each entity's externally supplied entropy. The
@@ -457,11 +457,12 @@ struct SpawnCatalog {
 fn catalog() -> &'static SpawnCatalog {
     static CATALOG: OnceLock<SpawnCatalog> = OnceLock::new();
     CATALOG.get_or_init(|| {
-        let data: Value =
-            serde_json::from_str(include_str!("../data/generation_spawn_assets_26_1_v2.json"))
-                .expect("native generation-spawn catalog");
-        let callbacks: Value = serde_json::from_str(include_str!(
-            "../data/generation_spawn_callbacks_26_1_v1.json"
+        let data: Value = crate::block_predicate::parse_catalog(include_str!(
+            "../data/generation_spawn_assets_26_2.json"
+        ))
+        .expect("native generation-spawn catalog");
+        let callbacks: Value = crate::block_predicate::parse_catalog(include_str!(
+            "../data/generation_spawn_callbacks_26_2.json"
         ))
         .expect("native generation-spawn callback catalog");
         let mut biomes = BTreeMap::new();
@@ -499,6 +500,18 @@ fn catalog() -> &'static SpawnCatalog {
             .enumerate()
         {
             let kind = MobKind::from_name(row["name"].as_str().unwrap()).unwrap();
+            assert!(
+                index < u64::BITS as usize,
+                "spawn type mask exceeds its native width"
+            );
+            assert_eq!(
+                row["id"].as_u64().unwrap(),
+                u64::from(
+                    bcore_registry::registry_id("ENTITY_TYPE", kind.name())
+                        .expect("shared mob identity")
+                ),
+                "spawn type identity differs"
+            );
             let b: [f64; 6] = serde_json::from_value(row["spawn_box"].clone()).unwrap();
             types.insert(
                 kind,
@@ -545,7 +558,7 @@ fn catalog() -> &'static SpawnCatalog {
             let [start, end, shape, flags, floor, empty]: [u64; 6] =
                 serde_json::from_value(row.clone()).unwrap();
             assert_eq!(start as usize, states.len());
-            assert!(end > start);
+            assert!(end > start && end as usize <= bcore_registry::BLOCK_STATE_COUNT);
             states.resize(
                 end as usize,
                 StateData {
@@ -560,6 +573,8 @@ fn catalog() -> &'static SpawnCatalog {
             states.len(),
             data["blocks"]["state_count"].as_u64().unwrap() as usize
         );
+        assert_eq!(states.len(), bcore_registry::BLOCK_STATE_COUNT);
+        assert_eq!(biomes.len(), bcore_registry::BIOME_COUNT);
         let shapes = data["blocks"]["shapes"]
             .as_array()
             .unwrap()
@@ -647,6 +662,11 @@ pub fn spawn_type(kind: MobKind) -> &'static SpawnType {
     &catalog().types[&kind]
 }
 
+/// Saved constructor defaults from the current native catalog, before finalization.
+pub fn constructor_template(kind: MobKind) -> SpawnTag {
+    catalog().templates[&kind].clone()
+}
+
 fn state_data(state: u32) -> SpawnResult<StateData> {
     catalog()
         .states
@@ -720,6 +740,17 @@ pub trait SpawnEnvironment {
     fn random(&mut self) -> &mut SpawnRandom;
     /// Native `RandomSource.create()` input, independent of world/region seeds.
     fn entity_seed(&mut self, kind: MobKind) -> SpawnResult<i64>;
+    /// Constructor defaults belong to the caller's registry context. Historical
+    /// replays supply their independently captured constructor input here.
+    fn constructor_template(&self, kind: MobKind) -> SpawnResult<SpawnTag> {
+        Ok(constructor_template(kind))
+    }
+    fn biome_spawns(&self, biome: BiomeId) -> SpawnResult<BiomeSpawns> {
+        biome_spawns(biome).cloned()
+    }
+    fn spawn_heightmap(&self, kind: MobKind) -> SpawnResult<FeatureHeightmap> {
+        Ok(spawn_type(kind).heightmap)
+    }
     fn raw_brightness(
         &self,
         world: &dyn FeatureWorld,
@@ -912,7 +943,7 @@ pub fn top_non_colliding_pos(
         ));
     }
     let ty = spawn_type(kind);
-    let y = world.feature_height(ty.heightmap, x, z);
+    let y = world.feature_height(env.spawn_heightmap(kind)?, x, z);
     let mut pos = (x, y, z);
     if ty.placement == SpawnPlacement::OnGround
         && state_data(read(world, env, (x, y - 1, z))?)?.flags & 1 != 0
@@ -1347,7 +1378,7 @@ fn create_mob(
         least as i32,
     ];
     let head_yaw = random.next_float() * std::f32::consts::TAU;
-    let mut metadata = catalog().templates[&kind].clone();
+    let mut metadata = env.constructor_template(kind)?;
     metadata.put("UUID", SpawnTag::IntArray(uuid.to_vec()));
     let sensors = catalog().sensors[&kind]
         .iter()
@@ -1991,7 +2022,7 @@ pub fn spawn_original_mobs(
         env.bounds().1 - 1,
         chunk[1].wrapping_mul(16),
     ));
-    let settings = biome_spawns(biome).map_err(|error| SpawnFailure {
+    let settings = env.biome_spawns(biome).map_err(|error| SpawnFailure {
         error,
         partial: SpawnReport::default(),
     })?;
@@ -2000,7 +2031,7 @@ pub fn spawn_original_mobs(
         random = random.trace();
     }
     let mut result =
-        spawn_mobs_for_chunk_generation(world, env, settings, chunk, &mut random, options.trace);
+        spawn_mobs_for_chunk_generation(world, env, &settings, chunk, &mut random, options.trace);
     let report = match &mut result {
         Ok(report) => report,
         Err(failure) => &mut failure.partial,

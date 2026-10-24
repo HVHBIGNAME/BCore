@@ -1,6 +1,7 @@
-//! Entity state and native-checked clientbound entity packets for protocol 775.
+//! Entity state and clientbound entity packets for protocol 776.
 
 use bcore_core::varint::encode_varint;
+use bcore_registry::entity_type;
 use bcore_worldgen::generated_entity::GeneratedEntity;
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
@@ -10,7 +11,7 @@ use std::sync::{Arc, Mutex, Weak};
 use crate::packet::write_packet;
 
 mod mob;
-pub use mob::LoadedGeneratedMob;
+pub use mob::{GenerationMobCatalog, LoadedGeneratedMob};
 
 pub const CB_SPAWN_ENTITY: i32 = 0x01;
 pub const CB_ENTITY_METADATA: i32 = 0x63;
@@ -19,7 +20,7 @@ pub const CB_ENTITY_TELEPORT: i32 = 0x7d;
 pub const CB_ENTITY_ATTRIBUTES: i32 = 0x83;
 pub const CB_ENTITY_EQUIPMENT: i32 = 0x66;
 
-/// Monotonically allocates positive protocol entity ids.
+/// Monotonically allocates non-negative runtime entity ids.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct EntityIdAllocator {
     next: i32,
@@ -57,7 +58,7 @@ pub struct ItemEntity {
     pub position: Position,
     pub owner: Option<[u8; 16]>,
     pub age: i16,
-    /// Minecraft item entity type id (71 in the 26.1 registry).
+    /// Entity-type registry id, separate from the runtime entity id.
     pub entity_type: i32,
 }
 
@@ -68,7 +69,7 @@ impl ItemEntity {
             position,
             owner: None,
             age: 0,
-            entity_type: 71,
+            entity_type: entity_type::ITEM as i32,
         }
     }
 }
@@ -82,8 +83,8 @@ pub enum MobKind {
 impl MobKind {
     pub fn entity_type(self) -> i32 {
         match self {
-            Self::Cow => 30,
-            Self::Zombie => 150,
+            Self::Cow => entity_type::COW as i32,
+            Self::Zombie => entity_type::ZOMBIE as i32,
         }
     }
 }
@@ -221,7 +222,7 @@ impl TrackedEntity {
         digest.update(chunk.0.to_le_bytes());
         digest.update(chunk.1.to_le_bytes());
         digest.update((ordinal as u64).to_le_bytes());
-        digest.update(generated.type_id().to_le_bytes());
+        digest.update(generated_entity_type(&generated).to_le_bytes());
         for coordinate in generated.block_pos() {
             digest.update(coordinate.to_le_bytes());
         }
@@ -255,7 +256,7 @@ impl TrackedEntity {
         encode_spawn_entity_rotated(
             self.id,
             self.uuid,
-            self.generated.type_id() as i32,
+            generated_entity_type(&self.generated) as i32,
             Position { x, y, z },
             rotation,
             head_yaw,
@@ -267,6 +268,13 @@ impl TrackedEntity {
             GeneratedEntity::Mob(mob) => LoadedGeneratedMob::load(mob)?.pairing_packets(self.id),
             _ => Ok(self.spawn_packet()),
         }
+    }
+}
+
+fn generated_entity_type(entity: &GeneratedEntity) -> u32 {
+    match entity {
+        GeneratedEntity::ChestMinecart { .. } => entity_type::CHEST_MINECART,
+        GeneratedEntity::Mob(mob) => mob::entity_type(mob.kind()),
     }
 }
 

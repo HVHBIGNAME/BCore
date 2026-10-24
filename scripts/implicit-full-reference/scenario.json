@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "historical_name": "light-history-native-1790952504492756600",
+  "request_source": "docs/metrics/checkpoint-2026-10-10.json:2592-2858",
+  "reconstruction_scope": "Requested scenario only; historical raw events, configuration and results are not recovered.",
+  "new_capture_settings": {
+    "seed": "846692123413862008",
+    "bootstrap": "before_spawn",
+    "processors": 2,
+    "workers": 1,
+    "settings_source": "The current native-generation-reference capture defaults and the fresh explicit-FULL reference configuration; the checkpoint itself does not preserve the old capture flags."
+  },
+  "requests": [
+    {"pos": [0, 0], "status": "features"},
+    {"pos": [0, 0], "status": "initialize_light"},
+    {"pos": [0, 0], "status": "light"},
+    {"pos": [1, 0], "status": "features"},
+    {"pos": [1, 0], "status": "initialize_light"},
+    {"pos": [1, 0], "status": "light"},
+    {"pos": [0, 0], "status": "light"}
+  ],
+  "historical_checkpoint_facts": {
+    "this_history_block_entity_payload_differences": 36,
+    "this_history_wg_presence_differences": 2,
+    "affected_request_zero_based": 6,
+    "whole_checkpoint_wg_presence_differences": 70
+  }
+}

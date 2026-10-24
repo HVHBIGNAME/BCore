@@ -1,8 +1,33 @@
 {
   "project": "BCore",
   "version": "0.7.0-alpha.1",
-  "updated": "2026-10-10",
-  "protocol": 775,
+  "updated": "2026-10-24",
+  "minecraft": "26.2",
+  "protocol": 776,
+  "maintenance": {
+    "removed_bytes": 20139506184,
+    "verified_source_archives": 33,
+    "replay_tests_passed": 43,
+    "world_data_unchanged": true,
+    "status_report": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/development-status-2026-10-24.md",
+    "cleanup_data": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/metrics/storage-cleanup-2026-10-24.json",
+    "roadmap": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/roadmap.md"
+  },
+  "migration": {
+    "data_version": 4903,
+    "tests_passed": 886,
+    "tests_failed": 0,
+    "tests_ignored": 4,
+    "native_frames": 1179,
+    "terrain_packets": 127,
+    "session_count": 3,
+    "tests_data": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/metrics/migration-workspace-validation-2026-10-24.json",
+    "benchmark_data": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/metrics/noise-fill-wg-v2-baseline-26_2-2026-10-24.json",
+    "profile_report": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/performance-profile-26.2-2026-10-24.md",
+    "persistence": "Production BCC v6 edit observed in native-decoded terrain after restart; saved bytes unchanged.",
+    "report": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/migration-26.2.md",
+    "data": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/metrics/protocol-26_2-validation-2026-10-24.json"
+  },
   "checkpoint": {
     "tests_passed": 665,
     "tests_failed": 0,
@@ -22,6 +47,7 @@
     "tests_note": "October 8 workspace run reused on unchanged Rust sources; October 10 adds a same-binary desert-well replay."
   },
   "parity": {
+    "protocol": 775,
     "seed": "846692123413862008",
     "scope": "2026-10-02 release snapshot, four Rayon workers, one shared generation context per captured region; seed 846692123413862008, three 16×16 Overworld regions, Y=-64..319. Exact-state match is 600 lower than the historical checkpoint. Includes air; not a completion percentage. Executable/capture provenance and source coverage are in the parity report.",
     "terrain": "768 / 768 heights",
@@ -48,32 +74,33 @@
     {
       "name": "World Generation",
       "items": [
-        { "name": "Chunk data structure (775)", "status": "done" },
-        { "name": "Native chunk encoder (byte-parity)", "status": "done" },
+        { "name": "Chunk data structure (776; native-decoded terrain)", "status": "done" },
+        { "name": "Native chunk encoding with 26.2 registry-aware schema checks", "status": "done" },
         { "name": "Flat (superflat) world", "status": "done" },
         { "name": "Terrain parity across seeds and biomes", "status": "partial" },
         { "name": "3D biome sampling and network palettes", "status": "partial" },
         { "name": "Bundled worldgen assets / offline reference tests", "status": "done" },
         { "name": "Region-aware standing trees (13 configs; component fixtures)", "status": "partial" },
-        { "name": "Additional tree variants (24 configs; 688 native cases)", "status": "partial" },
+        { "name": "Additional tree variants (24 configs; 688 historical 26.1 cases)", "status": "partial" },
         { "name": "Fallen trees and cross-chunk writes (5 presets; component fixtures)", "status": "partial" },
         { "name": "Leaf litter placement and state properties", "status": "partial" },
-        { "name": "Ore features and placement streams (392 + 360 native cases)", "status": "partial" },
-        { "name": "Cave/canyon carvers and surface rules (1431 native cases)", "status": "partial" },
+        { "name": "Ore features and placement streams (392 + 360 historical 26.1 cases)", "status": "partial" },
+        { "name": "Cave/canyon carvers and surface rules (1431 historical 26.1 cases)", "status": "partial" },
         { "name": "Cave/sculk features and proven glow-lichen attachment shapes", "status": "partial" },
-        { "name": "Noise aquifers and fluid decisions (32256 checks)", "status": "partial" },
+        { "name": "Noise aquifers and fluid decisions (32256 historical 26.1 checks)", "status": "partial" },
         { "name": "Dungeons: blocks, loot and spawner data", "status": "partial" },
         { "name": "Mineshafts: admission, pieces, carts and persistence", "status": "partial" },
         { "name": "Villages, ancient cities, trail ruins and trial chambers: integrated native jigsaws", "status": "partial" },
         { "name": "Treasure, swamp huts, jungle and desert pyramids: starts, references and placement", "status": "partial" },
         { "name": "Fossils: 16 templates, native RNG, clipping and shape callbacks", "status": "partial" },
         { "name": "Desert wells: descent, supports, cellar, archaeology loot", "status": "partial" },
-        { "name": "NOISE kernel: 10.24x throughput vs first v2 baseline at four workers (8.88x vs repeat), identical kernel fingerprints", "status": "done" },
+        { "name": "Historical 26.1 NOISE improvements; new 26.2 baseline uses the same measured contract", "status": "done" },
+        { "name": "26.2 sulfur templates and speleothems: repeat-verified native runtime/codec fixtures", "status": "partial" },
         { "name": "Native chunk dependency metadata (12 statuses; two pyramids)", "status": "done" },
         { "name": "Shared status-aware generation and source coverage", "status": "partial" },
-        { "name": "Matched-history checks: 91 requests / 15 histories, explicit remaining differences", "status": "done" },
+        { "name": "Historical 26.1 matched-history checks: 91 requests / 15 histories", "status": "done" },
         { "name": "Native stair and bamboo updateShape callbacks", "status": "done" },
-        { "name": "Biome identity bridge (13932 native feature-membership checks)", "status": "done" },
+        { "name": "Biome identity bridge (13932 historical 26.1 feature-membership checks)", "status": "done" },
         { "name": "Job-local density-cache reuse and context/unwind isolation", "status": "done" },
         { "name": "Persisted generation holders and saved-neighbour hydration", "status": "planned" },
         { "name": "Tick preparation and runtime integration (native container fixtures)", "status": "partial" },
@@ -89,8 +116,9 @@
         { "name": "Per-world asynchronous generation queue and bounded lookahead", "status": "done" },
         { "name": "Chunk unloading", "status": "done" },
         { "name": "World save/load (persistence)", "status": "done" },
-        { "name": "Generated NBT, raw ticks, deferred marks and native light (.bcc v5)", "status": "done" },
-        { "name": "Pending proto NBT and explicit materialization; v1-v5 storage compatibility", "status": "done" },
+        { "name": "Generated NBT, raw ticks, deferred marks and native light (.bcc v6)", "status": "done" },
+        { "name": "Registry-bound BCC v6 admission; incompatible/unidentified saves rejected", "status": "done" },
+        { "name": "Fresh-world native-decoded reconnect, clean shutdown and persisted edit after restart", "status": "done" },
         { "name": "Decorated-pot full/update NBT and scattered piece-state persistence", "status": "done" },
         { "name": "Region format (.mca) compat", "status": "planned" }
       ]
@@ -110,7 +138,7 @@
     {
       "name": "Items & Inventory",
       "items": [
-        { "name": "Item registry", "status": "planned" },
+        { "name": "Shared native 26.2 item registry (1537 IDs)", "status": "done" },
         { "name": "Inventory & hotbar", "status": "planned" },
         { "name": "Item drops", "status": "planned" },
         { "name": "Crafting & smelting", "status": "planned" }
@@ -123,7 +151,7 @@
         { "name": "Player physics (gravity/collision)", "status": "planned" },
         { "name": "Generation-spawn component: 19 overworld CREATURE finalizers", "status": "done" },
         { "name": "Retained SPAWN, saved-mob identity and initial LOAD/pairing delivery", "status": "partial" },
-        { "name": "Live server clock/settings updates for generation spawning", "status": "planned" },
+        { "name": "World-local clocks connected; complete spawn/settings coverage", "status": "partial" },
         { "name": "Hostile mobs & AI", "status": "planned" },
         { "name": "Combat & damage", "status": "planned" }
       ]

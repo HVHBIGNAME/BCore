@@ -49,6 +49,7 @@ impl WorldGenerator {
         chunk.noise_biomes = Some(cells);
     }
 
+    #[cfg(any(test, feature = "diagnostics"))]
     pub(crate) fn generate_noise(self, chunk: &mut GeneratedChunk, graph: &VanillaGraph) {
         self.generate_noise_with_structures(
             chunk,
@@ -74,19 +75,40 @@ impl WorldGenerator {
         // chunk instead of an arbitrary Rayon job. Callers already parallelize
         // across chunks, so nested column parallelism only fragmented those
         // caches (measured: 385 jobs and 4.7x more 2D misses at four workers).
-        let mut aquifer = crate::aquifer::Aquifer::new(self.seed(), graph, ctx);
+        let mut aquifer = crate::aquifer::Aquifer::for_chunk(self.seed(), graph, ctx, chunk.pos);
         let ore = crate::ore_vein::OreVeinifier::new(self.seed());
+        let mut signals = density::ChunkDensity::new(graph, self.seed(), chunk.pos);
         let mut columns = Vec::with_capacity(256);
         for index in 0..256 {
-            columns.push(Self::build_noise_column_with_materials(
-                graph,
-                &ctx,
-                base_x + (index % 16) as i32,
-                base_z + (index / 16) as i32,
-                beardifier,
-                &mut aquifer,
-                &ore,
-            ));
+            let wx = base_x + (index % 16) as i32;
+            let wz = base_z + (index / 16) as i32;
+            let column = if let Some(density::ChunkDensity {
+                final_density,
+                veins,
+            }) = signals.as_mut()
+            {
+                Self::build_noise_column_with_signals(
+                    graph,
+                    &ctx,
+                    wx,
+                    wz,
+                    beardifier,
+                    &mut aquifer,
+                    |pos| final_density.sample(pos),
+                    |pos| veins.as_mut().and_then(|veins| veins.calculate(&ore, pos)),
+                )
+            } else {
+                Self::build_noise_column_with_materials(
+                    graph,
+                    &ctx,
+                    wx,
+                    wz,
+                    beardifier,
+                    &mut aquifer,
+                    &ore,
+                )
+            };
+            columns.push(column);
         }
         let marks_start = chunk.postprocessing.len();
         for (index, column) in columns.into_iter().enumerate() {
@@ -166,13 +188,13 @@ mod tests {
             serde_json::from_str(include_str!("../../data/biome_fill_26_1.json")).unwrap();
         assert_eq!(
             fixture["jar_sha256"],
-            crate::structure::template_pool::StructureAssets::JAR_SHA256
+            crate::structure::template_pool::StructureAssets::HISTORICAL_JAR_SHA256
         );
         let mut count = 0;
         for history in fixture["histories"].as_array().unwrap() {
             let seed = history["seed"].as_i64().unwrap();
             let generator = WorldGenerator::new(seed);
-            let graph = VanillaGraph::load().unwrap().fork();
+            let graph = crate::reference_26_1::graph();
             for row in history["chunks"].as_array().unwrap() {
                 let pos = ChunkPos::new(
                     row["chunk"][0].as_i64().unwrap() as i32,

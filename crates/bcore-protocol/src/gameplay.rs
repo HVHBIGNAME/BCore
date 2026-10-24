@@ -51,15 +51,12 @@ pub const DEFAULT_FLYING_SPEED: f32 = 0.05;
 /// Walking speed vanilla sends in `abilities` (0.1).
 pub const DEFAULT_WALKING_SPEED: f32 = 0.1;
 
-/// `update_time` clock id carrying the day time (0..24000 within a day).
-///
-/// Vanilla sends two clock entries at join and only clock 0 when `/time set`
-/// runs; `scripts/capture_time.py` shows clock 0 jumping to 61000 / 73000 /
-/// 6000 / 18000 for `/time set night|day|6000|midnight`, i.e. clock 0 is the
-/// day-time clock (mod 24000 = 13000 / 1000 / 6000 / 18000).
-pub const CLOCK_DAY_TIME: i32 = 0;
-/// `update_time` clock id carrying the total world age.
-pub const CLOCK_WORLD_AGE: i32 = 1;
+/// `minecraft:overworld` in the synchronized world-clock registry.
+pub const CLOCK_OVERWORLD: i32 = 0;
+/// `minecraft:the_end` in the synchronized world-clock registry.
+pub const CLOCK_END: i32 = 1;
+/// The overworld clock used by `/time set`.
+pub const CLOCK_DAY_TIME: i32 = CLOCK_OVERWORLD;
 
 /// Day time (ticks within a Minecraft day) for `/time set day`.
 pub const TIME_DAY: i64 = 1000;
@@ -71,6 +68,42 @@ pub const TIME_NIGHT: i64 = 13000;
 pub const TIME_MIDNIGHT: i64 = 18000;
 /// Ticks in one Minecraft day.
 pub const TICKS_PER_DAY: i64 = 24000;
+
+/// Server-owned game time and absolute world-clock ticks.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct WorldClock {
+    pub game_time: i64,
+    pub overworld_time: i64,
+    pub end_time: i64,
+}
+
+impl Default for WorldClock {
+    fn default() -> Self {
+        Self {
+            game_time: 0,
+            overworld_time: TIME_DAY,
+            end_time: 0,
+        }
+    }
+}
+
+impl WorldClock {
+    pub fn advance(&mut self) {
+        self.game_time = self.game_time.saturating_add(1);
+        self.overworld_time = self.overworld_time.saturating_add(1);
+        self.end_time = self.end_time.saturating_add(1);
+    }
+
+    pub fn encode(self) -> Vec<u8> {
+        encode_update_time(
+            self.game_time,
+            &[
+                ClockUpdate::running(CLOCK_END, self.end_time),
+                ClockUpdate::running(CLOCK_OVERWORLD, self.overworld_time),
+            ],
+        )
+    }
+}
 
 /// A player's gamemode.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -161,7 +194,7 @@ pub fn encode_full_health() -> Vec<u8> {
 /// One entry of the `update_time` `clockUpdates` array.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ClockUpdate {
-    /// Clock id: [`CLOCK_DAY_TIME`] or [`CLOCK_WORLD_AGE`].
+    /// Registry id: [`CLOCK_OVERWORLD`] or [`CLOCK_END`].
     pub id: i32,
     /// Absolute tick count for that clock.
     pub total_ticks: i64,
@@ -209,15 +242,9 @@ pub fn encode_update_time(age: i64, updates: &[ClockUpdate]) -> Vec<u8> {
     out
 }
 
-/// Encode the join-time `update_time`: both clocks running at `age`, like vanilla.
-pub fn encode_time_of_day(age: i64, day_time: i64) -> Vec<u8> {
-    encode_update_time(
-        age,
-        &[
-            ClockUpdate::running(CLOCK_WORLD_AGE, age),
-            ClockUpdate::running(CLOCK_DAY_TIME, day_time),
-        ],
-    )
+/// Encode an overworld clock update. Game time is the separate leading field.
+pub fn encode_time_of_day(game_time: i64, day_time: i64) -> Vec<u8> {
+    encode_set_day_time(game_time, day_time)
 }
 
 /// Encode a `/time set` result: only the day-time clock moves, as vanilla does.
@@ -384,13 +411,31 @@ mod tests {
     }
 
     #[test]
-    fn join_time_sends_both_clocks_like_vanilla() {
-        let (_, body) = payload(&encode_time_of_day(4878, 4878));
+    fn world_clock_packet_carries_end_and_overworld_separately_from_game_time() {
+        let clock = WorldClock {
+            game_time: 4878,
+            overworld_time: 4878,
+            end_time: 4878,
+        };
+        let (_, body) = payload(&clock.encode());
         // Captured at join in data/play_packets.bin, clock order 1 then 0.
         assert_eq!(
             body,
             hex("000000000000130e02018e26000000003f800000008e26000000003f800000")
         );
+    }
+
+    #[test]
+    fn setting_overworld_time_does_not_reset_game_time_or_the_end() {
+        let mut clock = WorldClock::default();
+        clock.advance();
+        clock.overworld_time = 73_000;
+        clock.advance();
+        assert_eq!(clock.game_time, 2);
+        assert_eq!(clock.end_time, 2);
+        assert_eq!(clock.overworld_time, 73_001);
+        let (_, body) = payload(&encode_time_of_day(clock.game_time, clock.overworld_time));
+        assert_eq!(body[8..10], [1, CLOCK_OVERWORLD as u8]);
     }
 
     #[test]

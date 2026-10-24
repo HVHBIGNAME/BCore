@@ -12,6 +12,7 @@ struct Inputs {
     failure: Option<(u64, bool)>,
     enabled: bool,
     time: i64,
+    historical: bool,
 }
 
 impl Inputs {
@@ -22,6 +23,7 @@ impl Inputs {
             failure: None,
             enabled: true,
             time: 0,
+            historical: false,
         }
     }
 }
@@ -29,6 +31,27 @@ impl Inputs {
 impl SpawnInputs for Inputs {
     fn spawn_mobs(&self) -> bool {
         self.enabled
+    }
+    fn constructor_template(&self, kind: MobKind) -> SpawnResult<SpawnTag> {
+        if self.historical {
+            crate::spawn_26_1::constructor_template(kind)
+        } else {
+            Ok(spawn::constructor_template(kind))
+        }
+    }
+    fn biome_spawns(&self, biome: u32) -> SpawnResult<BiomeSpawns> {
+        if self.historical {
+            crate::spawn_26_1::biome_spawns(biome)
+        } else {
+            spawn::biome_spawns(biome).cloned()
+        }
+    }
+    fn spawn_heightmap(&self, kind: MobKind) -> SpawnResult<FeatureHeightmap> {
+        if self.historical {
+            crate::spawn_26_1::heightmap(kind)
+        } else {
+            Ok(spawn::spawn_type(kind).heightmap)
+        }
     }
     fn entity_seed(&self, _: MobKind) -> SpawnResult<i64> {
         let index = self.calls.fetch_add(1, Ordering::Relaxed);
@@ -123,6 +146,7 @@ fn retained_region_adapter_stores_native_saves_for_all_nineteen_factories() {
         let seed = input["seed"].as_str().unwrap().parse().unwrap();
         let mut inputs = Inputs::new(input["entity_seed"].as_str().unwrap().parse().unwrap());
         inputs.time = input["game_time"].as_str().unwrap().parse().unwrap();
+        inputs.historical = true;
         let mut state = flat(
             seed,
             biome::id(input["biome"].as_str().unwrap()).unwrap(),

@@ -1,9 +1,7 @@
-//! Shared server state: the online-player registry used for chat broadcast.
+//! One server's world, clock, login session, and online-player registry.
 //!
-//! `server::run` spawns one thread per connection, so nothing was shared
-//! between players before this module. [`SharedServer`] is the one piece of
-//! global state: an `Arc<Mutex<..>>` registry mapping a per-connection id to the
-//! player's name and an outbound byte queue.
+//! Connection threads share an [`Arc`] of [`ServerState`]. Separately constructed
+//! servers retain independent worlds, clocks, identities, and persistence roots.
 //!
 //! Broadcast is queue-based rather than socket-based on purpose: a player thread
 //! must never write to another player's `TcpStream` (a slow or dead peer would
@@ -15,10 +13,18 @@
 //! Player ids are handed out by a monotonic counter, and the registry is a
 //! [`BTreeMap`] so `/list` and broadcast order are deterministic.
 
+use std::collections::hash_map::RandomState;
 use std::collections::{BTreeMap, BTreeSet};
+use std::hash::BuildHasher;
+use std::io;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
 use std::sync::mpsc::{self, Receiver, Sender, TryRecvError};
 use std::sync::{Arc, Mutex, RwLock};
+
+use crate::chunk_store::{ChunkStore, ChunkStoreError};
+use crate::gameplay::{encode_set_day_time, WorldClock};
+use crate::world_state::{World, DEFAULT_SEED};
 
 /// Identifier of a connected player, unique for the server's lifetime.
 pub type PlayerId = u64;
@@ -107,15 +113,20 @@ impl PlayerHandle {
 }
 
 /// State shared by every connection thread.
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct ServerState {
+    world: World,
+    session_id: [u8; 16],
+    clock: Mutex<WorldClock>,
+    view_distance: i32,
+    state_directory: Option<PathBuf>,
     players: RwLock<BTreeMap<PlayerId, PlayerHandle>>,
     next_id: AtomicU64,
     /// Global chat message counter (`player_chat`'s `globalIndex`).
     chat_index: AtomicU64,
     /// Set by `/stop`: the accept loop and every play loop should wind down.
     shutdown: AtomicBool,
-    /// Server operator names (from `ops.json`), persisted on change.
+    /// Operator names, persisted only inside an explicitly admitted world root.
     ops: Mutex<BTreeSet<String>>,
     bans: Mutex<BTreeMap<String, String>>,
     pub scoreboard: Mutex<crate::scoreboard::Scoreboard>,
@@ -124,18 +135,120 @@ pub struct ServerState {
 /// Cheap-to-clone handle to the shared server state.
 pub type SharedServer = Arc<ServerState>;
 
-/// File holding operator names, one per line (BCore's simple `ops.json`).
+/// JSON array of operator names inside the admitted world root.
 const OPS_FILE: &str = "ops.json";
 
-/// Create fresh shared state and load operators from `ops.json`.
+/// Create isolated in-memory state, without reading or writing working-directory files.
 pub fn new_shared_server() -> SharedServer {
-    let server = ServerState::default();
-    server.load_ops();
-    server.load_bans();
-    Arc::new(server)
+    Arc::new(ServerState::default())
+}
+
+/// Open a versioned world and its operator/ban files before starting any workers.
+pub fn open_shared_server(
+    root: impl AsRef<Path>,
+    seed: i64,
+) -> Result<SharedServer, ChunkStoreError> {
+    let root = root.as_ref();
+    let world = World::open(seed, ChunkStore::at(root))?;
+    let state_directory = world
+        .store()
+        .expect("admitted persistent world")
+        .root()
+        .to_path_buf();
+    let mut server = ServerState::with_world(world);
+    server.state_directory = Some(state_directory);
+    server.load_ops()?;
+    server.load_bans()?;
+    Ok(Arc::new(server))
+}
+
+fn new_session_id() -> [u8; 16] {
+    static NEXT_SESSION: AtomicU64 = AtomicU64::new(0);
+    let sequence = NEXT_SESSION.fetch_add(1, Ordering::Relaxed);
+    // Independent inputs to per-instance randomized hash keys supply UUID halves.
+    let random = RandomState::new();
+    let mut id = [0; 16];
+    id[..8].copy_from_slice(
+        &random
+            .hash_one(("bcore-session-high", sequence))
+            .to_be_bytes(),
+    );
+    id[8..].copy_from_slice(
+        &random
+            .hash_one(("bcore-session-low", sequence))
+            .to_be_bytes(),
+    );
+    id[6] = (id[6] & 0x0f) | 0x40;
+    id[8] = (id[8] & 0x3f) | 0x80;
+    id
+}
+
+impl Default for ServerState {
+    fn default() -> Self {
+        Self::with_world(World::in_memory(DEFAULT_SEED))
+    }
 }
 
 impl ServerState {
+    /// Attach a world without enabling operator/ban persistence.
+    pub fn with_world(world: World) -> Self {
+        Self {
+            world,
+            session_id: new_session_id(),
+            clock: Mutex::new(WorldClock::default()),
+            view_distance: crate::world::default_view_distance(),
+            state_directory: None,
+            players: RwLock::new(BTreeMap::new()),
+            next_id: AtomicU64::new(0),
+            chat_index: AtomicU64::new(0),
+            shutdown: AtomicBool::new(false),
+            ops: Mutex::new(BTreeSet::new()),
+            bans: Mutex::new(BTreeMap::new()),
+            scoreboard: Mutex::new(crate::scoreboard::Scoreboard::default()),
+        }
+    }
+
+    pub fn world(&self) -> &World {
+        &self.world
+    }
+
+    pub fn session_id(&self) -> &[u8; 16] {
+        &self.session_id
+    }
+
+    pub fn with_view_distance(mut self, distance: i32) -> Self {
+        self.view_distance = distance.clamp(1, crate::world::VIEW_DISTANCE);
+        self
+    }
+
+    pub fn view_distance(&self) -> i32 {
+        self.view_distance
+    }
+
+    pub fn clock_snapshot(&self) -> WorldClock {
+        *self.clock.lock().expect("world clock lock")
+    }
+
+    /// Queue the snapshot while holding the clock lock so a tick/time command
+    /// cannot enqueue an older update after it.
+    pub fn send_clock(&self, player: PlayerId) {
+        let clock = self.clock.lock().expect("world clock lock");
+        self.send_to(player, &clock.encode());
+    }
+
+    pub fn tick_clock(&self) -> WorldClock {
+        let mut clock = self.clock.lock().expect("world clock lock");
+        clock.advance();
+        self.broadcast(&clock.encode());
+        *clock
+    }
+
+    pub fn set_day_time(&self, ticks: i64) {
+        let mut clock = self.clock.lock().expect("world clock lock");
+        clock.overworld_time = ticks;
+        self.broadcast(&encode_set_day_time(clock.game_time, ticks));
+    }
+
     /// Register a player and return its handle (with a fresh outbox).
     pub fn join(&self, name: &str, uuid: [u8; 16]) -> PlayerHandle {
         let id = self.next_id.fetch_add(1, Ordering::Relaxed);
@@ -278,35 +391,48 @@ impl ServerState {
     }
 
     /// Load operator names from `ops.json` (a JSON array of strings).
-    fn load_ops(&self) {
-        if let Ok(text) = std::fs::read_to_string(OPS_FILE) {
-            if let Ok(mut ops) = self.ops.lock() {
-                for name in text.split('"').skip(1).step_by(2) {
-                    if !name.is_empty() {
-                        ops.insert(name.to_string());
-                    }
-                }
-            }
+    fn load_ops(&self) -> io::Result<()> {
+        if let Some(text) = self.read_state_file(OPS_FILE)? {
+            let names: Vec<String> = serde_json::from_str(&text)
+                .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?;
+            self.ops.lock().expect("operator lock").extend(names);
         }
+        Ok(())
     }
 
     /// Write operator names back to `ops.json` as a JSON array of strings.
     pub fn save_ops(&self) {
         if let Ok(ops) = self.ops.lock() {
-            let mut names: Vec<&String> = ops.iter().collect();
-            names.sort();
-            let quoted: Vec<String> = names.iter().map(|n| format!("\"{n}\"")).collect();
-            let text = format!("[{}]\n", quoted.join(", "));
-            let _ = std::fs::write(OPS_FILE, text);
+            let names: Vec<_> = ops.iter().collect();
+            let text = serde_json::to_string(&names).expect("serializable operator names");
+            self.write_state_file(OPS_FILE, &text);
         }
     }
-    fn load_bans(&self) {
-        if let Ok(text) = std::fs::read_to_string("banned-players.json") {
-            if let (Ok(map), Ok(mut bans)) = (
-                serde_json::from_str::<BTreeMap<String, String>>(&text),
-                self.bans.lock(),
-            ) {
-                *bans = map;
+    fn load_bans(&self) -> io::Result<()> {
+        if let Some(text) = self.read_state_file("banned-players.json")? {
+            let bans = serde_json::from_str(&text)
+                .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?;
+            *self.bans.lock().expect("ban lock") = bans;
+        }
+        Ok(())
+    }
+
+    fn read_state_file(&self, name: &str) -> io::Result<Option<String>> {
+        let Some(root) = &self.state_directory else {
+            return Ok(None);
+        };
+        match std::fs::read_to_string(root.join(name)) {
+            Ok(text) => Ok(Some(text)),
+            Err(error) if error.kind() == io::ErrorKind::NotFound => Ok(None),
+            Err(error) => Err(error),
+        }
+    }
+
+    fn write_state_file(&self, name: &str, text: &str) {
+        if let Some(root) = &self.state_directory {
+            let path = root.join(name);
+            if let Err(error) = std::fs::write(&path, format!("{text}\n")) {
+                eprintln!("[bcore] cannot save {}: {error}", path.display());
             }
         }
     }
@@ -336,7 +462,7 @@ impl ServerState {
     pub fn save_bans(&self) {
         if let Ok(b) = self.bans.lock() {
             if let Ok(s) = serde_json::to_string_pretty(&*b) {
-                let _ = std::fs::write("banned-players.json", format!("{s}\n"));
+                self.write_state_file("banned-players.json", &s);
             }
         }
     }
@@ -345,6 +471,60 @@ impl ServerState {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn session_identity_is_shared_by_clones_and_distinct_between_servers() {
+        let first = new_shared_server();
+        let clone = Arc::clone(&first);
+        let second = new_shared_server();
+        assert_eq!(first.session_id(), clone.session_id());
+        assert_ne!(first.session_id(), second.session_id());
+        assert_eq!(first.session_id()[6] >> 4, 4);
+        assert_eq!(first.session_id()[8] >> 6, 2);
+    }
+
+    #[test]
+    fn separately_owned_servers_do_not_share_world_payloads_or_clocks() {
+        let first = ServerState::with_world(World::flat_fixture([(0, 0)]));
+        let second = ServerState::with_world(World::flat_fixture([(1, 0)]));
+        assert!(first.world().cached_payload(0, 0).is_some());
+        assert!(second.world().cached_payload(0, 0).is_none());
+        assert!(first.world().cached_payload(1, 0).is_none());
+        assert!(second.world().cached_payload(1, 0).is_some());
+        first.set_day_time(13_000);
+        assert_eq!(first.clock_snapshot().overworld_time, 13_000);
+        assert_eq!(
+            second.clock_snapshot().overworld_time,
+            crate::gameplay::TIME_DAY
+        );
+        assert!(first.world().store().is_none());
+        assert!(second.world().store().is_none());
+    }
+
+    #[test]
+    fn ticks_and_time_commands_share_ordered_state_with_future_players() {
+        let server = new_shared_server();
+        let first = server.join("First", [1; 16]);
+        server.tick_clock();
+        server.set_day_time(73_000);
+        let clock = server.tick_clock();
+        assert_eq!(clock.game_time, 2);
+        assert_eq!(clock.end_time, 2);
+        assert_eq!(clock.overworld_time, 73_001);
+        let future = server.join("Future", [2; 16]);
+        server.send_clock(future.id);
+        assert_eq!(future.outbox.drain(), clock.encode());
+        let mut queued = std::io::Cursor::new(first.outbox.drain());
+        let mut count = 0;
+        while queued.position() < queued.get_ref().len() as u64 {
+            assert_eq!(
+                crate::packet::read_frame(&mut queued).unwrap().0,
+                crate::gameplay::CB_UPDATE_TIME
+            );
+            count += 1;
+        }
+        assert_eq!(count, 3);
+    }
 
     #[test]
     fn joining_assigns_distinct_ids_and_tracks_names() {

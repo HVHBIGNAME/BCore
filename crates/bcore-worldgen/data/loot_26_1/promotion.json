@@ -1,0 +1,42 @@
+{
+  "files": {
+    "crates/bcore-worldgen/data/loot_26_1/enchantment.json": {
+      "bytes": 41208,
+      "sha256": "99221f9ea6ffb2db0200d9491f7c6ad601ef756e76dbbf40e2e0fde34d39a680",
+      "source": "enchantment.json"
+    },
+    "crates/bcore-worldgen/data/loot_26_1/instrument.json": {
+      "bytes": 2221,
+      "sha256": "0aa54ea01b410ec7df48bc4c74f74bb37599d305cad06edb8160c44304c48667",
+      "source": "instrument.json"
+    },
+    "crates/bcore-worldgen/data/loot_26_1/items.json": {
+      "bytes": 994776,
+      "sha256": "aa14a99f3525ec1de6d17f749c813512484dba738739f40f8eefc2ccc184dfac",
+      "source": "items.json"
+    },
+    "crates/bcore-worldgen/data/loot_26_1/potions.json": {
+      "bytes": 6322,
+      "sha256": "65268536e1db3619439a9293d95fbf837d49d99883ecf47b923165e4d0a3fc12",
+      "source": "potions.json"
+    },
+    "crates/bcore-worldgen/data/loot_26_1/registry-types.json": {
+      "bytes": 10333,
+      "sha256": "4621857941eab22239469fd5c294d5b348725a95930d9c8b63f3b7125c26ac71",
+      "source": "registry-types.json"
+    },
+    "crates/bcore-worldgen/data/loot_26_1/tables.json": {
+      "bytes": 1336236,
+      "sha256": "de0a11dbe5312eaf19e6ea26ae213e02287e8ab8e999215de6893d869c17a847",
+      "source": "tables.json"
+    },
+    "crates/bcore-worldgen/tests/data/loot_26_1/loot-fill-26.1.json": {
+      "bytes": 2840246,
+      "sha256": "2158fd855f1bbc46d6b399620c9ced35822263c982151686f58e175c1ccf9db1",
+      "source": "loot-fill-26.1.json"
+    }
+  },
+  "minecraft": "26.1",
+  "schema": "bcore.loot-data-promotion.v1",
+  "server_sha256": "a7fed6f7d88379349e35ae0c6e9881d4484605132f6f620376a3868eea6cce52"
+}

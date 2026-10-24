@@ -1,7 +1,7 @@
 //! One live source FEATURES task, ordered by native decoration step and index.
 use std::collections::BTreeSet;
 
-use crate::feature_sorter::{sorter, POSSIBLE_BIOMES};
+use crate::feature_sorter::{possible_biomes, sorter};
 use crate::region::FeatureRegion;
 use crate::simplex::WorldgenRandom;
 use crate::structure::mineshaft::MineType;
@@ -82,10 +82,10 @@ impl GenerationState {
         let mut features = BTreeSet::new();
         for biome in biomes {
             let biome = crate::biome::name(biome);
-            if !POSSIBLE_BIOMES.contains(&biome) {
+            if !possible_biomes().contains(&biome) {
                 continue;
             }
-            for step in 0..11 {
+            for step in 0..sorter().step_count() {
                 features.extend(
                     sorter()
                         .indices_for_biome(step, biome)
@@ -130,7 +130,7 @@ impl GenerationState {
         let mut interrupted: Option<String> = None;
         let structures = structure_slots();
         let mut mineshafts_processed = 0;
-        for step in 0..11 {
+        for step in 0..sorter().step_count() {
             for &(_, index, structure) in structures.iter().filter(|&&(s, _, _)| s == step) {
                 let name = structure.name();
                 if let Some(reason) = &interrupted {
@@ -275,11 +275,6 @@ fn place_feature(
                 placed |= crate::dungeon::place(world, random, (x, y, z));
             }
         }
-        return Ok(Outcome::Complete(placed));
-    }
-    if let Some(placed) = crate::decoration::place_tree_feature(world, random, source, name)
-        .map_err(|error| error.to_string())?
-    {
         return Ok(Outcome::Complete(placed));
     }
     super::placed::place_named_with_environment(

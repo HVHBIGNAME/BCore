@@ -1,0 +1,682 @@
+{
+  "biome_mutations": "all quart cells of native FULL chunks (-1,-1) and (0,0), plains then sulfur_caves",
+  "data_version": 4903,
+  "fill_context": {
+    "biome": "minecraft:dripstone_caves",
+    "loaded": true,
+    "origin": [
+      8.5,
+      80.5,
+      8.5
+    ]
+  },
+  "gameplay_ticks": 0,
+  "jar_sha256": "183c0499c5f855570ee487dd38e141a53f0121f83a0b07a3bac2d8b6698823e8",
+  "minecraft": "26.2",
+  "protocol": 776,
+  "samples": [
+    {
+      "biome": "minecraft:dripstone_caves",
+      "condition": {
+        "condition": "minecraft:location_check",
+        "predicate": {
+          "biomes": "minecraft:sulfur_caves"
+        }
+      },
+      "loaded": true,
+      "matched": false,
+      "name": "native_fill_context",
+      "next_i64": "-4937981208836185383",
+      "origin": [
+        8.5,
+        80.5,
+        8.5
+      ],
+      "query_pos": [
+        8,
+        80,
+        8
+      ],
+      "rng_after": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      },
+      "rng_before": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      }
+    },
+    {
+      "biome": "minecraft:plains",
+      "condition": {
+        "condition": "minecraft:location_check",
+        "predicate": {
+          "biomes": "minecraft:sulfur_caves"
+        }
+      },
+      "loaded": true,
+      "matched": false,
+      "name": "minecraft:plains/stock",
+      "next_i64": "-4937981208836185383",
+      "origin": [
+        8.5,
+        80.5,
+        8.5
+      ],
+      "query_pos": [
+        8,
+        80,
+        8
+      ],
+      "rng_after": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      },
+      "rng_before": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      }
+    },
+    {
+      "biome": "minecraft:plains",
+      "condition": {
+        "condition": "minecraft:location_check",
+        "offsetX": 3,
+        "offsetY": -4,
+        "offsetZ": -3,
+        "predicate": {
+          "biomes": "minecraft:sulfur_caves"
+        }
+      },
+      "loaded": true,
+      "matched": false,
+      "name": "minecraft:plains/offset",
+      "next_i64": "-4937981208836185383",
+      "origin": [
+        8.5,
+        80.5,
+        8.5
+      ],
+      "query_pos": [
+        11,
+        76,
+        5
+      ],
+      "rng_after": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      },
+      "rng_before": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      }
+    },
+    {
+      "biome": "minecraft:plains",
+      "condition": {},
+      "loaded": true,
+      "matched": true,
+      "name": "minecraft:plains/no_predicate",
+      "next_i64": "-4937981208836185383",
+      "origin": [
+        8.5,
+        80.5,
+        8.5
+      ],
+      "query_pos": [
+        8,
+        80,
+        8
+      ],
+      "rng_after": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      },
+      "rng_before": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      }
+    },
+    {
+      "biome": "minecraft:plains",
+      "condition": {
+        "predicate": {}
+      },
+      "loaded": true,
+      "matched": true,
+      "name": "minecraft:plains/empty_predicate",
+      "next_i64": "-4937981208836185383",
+      "origin": [
+        8.5,
+        80.5,
+        8.5
+      ],
+      "query_pos": [
+        8,
+        80,
+        8
+      ],
+      "rng_after": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      },
+      "rng_before": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      }
+    },
+    {
+      "biome": "minecraft:plains",
+      "condition": {
+        "condition": "minecraft:location_check",
+        "predicate": {
+          "biomes": "minecraft:sulfur_caves"
+        }
+      },
+      "loaded": true,
+      "matched": false,
+      "name": "minecraft:plains/stock",
+      "next_i64": "-4937981208836185383",
+      "origin": [
+        -8.25,
+        80.5,
+        -8.75
+      ],
+      "query_pos": [
+        -9,
+        80,
+        -9
+      ],
+      "rng_after": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      },
+      "rng_before": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      }
+    },
+    {
+      "biome": "minecraft:plains",
+      "condition": {
+        "condition": "minecraft:location_check",
+        "offsetX": 3,
+        "offsetY": -4,
+        "offsetZ": -3,
+        "predicate": {
+          "biomes": "minecraft:sulfur_caves"
+        }
+      },
+      "loaded": true,
+      "matched": false,
+      "name": "minecraft:plains/offset",
+      "next_i64": "-4937981208836185383",
+      "origin": [
+        -8.25,
+        80.5,
+        -8.75
+      ],
+      "query_pos": [
+        -6,
+        76,
+        -12
+      ],
+      "rng_after": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      },
+      "rng_before": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      }
+    },
+    {
+      "biome": "minecraft:plains",
+      "condition": {},
+      "loaded": true,
+      "matched": true,
+      "name": "minecraft:plains/no_predicate",
+      "next_i64": "-4937981208836185383",
+      "origin": [
+        -8.25,
+        80.5,
+        -8.75
+      ],
+      "query_pos": [
+        -9,
+        80,
+        -9
+      ],
+      "rng_after": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      },
+      "rng_before": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      }
+    },
+    {
+      "biome": "minecraft:plains",
+      "condition": {
+        "predicate": {}
+      },
+      "loaded": true,
+      "matched": true,
+      "name": "minecraft:plains/empty_predicate",
+      "next_i64": "-4937981208836185383",
+      "origin": [
+        -8.25,
+        80.5,
+        -8.75
+      ],
+      "query_pos": [
+        -9,
+        80,
+        -9
+      ],
+      "rng_after": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      },
+      "rng_before": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      }
+    },
+    {
+      "biome": "minecraft:sulfur_caves",
+      "condition": {
+        "condition": "minecraft:location_check",
+        "predicate": {
+          "biomes": "minecraft:sulfur_caves"
+        }
+      },
+      "loaded": true,
+      "matched": true,
+      "name": "minecraft:sulfur_caves/stock",
+      "next_i64": "-4937981208836185383",
+      "origin": [
+        8.5,
+        80.5,
+        8.5
+      ],
+      "query_pos": [
+        8,
+        80,
+        8
+      ],
+      "rng_after": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      },
+      "rng_before": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      }
+    },
+    {
+      "biome": "minecraft:sulfur_caves",
+      "condition": {
+        "condition": "minecraft:location_check",
+        "offsetX": 3,
+        "offsetY": -4,
+        "offsetZ": -3,
+        "predicate": {
+          "biomes": "minecraft:sulfur_caves"
+        }
+      },
+      "loaded": true,
+      "matched": true,
+      "name": "minecraft:sulfur_caves/offset",
+      "next_i64": "-4937981208836185383",
+      "origin": [
+        8.5,
+        80.5,
+        8.5
+      ],
+      "query_pos": [
+        11,
+        76,
+        5
+      ],
+      "rng_after": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      },
+      "rng_before": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      }
+    },
+    {
+      "biome": "minecraft:sulfur_caves",
+      "condition": {},
+      "loaded": true,
+      "matched": true,
+      "name": "minecraft:sulfur_caves/no_predicate",
+      "next_i64": "-4937981208836185383",
+      "origin": [
+        8.5,
+        80.5,
+        8.5
+      ],
+      "query_pos": [
+        8,
+        80,
+        8
+      ],
+      "rng_after": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      },
+      "rng_before": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      }
+    },
+    {
+      "biome": "minecraft:sulfur_caves",
+      "condition": {
+        "predicate": {}
+      },
+      "loaded": true,
+      "matched": true,
+      "name": "minecraft:sulfur_caves/empty_predicate",
+      "next_i64": "-4937981208836185383",
+      "origin": [
+        8.5,
+        80.5,
+        8.5
+      ],
+      "query_pos": [
+        8,
+        80,
+        8
+      ],
+      "rng_after": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      },
+      "rng_before": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      }
+    },
+    {
+      "biome": "minecraft:sulfur_caves",
+      "condition": {
+        "condition": "minecraft:location_check",
+        "predicate": {
+          "biomes": "minecraft:sulfur_caves"
+        }
+      },
+      "loaded": true,
+      "matched": true,
+      "name": "minecraft:sulfur_caves/stock",
+      "next_i64": "-4937981208836185383",
+      "origin": [
+        -8.25,
+        80.5,
+        -8.75
+      ],
+      "query_pos": [
+        -9,
+        80,
+        -9
+      ],
+      "rng_after": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      },
+      "rng_before": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      }
+    },
+    {
+      "biome": "minecraft:sulfur_caves",
+      "condition": {
+        "condition": "minecraft:location_check",
+        "offsetX": 3,
+        "offsetY": -4,
+        "offsetZ": -3,
+        "predicate": {
+          "biomes": "minecraft:sulfur_caves"
+        }
+      },
+      "loaded": true,
+      "matched": true,
+      "name": "minecraft:sulfur_caves/offset",
+      "next_i64": "-4937981208836185383",
+      "origin": [
+        -8.25,
+        80.5,
+        -8.75
+      ],
+      "query_pos": [
+        -6,
+        76,
+        -12
+      ],
+      "rng_after": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      },
+      "rng_before": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      }
+    },
+    {
+      "biome": "minecraft:sulfur_caves",
+      "condition": {},
+      "loaded": true,
+      "matched": true,
+      "name": "minecraft:sulfur_caves/no_predicate",
+      "next_i64": "-4937981208836185383",
+      "origin": [
+        -8.25,
+        80.5,
+        -8.75
+      ],
+      "query_pos": [
+        -9,
+        80,
+        -9
+      ],
+      "rng_after": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      },
+      "rng_before": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      }
+    },
+    {
+      "biome": "minecraft:sulfur_caves",
+      "condition": {
+        "predicate": {}
+      },
+      "loaded": true,
+      "matched": true,
+      "name": "minecraft:sulfur_caves/empty_predicate",
+      "next_i64": "-4937981208836185383",
+      "origin": [
+        -8.25,
+        80.5,
+        -8.75
+      ],
+      "query_pos": [
+        -9,
+        80,
+        -9
+      ],
+      "rng_after": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      },
+      "rng_before": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      }
+    },
+    {
+      "condition": {
+        "condition": "minecraft:location_check",
+        "predicate": {
+          "biomes": "minecraft:sulfur_caves"
+        }
+      },
+      "matched": false,
+      "name": "missing_origin",
+      "next_i64": "-4937981208836185383",
+      "origin": null,
+      "rng_after": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      },
+      "rng_before": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      }
+    },
+    {
+      "condition": {},
+      "matched": false,
+      "name": "missing_origin_no_predicate",
+      "next_i64": "-4937981208836185383",
+      "origin": null,
+      "rng_after": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      },
+      "rng_before": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      }
+    },
+    {
+      "biome": null,
+      "condition": {
+        "condition": "minecraft:location_check",
+        "predicate": {
+          "biomes": "minecraft:sulfur_caves"
+        }
+      },
+      "loaded": false,
+      "matched": false,
+      "name": "unloaded",
+      "next_i64": "-4937981208836185383",
+      "origin": [
+        1000000.5,
+        80.5,
+        1000000.5
+      ],
+      "query_pos": [
+        1000000,
+        80,
+        1000000
+      ],
+      "rng_after": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      },
+      "rng_before": {
+        "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+        "gaussian_bits": "0",
+        "gaussian_cached": false,
+        "seed48": "25214903932"
+      }
+    }
+  ],
+  "schema": "bcore.native-loot-location.v1",
+  "source_sha256": {
+    "scripts/loot-reference/LootAgent.java": "b0d6a6b47a3027baf730e9ba2ca412eb033db7227c3fc29cf64d1f2b26010ff2",
+    "scripts/loot-reference/LootProbe.java": "42a64b642d34b3d00be34383010147795958f721d7fe0921fc41644e4c427985",
+    "scripts/migration-26.2/LootCatalogReference.java": "1ae4d2fe69e98e11df21901802490d1322307581eedfa83507ef42af493a1a18",
+    "scripts/migration-26.2/LootLocationAgent.java": "111e73e6597b9ab437b80799ee0588521f9b4d46de491e3e9faeb72bd3d3ac3a",
+    "scripts/migration-26.2/LootLocationReference.java": "f3cb0b602c9b2700aa9b6bc5d758e69db14f16a2e7280e43e76ec5a5e3174ea7",
+    "scripts/native-generation-reference/NativeAccess.java": "93f32d9a715ea0b82abfe262c5362efc0ad08c25cfa3c028d3c5bc792c5fd55f"
+  },
+  "world_seed_i64": "846692123413862008"
+}

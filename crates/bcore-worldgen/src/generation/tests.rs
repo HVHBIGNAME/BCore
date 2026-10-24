@@ -53,14 +53,14 @@ fn fast_world(seed: i64) -> GenerationWorld {
 }
 
 #[test]
-fn requests_use_accumulated_layers_through_spawn_but_leave_full_pending() {
+fn requests_use_accumulated_layers_and_claim_partial_full_conversion_once() {
     let world = fast_world(42);
     let result = world.generate_chunk(ChunkPos::new(-2, 3)).unwrap();
     let state = world.state.lock().unwrap();
     assert_eq!(state.holders.len(), 529);
     for (status, expected) in ChunkStatus::ALL
         .into_iter()
-        .zip([529, 529, 49, 49, 25, 25, 25, 9, 9, 1, 1, 0])
+        .zip([529, 529, 49, 49, 25, 25, 25, 9, 9, 1, 1, 1])
     {
         assert_eq!(
             state
@@ -76,16 +76,16 @@ fn requests_use_accumulated_layers_through_spawn_but_leave_full_pending() {
     for status in [ChunkStatus::Full] {
         assert_eq!(
             result.coverage.target.stage(status).state,
-            StageState::Pending
+            StageState::Partial
         );
-        assert_eq!(result.coverage.target.stage(status).attempts, 0);
+        assert_eq!(result.coverage.target.stage(status).attempts, 1);
     }
     assert!(result.coverage.incoming_sources_finished);
     assert!(!result.coverage.is_complete());
 }
 
 #[test]
-fn deferred_full_request_materializes_target_only_and_keeps_conversion_pending() {
+fn deferred_full_request_keeps_pending_tags_until_explicit_target_save() {
     fn stage(status: ChunkStatus, pos: ChunkPos, region: &mut FeatureRegion) -> Result<(), String> {
         if status == ChunkStatus::Features {
             let state = crate::structure::template_pool::StructureAssets::bundled()
@@ -105,12 +105,15 @@ fn deferred_full_request_materializes_target_only_and_keeps_conversion_pending()
     assert_eq!(proto.chunk.pending_block_entities().len(), 1);
     assert!(proto.chunk.feature_block_entities().is_empty());
     let full = world.generate_chunk(target).unwrap();
-    assert!(full.chunk.pending_block_entities().is_empty());
-    assert_eq!(full.chunk.feature_block_entities().len(), 1);
+    assert_eq!(full.chunk.pending_block_entities().len(), 1);
+    assert!(full.chunk.feature_block_entities().is_empty());
     let conversion = full.coverage.target.stage(ChunkStatus::Full);
-    assert_eq!(conversion.state, StageState::Pending);
-    assert_eq!(conversion.attempts, 0);
+    assert_eq!(conversion.state, StageState::Partial);
+    assert_eq!(conversion.attempts, 1);
     assert!(!full.coverage.is_complete());
+    let saved = world.prepare_chunk_save(target, 0).unwrap();
+    assert!(saved.chunk.pending_block_entities().is_empty());
+    assert_eq!(saved.chunk.feature_block_entities().len(), 1);
     let neighbour = world.chunk_snapshot(ChunkPos::new(1, 0)).unwrap().unwrap();
     assert_eq!(neighbour.pending_block_entities().len(), 1);
     assert!(neighbour.feature_block_entities().is_empty());
@@ -119,7 +122,7 @@ fn deferred_full_request_materializes_target_only_and_keeps_conversion_pending()
             .generate_to_status(target, ChunkStatus::Features)
             .unwrap()
             .chunk,
-        full.chunk,
+        saved.chunk,
         "a later lower-status read must preserve earlier materialization"
     );
 }
@@ -136,7 +139,9 @@ fn adjacent_requests_retain_once_only_feature_blocks_bees_ticks_and_marks() {
         }
     );
     let adjacent = world.generate_chunk(ChunkPos::new(1, 0)).unwrap();
-    assert_eq!(adjacent.chunk, pending_neighbour);
+    let mut expected = pending_neighbour;
+    expected.worldgen_heightmaps = None;
+    assert_eq!(adjacent.chunk, expected);
     assert_eq!(adjacent.chunk.get(15, 90, 5), Some(block::OAK_LOG));
     assert_eq!(
         adjacent.chunk.block_entities()[&(0, 90, 4)],
@@ -408,7 +413,7 @@ fn real_source_driver_reuses_neighbours_and_reports_every_candidate_feature() {
     let expected: BTreeSet<_> = ["forest", "dripstone_caves"]
         .into_iter()
         .flat_map(|biome| {
-            (0..11).flat_map(move |step| {
+            (0..crate::feature_sorter::sorter().step_count()).flat_map(move |step| {
                 crate::feature_sorter::sorter()
                     .indices_for_biome(step, biome)
                     .iter()
@@ -579,7 +584,7 @@ fn real_full_target_reports_actual_feature_coverage_and_is_reused() {
     assert!(first.coverage.incoming_sources_finished);
     assert_eq!(
         first.coverage.target.stage(ChunkStatus::Full).state,
-        StageState::Pending
+        StageState::Partial
     );
     let repeated = world.generate_chunk(pos).unwrap();
     assert_eq!(first.chunk, repeated.chunk);

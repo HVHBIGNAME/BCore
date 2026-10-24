@@ -1,7 +1,7 @@
 use bcore_core::{varint::decode_varint, ChunkPos};
 use bcore_protocol::{
     chunk::{ChunkColumn, MAX_Y, MIN_Y},
-    chunk_store::{decode_chunk, encode_chunk, ChunkStoreError},
+    chunk_store::{decode_chunk, encode_chunk, ChunkStoreError, FORMAT_VERSION},
     nbt::encode_feature_block_entity_update,
 };
 use bcore_worldgen::{
@@ -15,7 +15,7 @@ const OWNER: ChunkPos = ChunkPos::new(-2, 2);
 
 fn reference() -> Value {
     serde_json::from_str(include_str!(
-        "../../bcore-worldgen/data/sculk_states_26_1.json"
+        "../../bcore-worldgen/data/sculk_states_26_2.json"
     ))
     .unwrap()
 }
@@ -128,7 +128,7 @@ fn all_native_sculk_states_keep_typed_nbt_and_send_native_empty_updates() {
 fn mixed_entities_ticks_and_duplicate_marks_round_trip_without_execution() {
     let fixture = reference();
     let (mut column, _) = column(&fixture["block_entities"][0]);
-    assert!(column.set(0, 65, 0, 21_768));
+    assert!(column.set(0, 65, 0, bcore_registry::block_state::BEE_NEST));
     assert!(column.set_block_entity(
         0,
         65,
@@ -151,15 +151,26 @@ fn mixed_entities_ticks_and_duplicate_marks_round_trip_without_execution() {
     assert!(column.add_tick_request(OWNER, request));
     assert!(column.add_tick_request(OWNER, request));
     let bytes = encode_chunk(OWNER.x, OWNER.z, &column);
-    assert_eq!(&bytes[4..8], [5, 0, 1, 0]);
+    assert_eq!(&bytes[4..6], &FORMAT_VERSION.to_le_bytes());
+    assert_eq!(&bytes[6..8], [1, 0]);
     let mut loaded = decode_chunk(&bytes).unwrap();
     assert_eq!(loaded, column);
     assert_eq!(encode_chunk(OWNER.x, OWNER.z, &loaded), bytes);
     assert_eq!(
         empty_updates(&loaded.encode_payload(OWNER.x, OWNER.z)),
-        [(0, 65, 34), (255, 65, 35)]
+        [
+            (0, 65, bcore_registry::block_entity_type::BEEHIVE),
+            (255, 65, bcore_registry::block_entity_type::SCULK_SENSOR),
+        ]
     );
-    assert!(loaded.set(15, 65, 15, 24_785));
+    assert!(loaded.set(
+        15,
+        65,
+        15,
+        fixture["block_entities"][0]["valid_states"][0][0]
+            .as_u64()
+            .unwrap() as u32
+    ));
     assert_eq!(
         loaded.feature_block_entities(),
         column.feature_block_entities()
@@ -200,8 +211,8 @@ fn valid_checksums_cannot_hide_wrong_nbt_types_states_ids_or_owners() {
         let mut value = serde_json::to_value(&data).unwrap();
         match change {
             "width" => value["typed_data"][1]["listener"][1]["selector"][1]["tick"][0] = json!(3),
-            "range" => value["valid_states"][1] = json!(24_785),
-            "type" => value["type_id"] = json!(37),
+            "range" => value["valid_states"][1] = json!(data.valid_states[0]),
+            "type" => value["type_id"] = json!(bcore_registry::block_entity_type::SCULK_CATALYST),
             "position" => value["full_data"]["x"] = json!(-33),
             "id" => value["full_data"]["id"] = json!("minecraft:sculk_catalyst"),
             "update" => value["update_data"] = json!({"warning_level": 0}),

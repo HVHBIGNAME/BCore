@@ -47,7 +47,10 @@ impl TemplateRandom for Traced {
 #[test]
 fn native_codec_acceptance_encoding_and_all_targets() {
     let fixture = fixture();
-    assert_eq!(fixture["jar_sha256"], StructureAssets::JAR_SHA256);
+    assert_eq!(
+        fixture["jar_sha256"],
+        StructureAssets::HISTORICAL_JAR_SHA256
+    );
     let cases = fixture["cases"].as_array().unwrap();
     assert_eq!(cases.len(), 31);
     let mut accepted = 0;

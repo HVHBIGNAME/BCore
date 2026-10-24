@@ -1,39 +1,50 @@
 //! Chunk persistence: `world/chunks/` save → load round trips.
 //!
-//! The load path is only safe if it is *indistinguishable* from generation, so
-//! these tests assert the strong property directly: for the same seed, a chunk
-//! read back from disk is byte-for-byte the same column — and encodes to the same
-//! `map_chunk` payload — as generation with the same seed and request history.
+//! BCC encoding is inert; the retained world's explicit level-save boundary can
+//! materialize pending block entities first. Comparisons use the same generation
+//! history and save boundary, including typed pending/materialized data.
 //!
 //! They also cover the failure modes that matter for a world directory that
-//! outlives a server process: corruption, truncation, cross-seed contamination
-//! and a directory that cannot be written.
+//! outlives a server process: corruption, truncation, registry/seed identity
+//! and a directory that cannot be read or written.
 
 use std::fs;
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::Arc;
 
 use bcore_protocol::chunk::{block_state, ChunkColumn, MIN_Y};
 use bcore_protocol::chunk_store::{
     decode_chunk_at, encode_chunk, ChunkStore, ChunkStoreError, FORMAT_VERSION, MAGIC,
 };
-use bcore_protocol::world_state::{ChunkOrigin, World};
+use bcore_protocol::shared::{open_shared_server, ServerState};
+use bcore_protocol::world_state::{ChunkOrigin, World, WorldError};
+use bcore_registry::{DATA_VERSION, PROTOCOL_VERSION, REGISTRY_FINGERPRINT};
 
 const SEED: i64 = 0x0BC0_0E00_1234_5678u64 as i64;
 
-/// A unique scratch directory per test, removed on the way in and out.
+/// A fresh owned scratch directory per test.
 struct Scratch {
     path: PathBuf,
 }
 
 impl Scratch {
     fn new(tag: &str) -> Self {
-        let mut path = std::env::temp_dir();
-        path.push(format!(
-            "bcore-persist-{tag}-{}-{:?}",
+        static NEXT: AtomicU64 = AtomicU64::new(0);
+        let identity = bcore_protocol::shared::new_shared_server();
+        let suffix: String = identity
+            .session_id()
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect();
+        let parent = std::env::temp_dir().join("opencode");
+        fs::create_dir_all(&parent).unwrap();
+        let path = parent.join(format!(
+            "bcore-persist-{tag}-{}-{}-{suffix}",
             std::process::id(),
-            std::thread::current().id()
+            NEXT.fetch_add(1, Ordering::Relaxed)
         ));
-        let _ = fs::remove_dir_all(&path);
+        fs::create_dir(&path).expect("new isolated scratch directory");
         Self { path }
     }
 
@@ -109,7 +120,7 @@ fn the_world_generates_once_then_serves_from_disk() {
 }
 
 #[test]
-fn a_loaded_chunk_is_indistinguishable_from_a_generated_one() {
+fn a_loaded_chunk_matches_the_same_explicit_level_save_boundary() {
     let scratch = Scratch::new("indistinguishable");
     let store = scratch.store();
     let persistent = World::with_store(SEED, store.clone());
@@ -122,11 +133,19 @@ fn a_loaded_chunk_is_indistinguishable_from_a_generated_one() {
         // Compare against the in-memory world following the same request order.
         let (loaded, origin) = persistent.chunk(x, z);
         assert_eq!(origin, ChunkOrigin::Loaded);
+        let published = ephemeral.generate(x, z);
+        let saved = ephemeral.prepare_generated_chunk_save(x, z, 0).unwrap();
         assert_eq!(
-            loaded,
-            ephemeral.generate(x, z),
-            "disk copy of ({x}, {z}) differs from a fresh generation"
+            loaded, saved,
+            "disk copy of ({x}, {z}) differs after level save"
         );
+        assert_eq!(saved.states(), published.states());
+        assert_eq!(saved.tick_requests(), published.tick_requests());
+        assert_eq!(
+            saved.postprocessing_positions(),
+            published.postprocessing_positions()
+        );
+        assert!(saved.pending_block_entities().is_empty());
     }
 }
 
@@ -239,6 +258,11 @@ fn a_chunk_file_starts_with_the_documented_header() {
         MIN_Y,
         "world geometry is recorded so a height change is detected"
     );
+    assert_eq!(i32::from_le_bytes(bytes[24..28].try_into().unwrap()), 4903);
+    assert_eq!(i32::from_le_bytes(bytes[28..32].try_into().unwrap()), 776);
+    assert_eq!(bytes[32..64], REGISTRY_FINGERPRINT);
+    assert_eq!(DATA_VERSION, bcore_core::DATA_VERSION);
+    assert_eq!(PROTOCOL_VERSION, bcore_core::PROTOCOL_VERSION);
 }
 
 #[test]
@@ -259,6 +283,23 @@ fn corruption_is_reported_rather_than_silently_regenerated() {
         Err(ChunkStoreError::ChecksumMismatch { .. }) => {}
         other => panic!("corruption must be an error, got {other:?}"),
     }
+    let persistent = World::with_store(SEED, store.clone());
+    assert!(matches!(
+        persistent.try_chunk(0, 0),
+        Err(WorldError::Store(error)) if matches!(error.as_ref(), ChunkStoreError::ChecksumMismatch { .. })
+    ));
+    assert!(persistent.generation_progress(0, 0).unwrap().is_none());
+    assert_eq!(
+        fs::read(&path).unwrap(),
+        bytes,
+        "failed load must not replace corruption"
+    );
+    assert!(store.save(0, 0, &ChunkColumn::flat()).is_err());
+    assert_eq!(
+        fs::read(&path).unwrap(),
+        bytes,
+        "direct save must also preserve corruption"
+    );
 }
 
 #[test]
@@ -296,47 +337,37 @@ fn a_foreign_file_in_the_chunks_directory_is_ignored_by_listing() {
 }
 
 #[test]
-fn different_seeds_do_not_share_a_world_directory() {
+fn different_seeds_cannot_reopen_an_admitted_world_directory() {
     let scratch = Scratch::new("seeds");
     let store = scratch.store();
 
-    // Seed A generates and saves.
-    let a = World::with_store(1, store.clone());
-    let (chunk_a, origin) = a.chunk(0, 0);
-    assert_eq!(origin, ChunkOrigin::Generated);
-
-    // Seed B pointed at the same directory *loads A's chunk*: the store is keyed
-    // by position only. This documents the current, intentional behaviour — the
-    // world directory belongs to one seed, exactly like a vanilla save.
-    let b = World::with_store(2, store.clone());
-    let (chunk_b, origin) = b.chunk(0, 0);
-    assert_eq!(origin, ChunkOrigin::Loaded);
-    assert_eq!(chunk_b, chunk_a, "the saved world wins over the new seed");
-
-    // Whereas without a shared store the two seeds really do differ.
-    assert_ne!(
-        World::in_memory(1).generate(0, 0),
-        World::in_memory(2).generate(0, 0),
-        "different seeds must generate different terrain"
-    );
+    let world = World::open(1, store.clone()).unwrap();
+    store.save(0, 0, &ChunkColumn::flat()).unwrap();
+    let original = fs::read(store.chunk_path(0, 0)).unwrap();
+    assert!(matches!(
+        World::open(2, store.clone()),
+        Err(ChunkStoreError::SeedMismatch {
+            stored: 1,
+            requested: 2
+        })
+    ));
+    assert_eq!(fs::read(store.chunk_path(0, 0)).unwrap(), original);
+    assert_eq!(world.seed(), 1);
+    let reopened = World::open(1, store).unwrap();
+    assert_eq!(reopened.try_chunk(0, 0).unwrap().1, ChunkOrigin::Loaded);
 }
 
 #[test]
-fn an_unwritable_world_directory_degrades_to_generation() {
-    // Point the store at a path that cannot become a directory (a file), so
-    // `create_dir_all` fails. Players must still get their chunks.
+fn an_unreadable_chunk_directory_is_not_treated_as_an_empty_world() {
     let scratch = Scratch::new("unwritable");
     fs::create_dir_all(&scratch.path).expect("scratch dir");
     let blocker = scratch.path.join("chunks");
     fs::write(&blocker, b"not a directory").expect("write blocker");
 
     let world = World::with_store(SEED, ChunkStore::at(&scratch.path));
-    let (column, origin) = world.chunk(0, 0);
-    assert_eq!(origin, ChunkOrigin::Generated);
-    // And the blocks are the real generated terrain, not an empty column.
-    assert_eq!(column, World::in_memory(SEED).generate(0, 0));
-    // Streaming still works.
-    assert!(world.chunk_payload(0, 0).len() > 1000);
+    assert!(matches!(world.try_chunk(0, 0), Err(WorldError::Store(_))));
+    assert!(world.generation_progress(0, 0).unwrap().is_none());
+    assert_eq!(fs::read(&blocker).unwrap(), b"not a directory");
 }
 
 #[test]
@@ -363,4 +394,206 @@ fn a_full_view_worth_of_chunks_persists_and_reloads() {
         assert_eq!(origin, ChunkOrigin::Loaded, "({cx}, {cz}) should load");
         assert_eq!(loaded, original, "({cx}, {cz}) changed on disk");
     }
+}
+
+fn repair_checksum(bytes: &mut [u8]) {
+    let end = bytes.len() - 4;
+    let checksum = bytes[..end].iter().fold(0x811c_9dc5u32, |hash, byte| {
+        (hash ^ u32::from(*byte)).wrapping_mul(0x0100_0193)
+    });
+    bytes[end..].copy_from_slice(&checksum.to_le_bytes());
+}
+
+fn assert_refused_without_overwrite(
+    scratch: &Scratch,
+    bytes: &[u8],
+    expected: impl Fn(&ChunkStoreError) -> bool,
+) {
+    let store = scratch.store();
+    store.prepare_world(SEED).unwrap();
+    fs::create_dir_all(store.chunks_dir()).unwrap();
+    let path = store.chunk_path(0, 0);
+    fs::write(&path, bytes).unwrap();
+    let metadata = fs::read(scratch.path.join("bcore-world.json")).unwrap();
+    let world = World::with_store(SEED, store.clone());
+    let error = match world.try_chunk(0, 0) {
+        Err(WorldError::Store(error)) => error,
+        result => panic!("store rejection was lost: {result:?}"),
+    };
+    assert!(expected(error.as_ref()), "unexpected error: {error}");
+    assert!(world.generation_progress(0, 0).unwrap().is_none());
+    assert_eq!(world.cached_payloads(), 0);
+    let error = store.save(0, 0, &ChunkColumn::flat()).unwrap_err();
+    assert!(expected(&error), "direct save returned {error}");
+    let error = World::open(SEED, store).unwrap_err();
+    assert!(expected(&error), "startup returned {error}");
+    assert_eq!(fs::read(path).unwrap(), bytes, "refused file changed");
+    assert_eq!(
+        fs::read(scratch.path.join("bcore-world.json")).unwrap(),
+        metadata
+    );
+}
+
+#[test]
+fn pre_v6_files_without_registry_identity_require_explicit_migration() {
+    for version in 1u16..6 {
+        let scratch = Scratch::new("old-registry");
+        let mut bytes = encode_chunk(0, 0, &ChunkColumn::flat());
+        bytes.drain(24..64);
+        bytes[4..6].copy_from_slice(&version.to_le_bytes());
+        repair_checksum(&mut bytes);
+        assert_refused_without_overwrite(
+            &scratch,
+            &bytes,
+            |error| matches!(error, ChunkStoreError::MissingRegistryIdentity(actual) if *actual == version),
+        );
+    }
+}
+
+#[test]
+fn wrong_minecraft_data_or_protocol_identity_is_never_overwritten() {
+    for (offset, wrong) in [(24, 4786i32), (28, 775i32)] {
+        let scratch = Scratch::new("wrong-version");
+        let mut bytes = encode_chunk(0, 0, &ChunkColumn::flat());
+        bytes[offset..offset + 4].copy_from_slice(&wrong.to_le_bytes());
+        repair_checksum(&mut bytes);
+        assert_refused_without_overwrite(&scratch, &bytes, |error| {
+            matches!(error, ChunkStoreError::MinecraftVersionMismatch { .. })
+        });
+    }
+}
+
+#[test]
+fn wrong_registry_fingerprint_is_never_overwritten() {
+    let scratch = Scratch::new("wrong-fingerprint");
+    let mut bytes = encode_chunk(0, 0, &ChunkColumn::flat());
+    bytes[32] ^= 1;
+    repair_checksum(&mut bytes);
+    assert_refused_without_overwrite(&scratch, &bytes, |error| {
+        matches!(error, ChunkStoreError::RegistryMismatch { .. })
+    });
+}
+
+#[test]
+fn out_of_registry_palette_ids_are_rejected_before_loading_the_column() {
+    let scratch = Scratch::new("invalid-state");
+    let mut bytes = encode_chunk(0, 0, &ChunkColumn::flat());
+    // The first block palette entry follows the 64-byte header and u32 count.
+    bytes[68..72].copy_from_slice(&(bcore_registry::BLOCK_STATE_COUNT as u32).to_le_bytes());
+    repair_checksum(&mut bytes);
+    assert_refused_without_overwrite(&scratch, &bytes, |error| {
+        matches!(
+            error,
+            ChunkStoreError::InvalidRegistryId {
+                registry: "block_state",
+                ..
+            }
+        )
+    });
+}
+
+#[test]
+fn generation_only_errors_retain_their_original_type() {
+    let world = World::in_memory(SEED);
+    assert!(matches!(
+        world.try_generate(i32::MAX, 0),
+        Err(bcore_worldgen::GenerationError::CoordinateOutOfRange(_))
+    ));
+    assert!(matches!(
+        world.try_chunk(i32::MAX, 0),
+        Err(WorldError::Generation(
+            bcore_worldgen::GenerationError::CoordinateOutOfRange(_)
+        ))
+    ));
+    assert_eq!(world.cached_payloads(), 0);
+}
+
+#[test]
+fn corrupt_registry_bound_chunk_is_rejected_by_loading_saving_and_startup() {
+    let scratch = Scratch::new("corrupt-v6");
+    let mut bytes = encode_chunk(0, 0, &ChunkColumn::flat());
+    let middle = bytes.len() / 2;
+    bytes[middle] ^= 1;
+    assert_refused_without_overwrite(&scratch, &bytes, |error| {
+        matches!(error, ChunkStoreError::ChecksumMismatch { .. })
+    });
+}
+
+#[test]
+fn chunk_coordinates_must_agree_with_the_store_path() {
+    let scratch = Scratch::new("wrong-coordinates");
+    let bytes = encode_chunk(1, 0, &ChunkColumn::flat());
+    assert_refused_without_overwrite(&scratch, &bytes, |error| {
+        matches!(
+            error,
+            ChunkStoreError::CoordinateMismatch {
+                expected: (0, 0),
+                stored: (1, 0),
+            }
+        )
+    });
+}
+
+#[test]
+fn startup_refuses_unidentified_worlds_without_relabeling_files_or_operators() {
+    let scratch = Scratch::new("existing-world");
+    let operators = scratch.path.join("ops.json");
+    fs::write(&operators, b"[\"ExistingOperator\"]\n").unwrap();
+    let store = scratch.store();
+    fs::create_dir(store.chunks_dir()).unwrap();
+    let path = store.chunk_path(0, 0);
+    let original = encode_chunk(0, 0, &ChunkColumn::flat());
+    fs::write(&path, &original).unwrap();
+    assert!(matches!(
+        open_shared_server(&scratch.path, SEED),
+        Err(ChunkStoreError::MissingWorldMetadata)
+    ));
+    assert_eq!(fs::read(path).unwrap(), original);
+    assert_eq!(fs::read(operators).unwrap(), b"[\"ExistingOperator\"]\n");
+    assert!(!scratch.path.join("bcore-world.json").exists());
+}
+
+#[test]
+fn admitted_servers_keep_operator_files_inside_their_explicit_world_root() {
+    let scratch = Scratch::new("operator-root");
+    let old_operators = scratch.path.join("ops.json");
+    fs::write(&old_operators, b"[\"ExistingOperator\"]\n").unwrap();
+    let root = scratch.path.join("fresh-26.2");
+    let server = open_shared_server(&root, SEED).unwrap();
+    assert!(server.world().store().unwrap().root().is_absolute());
+    server.add_op("MigrationOperator");
+    server.save_ops();
+    assert_eq!(
+        fs::read(&old_operators).unwrap(),
+        b"[\"ExistingOperator\"]\n"
+    );
+    let operators: Vec<String> =
+        serde_json::from_slice(&fs::read(root.join("ops.json")).unwrap()).unwrap();
+    assert_eq!(operators, ["MigrationOperator"]);
+    let reopened = open_shared_server(&root, SEED).unwrap();
+    assert!(reopened.is_op("MigrationOperator"));
+    assert!(!reopened.is_op("ExistingOperator"));
+}
+
+#[test]
+fn server_startup_gate_rejects_foreign_chunks_before_accept_tick_or_queue_work() {
+    let scratch = Scratch::new("server-gate");
+    let store = scratch.store();
+    store.prepare_world(SEED).unwrap();
+    store.save(0, 0, &ChunkColumn::flat()).unwrap();
+    let path = store.chunk_path(0, 0);
+    let mut original = fs::read(&path).unwrap();
+    original[32] ^= 1;
+    repair_checksum(&mut original);
+    fs::write(&path, &original).unwrap();
+
+    let state = Arc::new(ServerState::with_world(World::with_store(SEED, store)));
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    bcore_protocol::server::run_with_state(listener, Arc::clone(&state));
+    assert!(state.is_shutting_down());
+    assert_eq!(state.player_count(), 0);
+    assert_eq!(state.clock_snapshot().game_time, 0);
+    assert_eq!(state.world().pending_payloads(), 0);
+    assert!(state.world().generation_progress(0, 0).unwrap().is_none());
+    assert_eq!(fs::read(path).unwrap(), original);
 }

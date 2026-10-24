@@ -101,7 +101,7 @@ impl PendingBlockEntity {
         for key in ["id", "x", "y", "z", "keepPacked"] {
             load.remove(key);
         }
-        validate_saved_load(&expected, &load)?;
+        prepare_saved_load(&expected, &mut load)?;
         let entity = TemplateBlockEntity::from_load(blocks, state, pos, Nbt::Compound(load))?;
         FeatureBlockEntity::from_template(&entity).map(MaterializedBlockEntity::Feature)
     }
@@ -110,10 +110,13 @@ impl PendingBlockEntity {
 /// Saved-holder hydration is not implemented in general. Admit the captured
 /// generated forms (and the independently tested pot/brushable load codecs),
 /// rather than laundering arbitrary saved NBT through a default-plus-JSON merge.
-fn validate_saved_load(
+fn prepare_saved_load(
     expected: &TemplateBlockEntity,
-    load: &BTreeMap<String, Nbt>,
+    load: &mut BTreeMap<String, Nbt>,
 ) -> Result<(), FeatureError> {
+    if expected.id == "minecraft:chest" {
+        return normalize_chest_load(load);
+    }
     if matches!(
         expected.id.as_str(),
         "minecraft:brushable_block" | "minecraft:decorated_pot"
@@ -121,12 +124,12 @@ fn validate_saved_load(
         return Ok(());
     }
     let defaults = expected.full_data();
-    for (key, value) in load {
+    for (key, value) in load.iter() {
         let valid = if key == "components" {
             matches!(value, Nbt::Compound(fields) if fields.is_empty())
         } else {
             match expected.id.as_str() {
-                "minecraft:chest" | "minecraft:dispenser" => match key.as_str() {
+                "minecraft:dispenser" => match key.as_str() {
                     "LootTable" => value.string().is_some_and(|id| {
                         id.starts_with("minecraft:")
                             && id[10..].bytes().all(|c| {
@@ -164,8 +167,7 @@ fn validate_saved_load(
     }
     if !matches!(
         expected.id.as_str(),
-        "minecraft:chest"
-            | "minecraft:dispenser"
+        "minecraft:dispenser"
             | "minecraft:sculk_sensor"
             | "minecraft:sculk_shrieker"
             | "minecraft:sculk_catalyst"
@@ -178,6 +180,41 @@ fn validate_saved_load(
             expected.id
         )));
     }
+    Ok(())
+}
+
+fn normalize_chest_load(load: &mut BTreeMap<String, Nbt>) -> Result<(), FeatureError> {
+    for key in load.keys() {
+        if !matches!(
+            key.as_str(),
+            "components" | "LootTable" | "LootTableSeed" | "Items"
+        ) {
+            return Err(FeatureError::Unsupported(format!(
+                "saved chest field {key}"
+            )));
+        }
+    }
+    if load
+        .get("components")
+        .is_some_and(|value| !matches!(value, Nbt::Compound(fields) if fields.is_empty()))
+    {
+        return Err(FeatureError::Unsupported("chest block components".into()));
+    }
+    let engine = crate::loot::LootEngine::vanilla()
+        .map_err(|error| FeatureError::Unsupported(error.to_string()))?;
+    let mut tag = Nbt::Compound(load.clone());
+    let inventory = super::ChestInventory::from_nbt(engine, &tag)
+        .map_err(|error| FeatureError::Unsupported(error.to_string()))?;
+    inventory
+        .write_nbt(&mut tag)
+        .map_err(|error| FeatureError::Unsupported(error.to_string()))?;
+    let Nbt::Compound(mut fields) = tag else {
+        unreachable!("inventory writing preserves the compound")
+    };
+    if inventory.loot_seed() != 0 {
+        fields.insert("LootTableSeed".into(), Nbt::Long(inventory.loot_seed()));
+    }
+    *load = fields;
     Ok(())
 }
 

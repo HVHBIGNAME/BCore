@@ -3,10 +3,29 @@ use crate::features::{ore_positions, ore_state, OreKind};
 use crate::simplex::WorldgenRandom;
 use crate::{block, MAX_Y, MIN_Y};
 
-/// All block states in the corresponding vanilla 26.1 tags.
-pub const STONE_ORE_REPLACEABLES: &[u32] = &[1, 2, 4, 6];
-pub const DEEPSLATE_ORE_REPLACEABLES: &[u32] = &[23452, 27923, 27924, 27925];
-pub const BASE_STONE_OVERWORLD: &[u32] = &[1, 2, 4, 6, 23452, 27923, 27924, 27925];
+/// All block states in the captured target tags, including each deepslate axis.
+pub const STONE_ORE_REPLACEABLES: &[u32] = &[
+    block::STONE,
+    block::GRANITE,
+    block::DIORITE,
+    block::ANDESITE,
+];
+pub const DEEPSLATE_ORE_REPLACEABLES: &[u32] = &[
+    block::TUFF,
+    block::DEEPSLATE - 1,
+    block::DEEPSLATE,
+    block::DEEPSLATE + 1,
+];
+pub const BASE_STONE_OVERWORLD: &[u32] = &[
+    block::STONE,
+    block::GRANITE,
+    block::DIORITE,
+    block::ANDESITE,
+    block::TUFF,
+    block::DEEPSLATE - 1,
+    block::DEEPSLATE,
+    block::DEEPSLATE + 1,
+];
 
 /// Reads include neighbours of writable positions. Unknown chunks must not be
 /// substituted with air. Out-of-build-height reads are handled by the feature.

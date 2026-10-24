@@ -1,12 +1,12 @@
 //! World-owned feature storage with source-relative dependency and write guards.
 use std::cell::{Ref, RefCell};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
 use bcore_core::ChunkPos;
 
 use crate::block_entity::BlockEntity;
-use crate::feature_world::{FeatureHeightmap, FeatureWorld};
+use crate::feature_world::{FeatureError, FeatureHeightmap, FeatureWorld};
 use crate::generation::graph::{chessboard_distance, ChunkPyramid, ChunkStatus};
 use crate::ore::OreWorld;
 use crate::tick_request::{TickRequest, TickTarget};
@@ -73,16 +73,18 @@ fn tree_tick_request(row: [i32; 6]) -> Result<TickRequest, TreeEffectError> {
     Ok(request)
 }
 
-// Native BlockState.getPostProcessPos, checked for all 29,873 states without
-// allowing world reads. The pinned ranges live in fallen_tree_configs_26_1.json.
-fn postprocess_on_write(state: u32, (x, y, z): (i32, i32, i32)) -> Option<(i32, i32, i32)> {
+// The callback selection was captured in fallen_tree_configs_26_1.json.
+pub(crate) fn postprocess_on_write(
+    state: u32,
+    (x, y, z): (i32, i32, i32),
+) -> Option<(i32, i32, i32)> {
     assert!(
-        state < 29_873,
-        "block state outside the native 26.1 registry"
+        (state as usize) < bcore_registry::BLOCK_STATE_COUNT,
+        "block state outside the shared target registry"
     );
     match state {
-        2336 | 2337 => Some((x, y, z)),
-        6998 | 14845 => Some((x, y + 1, z)),
+        block::BROWN_MUSHROOM | block::RED_MUSHROOM => Some((x, y, z)),
+        block::SOUL_SAND | block::MAGMA_BLOCK => Some((x, y + 1, z)),
         _ => None,
     }
 }
@@ -106,6 +108,7 @@ enum RegionAccess {
         source: ChunkPos,
         status: ChunkStatus,
         available: BTreeMap<(i32, i32), ChunkStatus>,
+        converted: BTreeSet<(i32, i32)>,
     },
 }
 
@@ -138,6 +141,11 @@ impl FeatureRegion {
                     .map_err(|error| {
                         FeatureError::MissingData(format!("structure entity access: {error:?}"))
                     })?;
+                if self.is_read_only(ChunkPos::new(x >> 4, z >> 4)) {
+                    return Err(FeatureError::Unsupported(
+                        "template clear callback on a converted lower-status block entity".into(),
+                    ));
+                }
                 self.tree_effects.beehives.remove(&(x, y, z));
                 let chunk = self.chunk_mut(x >> 4, z >> 4);
                 let local = ((x & 15) as usize, y, (z & 15) as usize);
@@ -147,6 +155,17 @@ impl FeatureRegion {
             }
             TemplateEffect::BlockEntity(entity) => {
                 let (x, y, z) = entity.pos;
+                let owner = ChunkPos::new(x >> 4, z >> 4);
+                self.check_access(owner, ChunkStatus::Empty)
+                    .map_err(|error| {
+                        FeatureError::MissingData(format!(
+                            "structure block entity access: {error:?}"
+                        ))
+                    })?;
+                let live_callback = self.is_read_only(owner);
+                if live_callback && !self.materialize_block_entity_at(entity.pos)? {
+                    return Ok(());
+                }
                 let data = crate::generation::FeatureBlockEntity::from_template(&entity)?;
                 let state = OreWorld::get_block(self, entity.pos).ok_or_else(|| {
                     FeatureError::MissingData(format!("structure block entity at {:?}", entity.pos))
@@ -157,7 +176,14 @@ impl FeatureRegion {
                         entity.pos
                     )));
                 }
-                let chunk = self.chunk_mut(x >> 4, z >> 4);
+                // loadWithComponents mutates an entity obtained by lookup, not
+                // ImposterProtoChunk.setBlockEntity. It can update an existing
+                // live entity even when the preceding block write was refused.
+                let chunk = if live_callback {
+                    self.owned_chunk_mut(owner)
+                } else {
+                    self.chunk_mut(x >> 4, z >> 4)
+                };
                 let local = ((x & 15) as usize, y, (z & 15) as usize);
                 chunk.block_entities.remove(&local);
                 chunk.pending_block_entities.remove(&local);
@@ -177,6 +203,9 @@ impl FeatureRegion {
                     .map_err(|error| {
                         FeatureError::MissingData(format!("structure entity access: {error:?}"))
                     })?;
+                if self.is_read_only(owner) {
+                    return Ok(());
+                }
                 self.chunk_mut(owner.x, owner.z)
                     .structure_entities
                     .push(request);
@@ -212,11 +241,22 @@ impl FeatureRegion {
         self.generator.seed()
     }
 
+    #[cfg(test)]
     pub(crate) fn begin_source(
         &mut self,
         source: ChunkPos,
         status: ChunkStatus,
         available: BTreeMap<(i32, i32), ChunkStatus>,
+    ) {
+        self.begin_source_with_levels(source, status, available, BTreeSet::new());
+    }
+
+    pub(crate) fn begin_source_with_levels(
+        &mut self,
+        source: ChunkPos,
+        status: ChunkStatus,
+        available: BTreeMap<(i32, i32), ChunkStatus>,
+        converted: BTreeSet<(i32, i32)>,
     ) {
         assert!(
             matches!(self.access, RegionAccess::Inactive),
@@ -226,6 +266,7 @@ impl FeatureRegion {
             source,
             status,
             available,
+            converted,
         };
     }
 
@@ -250,6 +291,10 @@ impl FeatureRegion {
                 "generated entity owner".into(),
             ));
         }
+        if self.is_read_only(owner) {
+            return Ok(());
+        }
+        drop(self.chunk(owner.x, owner.z));
         let mut chunks = self.chunks.borrow_mut();
         let chunk = chunks.get_mut(&(owner.x, owner.z)).ok_or_else(|| {
             crate::feature_world::FeatureError::MissingData(format!("entity destination {owner:?}"))
@@ -260,6 +305,19 @@ impl FeatureRegion {
 
     pub(crate) fn owned_chunk(&self, pos: ChunkPos) -> Option<Arc<GeneratedChunk>> {
         self.chunks.borrow().get(&(pos.x, pos.z)).cloned()
+    }
+
+    /// Borrow canonical storage without creating a copy-on-write snapshot owner.
+    pub(crate) fn owned_chunk_ref(&self, pos: ChunkPos) -> Option<Ref<'_, GeneratedChunk>> {
+        Ref::filter_map(self.chunks.borrow(), |chunks| {
+            chunks.get(&(pos.x, pos.z)).map(Arc::as_ref)
+        })
+        .ok()
+    }
+
+    fn is_read_only(&self, pos: ChunkPos) -> bool {
+        matches!(&self.access, RegionAccess::Source { converted, .. }
+            if converted.contains(&(pos.x, pos.z)))
     }
 
     /// A worldgen lookup is logically a read but may instantiate pending proto
@@ -297,7 +355,7 @@ impl FeatureRegion {
                 }
             }
             for (&(x, y, z), entity) in chunk.feature_block_entities() {
-                if entity.type_id == 34 {
+                if entity.type_id == bcore_registry::block_entity_type::BEEHIVE {
                     hives.insert(
                         (cx * 16 + x as i32, y, cz * 16 + z as i32),
                         entity.bee_ticks().expect("native typed hive occupants"),
@@ -336,6 +394,7 @@ impl FeatureRegion {
                 source,
                 status,
                 available,
+                ..
             } => (
                 ChunkPyramid::Generation
                     .step(*status)
@@ -392,6 +451,10 @@ impl FeatureRegion {
 
     fn chunk_mut(&mut self, x: i32, z: i32) -> &mut GeneratedChunk {
         drop(self.chunk(x, z));
+        assert!(
+            !self.is_read_only(ChunkPos::new(x, z)),
+            "lower-status chunk mutation"
+        );
         self.owned_chunk_mut(ChunkPos::new(x, z))
     }
 
@@ -417,7 +480,13 @@ impl FeatureRegion {
     }
 
     fn mark_postprocessing(&mut self, (x, y, z): (i32, i32, i32)) {
-        if (MIN_Y..=MAX_Y).contains(&y) {
+        if !(MIN_Y..=MAX_Y).contains(&y) {
+            return;
+        }
+        let owner = ChunkPos::new(x >> 4, z >> 4);
+        self.check_access(owner, ChunkStatus::Empty)
+            .expect("postprocessing destination outside source dependencies");
+        if !self.is_read_only(owner) {
             self.chunk_mut(x >> 4, z >> 4).postprocessing.push((
                 (x & 15) as usize,
                 y,
@@ -436,6 +505,11 @@ impl FeatureRegion {
             .copied()
             .map(tree_tick_request)
             .collect::<Result<Vec<_>, _>>()?;
+        for request in &requests {
+            let [x, _, z] = request.block_pos;
+            self.check_access(ChunkPos::new(x >> 4, z >> 4), ChunkStatus::Empty)
+                .expect("tree tick destination outside source dependencies");
+        }
         let hive = BlockEntity::Beehive {
             ticks_in_hive: Vec::new(),
         };
@@ -460,7 +534,13 @@ impl FeatureRegion {
         // Validation precedes draining: a malformed late request must not consume
         // an earlier hive or append a request that would be duplicated on retry.
         for ((x, y, z), ticks_in_hive) in std::mem::take(&mut self.tree_effects.beehives) {
-            let chunk = self.chunk_mut(x >> 4, z >> 4);
+            let owner = ChunkPos::new(x >> 4, z >> 4);
+            let live_callback = self.is_read_only(owner);
+            let chunk = if live_callback {
+                self.owned_chunk_mut(owner)
+            } else {
+                self.chunk_mut(x >> 4, z >> 4)
+            };
             let local = ((x & 15) as usize, y, (z & 15) as usize);
             if let Some(previous) = chunk.feature_block_entities.get(&local) {
                 let state = chunk
@@ -470,6 +550,15 @@ impl FeatureRegion {
                     .with_bee_ticks(state, (x, y, z), &ticks_in_hive)
                     .expect("validated typed hive callback");
                 chunk.feature_block_entities.insert(local, data);
+                continue;
+            }
+            if live_callback {
+                if let Some(BlockEntity::Beehive {
+                    ticks_in_hive: previous,
+                }) = chunk.block_entities.get_mut(&local)
+                {
+                    *previous = ticks_in_hive;
+                }
                 continue;
             }
             assert!(
@@ -484,6 +573,9 @@ impl FeatureRegion {
         }
         for request in requests {
             let [x, _, z] = request.block_pos;
+            if self.is_read_only(ChunkPos::new(x >> 4, z >> 4)) {
+                continue;
+            }
             assert!(
                 self.chunk_mut(x >> 4, z >> 4).add_tick_request(request),
                 "validated standing-tree request must belong to its destination chunk"
@@ -571,10 +663,10 @@ impl crate::decoration::TreeFeatureWorld for FeatureRegion {
         origin: crate::tree::fallen::Pos,
     ) -> Result<bool, crate::decoration::UnsupportedTree> {
         crate::tree::standing::place(self, random, configured_feature, origin)
-            .map_err(|shape| crate::decoration::UnsupportedTree {
+            .map_err(|error| crate::decoration::UnsupportedTree {
                 configured_feature,
                 origin,
-                unsupported_shape: Some(shape),
+                unsupported_shape: error.shape(),
             })?
             .ok_or(crate::decoration::UnsupportedTree {
                 configured_feature,
@@ -585,37 +677,18 @@ impl crate::decoration::TreeFeatureWorld for FeatureRegion {
 }
 
 impl crate::tree::standing::StandingTreeWorld for FeatureRegion {
-    fn has_beehive(&mut self, pos @ (x, y, z): crate::tree::fallen::Pos) -> bool {
-        let hive = BlockEntity::Beehive {
-            ticks_in_hive: Vec::new(),
-        };
-        if !OreWorld::get_block(self, pos).is_some_and(|state| hive.matches_state(state)) {
-            return false;
-        }
-        if !self
-            .materialize_block_entity_at(pos)
+    fn standing_biome(&self, pos: crate::tree::fallen::Pos) -> Result<u32, FeatureError> {
+        Ok(self.biome_at(pos))
+    }
+    fn has_beehive(&mut self, pos: crate::tree::fallen::Pos) -> bool {
+        let Some(ticks) = self
+            .lookup_feature_beehive(pos)
             .expect("native hive lookup")
-        {
+        else {
             return false;
-        }
-        if !self.tree_effects.beehives.contains_key(&pos) {
-            // A staged hive is a complete snapshot, including occupants already
-            // persisted by an earlier transfer in the same region.
-            let chunk = self.chunk(x >> 4, z >> 4);
-            let local = ((x & 15) as usize, y, (z & 15) as usize);
-            let ticks = match chunk.block_entities().get(&local) {
-                Some(BlockEntity::Beehive { ticks_in_hive }) => ticks_in_hive.clone(),
-                None => chunk
-                    .feature_block_entities()
-                    .get(&local)
-                    .expect("materialized standing-tree hive")
-                    .bee_ticks()
-                    .expect("native typed hive occupants"),
-                Some(_) => panic!("incompatible block entity at a standing-tree hive"),
-            };
-            drop(chunk);
-            self.tree_effects.beehives.insert(pos, ticks);
-        }
+        };
+        // Preserve occupants staged since the last transfer as well as live ones.
+        self.tree_effects.beehives.entry(pos).or_insert(ticks);
         true
     }
 
@@ -629,6 +702,12 @@ impl crate::tree::standing::StandingTreeWorld for FeatureRegion {
     }
 
     fn schedule_tree_tick(&mut self, request: [i32; 6]) {
+        let owner = ChunkPos::new(request[0] >> 4, request[2] >> 4);
+        self.check_access(owner, ChunkStatus::Empty)
+            .expect("tree tick destination outside source dependencies");
+        if self.is_read_only(owner) {
+            return;
+        }
         self.tree_effects.tick_requests.push(request);
     }
 }
@@ -693,6 +772,13 @@ impl crate::dungeon::DungeonWorld for FeatureRegion {
         (x, y, z): (i32, i32, i32),
         data: crate::block_entity::BlockEntity,
     ) {
+        self.check_access(ChunkPos::new(x >> 4, z >> 4), ChunkStatus::Empty)
+            .expect("dungeon block entity outside source dependencies");
+        if self.is_read_only(ChunkPos::new(x >> 4, z >> 4)) {
+            // This adapter represents getBlockEntity + setLootTable/setEntityId,
+            // not ImposterProtoChunk.setBlockEntity's ignored insertion method.
+            panic!("unsupported live dungeon/spawner callback on a converted lower-status holder");
+        }
         let chunk = self.chunk_mut(x >> 4, z >> 4);
         assert!(data.matches_state(
             chunk
@@ -709,8 +795,8 @@ impl crate::structure::mineshaft::blocks::MineshaftWorld for FeatureRegion {
     }
 
     fn add_entity(&mut self, entity: crate::generated_entity::GeneratedEntity) {
-        let [x, _, z] = entity.block_pos();
-        self.chunk_mut(x >> 4, z >> 4).entities.push(entity);
+        self.store_generated_entity(entity)
+            .expect("mineshaft entity destination");
     }
 
     fn mark_for_postprocessing(&mut self, [x, y, z]: [i32; 3]) {
@@ -733,6 +819,11 @@ impl FeatureWorld for FeatureRegion {
                 _ => {}
             }
         }
+        if let Some(heights) = chunk.runtime_heightmaps() {
+            return heights
+                .first_free(kind, (x & 15) as usize, (z & 15) as usize)
+                .expect("local heightmap column");
+        }
         let heights =
             crate::heightmap::placement_heights(&chunk, (x & 15) as usize, (z & 15) as usize);
         match kind {
@@ -750,7 +841,7 @@ impl FeatureWorld for FeatureRegion {
     }
 
     fn can_write_feature(&self, (x, y, z): (i32, i32, i32)) -> bool {
-        if !(MIN_Y..=MAX_Y).contains(&y) {
+        if !(MIN_Y..=MAX_Y).contains(&y) || self.is_read_only(ChunkPos::new(x >> 4, z >> 4)) {
             return false;
         }
         match &self.access {
@@ -761,6 +852,7 @@ impl FeatureWorld for FeatureRegion {
                 source,
                 status,
                 available,
+                ..
             } => {
                 let radius = ChunkPyramid::Generation
                     .step(*status)
@@ -789,10 +881,119 @@ impl FeatureWorld for FeatureRegion {
     fn schedule_feature_tick(&mut self, request: TickRequest) -> bool {
         let [x, _, z] = request.block_pos;
         let owner = ChunkPos::new(x >> 4, z >> 4);
-        if !request.valid_for(owner) || self.check_access(owner, ChunkStatus::Empty).is_err() {
+        if !request.valid_for(owner)
+            || self.check_access(owner, ChunkStatus::Empty).is_err()
+            || self.is_read_only(owner)
+        {
             return false;
         }
         self.chunk_mut(owner.x, owner.z).add_tick_request(request)
+    }
+
+    fn apply_feature_template_effect(
+        &mut self,
+        effect: crate::structure::template::TemplateEffect,
+    ) -> Result<(), crate::feature_world::FeatureError> {
+        let RegionAccess::Source { source, .. } = self.access else {
+            return Err(crate::feature_world::FeatureError::MissingData(
+                "template feature source task".into(),
+            ));
+        };
+        self.apply_template_effect(source, effect)
+    }
+
+    fn update_feature_neighbours(
+        &mut self,
+        _pos: crate::feature_world::Pos,
+        _state: u32,
+    ) -> Result<(), crate::feature_world::FeatureError> {
+        // Native WorldGenRegion inherits LevelAccessor's empty updateNeighborsAt.
+        Ok(())
+    }
+
+    fn has_feature_tick(
+        &self,
+        pos: crate::feature_world::Pos,
+        target: TickTarget,
+    ) -> Result<bool, crate::feature_world::FeatureError> {
+        let owner = ChunkPos::new(pos.0 >> 4, pos.2 >> 4);
+        let chunk = self
+            .chunk_at_status(owner, ChunkStatus::Empty)
+            .map_err(|error| {
+                crate::feature_world::FeatureError::MissingData(format!(
+                    "feature tick access: {error:?}"
+                ))
+            })?;
+        let position = [pos.0, pos.1, pos.2];
+        if chunk
+            .tick_requests()
+            .iter()
+            .any(|tick| tick.block_pos == position && tick.target == target)
+        {
+            return Ok(true);
+        }
+        for &row in &self.tree_effects.tick_requests {
+            let tick = tree_tick_request(row).map_err(|error| {
+                crate::feature_world::FeatureError::InvalidConfig(format!(
+                    "feature tree tick: {error:?}"
+                ))
+            })?;
+            if tick.block_pos == position && tick.target == target {
+                return Ok(true);
+            }
+        }
+        Ok(false)
+    }
+
+    fn reset_feature_potent_sulfur(
+        &mut self,
+        pos @ (x, y, z): crate::feature_world::Pos,
+    ) -> Result<bool, crate::feature_world::FeatureError> {
+        let Some(state) = OreWorld::get_block(self, pos) else {
+            return Err(crate::feature_world::FeatureError::MissingData(format!(
+                "potent sulfur state {pos:?}"
+            )));
+        };
+        if !crate::block_predicate::catalog().is_block(state, "potent_sulfur")?
+            || !self.materialize_block_entity_at(pos)?
+        {
+            return Ok(false);
+        }
+        let local = ((x & 15) as usize, y, (z & 15) as usize);
+        let chunk = self.owned_chunk_mut(ChunkPos::new(x >> 4, z >> 4));
+        let Some(entity) = chunk.feature_block_entities.get_mut(&local) else {
+            return Ok(false);
+        };
+        *entity = entity.reset_potent_sulfur(state, pos)?;
+        Ok(true)
+    }
+
+    fn lookup_feature_beehive(
+        &mut self,
+        pos @ (x, y, z): crate::feature_world::Pos,
+    ) -> Result<Option<Vec<i32>>, crate::feature_world::FeatureError> {
+        let hive = BlockEntity::Beehive {
+            ticks_in_hive: Vec::new(),
+        };
+        if !OreWorld::get_block(self, pos).is_some_and(|state| hive.matches_state(state))
+            || !self.materialize_block_entity_at(pos)?
+        {
+            return Ok(None);
+        }
+        let chunk = self.chunk(x >> 4, z >> 4);
+        let local = ((x & 15) as usize, y, (z & 15) as usize);
+        match chunk.block_entities().get(&local) {
+            Some(BlockEntity::Beehive { ticks_in_hive }) => Ok(Some(ticks_in_hive.clone())),
+            None => chunk
+                .feature_block_entities()
+                .get(&local)
+                .expect("materialized standing-tree hive")
+                .bee_ticks()
+                .map(Some),
+            Some(_) => Err(crate::feature_world::FeatureError::InvalidConfig(
+                "incompatible block entity at a standing-tree hive".into(),
+            )),
+        }
     }
 
     fn set_feature_brushable_loot(
@@ -806,14 +1007,20 @@ impl FeatureWorld for FeatureRegion {
         use crate::structure::template::{Nbt, TemplateBlockEntity};
         use crate::structure::template_pool::StructureAssets;
 
+        let owner = ChunkPos::new(x >> 4, z >> 4);
+        self.check_access(owner, ChunkStatus::Empty)
+            .map_err(|error| {
+                FeatureError::MissingData(format!("brushable entity access: {error:?}"))
+            })?;
         // Lookup uses read dependencies, not the write radius. In particular, a
         // denied suspicious-sand write must not prevent an existing BE lookup.
         if !self.materialize_block_entity_at(pos)? {
             return Ok(false);
         }
-        let owner = ChunkPos::new(x >> 4, z >> 4);
         let local = ((x & 15) as usize, y, (z & 15) as usize);
-        let chunk = self.owned_chunk(owner).expect("materialized feature owner");
+        let chunk = self
+            .owned_chunk_ref(owner)
+            .expect("materialized feature owner");
         let Some(previous) = chunk.feature_block_entities().get(&local) else {
             return Ok(false);
         };
@@ -843,6 +1050,7 @@ impl FeatureWorld for FeatureRegion {
             Nbt::Compound(load),
         )?;
         let data = FeatureBlockEntity::from_template(&entity)?;
+        drop(chunk);
         self.owned_chunk_mut(owner)
             .feature_block_entities
             .insert(local, data);

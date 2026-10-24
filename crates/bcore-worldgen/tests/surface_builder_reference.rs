@@ -1,7 +1,7 @@
 // Compile the builder against public types as well as the library export.
 pub use bcore_worldgen::{
-    biome, biome_zoom, block, density, is_air, noise_perlin, simplex, surface, surface_rules,
-    GeneratedChunk, MAX_Y, MIN_Y, SEA_LEVEL,
+    biome, biome_zoom, block, block_predicate, density, is_air, noise_perlin, simplex, surface,
+    surface_rules, GeneratedChunk, MAX_Y, MIN_Y, SEA_LEVEL,
 };
 #[path = "../src/surface_builder.rs"]
 mod surface_builder;
@@ -13,6 +13,60 @@ use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, HashMap};
 use std::sync::OnceLock;
+
+#[path = "support/registry_26_1.rs"]
+mod registry_26_1;
+
+fn historical_assets() -> &'static BTreeMap<String, Value> {
+    static ASSETS: OnceLock<BTreeMap<String, Value>> = OnceLock::new();
+    ASSETS.get_or_init(|| {
+        let assets: BTreeMap<String, Value> =
+            serde_json::from_str(include_str!("../data/vanilla_worldgen.json")).unwrap();
+        assert_eq!(assets["worldgen_version.json"]["minecraft"], "26.1");
+        assert_eq!(
+            assets["worldgen_version.json"]["jar_sha256"],
+            bcore_worldgen::structure::template_pool::StructureAssets::HISTORICAL_JAR_SHA256
+        );
+        assets
+    })
+}
+
+fn historical_noise() -> &'static simplex::NoiseRegistry {
+    static NOISE: OnceLock<&'static simplex::NoiseRegistry> = OnceLock::new();
+    NOISE.get_or_init(|| {
+        let noise = density::noise_registry();
+        for (path, definition) in historical_assets() {
+            let Some(name) = path
+                .strip_prefix("noise/")
+                .and_then(|p| p.strip_suffix(".json"))
+            else {
+                continue;
+            };
+            let current = &noise.defs[name];
+            assert_eq!(
+                current.first_octave as i64,
+                definition["firstOctave"].as_i64().unwrap(),
+                "{name}"
+            );
+            let expected: Vec<_> = definition["amplitudes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|v| v.as_f64().unwrap().to_bits())
+                .collect();
+            assert_eq!(
+                current
+                    .amplitudes
+                    .iter()
+                    .map(|v| v.to_bits())
+                    .collect::<Vec<_>>(),
+                expected,
+                "{name}"
+            );
+        }
+        noise
+    })
+}
 
 #[derive(Deserialize)]
 struct Columns {
@@ -140,7 +194,12 @@ fn initial_chunk(sample: &Sample, input: &[u32]) -> GeneratedChunk {
         .clone();
     chunk.pos = ChunkPos::new(sample.chunk[0], sample.chunk[1]);
     for (i, &state) in input.iter().enumerate() {
-        chunk.set(i % 16, MIN_Y + (i / 256) as i32, (i / 16) % 16, state);
+        chunk.set(
+            i % 16,
+            MIN_Y + (i / 256) as i32,
+            (i / 16) % 16,
+            registry_26_1::target_state(state),
+        );
     }
     chunk
 }
@@ -151,7 +210,13 @@ fn check_sample(sample: &Sample, reference: &Reference) {
     let input = reference.profiles[&sample.profile].decode();
     let expected = sample.states.decode();
     let mut chunk = initial_chunk(sample, &input);
-    let preliminary = density::parse_router("overworld", "preliminary_surface_level").unwrap();
+    let assets = historical_assets();
+    let preliminary = density::parse_historical_26_1_json(
+        &assets["noise_settings/overworld.json"]["noise_router"]["preliminary_surface_level"]
+            .to_string(),
+        assets,
+    )
+    .unwrap();
     let ctx = density::EvalContext {
         seed: sample.seed,
         ..Default::default()
@@ -164,7 +229,7 @@ fn check_sample(sample: &Sample, reference: &Reference) {
         &mut chunk,
         sample.seed,
         &rule,
-        density::noise_registry(),
+        historical_noise(),
         |x, z| {
             corner_calls.push([x, z]);
             let i =
@@ -193,7 +258,7 @@ fn check_sample(sample: &Sample, reference: &Reference) {
                 context.water_height,
                 context.surface_depth,
                 context.preliminary_surface_level + context.surface_depth - 8,
-                result.map_or(-1, |state| state as i32),
+                result.map_or(-1, |state| registry_26_1::historical_state(state) as i32),
             ] {
                 context_digest.update(value.to_le_bytes());
             }
@@ -206,14 +271,14 @@ fn check_sample(sample: &Sample, reference: &Reference) {
         .iter()
         .zip(&expected)
         .enumerate()
-        .filter(|(_, (a, b))| a != b)
+        .filter(|(_, (a, b))| registry_26_1::historical_state(**a) != **b)
         .take(12)
         .map(|(i, (&actual, &expected))| {
             (
                 i % 16,
                 MIN_Y + (i / 256) as i32,
                 (i / 16) % 16,
-                actual,
+                registry_26_1::historical_state(actual),
                 expected,
             )
         })
@@ -226,6 +291,7 @@ fn check_sample(sample: &Sample, reference: &Reference) {
     let mut states_digest = Sha256::new();
     let mut changed = BTreeMap::new();
     for (i, &state) in chunk.states().iter().enumerate() {
+        let state = registry_26_1::historical_state(state);
         states_digest.update(state.to_le_bytes());
         if state != input[i] {
             *changed.entry(state).or_insert(0) += 1;
@@ -262,17 +328,12 @@ fn check_sample(sample: &Sample, reference: &Reference) {
             let wx = sample.chunk[0] * 16 + x as i32;
             let wz = sample.chunk[1] * 16 + z as i32;
             assert_eq!(
-                surface_rules::surface_depth_with_noise(
-                    density::noise_registry(),
-                    sample.seed,
-                    wx,
-                    wz
-                ),
+                surface_rules::surface_depth_with_noise(historical_noise(), sample.seed, wx, wz),
                 sample.surface_depths[i],
                 "{} ({x},{z}): depth",
                 sample.id
             );
-            let secondary = density::noise_registry().sample(
+            let secondary = historical_noise().sample(
                 "minecraft:surface_secondary",
                 sample.seed,
                 wx as f64,
@@ -370,7 +431,7 @@ fn public_builder_is_repeatable_across_seed_and_chunk_order() {
         &mut chunk,
         sample.seed,
         &rule,
-        density::noise_registry(),
+        historical_noise(),
         |x, z| {
             sample.preliminary_corners
                 [((x - sample.chunk[0] * 16) / 16 + (z - sample.chunk[1] * 16) / 16 * 2) as usize]
@@ -378,12 +439,20 @@ fn public_builder_is_repeatable_across_seed_and_chunk_order() {
         |_, qx, qy, qz| sample.biome_at(reference, qx, qy, qz),
     );
     assert!(posts.is_empty());
-    assert_eq!(chunk.states(), sample.states.decode());
+    assert_eq!(
+        chunk
+            .states()
+            .iter()
+            .copied()
+            .map(registry_26_1::historical_state)
+            .collect::<Vec<_>>(),
+        sample.states.decode(),
+    );
     let standalone_posts = surface_builder::build_surface(
         &mut standalone,
         sample.seed,
         &rule,
-        density::noise_registry(),
+        historical_noise(),
         |x, z| {
             sample.preliminary_corners
                 [((x - sample.chunk[0] * 16) / 16 + (z - sample.chunk[1] * 16) / 16 * 2) as usize]

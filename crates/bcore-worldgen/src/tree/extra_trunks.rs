@@ -5,6 +5,8 @@ use super::{
     place_below_trunk_block, place_log, FoliageAttachment, IntProvider, ShapeSink, TreeConfig,
     TreeRandom,
 };
+use crate::block_predicate::{array, invalid, kind, FeatureResult};
+use crate::feature_world::FeatureError;
 use serde_json::Value;
 
 const HORIZONTAL: [(i32, i32); 4] = [(0, -1), (1, 0), (0, 1), (-1, 0)];
@@ -30,34 +32,63 @@ pub enum ExtraTrunk {
 }
 
 impl ExtraTrunk {
-    pub(super) fn parse(value: &Value) -> Self {
-        match value["type"].as_str().expect("trunk type") {
-            "minecraft:mega_jungle_trunk_placer" => Self::MegaJungle,
-            "minecraft:bending_trunk_placer" => Self::Bending {
-                min_leaves: number(&value["min_height_for_leaves"]),
-                length: int_provider(&value["bend_length"]),
-            },
-            "minecraft:cherry_trunk_placer" => Self::Cherry {
-                counts: value["branch_count"]["distribution"]
-                    .as_array()
-                    .expect("branch distribution")
+    pub(super) fn parse(value: &Value) -> FeatureResult<Self> {
+        Ok(match kind(value)? {
+            "mega_jungle_trunk_placer" => Self::MegaJungle,
+            "bending_trunk_placer" => {
+                let min_leaves = value
+                    .get("min_height_for_leaves")
+                    .map(number)
+                    .transpose()?
+                    .unwrap_or(1);
+                let length = int_provider(&value["bend_length"])?;
+                let (min, max) = match length {
+                    IntProvider::Constant(value) => (value, value),
+                    IntProvider::Uniform { min, max } => (min, max),
+                };
+                if min_leaves < 1 || min < 1 || max > 64 {
+                    return Err(invalid(
+                        "bending trunk leaf height/length outside codec bounds",
+                    ));
+                }
+                Self::Bending { min_leaves, length }
+            }
+            "cherry_trunk_placer" => {
+                let counts: Vec<_> = array(&value["branch_count"]["distribution"])?
                     .iter()
-                    .map(|e| (number(&e["data"]), number(&e["weight"])))
-                    .collect(),
-                horizontal: int_provider(&value["branch_horizontal_length"]),
-                start: (
-                    number(&value["branch_start_offset_from_top"]["min_inclusive"]),
-                    number(&value["branch_start_offset_from_top"]["max_inclusive"]),
-                ),
-                end: int_provider(&value["branch_end_offset_from_top"]),
+                    .map(|e| Ok((number(&e["data"])?, number(&e["weight"])?)))
+                    .collect::<FeatureResult<_>>()?;
+                let mut total = 0_i32;
+                for &(count, weight) in &counts {
+                    if !(1..=3).contains(&count) || weight < 0 {
+                        return Err(invalid("cherry branch count/weight"));
+                    }
+                    total = total
+                        .checked_add(weight)
+                        .ok_or_else(|| invalid("cherry branch weights overflow"))?;
+                }
+                let min = number(&value["branch_start_offset_from_top"]["min_inclusive"])?;
+                let max = number(&value["branch_start_offset_from_top"]["max_inclusive"])?;
+                if total == 0
+                    || max <= min
+                    || i64::from(max) - i64::from(min) >= i64::from(i32::MAX)
+                {
+                    return Err(invalid("cherry branch distribution/range"));
+                }
+                Self::Cherry {
+                    counts,
+                    horizontal: int_provider(&value["branch_horizontal_length"])?,
+                    start: (min, max),
+                    end: int_provider(&value["branch_end_offset_from_top"])?,
+                }
+            }
+            "upwards_branching_trunk_placer" => Self::Upwards {
+                steps: int_provider(&value["extra_branch_steps"])?,
+                length: int_provider(&value["extra_branch_length"])?,
+                probability: chance(&value["place_branch_per_log_probability"])?,
             },
-            "minecraft:upwards_branching_trunk_placer" => Self::Upwards {
-                steps: int_provider(&value["extra_branch_steps"]),
-                length: int_provider(&value["extra_branch_length"]),
-                probability: chance(&value["place_branch_per_log_probability"]),
-            },
-            kind => panic!("unsupported native trunk {kind}"),
-        }
+            other => return Err(FeatureError::Unsupported(format!("tree trunk {other}"))),
+        })
     }
 }
 
@@ -79,6 +110,9 @@ fn soil<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
 ) {
     for (dx, dz) in [(0, 0), (1, 0), (0, 1), (1, 1)] {
         place_below_trunk_block(world, random, config, (x + dx, y - 1, z + dz));
+        if world.failed() {
+            return;
+        }
     }
 }
 
@@ -91,6 +125,9 @@ pub(super) fn giant<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
     out: &mut Vec<FoliageAttachment>,
 ) {
     soil(world, random, config, origin);
+    if world.failed() {
+        return;
+    }
     let (x, y, z) = origin;
     for dy in 0..height {
         for (dx, dz) in [(0, 0), (1, 0), (1, 1), (0, 1)] {
@@ -118,6 +155,9 @@ pub(super) fn dark_oak<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
     out: &mut Vec<FoliageAttachment>,
 ) {
     soil(world, random, config, origin);
+    if world.failed() {
+        return;
+    }
     let (dx, dz) = HORIZONTAL[random.next_i32_bounded(4) as usize];
     let bend_y = height - random.next_i32_bounded(4);
     let mut bend_steps = 2 - random.next_i32_bounded(3);
@@ -168,6 +208,9 @@ pub(super) fn place<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
     match kind {
         ExtraTrunk::MegaJungle => {
             giant(world, random, config, origin, height, out);
+            if world.failed() {
+                return;
+            }
             let mut branch_y = height - 2 - random.next_i32_bounded(4);
             while branch_y > height / 2 {
                 let angle = random.next_f32() * std::f32::consts::TAU;
@@ -184,6 +227,9 @@ pub(super) fn place<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
         ExtraTrunk::Bending { min_leaves, length } => {
             let (dx, dz) = HORIZONTAL[random.next_i32_bounded(4) as usize];
             place_below_trunk_block(world, random, config, (x, y - 1, z));
+            if world.failed() {
+                return;
+            }
             let mut p = origin;
             for i in 0..height {
                 if i + 1 >= height - 1 + random.next_i32_bounded(2) {
@@ -210,6 +256,9 @@ pub(super) fn place<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
             end,
         } => {
             place_below_trunk_block(world, random, config, (x, y - 1, z));
+            if world.failed() {
+                return;
+            }
             let first = (height - 1 + min + random.next_i32_bounded(max - min + 1)).max(0);
             let mut second = (height - 1 + min + random.next_i32_bounded(max - min)).max(0);
             if second >= first {

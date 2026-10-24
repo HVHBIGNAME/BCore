@@ -5,7 +5,10 @@ use crate::noise_perlin;
 use crate::simplex::NoiseRegistry;
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::sync::OnceLock;
+use std::sync::{Arc, OnceLock};
+
+mod chunk;
+pub(crate) use chunk::ChunkDensity;
 
 pub fn noise_registry() -> &'static NoiseRegistry {
     static REGISTRY: OnceLock<NoiseRegistry> = OnceLock::new();
@@ -72,6 +75,9 @@ impl RarityMapper {
 
 #[derive(Debug, Clone)]
 pub enum DensityFunction {
+    /// A named definition shared within one parse. Clones retain its immutable
+    /// identity; separately parsed roots own independent definitions.
+    Reference(Arc<Self>),
     Constant(f64),
     Noise {
         name: String,
@@ -136,7 +142,7 @@ pub enum DensityFunction {
     NoOp(Box<Self>),
     QuarterNegative(Box<Self>),
     HalfNegative(Box<Self>),
-    /// Select one of N+1 functions using N ascending thresholds.
+    /// Select one of N+1 functions using N nondecreasing thresholds.
     /// Vanilla chooses the first function whose threshold is greater than input.
     IntervalSelect {
         input: Box<Self>,
@@ -345,6 +351,8 @@ fn cache_2d(a: &DensityFunction, x: f64, z: f64, ctx: &EvalContext) -> f64 {
     value
 }
 
+// Keep quart-coordinate preparation inside the selected marker branch.
+#[inline(never)]
 fn flat_cache(a: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContext) -> f64 {
     let qx = (x.floor() as i32) >> 2;
     let qz = (z.floor() as i32) >> 2;
@@ -409,6 +417,7 @@ impl DensityFunction {
     }
     pub fn evaluate(&self, x: f64, y: f64, z: f64, ctx: &EvalContext) -> f64 {
         match self {
+            Self::Reference(function) => function.evaluate(x, y, z, ctx),
             Self::Interpolated(a)
             | Self::CacheAllInCell(a)
             | Self::Cache2d(a)
@@ -470,20 +479,9 @@ impl DensityFunction {
                 let cx = coordinate.evaluate(x, y, z, ctx);
                 spline(points, cx, x, y, z, ctx)
             }
-            Self::Squeeze(a) => {
-                let v = a.evaluate(x, y, z, ctx).clamp(-1., 1.);
-                v / 2. - v * v * v / 24.
-            }
+            Self::Squeeze(a) => squeeze(a.evaluate(x, y, z, ctx)),
             Self::Interpolated(a) => interpolate(a, x, y, z, ctx),
-            Self::BlendDensity(a) => {
-                let noise = a.evaluate(x, y, z, ctx);
-                (ctx.blend_density)(
-                    (x / 4.).floor() as i32,
-                    (y / 8.).floor() as i32,
-                    (z / 4.).floor() as i32,
-                    noise,
-                )
-            }
+            Self::BlendDensity(a) => blend_density(a, x, y, z, ctx),
             Self::CacheAllInCell(a) => cache_all_in_cell(a, x, y, z, ctx),
             Self::Cache2d(a) => cache_2d(a, x, z, ctx),
             Self::FlatCache(a) => flat_cache(a, x, y, z, ctx),
@@ -511,18 +509,11 @@ impl DensityFunction {
                 functions,
             } => {
                 let v = input.evaluate(x, y, z, ctx);
-                // The thresholds partition the input into N+1 intervals:
-                // choose index 0 for v < t[0], index i for t[i-1] <= v < t[i],
-                // and the final function above the last threshold.
                 let index = thresholds
                     .iter()
                     .position(|threshold| v < *threshold)
-                    .unwrap_or(functions.len().saturating_sub(1));
-                functions
-                    .get(index)
-                    .or_else(|| functions.last())
-                    .map(|f| f.evaluate(x, y, z, ctx))
-                    .unwrap_or(0.)
+                    .unwrap_or(thresholds.len());
+                functions[index].evaluate(x, y, z, ctx)
             }
             Self::ShiftedNoise {
                 shift_x,
@@ -539,8 +530,8 @@ impl DensityFunction {
             }
             // Vanilla's empty Blender reports alpha=1 and offset=0.  The
             // actual non-empty Blender is supplied by EvalContext hooks.
-            Self::BlendOffset(_) => (ctx.blend_offset)(x.floor() as i32, z.floor() as i32),
-            Self::BlendAlpha(_) => (ctx.blend_alpha)(x.floor() as i32, z.floor() as i32),
+            Self::BlendOffset(_) => blend_2d(ctx.blend_offset, x, z),
+            Self::BlendAlpha(_) => blend_2d(ctx.blend_alpha, x, z),
             Self::ShiftA(name) => {
                 // `ShiftA.compute` = `compute(x, 0, z)`.
                 noise_registry().sample(name, ctx.seed, x * 0.25, 0., z * 0.25) * 4.0
@@ -598,7 +589,32 @@ impl DensityFunction {
         }
     }
 }
+
+// Outlining prevents coordinate rounding from being hoisted above node dispatch.
+#[inline(never)]
+fn blend_2d(hook: fn(i32, i32) -> f64, x: f64, z: f64) -> f64 {
+    hook(x.floor() as i32, z.floor() as i32)
+}
+
+#[inline(never)]
+fn blend_density(a: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContext) -> f64 {
+    let noise = a.evaluate(x, y, z, ctx);
+    (ctx.blend_density)(
+        (x / 4.).floor() as i32,
+        (y / 8.).floor() as i32,
+        (z / 4.).floor() as i32,
+        noise,
+    )
+}
+
+#[inline]
+fn squeeze(value: f64) -> f64 {
+    let v = value.clamp(-1., 1.);
+    v / 2. - v * v * v / 24.
+}
+
 /// Cache the seeded BlendedNoise for the complete codec configuration.
+#[inline(never)]
 fn blended_noise(
     seed: i64,
     xz_scale: f64,
@@ -631,6 +647,8 @@ fn blended_noise(
     })
 }
 
+// Avoid imposing this branch's register-heavy frame on every scalar node.
+#[inline(never)]
 fn interpolate(inner: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContext) -> f64 {
     let cw = ctx.cell_width.max(1) as f64;
     let ch = ctx.cell_height.max(1) as f64;
@@ -658,23 +676,29 @@ fn interpolate(inner: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContex
     {
         corners
     } else {
+        // Adjacent cells share exact vertices within the same evaluation scope.
         let corners = [
-            inner.evaluate(x0, y0, z0, ctx),
-            inner.evaluate(x0 + cw, y0, z0, ctx),
-            inner.evaluate(x0, y0 + ch, z0, ctx),
-            inner.evaluate(x0 + cw, y0 + ch, z0, ctx),
-            inner.evaluate(x0, y0, z0 + cw, ctx),
-            inner.evaluate(x0 + cw, y0, z0 + cw, ctx),
-            inner.evaluate(x0, y0 + ch, z0 + cw, ctx),
-            inner.evaluate(x0 + cw, y0 + ch, z0 + cw, ctx),
+            cache_once(inner, x0, y0, z0, ctx),
+            cache_once(inner, x0 + cw, y0, z0, ctx),
+            cache_once(inner, x0, y0 + ch, z0, ctx),
+            cache_once(inner, x0 + cw, y0 + ch, z0, ctx),
+            cache_once(inner, x0, y0, z0 + cw, ctx),
+            cache_once(inner, x0 + cw, y0, z0 + cw, ctx),
+            cache_once(inner, x0, y0 + ch, z0 + cw, ctx),
+            cache_once(inner, x0 + cw, y0 + ch, z0 + cw, ctx),
         ];
         INTERPOLATED_CORNERS.with(|cache| {
             cache.borrow_mut().insert(key, corners);
         });
         corners
     };
+    interpolate_corners(corners, [sx, sy, sz], ctx.mode)
+}
+
+#[inline]
+fn interpolate_corners(corners: [f64; 8], [sx, sy, sz]: [f64; 3], mode: EvaluationMode) -> f64 {
     let [c000, c100, c010, c110, c001, c101, c011, c111] = corners;
-    if ctx.mode == EvaluationMode::NoiseChunkMaterial {
+    if mode == EvaluationMode::NoiseChunkMaterial {
         // Material interpolators retain the scalar updateForY, updateForX,
         // updateForZ result. Reusing lerp3's X/Y/Z changes low bits.
         let y00 = c000 + (c010 - c000) * sy;
@@ -861,18 +885,75 @@ fn num(o: &HashMap<String, J>, k: &str, d: f64) -> f64 {
         _ => d,
     }
 }
-fn boxed(v: Option<&J>) -> DensityFunction {
-    v.map(parse_value).unwrap_or(DensityFunction::Constant(0.))
+struct FunctionParser<'a> {
+    load: &'a mut dyn FnMut(&str) -> Result<String, String>,
+    references: FastMap<String, Arc<DensityFunction>>,
+    resolving: Vec<String>,
+    historical_26_1: bool,
 }
-fn parse_value(v: &J) -> DensityFunction {
-    match v {
-        J::N(n) => DensityFunction::Constant(*n),
-        J::S(s) => {
-            let path = s.strip_prefix("minecraft:").unwrap_or(s);
-            let value = crate::assets::load(&format!("density_function/{path}.json"))
-                .unwrap_or_else(|e| panic!("{e}"));
-            parse_json(&value.to_string()).expect("valid referenced density function")
+
+impl<'a> FunctionParser<'a> {
+    fn new(load: &'a mut dyn FnMut(&str) -> Result<String, String>) -> Self {
+        Self {
+            load,
+            references: FastMap::default(),
+            resolving: Vec::new(),
+            historical_26_1: false,
         }
+    }
+
+    fn parse(&mut self, input: &str) -> Result<DensityFunction, String> {
+        let mut json = Parser {
+            s: input.as_bytes(),
+            i: 0,
+        };
+        let value = json.val()?;
+        json.ws();
+        if json.i != json.s.len() {
+            return Err("trailing density-function JSON".into());
+        }
+        parse_value(&value, self)
+    }
+
+    fn boxed(&mut self, value: Option<&J>) -> Result<DensityFunction, String> {
+        value
+            .map(|value| parse_value(value, self))
+            .transpose()
+            .map(|value| value.unwrap_or(DensityFunction::Constant(0.)))
+    }
+
+    fn reference(&mut self, name: &str) -> Result<DensityFunction, String> {
+        let name = name.strip_prefix("minecraft:").unwrap_or(name);
+        if let Some(function) = self.references.get(name) {
+            return Ok(DensityFunction::Reference(Arc::clone(function)));
+        }
+        if let Some(start) = self.resolving.iter().position(|entry| entry == name) {
+            let mut cycle = self.resolving[start..].to_vec();
+            cycle.push(name.to_owned());
+            return Err(format!(
+                "cyclic density function reference: {}",
+                cycle.join(" -> ")
+            ));
+        }
+        self.resolving.push(name.to_owned());
+        let result = (|| {
+            let input = (self.load)(&format!("density_function/{name}.json"))?;
+            self.parse(&input)
+        })();
+        self.resolving.pop();
+        let function = Arc::new(result?);
+        self.references
+            .insert(name.to_owned(), Arc::clone(&function));
+        Ok(DensityFunction::Reference(function))
+    }
+}
+
+fn parse_value(v: &J, parser: &mut FunctionParser<'_>) -> Result<DensityFunction, String> {
+    Ok(match v {
+        J::N(n) if n.is_finite() && (-1_000_000.0..=1_000_000.0).contains(n) => {
+            DensityFunction::Constant(*n)
+        }
+        J::S(s) => parser.reference(s)?,
         J::O(o) => {
             let typ = match o.get("type") {
                 Some(J::S(s)) => s.as_str(),
@@ -882,26 +963,30 @@ fn parse_value(v: &J) -> DensityFunction {
             match typ {
                 "minecraft:constant" => DensityFunction::Constant(num(o, "value", 0.)),
                 "minecraft:add" => DensityFunction::Add(
-                    Box::new(boxed(o.get("argument1"))),
-                    Box::new(boxed(o.get("argument2"))),
+                    Box::new(parser.boxed(o.get("argument1"))?),
+                    Box::new(parser.boxed(o.get("argument2"))?),
                 ),
                 "minecraft:mul" => DensityFunction::Mul(
-                    Box::new(boxed(o.get("argument1").or_else(|| o.get("a")))),
-                    Box::new(boxed(o.get("argument2").or_else(|| o.get("b")))),
+                    Box::new(parser.boxed(o.get("argument1").or_else(|| o.get("a")))?),
+                    Box::new(parser.boxed(o.get("argument2").or_else(|| o.get("b")))?),
                 ),
                 "minecraft:min" => DensityFunction::Min(
-                    Box::new(boxed(o.get("argument1"))),
-                    Box::new(boxed(o.get("argument2"))),
+                    Box::new(parser.boxed(o.get("argument1"))?),
+                    Box::new(parser.boxed(o.get("argument2"))?),
                 ),
                 "minecraft:max" => DensityFunction::Max(
-                    Box::new(boxed(o.get("argument1"))),
-                    Box::new(boxed(o.get("argument2"))),
+                    Box::new(parser.boxed(o.get("argument1"))?),
+                    Box::new(parser.boxed(o.get("argument2"))?),
                 ),
-                "minecraft:abs" => DensityFunction::Abs(Box::new(boxed(o.get("argument")))),
-                "minecraft:square" => DensityFunction::Square(Box::new(boxed(o.get("argument")))),
-                "minecraft:cube" => DensityFunction::Cube(Box::new(boxed(o.get("argument")))),
+                "minecraft:abs" => DensityFunction::Abs(Box::new(parser.boxed(o.get("argument"))?)),
+                "minecraft:square" => {
+                    DensityFunction::Square(Box::new(parser.boxed(o.get("argument"))?))
+                }
+                "minecraft:cube" => {
+                    DensityFunction::Cube(Box::new(parser.boxed(o.get("argument"))?))
+                }
                 "minecraft:clamp" => DensityFunction::Clamp(
-                    Box::new(boxed(o.get("input"))),
+                    Box::new(parser.boxed(o.get("input"))?),
                     num(o, "min", 0.),
                     num(o, "max", 0.),
                 ),
@@ -913,11 +998,13 @@ fn parse_value(v: &J) -> DensityFunction {
                 },
                 "minecraft:y" => DensityFunction::Y,
                 "minecraft:cache_once" => {
-                    DensityFunction::CacheOnce(Box::new(boxed(o.get("argument"))))
+                    DensityFunction::CacheOnce(Box::new(parser.boxed(o.get("argument"))?))
                 }
-                "minecraft:squeeze" => DensityFunction::Squeeze(Box::new(boxed(o.get("argument")))),
+                "minecraft:squeeze" => {
+                    DensityFunction::Squeeze(Box::new(parser.boxed(o.get("argument"))?))
+                }
                 "minecraft:blend_density" => {
-                    DensityFunction::BlendDensity(Box::new(boxed(o.get("argument"))))
+                    DensityFunction::BlendDensity(Box::new(parser.boxed(o.get("argument"))?))
                 }
                 "minecraft:spline" => {
                     // Vanilla nests the spline under "spline": {coordinate, points}.
@@ -925,21 +1012,21 @@ fn parse_value(v: &J) -> DensityFunction {
                         Some(J::O(so)) => so,
                         _ => o,
                     };
-                    let coordinate = boxed(spline_obj.get("coordinate"));
+                    let coordinate = parser.boxed(spline_obj.get("coordinate"))?;
                     let mut p = Vec::new();
                     if let Some(J::A(a)) = spline_obj.get("points") {
                         for q in a {
                             if let J::O(pt) = q {
                                 p.push((
                                     num(pt, "location", 0.),
-                                    Box::new(boxed(pt.get("value"))),
+                                    Box::new(parser.boxed(pt.get("value"))?),
                                     num(pt, "derivative", 0.),
                                 ));
                             } else if let J::A(v) = q {
                                 if v.len() >= 3 {
                                     p.push((
                                         asnum(&v[0]),
-                                        Box::new(boxed(Some(&v[1]))),
+                                        Box::new(parser.boxed(Some(&v[1]))?),
                                         asnum(&v[2]),
                                     ))
                                 }
@@ -960,7 +1047,7 @@ fn parse_value(v: &J) -> DensityFunction {
                     y: num(o, "y_scale", 1.),
                 },
                 "minecraft:interpolated" => {
-                    DensityFunction::Interpolated(Box::new(boxed(o.get("argument"))))
+                    DensityFunction::Interpolated(Box::new(parser.boxed(o.get("argument"))?))
                 }
                 "minecraft:shift_a" => DensityFunction::ShiftA(match o.get("argument") {
                     Some(J::S(s)) => s.clone(),
@@ -971,34 +1058,36 @@ fn parse_value(v: &J) -> DensityFunction {
                     _ => String::new(),
                 }),
                 "minecraft:cache_2d" => {
-                    DensityFunction::Cache2d(Box::new(boxed(o.get("argument"))))
+                    DensityFunction::Cache2d(Box::new(parser.boxed(o.get("argument"))?))
                 }
                 "minecraft:cache_all_in_cell" => {
-                    DensityFunction::CacheAllInCell(Box::new(boxed(o.get("argument"))))
+                    DensityFunction::CacheAllInCell(Box::new(parser.boxed(o.get("argument"))?))
                 }
                 "minecraft:flat_cache" => {
-                    DensityFunction::FlatCache(Box::new(boxed(o.get("argument"))))
+                    DensityFunction::FlatCache(Box::new(parser.boxed(o.get("argument"))?))
                 }
                 "minecraft:blend_offset" => {
-                    DensityFunction::BlendOffset(Box::new(boxed(o.get("argument"))))
+                    DensityFunction::BlendOffset(Box::new(parser.boxed(o.get("argument"))?))
                 }
                 "minecraft:blend_alpha" => {
-                    DensityFunction::BlendAlpha(Box::new(boxed(o.get("argument"))))
+                    DensityFunction::BlendAlpha(Box::new(parser.boxed(o.get("argument"))?))
                 }
-                "minecraft:weird_scaled_sampler" => DensityFunction::WeirdScaledSampler {
-                    input: Box::new(boxed(o.get("input"))),
-                    noise: match o.get("noise") {
-                        Some(J::S(s)) => s.clone(),
-                        _ => String::new(),
-                    },
-                    rarity_mapper: match o.get("rarity_value_mapper").and_then(|v| match v {
-                        J::S(s) => Some(s.as_str()),
-                        _ => None,
-                    }) {
-                        Some("type_2") => RarityMapper::Caves,
-                        _ => RarityMapper::Tunnels,
-                    },
-                },
+                "minecraft:weird_scaled_sampler" if parser.historical_26_1 => {
+                    DensityFunction::WeirdScaledSampler {
+                        input: Box::new(parser.boxed(o.get("input"))?),
+                        noise: match o.get("noise") {
+                            Some(J::S(s)) => s.clone(),
+                            _ => String::new(),
+                        },
+                        rarity_mapper: match o.get("rarity_value_mapper").and_then(|v| match v {
+                            J::S(s) => Some(s.as_str()),
+                            _ => None,
+                        }) {
+                            Some("type_2") => RarityMapper::Caves,
+                            _ => RarityMapper::Tunnels,
+                        },
+                    }
+                }
                 "minecraft:end_islands" => DensityFunction::EndIslands,
                 "minecraft:old_blended_noise" => DensityFunction::OldBlendedNoise {
                     xz_scale: num(o, "xz_scale", 0.25),
@@ -1007,30 +1096,56 @@ fn parse_value(v: &J) -> DensityFunction {
                     y_factor: num(o, "y_factor", 160.),
                     smear: num(o, "smear_scale_multiplier", 8.),
                 },
-                "minecraft:no_op" => DensityFunction::NoOp(Box::new(boxed(o.get("argument")))),
+                "minecraft:no_op" => {
+                    DensityFunction::NoOp(Box::new(parser.boxed(o.get("argument"))?))
+                }
                 "minecraft:quarter_negative" => {
-                    DensityFunction::QuarterNegative(Box::new(boxed(o.get("argument"))))
+                    DensityFunction::QuarterNegative(Box::new(parser.boxed(o.get("argument"))?))
                 }
                 "minecraft:half_negative" => {
-                    DensityFunction::HalfNegative(Box::new(boxed(o.get("argument"))))
+                    DensityFunction::HalfNegative(Box::new(parser.boxed(o.get("argument"))?))
                 }
                 "minecraft:range_choice" => DensityFunction::Range {
-                    input: Box::new(boxed(o.get("input"))),
+                    input: Box::new(parser.boxed(o.get("input"))?),
                     min: num(o, "min_inclusive", 0.),
                     max: num(o, "max_exclusive", 0.),
-                    when_in: Box::new(boxed(o.get("when_in_range"))),
-                    when_out: Box::new(boxed(o.get("when_out_of_range"))),
+                    when_in: Box::new(parser.boxed(o.get("when_in_range"))?),
+                    when_out: Box::new(parser.boxed(o.get("when_out_of_range"))?),
                 },
                 "minecraft:interval_select" => {
-                    let input = boxed(o.get("input"));
+                    let input = parse_value(
+                        o.get("input").ok_or("missing interval-select input")?,
+                        parser,
+                    )?;
                     let thresholds = match o.get("thresholds") {
-                        Some(J::A(a)) => a.iter().map(asnum).collect(),
-                        _ => Vec::new(),
+                        Some(J::A(a)) => a
+                            .iter()
+                            .map(|value| match value {
+                                J::N(number) if number.is_finite() && (-1_000_000.0..=1_000_000.0).contains(number) => Ok(*number),
+                                _ => Err("interval-select thresholds must be numbers in -1000000..=1000000".to_owned()),
+                            })
+                            .collect::<Result<Vec<_>, _>>()?,
+                        _ => return Err("missing or invalid interval-select thresholds".into()),
                     };
                     let functions = match o.get("functions") {
-                        Some(J::A(a)) => a.iter().map(|v| Box::new(parse_value(v))).collect(),
-                        _ => Vec::new(),
+                        Some(J::A(a)) => a
+                            .iter()
+                            .map(|v| parse_value(v, parser).map(Box::new))
+                            .collect::<Result<Vec<_>, _>>()?,
+                        _ => return Err("missing or invalid interval-select functions".into()),
                     };
+                    if functions.len() < 2 || thresholds.len() != functions.len() - 1 {
+                        return Err("interval-select requires N thresholds and N+1 functions, at least two functions".into());
+                    }
+                    if thresholds
+                        .windows(2)
+                        .any(|pair| pair[0].total_cmp(&pair[1]).is_gt())
+                    {
+                        return Err(
+                            "interval-select thresholds must be ordered from smallest to largest"
+                                .into(),
+                        );
+                    }
                     DensityFunction::IntervalSelect {
                         input: Box::new(input),
                         thresholds,
@@ -1038,9 +1153,9 @@ fn parse_value(v: &J) -> DensityFunction {
                     }
                 }
                 "minecraft:shifted_noise" => DensityFunction::ShiftedNoise {
-                    shift_x: Box::new(boxed(o.get("shift_x"))),
-                    shift_y: Box::new(boxed(o.get("shift_y"))),
-                    shift_z: Box::new(boxed(o.get("shift_z"))),
+                    shift_x: Box::new(parser.boxed(o.get("shift_x"))?),
+                    shift_y: Box::new(parser.boxed(o.get("shift_y"))?),
+                    shift_z: Box::new(parser.boxed(o.get("shift_z"))?),
                     xz: num(o, "xz_scale", 1.),
                     y: num(o, "y_scale", 1.),
                     name: match o.get("noise") {
@@ -1048,18 +1163,20 @@ fn parse_value(v: &J) -> DensityFunction {
                         _ => String::new(),
                     },
                 },
-                "minecraft:invert" => DensityFunction::Invert(Box::new(boxed(o.get("argument")))),
+                "minecraft:invert" => {
+                    DensityFunction::Invert(Box::new(parser.boxed(o.get("argument"))?))
+                }
                 "minecraft:find_top_surface" => DensityFunction::FindTopSurface {
-                    density: Box::new(boxed(o.get("density"))),
-                    upper_bound: Box::new(boxed(o.get("upper_bound"))),
+                    density: Box::new(parser.boxed(o.get("density"))?),
+                    upper_bound: Box::new(parser.boxed(o.get("upper_bound"))?),
                     lower_bound: num(o, "lower_bound", 0.) as i32,
                     cell_height: num(o, "cell_height", 8.) as i32,
                 },
-                _ => DensityFunction::Unknown,
+                _ => return Err(format!("unknown density-function type {typ}")),
             }
         }
-        _ => DensityFunction::Unknown,
-    }
+        _ => return Err("expected a density-function object, reference or number".into()),
+    })
 }
 fn asnum(v: &J) -> f64 {
     match v {
@@ -1067,19 +1184,42 @@ fn asnum(v: &J) -> f64 {
         _ => 0.,
     }
 }
-/// Parse one density-function JSON object (or a numeric constant).
+/// Parse one density-function JSON object, numeric constant or named reference.
+/// Named definitions share identity only within this call. Missing assets,
+/// malformed referenced JSON and cycles return errors without a global cache.
 pub fn parse_json(input: &str) -> Result<DensityFunction, String> {
-    let mut p = Parser {
-        s: input.as_bytes(),
-        i: 0,
+    let mut load = |path: &str| crate::assets::load(path).map(|value| value.to_string());
+    FunctionParser::new(&mut load).parse(input)
+}
+
+/// Replay a density document against explicitly supplied 26.1 assets. The
+/// historical codec and loader never replace the live target's bundled inputs.
+pub fn parse_historical_26_1_json(
+    input: &str,
+    assets: &std::collections::BTreeMap<String, serde_json::Value>,
+) -> Result<DensityFunction, String> {
+    let mut load = |path: &str| {
+        assets
+            .get(path)
+            .map(serde_json::Value::to_string)
+            .ok_or_else(|| format!("missing historical density asset {path}"))
     };
-    let v = p.val()?;
-    Ok(parse_value(&v))
+    let mut parser = FunctionParser::new(&mut load);
+    parser.historical_26_1 = true;
+    parser.parse(input)
 }
 /// Evaluate a parsed function at block coordinates.
 pub fn evaluate(f: &DensityFunction, x: f64, y: f64, z: f64, ctx: &EvalContext) -> f64 {
     f.evaluate(x, y, z, ctx)
 }
+
+#[cfg(test)]
+#[path = "density_sharing_tests.rs"]
+mod sharing_tests;
+
+#[cfg(test)]
+#[path = "density_corner_tests.rs"]
+mod corner_tests;
 
 #[cfg(test)]
 mod tests {

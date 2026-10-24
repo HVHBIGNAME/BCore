@@ -16,7 +16,7 @@
 //!
 //! ```text
 //! blockCount: i16   (non-air blocks)
-//! fluidCount: i16   (NEW in 26.x — blocks with a non-empty fluid state)
+//! fluidCount: i16   (non-air blocks with a non-empty fluid state)
 //! blocks: PalettedContainer over 4096 entries
 //! biomes: PalettedContainer over 64 entries
 //! ```
@@ -26,42 +26,19 @@
 //! is `ceil(entries / floor(64 / bitsPerEntry))` longs. `bitsPerEntry == 0` means
 //! a single-valued palette (one varint, no data array), and a width above the
 //! indirect limit (8 for blocks) means the **global** palette: the entries are
-//! raw block-state ids and no palette array is sent.
+//! raw registry ids and no palette array is sent. Biomes use indirect widths
+//! 1..=3, then the global biome registry's width.
 //!
-//! # Where the semantics come from
+//! Section counts and palette rules follow the authenticated 26.2 JAR's
+//! `LevelChunkSection`, `Strategy`, `PalettedContainer.Data` and palette writers.
+//! Native block predicates supply fluid and heightmap classification for every
+//! state in the shared registry. Heightmap entries name the first free block,
+//! relative to [`MIN_Y`].
 //!
-//! Every rule below was measured against captures from the official 26.2 server
-//! rather than assumed. `scripts/capture_terrain.py` records real overworld
-//! chunks and `scripts/analyze_terrain_capture.py` checks candidate rules against
-//! them, over 49 chunks / 1176 sections / 12544 columns:
-//!
-//! * `blockCount == count(state != air)` — matched **every** section.
-//! * `WORLD_SURFACE == highest non-air Y + 1 - MIN_Y` — matched **every** column.
-//! * `fluidCount` counts blocks with a non-empty *fluid state*: water, lava and
-//!   waterlogged blocks (vanilla's seagrass/kelp are waterlogged, which is what
-//!   made the naive "water only" rule miss 52 of 1176 sections). BCore only ever
-//!   places `water`, so [`ChunkColumn::is_fluid`] is exactly right for the blocks
-//!   BCore generates.
-//! * `MOTION_BLOCKING` counts blocks that block motion *or* hold a fluid, so
-//!   water and leaves are included but tall grass is not;
-//!   `MOTION_BLOCKING_NO_LEAVES` additionally skips leaves. Sampling vanilla's
-//!   own heightmap tops confirmed this: `MOTION_BLOCKING` tops were grass_block,
-//!   water and *_leaves, while `MOTION_BLOCKING_NO_LEAVES` tops were
-//!   grass_block, water and *_log — never leaves.
-//! * The highest water block in the capture is `y = 62`, i.e. water fills
-//!   `y < 63`, which is why [`SEA_LEVEL`] is 63 and [`WATER_SURFACE_Y`] is 62.
-//!
-//! The heightmap **order** is deliberately not treated as fixed: vanilla is
-//! inconsistent about it. The flat captures send `[WORLD_SURFACE,
-//! MOTION_BLOCKING_NO_LEAVES, MOTION_BLOCKING]` while the terrain capture sends
-//! `[MOTION_BLOCKING_NO_LEAVES, MOTION_BLOCKING, WORLD_SURFACE]`
-//! (`scripts/compare_heightmap_order.py`). Since the wire carries `(kind, values)`
-//! pairs the client does not care; BCore emits the flat-capture order so
-//! `tests/chunk_format.rs` keeps its byte-for-byte parity.
-//!
-//! `flat_chunk_payload` reproduces a captured flat chunk byte-for-byte
-//! (see `tests/chunk_format.rs`), and the terrain path is checked structurally
-//! against the terrain capture in `tests/chunk_terrain.rs`.
+//! Historical flat and terrain captures remain covered by `tests/chunk_format.rs`
+//! and `tests/chunk_terrain.rs`; their wrappers do not establish exact-JAR
+//! provenance for the audited 26.2 artifact. The flat path retains their
+//! `[WORLD_SURFACE, MOTION_BLOCKING_NO_LEAVES, MOTION_BLOCKING]` heightmap order.
 
 use std::sync::OnceLock;
 
@@ -95,110 +72,13 @@ pub const SEA_LEVEL: i32 = 63;
 /// The highest Y a water block occupies — verified against vanilla captures.
 pub const WATER_SURFACE_Y: i32 = SEA_LEVEL - 1;
 
-/// Block-state ids as assigned by the vanilla 26.2 block-state registry.
-///
-/// These are the real network ids used by `map_chunk` paletted containers, taken
-/// from the official server's own datagen block report
-/// (`java -DbundlerMainClass=net.minecraft.data.Main -jar server.jar --reports`,
-/// extracted by `scripts/extract_block_states.py`).
-///
-/// The four ids BCore already used were read back out of captured `map_chunk`
-/// payloads, and the datagen report agrees with all four
-/// (`air=0`, `grass_block=9`, `dirt=10`, `bedrock=85`), which cross-validates the
-/// whole table.
-pub mod block_state {
-    /// `minecraft:air`
-    pub const AIR: u32 = 0;
-    /// `minecraft:stone`
-    pub const STONE: u32 = 1;
-    /// `minecraft:grass_block[snowy=false]`
-    pub const GRASS_BLOCK: u32 = 9;
-    /// `minecraft:dirt`
-    pub const DIRT: u32 = 10;
-    /// `minecraft:coarse_dirt`
-    pub const COARSE_DIRT: u32 = 11;
-    /// `minecraft:podzol[snowy=false]`
-    pub const PODZOL: u32 = 13;
-    /// `minecraft:bedrock`
-    pub const BEDROCK: u32 = 85;
-    /// `minecraft:water[level=0]`
-    pub const WATER: u32 = 86;
-    /// `minecraft:lava[level=0]`
-    pub const LAVA: u32 = 102;
-    /// `minecraft:sand`
-    pub const SAND: u32 = 118;
-    /// `minecraft:gravel`
-    pub const GRAVEL: u32 = 124;
-    /// `minecraft:gold_ore`
-    pub const GOLD_ORE: u32 = 129;
-    /// `minecraft:iron_ore`
-    pub const IRON_ORE: u32 = 131;
-    /// `minecraft:coal_ore`
-    pub const COAL_ORE: u32 = 133;
-    /// `minecraft:oak_log[axis=y]`
-    pub const OAK_LOG: u32 = 137;
-    /// `minecraft:birch_log[axis=y]`
-    pub const BIRCH_LOG: u32 = 143;
-    /// `minecraft:oak_leaves[distance=1,persistent=false,waterlogged=false]`
-    pub const OAK_LEAVES: u32 = 255;
-    /// `minecraft:birch_leaves[distance=1,persistent=false,waterlogged=false]`
-    pub const BIRCH_LEAVES: u32 = 311;
-    /// `minecraft:lapis_ore`
-    pub const LAPIS_ORE: u32 = 563;
-    /// `minecraft:sandstone`
-    pub const SANDSTONE: u32 = 578;
-    /// `minecraft:short_grass`
-    pub const SHORT_GRASS: u32 = 2248;
-    /// `minecraft:dead_bush`
-    pub const DEAD_BUSH: u32 = 2250;
-    /// `minecraft:diamond_ore`
-    pub const DIAMOND_ORE: u32 = 5307;
-    /// `minecraft:redstone_ore[lit=false]`
-    pub const REDSTONE_ORE: u32 = 6882;
-    /// `minecraft:snow_block`
-    pub const SNOW_BLOCK: u32 = 6928;
-    /// `minecraft:cactus[age=0]`
-    pub const CACTUS: u32 = 6929;
-    /// `minecraft:packed_ice`
-    pub const PACKED_ICE: u32 = 12914;
-    /// `minecraft:copper_ore`
-    pub const COPPER_ORE: u32 = 27790;
-    /// `minecraft:deepslate[axis=y]`
-    pub const DEEPSLATE: u32 = 30417;
-
-    /// Total block states in the 26.2 registry (`scripts/count_block_states.py`).
-    pub const BLOCK_STATE_COUNT: usize = 32366;
-}
-
-/// Biome network ids from the `minecraft:worldgen/biome` registry sync.
-///
-/// Biomes are a *datapack* registry, so unlike blocks their ids are not in the
-/// datagen reports: they come from the order of entries in the clientbound
-/// `registry_data` packet BCore already replays from
-/// `data/config_packets.bin`. Extracted by `scripts/extract_biomes.py`.
-pub mod biome {
-    /// `minecraft:beach`
-    pub const BEACH: u32 = 3;
-    /// `minecraft:desert`
-    pub const DESERT: u32 = 14;
-    /// `minecraft:forest`
-    pub const FOREST: u32 = 21;
-    /// `minecraft:ocean`
-    pub const OCEAN: u32 = 35;
-    /// `minecraft:plains`
-    pub const PLAINS: u32 = 40;
-    /// `minecraft:river`
-    pub const RIVER: u32 = 41;
-    /// `minecraft:snowy_slopes`
-    pub const SNOWY_SLOPES: u32 = 47;
-    /// `minecraft:windswept_hills`
-    pub const WINDSWEPT_HILLS: u32 = 63;
-}
+pub use bcore_registry::block_state;
+pub use bcore_registry::{biome, BIOME_COUNT, BLOCK_STATE_COUNT};
 
 /// `minecraft:plains` — kept for compatibility with the flat-world path.
 pub const BIOME_PLAINS: u32 = biome::PLAINS;
 
-/// Heightmap kinds, in the order the vanilla server transmits them.
+/// Native heightmap type ids; each wire entry carries its own kind.
 pub const HEIGHTMAP_WORLD_SURFACE: i32 = 1;
 pub const HEIGHTMAP_MOTION_BLOCKING: i32 = 4;
 pub const HEIGHTMAP_MOTION_BLOCKING_NO_LEAVES: i32 = 5;
@@ -211,8 +91,12 @@ pub const FLAT_SURFACE_Y: i32 = -61;
 
 /// Widest indirect block palette vanilla accepts before the global palette.
 pub const MAX_INDIRECT_BLOCK_BITS: u8 = 8;
-/// Bit width of the global (direct) block palette: `ceil(log2(32366))`.
-pub const DIRECT_PALETTE_BITS: u8 = 15;
+/// Widest indirect biome palette before the global palette.
+pub const MAX_INDIRECT_BIOME_BITS: u8 = 3;
+/// Bit width covering the shared block-state registry.
+pub const DIRECT_PALETTE_BITS: u8 = ceil_log2(BLOCK_STATE_COUNT);
+/// Bit width covering the synchronized biome registry.
+pub const DIRECT_BIOME_PALETTE_BITS: u8 = ceil_log2(BIOME_COUNT);
 
 /// Palette layout of a paletted container.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -221,7 +105,7 @@ pub enum PaletteKind {
     Single,
     /// A local palette; entries are indices into it.
     Indirect,
-    /// The global block-state palette; entries are raw ids and no palette is sent.
+    /// The global registry palette; entries are raw ids and no palette is sent.
     Direct,
 }
 
@@ -252,11 +136,20 @@ pub fn biome_palette_bits(len: usize) -> Option<u8> {
     match ceil_log2(len) {
         0 => Some(0),
         b @ 1..=3 => Some(b),
-        _ => None, // global palette: not produced by BCore yet
+        _ => None,
     }
 }
 
-fn ceil_log2(len: usize) -> u8 {
+/// The container layout and bit width used for a biome palette of `len` values.
+pub fn biome_palette_layout(len: usize) -> (PaletteKind, u8) {
+    match biome_palette_bits(len) {
+        Some(0) => (PaletteKind::Single, 0),
+        Some(bits) => (PaletteKind::Indirect, bits),
+        None => (PaletteKind::Direct, DIRECT_BIOME_PALETTE_BITS),
+    }
+}
+
+const fn ceil_log2(len: usize) -> u8 {
     if len <= 1 {
         return 0;
     }
@@ -292,7 +185,7 @@ pub fn pack_entries(bits: u8, entries: &[u16]) -> Vec<i64> {
     out
 }
 
-/// Pack raw `u32` values (used by the global palette, whose ids exceed `u16`).
+/// Pack raw registry ids for a global palette.
 pub fn pack_entries_u32(bits: u8, entries: &[u32]) -> Vec<i64> {
     if bits == 0 {
         return Vec::new();
@@ -325,10 +218,50 @@ pub fn write_paletted_container(out: &mut Vec<u8>, bits: u8, palette: &[u32], in
 /// Write a global-palette container: a bit width above the indirect limit, no
 /// palette array, and the raw block-state ids as the packed entries.
 pub fn write_direct_container(out: &mut Vec<u8>, states: &[u32]) {
-    out.push(DIRECT_PALETTE_BITS);
-    for long in pack_entries_u32(DIRECT_PALETTE_BITS, states) {
+    write_global_container(out, DIRECT_PALETTE_BITS, states);
+}
+
+fn write_global_container(out: &mut Vec<u8>, bits: u8, entries: &[u32]) {
+    out.push(bits);
+    for long in pack_entries_u32(bits, entries) {
         out.extend_from_slice(&long.to_be_bytes());
     }
+}
+
+const STATE_NOT_AIR: u8 = 1;
+const STATE_FLUID: u8 = 2;
+const STATE_MOTION_BLOCKING: u8 = 4;
+const STATE_LEAVES: u8 = 8;
+
+fn state_flags() -> &'static [u8] {
+    static FLAGS: OnceLock<Vec<u8>> = OnceLock::new();
+    FLAGS.get_or_init(|| {
+        let catalog = bcore_worldgen::block_predicate::catalog();
+        let empty_fluid = catalog.fluids["minecraft:empty"];
+        bcore_registry::vanilla()
+            .states
+            .iter()
+            .map(|state| {
+                let (name, definition) = catalog.block(state.id).expect("native block identity");
+                assert_eq!(name, state.name.as_str());
+                assert_eq!(definition.properties.len(), state.properties.len());
+                for (key, value) in &state.properties {
+                    assert_eq!(definition.property(state.id, key), Some(value.as_str()));
+                }
+                let info = catalog.info(state.id).expect("native block predicates");
+                let fluid = info.fluid != empty_fluid;
+                (u8::from(!info.is_air()) * STATE_NOT_AIR)
+                    | (u8::from(!info.is_air() && fluid) * STATE_FLUID)
+                    | (u8::from(info.blocks_motion() || fluid) * STATE_MOTION_BLOCKING)
+                    | (u8::from(definition.class.ends_with("LeavesBlock")) * STATE_LEAVES)
+            })
+            .collect()
+    })
+}
+
+fn feature_block_entity_type(data: &FeatureBlockEntity) -> Option<u32> {
+    let name = data.full_data.get("id")?.as_str()?;
+    bcore_registry::registry_id("BLOCK_ENTITY_TYPE", name).filter(|&id| id == data.type_id)
 }
 
 /// Write one heightmap entry: kind, long count, longs.
@@ -395,6 +328,7 @@ pub struct ChunkColumn {
 impl ChunkColumn {
     /// An all-air column with every biome cell set to `biome`.
     pub fn new(biome: u32) -> Self {
+        assert!((biome as usize) < BIOME_COUNT, "registered column biome");
         Self {
             states: vec![block_state::AIR; COLUMNS * WORLD_HEIGHT as usize],
             biomes: vec![biome; SECTION_COUNT * SECTION_BIOMES],
@@ -428,7 +362,7 @@ impl ChunkColumn {
     ///
     /// # Panics
     ///
-    /// If the slices are not exactly one column's worth of data.
+    /// If the slices are not one column's worth of registered state/biome ids.
     pub fn from_parts(states: Vec<u32>, biomes: Vec<u32>) -> Self {
         assert_eq!(
             states.len(),
@@ -439,6 +373,14 @@ impl ChunkColumn {
             biomes.len(),
             SECTION_COUNT * SECTION_BIOMES,
             "biome count must be one full column"
+        );
+        assert!(
+            states.iter().all(|&id| (id as usize) < BLOCK_STATE_COUNT),
+            "registered column block states"
+        );
+        assert!(
+            biomes.iter().all(|&id| (id as usize) < BIOME_COUNT),
+            "registered column biomes"
         );
         Self {
             states,
@@ -509,6 +451,9 @@ impl ChunkColumn {
     /// Write a block state by chunk-local coordinates; returns `false` if out of range.
     #[inline]
     pub fn set(&mut self, x: usize, y: i32, z: usize, state: u32) -> bool {
+        if state as usize >= BLOCK_STATE_COUNT {
+            return false;
+        }
         match Self::index(x, y, z) {
             Some(i) => {
                 if self.states[i] != state {
@@ -604,6 +549,9 @@ impl ChunkColumn {
         z: usize,
         data: FeatureBlockEntity,
     ) -> bool {
+        if feature_block_entity_type(&data).is_none() {
+            return false;
+        }
         let Some(state) = self.get(x, y, z) else {
             return false;
         };
@@ -716,30 +664,28 @@ impl ChunkColumn {
 
     /// Set every biome cell of the column.
     pub fn fill_biome(&mut self, biome: u32) {
+        assert!((biome as usize) < BIOME_COUNT, "registered column biome");
         self.biomes.iter_mut().for_each(|b| *b = biome);
     }
 
     /// Whether a state holds a fluid, i.e. counts toward a section's `fluidCount`.
     ///
-    /// Vanilla counts every block with a non-empty fluid state (water, lava and
-    /// waterlogged blocks). BCore only places `water`, so this is exact for the
-    /// blocks BCore generates; `lava` is listed because the constant exists.
+    /// Includes flowing water/lava, aquatic vegetation and waterlogged states.
     #[inline]
     pub fn is_fluid(state: u32) -> bool {
-        matches!(state, block_state::WATER | block_state::LAVA)
+        state_flags()[state as usize] & STATE_FLUID != 0
     }
 
     /// Whether a state is a leaf block (skipped by `MOTION_BLOCKING_NO_LEAVES`).
     #[inline]
     pub fn is_leaves(state: u32) -> bool {
-        matches!(state, block_state::OAK_LEAVES | block_state::BIRCH_LEAVES)
+        state_flags()[state as usize] & STATE_LEAVES != 0
     }
 
-    /// Whether a state is a non-colliding plant (skipped by both
-    /// `MOTION_BLOCKING` heightmaps, but present in `WORLD_SURFACE`).
+    /// Whether a non-air state neither blocks motion nor holds a fluid.
     #[inline]
     pub fn is_passable_plant(state: u32) -> bool {
-        matches!(state, block_state::SHORT_GRASS | block_state::DEAD_BUSH)
+        state_flags()[state as usize] & (STATE_NOT_AIR | STATE_MOTION_BLOCKING) == STATE_NOT_AIR
     }
 
     /// Highest non-air Y at `(x, z)`, or `None` for an empty column.
@@ -796,17 +742,15 @@ impl ChunkColumn {
 
     /// `MOTION_BLOCKING`: highest block that blocks motion or holds a fluid.
     pub fn heightmap_motion_blocking(&self) -> [u16; COLUMNS] {
-        self.heightmap_for(|state| {
-            !bcore_worldgen::is_air(state) && !Self::is_passable_plant(state)
-        })
+        let flags = state_flags();
+        self.heightmap_for(|state| flags[state as usize] & STATE_MOTION_BLOCKING != 0)
     }
 
     /// `MOTION_BLOCKING_NO_LEAVES`: as above, but leaves do not count.
     pub fn heightmap_motion_blocking_no_leaves(&self) -> [u16; COLUMNS] {
+        let flags = state_flags();
         self.heightmap_for(|state| {
-            !bcore_worldgen::is_air(state)
-                && !Self::is_passable_plant(state)
-                && !Self::is_leaves(state)
+            flags[state as usize] & (STATE_MOTION_BLOCKING | STATE_LEAVES) == STATE_MOTION_BLOCKING
         })
     }
 
@@ -815,23 +759,18 @@ impl ChunkColumn {
         let base = section * SECTION_VOLUME;
         let states = &self.states[base..base + SECTION_VOLUME];
 
-        // Deterministic local palette: first-seen order, exactly like vanilla.
-        //
-        // `palette.iter().position()` would make this O(volume * palette), which
-        // for a 40-entry terrain section is 160k comparisons per section and
-        // dominated encoding. A last-hit cache exploits the fact that terrain is
-        // strongly runs-of-the-same-block, so the scan almost always hits index 0
-        // of the check.
+        // First-seen palette order with a last-hit cache for repeated states.
         let mut palette: Vec<u32> = Vec::new();
         let mut indices = vec![0u16; SECTION_VOLUME];
         let mut block_count = 0i16;
         let mut fluid_count = 0i16;
+        let flags = state_flags();
         let mut last: Option<(u32, u16)> = None;
         for (i, &state) in states.iter().enumerate() {
-            if !bcore_worldgen::is_air(state) {
+            if flags[state as usize] & STATE_NOT_AIR != 0 {
                 block_count += 1;
             }
-            if Self::is_fluid(state) {
+            if flags[state as usize] & STATE_FLUID != 0 {
                 fluid_count += 1;
             }
             let idx = match last {
@@ -872,9 +811,10 @@ impl ChunkColumn {
             };
             biome_indices[i] = idx as u16;
         }
-        let biome_bits =
-            biome_palette_bits(biome_palette.len()).expect("at most 8 biomes per section");
-        write_paletted_container(out, biome_bits, &biome_palette, &biome_indices);
+        match biome_palette_layout(biome_palette.len()) {
+            (PaletteKind::Direct, bits) => write_global_container(out, bits, cells),
+            (_, bits) => write_paletted_container(out, bits, &biome_palette, &biome_indices),
+        }
     }
 
     /// Sky light for the section containing world Y `MIN_Y + section * 16`.
@@ -1097,7 +1037,8 @@ impl ChunkColumn {
         for (&(lx, y, lz), data) in &self.feature_block_entities {
             out.push(((lx << 4) | lz) as u8);
             out.extend_from_slice(&(y as i16).to_be_bytes());
-            encode_varint(data.type_id as i32, &mut out);
+            let type_id = feature_block_entity_type(data).expect("shared block-entity identity");
+            encode_varint(type_id as i32, &mut out);
             pending::write_chunk_update_tag(
                 &mut out,
                 &crate::nbt::encode_feature_block_entity_update(data),
@@ -1159,11 +1100,19 @@ mod tests {
         );
         // The direct width must cover every real block state.
         assert!(
-            (1usize << DIRECT_PALETTE_BITS) >= block_state::BLOCK_STATE_COUNT,
+            (1usize << DIRECT_PALETTE_BITS) >= BLOCK_STATE_COUNT,
             "{DIRECT_PALETTE_BITS} bits cannot address {} states",
-            block_state::BLOCK_STATE_COUNT
+            BLOCK_STATE_COUNT
         );
-        assert!((1usize << (DIRECT_PALETTE_BITS - 1)) < block_state::BLOCK_STATE_COUNT);
+        assert!((1usize << (DIRECT_PALETTE_BITS - 1)) < BLOCK_STATE_COUNT);
+        assert_eq!(biome_palette_layout(1), (PaletteKind::Single, 0));
+        assert_eq!(biome_palette_layout(8), (PaletteKind::Indirect, 3));
+        assert_eq!(
+            biome_palette_layout(9),
+            (PaletteKind::Direct, DIRECT_BIOME_PALETTE_BITS)
+        );
+        assert!((1usize << DIRECT_BIOME_PALETTE_BITS) >= BIOME_COUNT);
+        assert!((1usize << (DIRECT_BIOME_PALETTE_BITS - 1)) < BIOME_COUNT);
     }
 
     #[test]
@@ -1363,6 +1312,78 @@ mod tests {
     }
 
     #[test]
+    fn section_counts_include_flowing_and_waterlogged_states_and_skip_all_air_types() {
+        let registry = bcore_registry::vanilla();
+        let state = |name: &str, properties: &[(&str, &str)]| {
+            registry
+                .states
+                .iter()
+                .find(|state| {
+                    state.name == name
+                        && properties.iter().all(|&(key, value)| {
+                            state.properties.get(key).is_some_and(|v| v == value)
+                        })
+                })
+                .unwrap()
+                .id
+        };
+        let wet_slab = state(
+            "minecraft:oak_slab",
+            &[("type", "bottom"), ("waterlogged", "true")],
+        );
+        let dry_slab = state(
+            "minecraft:oak_slab",
+            &[("type", "bottom"), ("waterlogged", "false")],
+        );
+        let states = [
+            state("minecraft:water", &[("level", "1")]),
+            state("minecraft:lava", &[("level", "15")]),
+            wet_slab,
+            state("minecraft:seagrass", &[]),
+            block_state::STONE,
+            dry_slab,
+            block_state::CAVE_AIR,
+            block_state::VOID_AIR,
+        ];
+        let mut column = ChunkColumn::new(BIOME_PLAINS);
+        for (x, state) in states.into_iter().enumerate() {
+            assert!(column.set(x, 64, 0, state));
+        }
+        let section = decode_section(&column.encode_payload(0, 0), 8);
+        assert_eq!(section.block_count, 6);
+        assert_eq!(section.fluid_count, 4);
+        assert_eq!(&section.states[..states.len()], &states);
+        assert!(ChunkColumn::is_fluid(wet_slab));
+        assert!(!ChunkColumn::is_fluid(dry_slab));
+    }
+
+    #[test]
+    fn sections_with_many_biomes_use_raw_shared_registry_ids() {
+        let states = vec![block_state::AIR; COLUMNS * WORLD_HEIGHT as usize];
+        let mut biomes = vec![BIOME_PLAINS; SECTION_COUNT * SECTION_BIOMES];
+        let section = 8;
+        let expected: Vec<_> = (0..SECTION_BIOMES)
+            .map(|id| ((id * 7) % BIOME_COUNT) as u32)
+            .collect();
+        biomes[section * SECTION_BIOMES..(section + 1) * SECTION_BIOMES].copy_from_slice(&expected);
+        let column = ChunkColumn::from_parts(states, biomes);
+        let decoded = decode_section(&column.encode_payload(0, 0), section);
+        assert_eq!(decoded.biome_bits, DIRECT_BIOME_PALETTE_BITS);
+        assert!(decoded.biome_palette.is_empty());
+        assert_eq!(decoded.biomes, expected);
+        assert_eq!(decoded.block_count, 0);
+        assert_eq!(decoded.fluid_count, 0);
+    }
+
+    #[test]
+    fn block_edits_reject_ids_outside_the_shared_registry() {
+        let mut column = ChunkColumn::new(BIOME_PLAINS);
+        assert!(column.set(0, 64, 0, (BLOCK_STATE_COUNT - 1) as u32));
+        assert!(!column.set(0, 64, 0, BLOCK_STATE_COUNT as u32));
+        assert_eq!(column.get(0, 64, 0), Some((BLOCK_STATE_COUNT - 1) as u32));
+    }
+
+    #[test]
     fn a_section_without_fluid_reports_zero() {
         let column = ChunkColumn::flat();
         let payload = column.encode_payload(0, 0);
@@ -1410,6 +1431,9 @@ mod tests {
         bits: u8,
         palette: Vec<u32>,
         states: Vec<u32>,
+        biome_bits: u8,
+        biome_palette: Vec<u32>,
+        biomes: Vec<u32>,
     }
 
     /// Minimal `map_chunk` reader used to assert on our own output.
@@ -1434,7 +1458,8 @@ mod tests {
             let (bits, palette, states, used) = read_container(&payload[at..], SECTION_VOLUME);
             at += used;
             // Biomes.
-            let (_bb, _bp, _bs, used) = read_container(&payload[at..], SECTION_BIOMES);
+            let (biome_bits, biome_palette, biomes, used) =
+                read_container(&payload[at..], SECTION_BIOMES);
             at += used;
 
             if section == want {
@@ -1444,6 +1469,9 @@ mod tests {
                     bits,
                     palette,
                     states,
+                    biome_bits,
+                    biome_palette,
+                    biomes,
                 };
             }
         }
@@ -1461,7 +1489,12 @@ mod tests {
         }
 
         // Blocks use the global palette above 8 bits; biomes above 3.
-        let direct = entries == SECTION_VOLUME && bits > MAX_INDIRECT_BLOCK_BITS;
+        let limit = if entries == SECTION_VOLUME {
+            MAX_INDIRECT_BLOCK_BITS
+        } else {
+            MAX_INDIRECT_BIOME_BITS
+        };
+        let direct = bits > limit;
         let mut palette = Vec::new();
         if !direct {
             let (len, n) = bcore_core::varint::decode_varint(&data[at..]).expect("palette len");

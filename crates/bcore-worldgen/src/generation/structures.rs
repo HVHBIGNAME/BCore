@@ -1,7 +1,6 @@
 //! Retained starts and per-source clipping, without target-local spider replay.
 use std::cell::RefCell;
 use std::collections::{BTreeMap, BTreeSet};
-use std::sync::OnceLock;
 
 use crate::dripstone::CaveRandomState;
 use crate::feature_world::FeatureHeightmap;
@@ -62,7 +61,7 @@ impl GenerationState {
                 generator.seed(),
                 pos,
                 &heights,
-                |p| native_biome(noise_biome(p)),
+                &noise_biome,
             )
             .map_err(|error| error.to_string())?
             {
@@ -71,10 +70,9 @@ impl GenerationState {
         }
         let mut scattered_starts = BTreeMap::new();
         for kind in ScatteredKind::ALL {
-            if let Some(start) = scattered::for_chunk(kind, generator.seed(), pos, &heights, |p| {
-                native_biome(noise_biome(p))
-            })
-            .map_err(|error| error.to_string())?
+            if let Some(start) =
+                scattered::for_chunk(kind, generator.seed(), pos, &heights, &noise_biome)
+                    .map_err(|error| error.to_string())?
             {
                 scattered_starts.insert(kind.name().into(), start);
             }
@@ -290,23 +288,6 @@ fn intersects_chunk(bb: BoundingBox, pos: ChunkPos) -> bool {
         && bb.min.0 <= pos.x * 16 + 15
         && bb.max.2 >= pos.z * 16
         && bb.min.2 <= pos.z * 16 + 15
-}
-
-fn native_biome(wire_id: u32) -> u32 {
-    static IDS: OnceLock<BTreeMap<u32, u32>> = OnceLock::new();
-    IDS.get_or_init(|| {
-        crate::block_predicate::catalog().documents["biome_ids"]
-            .as_object()
-            .expect("native biome IDs")
-            .iter()
-            .map(|(name, id)| {
-                (
-                    crate::biome::id(name).expect("native biome identity"),
-                    id.as_u64().unwrap() as u32,
-                )
-            })
-            .collect()
-    })[&wire_id]
 }
 
 pub(super) fn unsupported_structures() -> String {

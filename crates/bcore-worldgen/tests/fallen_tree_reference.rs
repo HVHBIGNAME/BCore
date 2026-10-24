@@ -16,6 +16,9 @@ use sha2::{Digest, Sha256};
 
 const JAR_SHA256: &str = "a7fed6f7d88379349e35ae0c6e9881d4484605132f6f620376a3868eea6cce52";
 
+#[path = "support/registry_26_1.rs"]
+mod registry_26_1;
+
 #[derive(serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct NativeReference {
@@ -658,15 +661,13 @@ fn fallen_tree_presets_and_replaceable_tag_match_pinned_jar_resources() {
         serde_json::from_str(include_str!("../data/heightmaps_26_1.json")).unwrap();
     assert_eq!(heightmap["jar_sha256"], JAR_SHA256);
     for state in 0..heightmap["state_count"].as_u64().unwrap() {
+        let current = registry_26_1::target_state(state as u32);
+        assert_eq!(registry_26_1::historical_state(current), state as u32);
         let expected = matches!(state, 0 | 15292 | 15293)
             || ranges.iter().any(|range| {
                 (range[0].as_u64().unwrap()..range[1].as_u64().unwrap()).contains(&state)
             });
-        assert_eq!(
-            fallen::valid_tree_state(state as u32),
-            expected,
-            "state {state}"
-        );
+        assert_eq!(fallen::valid_tree_state(current), expected, "state {state}");
     }
 }
 

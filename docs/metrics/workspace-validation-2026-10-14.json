@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "recorded_date": "2026-10-14",
+  "scope": "Fresh workspace validation and offline verification of archived native FULL observations",
+  "git_head": "05329feaec0bdf0553e04d4154c8c5e29bc7f429",
+  "dirty_worktree": true,
+  "toolchain": {
+    "channel": "nightly-2026-08-21",
+    "rustc": "1.100.0-nightly (8925ea358 2026-08-20)",
+    "cargo": "1.100.0-nightly (514c56dd7 2026-08-19)",
+    "host": "x86_64-pc-windows-msvc",
+    "python": "3.11.0"
+  },
+  "runner": {
+    "path": "scripts/run_generation_check.py",
+    "sha256": "3ed1af815d85aafed1385d22e16eb447990e7188cb2e4c0797a3e61361a8013a",
+    "queue": "target/generation-checks",
+    "cargo_target_dir": "target/build",
+    "cargo_build_jobs": 1,
+    "rayon_num_threads": 2,
+    "behavioral_tests_passed": 8,
+    "behavioral_test_command": ["python", "-B", "-m", "unittest", "discover", "-s", "scripts", "-p", "test_run_generation_check.py", "-v"],
+    "behavioral_test_source_sha256": "1e94a9ff87bc85731c14407cf2655bd5d69f0009667e69990217b376074b4f58"
+  },
+  "workspace_tests": {
+    "job": "workspace-tests-20261013-1791860236770512700",
+    "command": ["cargo", "test", "--workspace", "--release", "--locked", "--no-fail-fast", "-j", "1", "--", "--test-threads=2", "-Z", "unstable-options", "--format=json", "--report-time"],
+    "exit_code": 0,
+    "passed": 677,
+    "failed": 0,
+    "ignored": 4,
+    "target_summaries": 60,
+    "build_seconds": 659.0,
+    "harness_seconds": 387.49791930000004,
+    "execution_seconds": 1083.9886882305145,
+    "unattributed_seconds": 37.49076893051449,
+    "log_sha256": "0db55560e6f46015534bd757a4aa476ab16281d60f484219a4244a8f0422efe4",
+    "status_sha256": "85eea309b2335ae19561cd21a83583215ca14388587fde07fa9b9cae3a120df9",
+    "ignored_tests": [
+      "bridge::tests::jvm_bridge_end_to_end",
+      "biome::benchmark::benchmark_native_tree_against_original_linear_on_identical_router_inputs",
+      "tests::benchmark_vanilla_graph_cache",
+      "parity_fixture_matches_bcore"
+    ],
+    "covered_optimization_tests": {
+      "aquifer::bound_tests::": 5,
+      "density::sharing_tests::": 7,
+      "generation::terrain::tests::": 5,
+      "density_materials_tests::": 2
+    }
+  },
+  "workspace_build": {
+    "job": "workspace-build-20261014-1791943837927035100",
+    "command": ["cargo", "build", "--workspace", "--release", "--locked", "-j", "1"],
+    "exit_code": 0,
+    "log_sha256": "2c8d65e006876c9ab4d85982b1f26d79c678cc61b2d7eabc131539150a206964",
+    "binary": "target/build/release/bcore.exe",
+    "binary_sha256": "fec53c76025f31694c68cc68b97f7711b7891e3d7df1fded0a26f4edb8322702",
+    "cli_help_job": "server-cli-20261014-1791944070477748300",
+    "cli_help_exit_code": 0
+  },
+  "diagnostics_check": {
+    "job": "worldgen-diagnostics-check-20261014-1791943886425236100",
+    "command": ["cargo", "check", "--release", "--locked", "-p", "bcore-worldgen", "--features", "diagnostics", "--all-targets", "-j", "1"],
+    "exit_code": 0,
+    "log_sha256": "ef06cf15d5307908552538d90b0867971976043e03d94d9b5a69a33962086f92"
+  },
+  "other_checks": {
+    "format_job": "format-20261013-1791860152338308100",
+    "format_exit_code": 0,
+    "timing_parser_job": "timing-parser-20261013-1791860152690577900",
+    "timing_parser_tests_passed": 3,
+    "timing_parser_exit_code": 0
+  },
+  "full_fixture_verification": {
+    "kind": "offline re-verification of archived native observations",
+    "native_version": "26.1",
+    "protocol": 775,
+    "native_jar_sha256": "a7fed6f7d88379349e35ae0c6e9881d4484605132f6f620376a3868eea6cce52",
+    "source_archive": "scripts/full-lifecycle-reference/fixtures/full-lifecycle-26_1-v1.zip",
+    "source_archive_sha256": "499950d70f9422e04c45496dfb490b9be21496d1a5cdeb3cea3512e21c090637",
+    "extraction_job": "full-fixture-extract-20261013-1791943745366301900",
+    "verification_job": "full-fixture-verify-20261014-1791943886425236100",
+    "exit_code": 0,
+    "checks_passed": 11,
+    "independent_archived_observations_match": true,
+    "recorded_gameplay_ticks": 0,
+    "observations_sha256": "07be9301756ca9fcee95012be20018f4fc2969ae1a66bba782dec1ee7b657be7",
+    "verifier_sha256": "9f96b90c1952f32d405e2692bca71de196b3f028aedd1f70a46966ac4fa47b1b",
+    "verification_log_sha256": "69932497c8ba8becec91682c583c7e3e78c02f99c18525c0d908db47f018ff12",
+    "archive": "target/full-lifecycle-reverified-20261014-new.zip",
+    "archive_sha256": "6df650833cd8c55d64d7eb8800438449f6e0ef4c1555c5884c104bb24e7c91c5"
+  },
+  "post_validation_source_inventory": {
+    "note": "Raw-byte hashes recorded after validation; this selected-file inventory is not a frozen whole-workspace source archive.",
+    "files": {
+      "Cargo.toml": "754728dab93aa58759663ee6d90f0a872ab3b68448ca745b6678faa4d78d0a42",
+      "Cargo.lock": "cccd84f7e2d2921bc912ae4abaf724065e36f95c53d8ad2f36d902518278c405",
+      "rust-toolchain.toml": "f09b6a50fa9affb0ae0c5e3f2c2082522a0d34d50b5b0e6f8645d8f44ddfaac0",
+      "crates/bcore-protocol/tests/chat_flow.rs": "d4bfdf1366cfbaff5bb935f379eaf0172090eede31460e9858864141fd84e79d",
+      "crates/bcore-worldgen/src/aquifer.rs": "d82b387aac8bc5daf23e80664667bd767d8d3ac57b9a9d680b0f1d5eabd98b9e",
+      "crates/bcore-worldgen/src/density.rs": "e6435103c056f518a420b8680a04083ea5b0187d6d8aa3d20df73f4cbcda5e44",
+      "crates/bcore-worldgen/src/generation/terrain.rs": "4b09c5bfacc1fbe12b40740d0ba85c448a3c79343eb5ac9b003756d1745aa9d3",
+      "crates/bcore-worldgen/src/aquifer_bound_tests.rs": "63d27b3a9fbdbd9e05a2764c3cb063c1832567c5f1f0c657cbc25553c08a8cf6",
+      "crates/bcore-worldgen/src/density_sharing_tests.rs": "597a208b4120943a84115c048690f4de04cb37d4e7a19adb64c63a720eab24f1",
+      "crates/bcore-worldgen/examples/density_sharing_probe.rs": "88ae2d14fdd5ffba07df071446b51fa14928a4b7939026f522f4b9cb1a87d6e7",
+      "crates/bcore-worldgen/data/aquifer_bound_26_1.json": "0c6954345b552472587a738a0e177d901a37250a26be4c5dfebe14c2a236f1ac",
+      "crates/bcore-worldgen/data/density_sharing_26_1.json": "724685c71ed2a583ca61ef40272495800304fd04d07bb7fcb215d97c442f98ac",
+      "scripts/test_timings.py": "db4f3fcd284f8452b383974ee92978d8220dd25c3a072cc27097cfc00d471558",
+      "scripts/test_test_timings.py": "9eb4697ef94583a684340c06cc0e4943f772ea0a8eaefc97111a26b00e20a519"
+    }
+  },
+  "limitations": [
+    "This is not a new matched-history parity checkpoint or performance benchmark.",
+    "No JVM or native generation was run for the offline FULL fixture verification.",
+    "Production FULL conversion, implicit LIGHT ticket admission and persistent converted-holder hydration remain incomplete.",
+    "Fresh native recapture requires restoring the pinned server JAR, libraries, Java runtime and ASM dependency.",
+    "Builds passed with existing dead-code and deprecated-helper warnings."
+  ]
+}

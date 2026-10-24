@@ -1,6 +1,7 @@
 //! World access shared by placed features and their configured implementations.
 use crate::ore::OreWorld;
-use crate::tick_request::TickRequest;
+use crate::structure::template::TemplateEffect;
+use crate::tick_request::{TickRequest, TickTarget};
 
 pub type Pos = (i32, i32, i32);
 
@@ -24,6 +25,12 @@ pub trait FeatureWorld: OreWorld {
     fn mark_feature_postprocessing(&mut self, pos: Pos);
     fn schedule_feature_tick(&mut self, request: TickRequest) -> bool;
 
+    /// Resolve a hive at the lookup boundary, including supported pending data.
+    /// None means no hive was found; unsupported worlds must report an error.
+    fn lookup_feature_beehive(&mut self, _pos: Pos) -> Result<Option<Vec<i32>>, FeatureError> {
+        Err(FeatureError::Unsupported("feature beehive lookup".into()))
+    }
+
     /// Native typed brushable lookup followed by setLootTable if present. The
     /// lookup may materialize pending DUMMY data even after a rejected write.
     /// False means the lookup found no brushable, not an unsupported world.
@@ -35,6 +42,34 @@ pub trait FeatureWorld: OreWorld {
     ) -> Result<bool, FeatureError> {
         Err(FeatureError::Unsupported(
             "brushable feature loot lookup".into(),
+        ))
+    }
+
+    /// Immediate template load/clear/entity callbacks in the current source task.
+    fn apply_feature_template_effect(
+        &mut self,
+        _effect: TemplateEffect,
+    ) -> Result<(), FeatureError> {
+        Err(FeatureError::Unsupported("feature template effects".into()))
+    }
+
+    /// StructureTemplate's updateNeighborsAt callback, after each final shape.
+    fn update_feature_neighbours(&mut self, _pos: Pos, _state: u32) -> Result<(), FeatureError> {
+        Err(FeatureError::Unsupported(
+            "feature neighbour notification".into(),
+        ))
+    }
+
+    /// Membership in the pending native tick queue, including earlier requests.
+    fn has_feature_tick(&self, _pos: Pos, _target: TickTarget) -> Result<bool, FeatureError> {
+        Err(FeatureError::Unsupported(
+            "feature scheduled-tick lookup".into(),
+        ))
+    }
+
+    fn reset_feature_potent_sulfur(&mut self, _pos: Pos) -> Result<bool, FeatureError> {
+        Err(FeatureError::Unsupported(
+            "potent sulfur block-entity lookup".into(),
         ))
     }
 }

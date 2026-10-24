@@ -1,0 +1,439 @@
+{
+  "artifacts": {
+    "build.log": "398b1477d57d68b94c99f282043d56e4cc36a4219e92c23a7c8cc0067a3f8862",
+    "noise_bench.exe": "0dab7fe43775f4ca12b3a0ec55579f3976b5c335bbdf0eb9ca289d7304faeec5",
+    "noise_bench.pdb": "7646d4c18331e7a64250578a9052b252c9259926834191bfb1619f22e484bf64",
+    "process.log": "43eac7c5ad437c2a774591fe574c450740fb7527e34739bb985692019f96bcf2",
+    "profile.json": "38f82c04beb274d9eef223ff1e0e8932bc60a2cf919076562d215eb379d694a7",
+    "request.json": "ee567778259d2eea7e6eaed4401287c103ef04eabdf259ad44a04558967a1c85",
+    "run.py": "ca5a7d9d347d4dd6d8e1ee9be5c034b88ff3502431194dc9b49f9952dfd53513",
+    "sample.py": "9766071efd700a6b5212725a3b5636d5309d7f119831c3fa9e6305127befd567",
+    "source-manifest.json": "49d162b984eac375350c088259230cd8f0cbd382b6f38f6510e9db5e8e04942c",
+    "source.zip": "9c371cc33c871a23fffae5c8895171f33a63c1169848c8e300fdfaecc48aa0dd"
+  },
+  "baseline_results_sha256": "445993fa5be405614d139122672459bb9dccf1cbf7c7e6d3ac3f17e25f66816c",
+  "diagnostic_override": {
+    "CARGO_PROFILE_RELEASE_DEBUG": "1"
+  },
+  "duration_seconds": 23.510932100005448,
+  "errors_and_filtered": {
+    "SuspendThread:5": 4,
+    "inactive_cycle_delta_below_50000": 3600
+  },
+  "executable_sha256": "0dab7fe43775f4ca12b3a0ec55579f3976b5c335bbdf0eb9ca289d7304faeec5",
+  "exit_code": 0,
+  "limitations": [
+    "Statistical leaf samples; no inline call stacks or exact per-function timing.",
+    "Sampling perturbs execution; elapsed/batch times are not throughput evidence.",
+    "Whole benchmark process: includes warmups, fingerprinting and other harness work.",
+    "Cycle-delta filter is an activity heuristic; kernel waits can remain."
+  ],
+  "method": "owned-child AMD64 SuspendThread/GetThreadContext/ResumeThread IP sampling",
+  "minecraft": "26.2",
+  "minimum_cycle_delta": 50000,
+  "owned_pid": 32076,
+  "pdb_sha256": "7646d4c18331e7a64250578a9052b252c9259926834191bfb1619f22e484bf64",
+  "profile_result_sha256": "063ae82aa70d7ee07ea7fa93ff4eaab7f40697da5e356335e9fb1715ae53b1b2",
+  "profile_sha256": "38f82c04beb274d9eef223ff1e0e8932bc60a2cf919076562d215eb379d694a7",
+  "protocol": 776,
+  "request": {
+    "chunks": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        -64,
+        -32
+      ],
+      [
+        -63,
+        -32
+      ],
+      [
+        62,
+        0
+      ],
+      [
+        -125,
+        187
+      ]
+    ],
+    "measured_batches": 100,
+    "schema": 2,
+    "scope": "noise-fill-wg-v2",
+    "seed": "846692123413862008",
+    "warmup_batches": 10,
+    "workers": 1
+  },
+  "samples": 4002,
+  "schema": "bcore.cpu-profile-summary.v1",
+  "sleep_seconds": 0.003,
+  "source_archive_sha256": "9c371cc33c871a23fffae5c8895171f33a63c1169848c8e300fdfaecc48aa0dd",
+  "source_file_count": 489,
+  "source_samples": [
+    {
+      "file": "crates/bcore-worldgen/src/density/chunk.rs",
+      "samples": 1063
+    },
+    {
+      "file": "crates/bcore-worldgen/src/noise_perlin.rs",
+      "samples": 732
+    },
+    {
+      "file": "crates/bcore-worldgen/src/density.rs",
+      "samples": 645
+    },
+    {
+      "file": "unknown",
+      "samples": 351
+    },
+    {
+      "file": "/rustc/8925ea358a0f265ca61026aadc7ecc506c545cbe/library\\std\\src\\thread\\local.rs",
+      "samples": 272
+    },
+    {
+      "file": "crates/bcore-worldgen/src/aquifer.rs",
+      "samples": 232
+    },
+    {
+      "file": "crates/bcore-worldgen/src/generation/terrain.rs",
+      "samples": 125
+    },
+    {
+      "file": "/rust/deps\\hashbrown-0.17.1/src\\map.rs",
+      "samples": 91
+    },
+    {
+      "file": "/rustc/8925ea358a0f265ca61026aadc7ecc506c545cbe/library\\core\\src\\hash\\mod.rs",
+      "samples": 81
+    },
+    {
+      "file": "/rustc/8925ea358a0f265ca61026aadc7ecc506c545cbe/library\\core\\src\\hash\\sip.rs",
+      "samples": 80
+    },
+    {
+      "file": "crates/bcore-worldgen/src/simplex.rs",
+      "samples": 75
+    },
+    {
+      "file": "crates/bcore-worldgen/src/beardifier.rs",
+      "samples": 57
+    },
+    {
+      "file": "/rustc/8925ea358a0f265ca61026aadc7ecc506c545cbe/library\\core\\src\\slice\\memchr.rs",
+      "samples": 39
+    },
+    {
+      "file": "C:\\Users\\Pisun4ik\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\sha2-0.10.9\\src\\sha256\\x86.rs",
+      "samples": 34
+    },
+    {
+      "file": "crates/bcore-worldgen/src/ore_vein.rs",
+      "samples": 32
+    },
+    {
+      "file": "/rustc/8925ea358a0f265ca61026aadc7ecc506c545cbe/library\\core\\src\\str\\iter.rs",
+      "samples": 25
+    },
+    {
+      "file": "crates/bcore-worldgen/src/generation/benchmark.rs",
+      "samples": 17
+    },
+    {
+      "file": "crates/bcore-worldgen/src/lib.rs",
+      "samples": 12
+    },
+    {
+      "file": "/rustc/8925ea358a0f265ca61026aadc7ecc506c545cbe/library\\core\\src\\slice\\mod.rs",
+      "samples": 10
+    },
+    {
+      "file": "crates/bcore-worldgen/src/biome/tree.rs",
+      "samples": 9
+    },
+    {
+      "file": "/rust/deps\\hashbrown-0.17.1/src\\raw.rs",
+      "samples": 5
+    },
+    {
+      "file": "/rustc/8925ea358a0f265ca61026aadc7ecc506c545cbe/library\\core\\src\\ops\\function.rs",
+      "samples": 4
+    },
+    {
+      "file": "/rust/deps\\hashbrown-0.17.1/src\\rustc_entry.rs",
+      "samples": 4
+    },
+    {
+      "file": "C:\\Users\\Pisun4ik\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\sha2-0.10.9\\src\\sha256.rs",
+      "samples": 4
+    },
+    {
+      "file": "C:\\Users\\Pisun4ik\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\crossbeam-epoch-0.9.20\\src\\default.rs",
+      "samples": 1
+    },
+    {
+      "file": "crates/bcore-worldgen/src/biome/parameter_list.rs",
+      "samples": 1
+    },
+    {
+      "file": "/rustc/8925ea358a0f265ca61026aadc7ecc506c545cbe/library\\alloc\\src\\raw_vec\\mod.rs",
+      "samples": 1
+    }
+  ],
+  "summary": [
+    {
+      "module": "noise_bench.exe",
+      "samples": 645,
+      "symbol": "bcore_worldgen::density::chunk::CellInterpolator::sample"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 596,
+      "symbol": "bcore_worldgen::noise_perlin::ImprovedNoise::noise"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 551,
+      "symbol": "bcore_worldgen::density::DensityFunction::evaluate"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 418,
+      "symbol": "bcore_worldgen::density::chunk::RootDensity::evaluate"
+    },
+    {
+      "module": "ntdll.dll",
+      "samples": 240,
+      "symbol": null
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 211,
+      "symbol": "bcore_worldgen::aquifer::Aquifer::substance"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 190,
+      "symbol": "std::thread::local::LocalKey::with<core::cell::RefCell<std::collections::hash::map::HashMap<tuple$<usize,i64,bcore_worldgen::density::EvaluationMode,u64,u64,u64>,f64,core::hash::BuildHasherDefault<bcore_worldgen::fast_hash::FastHasher>,alloc::alloc::Global> >,bcore_worldgen::density::cache_once::closure_env$0,enum2$<core::option::Option<f64> > >"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 125,
+      "symbol": "bcore_worldgen::WorldGenerator::generate_noise_with_structures"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 83,
+      "symbol": "bcore_worldgen::noise_perlin::PerlinNoise::value"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 82,
+      "symbol": "std::thread::local::LocalKey::with<core::cell::RefCell<std::collections::hash::map::HashMap<i64,std::collections::hash::map::HashMap<alloc::string::String,bcore_worldgen::noise_perlin::NormalNoise,std::hash::random::RandomState,alloc::alloc::Global>,std::hash::random::RandomState,alloc::alloc::Global> >,bcore_worldgen::simplex::sample_cached_normal::closure_env$0,f64>"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 80,
+      "symbol": "core::hash::sip::impl$5::write<core::hash::sip::Sip13Rounds>"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 75,
+      "symbol": "bcore_worldgen::simplex::NoiseRegistry::sample"
+    },
+    {
+      "module": "VCRUNTIME140.dll",
+      "samples": 62,
+      "symbol": null
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 61,
+      "symbol": "hashbrown::map::HashMap::insert<tuple$<usize,i64,bcore_worldgen::density::EvaluationMode,u64,u64,u64>,f64,core::hash::BuildHasherDefault<bcore_worldgen::fast_hash::FastHasher>,alloc::alloc::Global>"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 57,
+      "symbol": "bcore_worldgen::beardifier::Beardifier::compute"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 53,
+      "symbol": "bcore_worldgen::noise_perlin::BlendedNoise::compute"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 51,
+      "symbol": "core::hash::BuildHasher::hash_one<std::hash::random::RandomState,ref$<str$> >"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 42,
+      "symbol": "bcore_worldgen::density::cache_once"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 39,
+      "symbol": "core::slice::memchr::memrchr_aligned"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 39,
+      "symbol": "bcore_worldgen::density::flat_cache"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 34,
+      "symbol": "sha2::sha256::x86::digest_blocks"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 32,
+      "symbol": "bcore_worldgen::ore_vein::calculate_with_random<bcore_worldgen::ore_vein::impl$1::calculate::closure$0::closure_env$0<bcore_worldgen::density::chunk::impl$4::calculate::closure_env$0,bcore_worldgen::density::chunk::impl$4::calculate::closure_env$1>,bcore_worldgen::density::chunk::impl$4::calculate::closure_env$0,bcore_worldgen::density::chunk::impl$4::calculate::closure_env$1,bcore_worldgen::ore_vein::impl$1::calculate::closure_env$0<bcore_worldgen::density::chunk::impl$4::calculate::closure_env$0,bcore_worldgen::density::chunk::impl$4::calculate::closure_env$1> >"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 30,
+      "symbol": "core::hash::BuildHasher::hash_one<std::hash::random::RandomState,ref$<usize> >"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 27,
+      "symbol": "floor"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 25,
+      "symbol": "core::str::iter::SplitInternal::next_back<char>"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 22,
+      "symbol": "hashbrown::map::HashMap::insert<tuple$<usize,i64,bcore_worldgen::density::EvaluationMode,i64,i64>,f64,core::hash::BuildHasherDefault<bcore_worldgen::fast_hash::FastHasher>,alloc::alloc::Global>"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 20,
+      "symbol": "bcore_worldgen::aquifer::Aquifer::status"
+    },
+    {
+      "module": "ucrtbase.dll",
+      "samples": 20,
+      "symbol": null
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 17,
+      "symbol": "bcore_worldgen::generation::benchmark::fingerprint"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 12,
+      "symbol": "bcore_worldgen::GeneratedChunk::capture_worldgen_heightmaps"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 10,
+      "symbol": "core::slice::impl$0::partition_point<tuple$<f64,alloc::boxed::Box<enum2$<bcore_worldgen::density::DensityFunction>,alloc::alloc::Global>,f64>,bcore_worldgen::density::spline::closure_env$1>"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 8,
+      "symbol": "hashbrown::map::HashMap::insert<usize,tuple$<i64,bcore_worldgen::density::EvaluationMode,u64,u64,u64,f64>,core::hash::BuildHasherDefault<bcore_worldgen::fast_hash::FastHasher>,alloc::alloc::Global>"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 8,
+      "symbol": "bcore_worldgen::density::blended_noise"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 6,
+      "symbol": "bcore_worldgen::biome::tree::Tree::visit"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 5,
+      "symbol": "bcore_worldgen::density::blend_density"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 4,
+      "symbol": "core::ops::function::FnOnce::call_once<bcore_worldgen::simplex::NORMAL_CACHE::constant$0::closure_env$0,tuple$<enum2$<core::option::Option<ref_mut$<enum2$<core::option::Option<core::cell::RefCell<std::collections::hash::map::HashMap<i64,std::collections::hash::map::HashMap<alloc::string::String,bcore_worldgen::noise_perlin::NormalNoise,std::hash::random::RandomState,alloc::alloc::Global>,std::hash::random::RandomState,alloc::alloc::Global> > > > > > > > >"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 4,
+      "symbol": "hashbrown::map::HashMap::rustc_entry<tuple$<array$<u64,5>,i64>,ref$<bcore_worldgen::noise_perlin::BlendedNoise>,core::hash::BuildHasherDefault<bcore_worldgen::fast_hash::FastHasher>,alloc::alloc::Global>"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 4,
+      "symbol": "sha2::sha256::compress256"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 3,
+      "symbol": "bcore_worldgen::biome::tree::Tree::search"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 2,
+      "symbol": "memcmp"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 2,
+      "symbol": "hashbrown::raw::RawTable::reserve_rehash<tuple$<tuple$<i32,i32,i32>,tuple$<i32,i32,i32> >,alloc::alloc::Global,hashbrown::map::make_hasher::closure_env$0<tuple$<i32,i32,i32>,tuple$<i32,i32,i32>,core::hash::BuildHasherDefault<bcore_worldgen::fast_hash::FastHasher> > >"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 1,
+      "symbol": "crossbeam_epoch::default::with_handle<crossbeam_epoch::default::pin::closure_env$0,crossbeam_epoch::guard::Guard>"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 1,
+      "symbol": "bcore_worldgen::aquifer::Aquifer::pressure"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 1,
+      "symbol": "bcore_worldgen::biome::parameter_list::impl$1::find_biome"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 1,
+      "symbol": "hashbrown::raw::RawTable::reserve_rehash<tuple$<usize,tuple$<usize,usize> >,alloc::alloc::Global,hashbrown::map::make_hasher::closure_env$0<usize,tuple$<usize,usize>,core::hash::BuildHasherDefault<bcore_worldgen::fast_hash::FastHasher> > >"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 1,
+      "symbol": "hashbrown::raw::RawTable::reserve_rehash<tuple$<tuple$<i32,i32,i32>,bcore_worldgen::aquifer::FluidStatus>,alloc::alloc::Global,hashbrown::map::make_hasher::closure_env$0<tuple$<i32,i32,i32>,bcore_worldgen::aquifer::FluidStatus,core::hash::BuildHasherDefault<bcore_worldgen::fast_hash::FastHasher> > >"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 1,
+      "symbol": "hashbrown::raw::RawTable::reserve_rehash<tuple$<tuple$<i32,i32>,i32>,alloc::alloc::Global,hashbrown::map::make_hasher::closure_env$0<tuple$<i32,i32>,i32,core::hash::BuildHasherDefault<bcore_worldgen::fast_hash::FastHasher> > >"
+    },
+    {
+      "module": "noise_bench.exe",
+      "samples": 1,
+      "symbol": "alloc::raw_vec::RawVec::grow_one<f32,alloc::alloc::Global>"
+    }
+  ],
+  "verified_matching_outputs": true
+}

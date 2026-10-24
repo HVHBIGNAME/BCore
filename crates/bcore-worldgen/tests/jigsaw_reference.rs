@@ -10,8 +10,23 @@ use std::collections::BTreeMap;
 use template::{BoundingBox, Mirror, Nbt, PlacementSettings, Rotation};
 use template_pool::StructureAssets;
 
+#[path = "support/feature_documents_26_1.rs"]
+pub mod feature_documents_26_1;
+#[path = "support/registry_26_1.rs"]
+mod registry_26_1;
+
 fn fixture() -> Value {
     serde_json::from_str(include_str!("../data/jigsaw_reference_26_1.json")).unwrap()
+}
+
+fn assets() -> &'static StructureAssets {
+    static ASSETS: std::sync::OnceLock<StructureAssets> = std::sync::OnceLock::new();
+    ASSETS.get_or_init(|| {
+        StructureAssets::from_historical_json(include_str!(
+            "../data/pool_alias_trial_combined_assets_26_1_v2.json"
+        ))
+        .unwrap()
+    })
 }
 
 fn pos(value: &Value) -> Pos {
@@ -47,9 +62,12 @@ fn bounds(value: &Value) -> Option<BoundingBox> {
 
 #[test]
 fn complete_assemblies_match_native_pieces_junctions_nbt_and_rng() {
-    let assets = StructureAssets::bundled();
+    let assets = assets();
     let reference = fixture();
-    assert_eq!(reference["jar_sha256"], StructureAssets::JAR_SHA256);
+    assert_eq!(
+        reference["jar_sha256"],
+        StructureAssets::HISTORICAL_JAR_SHA256
+    );
     let cases = reference["assembly"].as_array().unwrap();
     assert_eq!(cases.len(), 24);
     assert_eq!(
@@ -139,7 +157,7 @@ struct World {
 
 impl World {
     fn new(terrain: &str) -> Self {
-        let registry = &StructureAssets::bundled().blocks;
+        let registry = &assets().blocks;
         let fill = registry
             .default_state(match terrain {
                 "water" => "water",
@@ -171,7 +189,7 @@ impl OreWorld for World {
         self.surface(x, z)
     }
     fn get_block(&self, p: Pos) -> Option<u32> {
-        let registry = &StructureAssets::bundled().blocks;
+        let registry = &assets().blocks;
         if !(-64..=319).contains(&p.1) {
             return Some(registry.default_state("void_air").unwrap());
         }
@@ -233,6 +251,45 @@ impl FeatureWorld for World {
     }
 }
 
+struct CurrentWorld<'a>(&'a mut dyn FeatureWorld);
+
+impl OreWorld for CurrentWorld<'_> {
+    fn get_block(&self, pos: Pos) -> Option<u32> {
+        self.0.get_block(pos).map(registry_26_1::target_state)
+    }
+    fn ocean_floor_wg(&self, x: i32, z: i32) -> i32 {
+        self.0.ocean_floor_wg(x, z)
+    }
+    fn set_block(&mut self, pos: Pos, state: u32) -> bool {
+        self.set_feature_block(pos, state, 2)
+    }
+}
+
+impl FeatureWorld for CurrentWorld<'_> {
+    fn feature_biome(&self, pos: Pos) -> u32 {
+        feature_documents_26_1::target_biome(self.0.feature_biome(pos))
+    }
+    fn feature_height(&self, kind: FeatureHeightmap, x: i32, z: i32) -> i32 {
+        self.0.feature_height(kind, x, z)
+    }
+    fn can_write_feature(&self, pos: Pos) -> bool {
+        self.0.can_write_feature(pos)
+    }
+    fn set_feature_block(&mut self, pos: Pos, state: u32, flags: i32) -> bool {
+        self.0
+            .set_feature_block(pos, registry_26_1::historical_state(state), flags)
+    }
+    fn mark_feature_postprocessing(&mut self, pos: Pos) {
+        self.0.mark_feature_postprocessing(pos);
+    }
+    fn schedule_feature_tick(&mut self, mut request: tick_request::TickRequest) -> bool {
+        if let tick_request::TickTarget::Block(state) = &mut request.target {
+            *state = registry_26_1::historical_state(*state);
+        }
+        self.0.schedule_feature_tick(request)
+    }
+}
+
 fn digest<const N: usize>(rows: impl IntoIterator<Item = [i32; N]>) -> String {
     let mut context = md5::Context::new();
     for row in rows {
@@ -245,7 +302,7 @@ fn digest<const N: usize>(rows: impl IntoIterator<Item = [i32; N]>) -> String {
 
 #[test]
 fn actual_template_placement_matches_native_states_writes_loot_nbt_ticks_and_rng() {
-    let assets = StructureAssets::bundled();
+    let assets = assets();
     let reference = fixture();
     let cases = reference["placement"].as_array().unwrap();
     assert_eq!(cases.len(), 28);
@@ -364,12 +421,20 @@ fn actual_template_placement_matches_native_states_writes_loot_nbt_ticks_and_rng
 
 #[test]
 fn full_ancient_city_block_path_matches_native_structure_start_including_sculk() {
-    let assets = StructureAssets::bundled();
+    let assets = assets();
     let reference = fixture();
     let cases = reference["cities"]
         .as_array()
         .expect("native full-city captures");
     assert_eq!(cases.len(), 6);
+    let placed = feature_documents_26_1::placed(&serde_json::json!("sculk_patch_ancient_city"));
+    assert!(placed["placement"].as_array().unwrap().is_empty());
+    let document = &placed["feature"];
+    let sculk_config = bcore_worldgen::sculk::Config::from_json(
+        document["type"].as_str().unwrap(),
+        &document["config"],
+    )
+    .unwrap();
     for sample in cases {
         let seed = sample["seed"].as_i64().unwrap();
         let config = jigsaw::JigsawConfig::from_assets(assets, "ancient_city").unwrap();
@@ -395,13 +460,24 @@ fn full_ancient_city_block_path_matches_native_structure_start_including_sculk()
         }
         let mut world = World::new(sample["terrain"].as_str().unwrap());
         let mut random = simplex::WorldgenRandom::new(sample["placement_seed"].as_i64().unwrap());
-        let result = jigsaw::place_ancient_city_in_chunk(
+        let result = jigsaw::place_in_chunk_with_features(
             assets,
             &start,
             &mut world,
             &mut random,
             clip,
             seed,
+            &mut |name, world, random, origin| {
+                assert_eq!(name, "minecraft:sculk_patch_ancient_city");
+                jigsaw::place_feature_with_effects(&assets.blocks, world, |effects| {
+                    bcore_worldgen::sculk::place(
+                        &mut CurrentWorld(effects),
+                        random,
+                        origin,
+                        &sculk_config,
+                    )
+                })
+            },
         )
         .unwrap();
         assert_eq!(
@@ -478,6 +554,37 @@ fn full_ancient_city_block_path_matches_native_structure_start_including_sculk()
 }
 
 #[test]
+fn current_city_helper_rejects_historical_inputs_before_writes_or_rng() {
+    let assets = assets();
+    let config = jigsaw::JigsawConfig::from_assets(assets, "ancient_city").unwrap();
+    let heights = jigsaw::HeightContext {
+        min_y: -64,
+        max_y: 319,
+        first_free: &|_, _, _| 65,
+    };
+    let start = jigsaw::generate_start(assets, &config, 0, ChunkPos::new(0, 0), &heights, |_| true)
+        .unwrap()
+        .unwrap();
+    let mut world = World::new("air");
+    let mut random = simplex::WorldgenRandom::new(17);
+    let mut untouched = simplex::WorldgenRandom::new(17);
+    assert!(matches!(
+        jigsaw::place_ancient_city_in_chunk(
+            assets,
+            &start,
+            &mut world,
+            &mut random,
+            start.reference_bounds().unwrap(),
+            0
+        ),
+        Err(feature_world::FeatureError::Unsupported(_))
+    ));
+    assert!(world.writes.is_empty() && world.states.is_empty());
+    assert!(world.ticks.is_empty() && world.marks.is_empty());
+    assert_eq!(random.next_long(), untouched.next_long());
+}
+
+#[test]
 fn block_and_entity_transforms_match_native_mirrors_and_nonzero_pivots() {
     let reference = fixture();
     let cases = reference["transforms"].as_array().unwrap();
@@ -499,7 +606,7 @@ fn block_and_entity_transforms_match_native_mirrors_and_nonzero_pivots() {
 
 #[test]
 fn ancient_city_anchor_moves_the_template_down_to_its_native_floor() {
-    let assets = StructureAssets::bundled();
+    let assets = assets();
     let config = jigsaw::JigsawConfig::from_assets(assets, "ancient_city").unwrap();
     let heights = jigsaw::HeightContext {
         min_y: -64,
@@ -521,8 +628,10 @@ fn ancient_city_anchor_moves_the_template_down_to_its_native_floor() {
 fn trail_assets() -> &'static StructureAssets {
     static ASSETS: std::sync::OnceLock<StructureAssets> = std::sync::OnceLock::new();
     ASSETS.get_or_init(|| {
-        StructureAssets::from_json(include_str!("../data/jigsaw_trail_assets_26_1_v2.json"))
-            .unwrap()
+        StructureAssets::from_historical_json(include_str!(
+            "../data/jigsaw_trail_assets_26_1_v2.json"
+        ))
+        .unwrap()
     })
 }
 
@@ -531,7 +640,10 @@ fn trail_ruins_native_assemblies_preserve_pieces_and_random_continuation() {
     let assets = trail_assets();
     let fixture: Value =
         serde_json::from_str(include_str!("../data/jigsaw_trail_reference_26_1.json")).unwrap();
-    assert_eq!(fixture["jar_sha256"], StructureAssets::JAR_SHA256);
+    assert_eq!(
+        fixture["jar_sha256"],
+        StructureAssets::HISTORICAL_JAR_SHA256
+    );
     let heights = jigsaw::HeightContext {
         min_y: -64,
         max_y: 319,

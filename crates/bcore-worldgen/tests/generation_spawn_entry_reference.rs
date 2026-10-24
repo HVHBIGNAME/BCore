@@ -9,6 +9,11 @@ use bcore_worldgen::spawn::*;
 use bcore_worldgen::tick_request::TickRequest;
 use serde_json::Value;
 
+#[path = "support/registry_26_1.rs"]
+mod registry_26_1;
+#[path = "support/spawn_26_1.rs"]
+mod spawn_26_1;
+
 struct NativeWorld<'a> {
     case: &'a Value,
 }
@@ -21,7 +26,15 @@ impl OreWorld for NativeWorld<'_> {
     fn get_block(&self, pos: Pos) -> Option<u32> {
         self.case["reads"][format!("block:{}", pos_key(pos))]
             .as_u64()
-            .map(|v| v as u32)
+            .map(|v| {
+                let state = registry_26_1::target_state(v as u32);
+                assert_eq!(
+                    registry_26_1::historical_state(state) as u64,
+                    v,
+                    "native read identity {pos:?}"
+                );
+                state
+            })
     }
     fn ocean_floor_wg(&self, _: i32, _: i32) -> i32 {
         panic!("SPAWN uses final heightmaps")
@@ -119,6 +132,15 @@ impl<'a> NativeEnvironment<'a> {
 }
 
 impl SpawnEnvironment for NativeEnvironment<'_> {
+    fn constructor_template(&self, kind: MobKind) -> SpawnResult<SpawnTag> {
+        spawn_26_1::constructor_template(kind)
+    }
+    fn biome_spawns(&self, biome: u32) -> SpawnResult<BiomeSpawns> {
+        spawn_26_1::biome_spawns(biome)
+    }
+    fn spawn_heightmap(&self, kind: MobKind) -> SpawnResult<FeatureHeightmap> {
+        spawn_26_1::heightmap(kind)
+    }
     fn spawn_mobs(&self) -> bool {
         true
     }

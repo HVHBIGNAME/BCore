@@ -1,4 +1,4 @@
-//! Block predicates and plant survival for the pinned Java 26.1 registry.
+//! Block predicates and plant survival for the authenticated target registry.
 //!
 //! State IDs, property ordering, tags, material flags and vegetation support
 //! tables are captured by `BaseFeatureReference`, not inferred from ID ranges.
@@ -12,6 +12,28 @@ use crate::feature_world::{FeatureError, FeatureWorld, Pos};
 use crate::{MAX_Y, MIN_Y};
 
 pub type FeatureResult<T> = Result<T, FeatureError>;
+
+/// Decode a catalog after verifying its version, server digest and optional state
+/// count against the shared registry used by generation and persistence.
+pub fn parse_catalog<T: serde::de::DeserializeOwned>(text: &str) -> FeatureResult<T> {
+    let value: Value = serde_json::from_str(text).map_err(|error| invalid(error.to_string()))?;
+    if value["minecraft"].as_str() != Some(bcore_registry::MC_VERSION)
+        || value["protocol"].as_i64() != Some(i64::from(bcore_registry::PROTOCOL_VERSION))
+        || value["jar_sha256"].as_str() != Some(bcore_registry::SERVER_JAR_SHA256)
+    {
+        return Err(invalid(
+            "catalog identity differs from the shared vanilla registry",
+        ));
+    }
+    if let Some(count) = value.get("state_count") {
+        if count.as_u64() != Some(bcore_registry::BLOCK_STATE_COUNT as u64) {
+            return Err(invalid(
+                "catalog state count differs from the shared vanilla registry",
+            ));
+        }
+    }
+    serde_json::from_value(value).map_err(|error| invalid(error.to_string()))
+}
 
 /// Extra observations which the shared feature world does not expose.
 /// Implementations must supply native light when a survival test requests it.
@@ -202,9 +224,8 @@ struct MiscMetadata {
 fn misc_metadata() -> &'static MiscMetadata {
     static DATA: OnceLock<MiscMetadata> = OnceLock::new();
     DATA.get_or_init(|| {
-        let value: Value =
-            serde_json::from_str(include_str!("../data/misc_feature_states_26_1.json"))
-                .expect("native misc shape metadata");
+        let value: Value = parse_catalog(include_str!("../data/misc_feature_states_26_2.json"))
+            .expect("native misc shape metadata");
         let count = value["state_count"].as_u64().expect("native state count") as usize;
         let mut shapes = Vec::with_capacity(count);
         for row in value["shape_ranges"]
@@ -250,7 +271,7 @@ pub fn ordered_block_tag(tag: &str) -> FeatureResult<&'static [u32]> {
         .ok_or_else(|| missing(format!("native ordered block tag {tag}")))
 }
 
-/// The exact resources read out of `server-26.1.jar` by the native probe.
+/// Resources and registry observations read by the native feature probe.
 pub struct FeatureCatalog {
     pub documents: Value,
     pub blocks: BTreeMap<String, BlockDefinition>,
@@ -267,14 +288,94 @@ pub fn catalog() -> &'static FeatureCatalog {
     static CATALOG: OnceLock<FeatureCatalog> = OnceLock::new();
     CATALOG.get_or_init(|| {
         FeatureCatalog::from_value(
-            serde_json::from_str(include_str!("../data/base_feature_catalog_26_1.json"))
-                .expect("valid captured 26.1 feature catalog"),
+            parse_catalog(include_str!("../data/base_feature_catalog_26_2.json"))
+                .expect("authenticated feature catalog"),
         )
-        .expect("consistent captured 26.1 registries")
+        .and_then(|catalog| {
+            catalog.validate_shared_registries()?;
+            let biomes = catalog.documents["biome_ids"]
+                .as_object()
+                .ok_or_else(|| invalid("biome registry"))?;
+            if biomes.len() != bcore_registry::BIOME_COUNT {
+                return Err(invalid("incomplete feature biome registry"));
+            }
+            for (name, id) in biomes {
+                if id.as_u64().and_then(|id| u32::try_from(id).ok())
+                    != bcore_registry::registry_id("BIOME", name)
+                {
+                    return Err(invalid(format!("feature biome identity differs: {name}")));
+                }
+            }
+            Ok(catalog)
+        })
+        .expect("consistent shared feature registries")
     })
 }
 
 impl FeatureCatalog {
+    fn validate_shared_registries(&self) -> FeatureResult<()> {
+        let mut end = 0;
+        for (first, name) in &self.block_starts {
+            let block = &self.blocks[name];
+            let cardinality = block
+                .properties
+                .iter()
+                .try_fold(1_u32, |count, (_, values)| {
+                    count.checked_mul(u32::try_from(values.len()).ok()?)
+                });
+            let next = block
+                .first
+                .checked_add(block.count)
+                .ok_or_else(|| invalid(format!("feature block-state range overflows: {name}")))?;
+            if *first != end
+                || block.count == 0
+                || cardinality != Some(block.count)
+                || next as usize > bcore_registry::BLOCK_STATE_COUNT
+                || !(block.first..next).contains(&block.default_state)
+            {
+                return Err(invalid(format!(
+                    "feature block-state definition differs: {name}"
+                )));
+            }
+            end = next;
+        }
+        if end as usize != bcore_registry::BLOCK_STATE_COUNT {
+            return Err(invalid("incomplete feature block-state registry"));
+        }
+        for state in &bcore_registry::vanilla().states {
+            let (name, block) = self.block(state.id)?;
+            if name != state.name.as_str()
+                || block.properties.len() != state.properties.len()
+                || state
+                    .properties
+                    .iter()
+                    .any(|(key, value)| block.property(state.id, key) != Some(value.as_str()))
+                || (block.default_state == state.id) != state.default
+            {
+                return Err(invalid(format!(
+                    "feature block-state identity differs: {}",
+                    state.id
+                )));
+            }
+        }
+        if self.fluids.len() != bcore_registry::vanilla().registries["FLUID"].len() {
+            return Err(invalid("incomplete feature fluid registry"));
+        }
+        for (name, &id) in &self.fluids {
+            if bcore_registry::registry_id("FLUID", name) != Some(id) {
+                return Err(invalid(format!("feature fluid identity differs: {name}")));
+            }
+        }
+        if self
+            .state_info
+            .iter()
+            .any(|state| state.fluid as usize >= self.fluids.len())
+        {
+            return Err(invalid("feature state references an unknown fluid"));
+        }
+        Ok(())
+    }
+
     pub fn from_value(documents: Value) -> FeatureResult<Self> {
         let blocks: BTreeMap<String, BlockDefinition> =
             serde_json::from_value(documents["blocks"].clone())
@@ -401,6 +502,13 @@ impl FeatureCatalog {
         Ok(self.definition(name)?.default_state)
     }
 
+    pub fn block_id(&self, name: &str) -> FeatureResult<u32> {
+        self.block_ids
+            .get(qualified(name).as_ref())
+            .copied()
+            .ok_or_else(|| missing(format!("block registry identity {name}")))
+    }
+
     pub fn fluid_state(&self, value: &Value) -> FeatureResult<(u32, u32)> {
         let name = qualified(string(&value["Name"])?);
         let mut state = self.documents["fluid_defaults"]
@@ -495,6 +603,28 @@ impl FeatureCatalog {
 
     pub fn fluid_holder_set(&self, value: &Value) -> FeatureResult<BTreeSet<u32>> {
         holder_set(value, &self.fluids, &self.fluid_tags)
+    }
+
+    pub fn biome_holder_set(&self, value: &Value) -> FeatureResult<BTreeSet<u32>> {
+        let registry = self.documents["biome_ids"]
+            .as_object()
+            .ok_or_else(|| missing("biome registry"))?
+            .iter()
+            .map(|(name, value)| {
+                let id = value
+                    .as_u64()
+                    .and_then(|id| u32::try_from(id).ok())
+                    .ok_or_else(|| invalid(format!("biome identity {name}")))?;
+                Ok((name.clone(), id))
+            })
+            .collect::<FeatureResult<BTreeMap<_, _>>>()?;
+        let tags = self
+            .documents
+            .get("biome_tags")
+            .map(|tags| resolve_tags(tags, &registry))
+            .transpose()?
+            .unwrap_or_default();
+        holder_set(value, &registry, &tags)
     }
 }
 
@@ -642,6 +772,7 @@ pub enum BlockPredicate {
     Not(Box<Self>),
     Blocks(BTreeSet<u32>, Pos),
     Fluids(BTreeSet<u32>, Pos),
+    Biomes(BTreeSet<u32>),
     Solid(Pos),
     Replaceable(Pos),
     Sturdy(Direction, Pos),
@@ -651,6 +782,11 @@ pub enum BlockPredicate {
 
 impl BlockPredicate {
     pub fn parse(value: &Value) -> FeatureResult<Self> {
+        // MatchingBiomesPredicate queries getBiome at the supplied position; it
+        // is not a StateTestingPredicate and has no offset in its codec.
+        if kind(value)? == "matching_biomes" {
+            return Ok(Self::Biomes(catalog().biome_holder_set(&value["biomes"])?));
+        }
         let displacement = value
             .get("offset")
             .map(position)
@@ -720,6 +856,13 @@ impl BlockPredicate {
                 Ok(false)
             }
             Self::Not(predicate) => Ok(!predicate.test(world, pos, environment)?),
+            Self::Biomes(biomes) => {
+                let biome = world.feature_biome(pos);
+                if !catalog().biome_features.contains_key(&biome) {
+                    return Err(missing(format!("biome {biome}")));
+                }
+                Ok(biomes.contains(&biome))
+            }
             Self::Blocks(blocks, delta) => Ok(blocks.contains(
                 &catalog()
                     .block(read_block(world, offset(pos, *delta))?)?
@@ -1008,9 +1151,15 @@ pub(crate) fn array(value: &Value) -> FeatureResult<&[Value]> {
 }
 
 pub(crate) fn int(value: &Value) -> FeatureResult<i32> {
+    if let Some(integer) = value.as_i64().and_then(|v| i32::try_from(v).ok()) {
+        return Ok(integer);
+    }
     value
-        .as_i64()
-        .and_then(|v| i32::try_from(v).ok())
+        .as_f64()
+        .filter(|v| {
+            v.is_finite() && v.fract() == 0.0 && (i32::MIN as f64..=i32::MAX as f64).contains(v)
+        })
+        .map(|v| v as i32)
         .ok_or_else(|| invalid(format!("expected i32, got {value}")))
 }
 

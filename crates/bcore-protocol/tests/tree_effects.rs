@@ -1,7 +1,10 @@
 use bcore_core::{varint::decode_varint, ChunkPos};
 use bcore_protocol::{
     chunk::{block_state, ChunkColumn, MAX_Y, MIN_Y},
-    chunk_store::{decode_chunk, decode_chunk_at, encode_chunk, ChunkStore, ChunkStoreError},
+    chunk_store::{
+        decode_chunk, decode_chunk_at, encode_chunk, ChunkStore, ChunkStoreError, FORMAT_VERSION,
+        HEADER_LEN,
+    },
     nbt::encode_block_entity_update,
     world_state::{ChunkOrigin, World},
 };
@@ -17,7 +20,10 @@ use std::{
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 
-const BEE_NEST: u32 = 21768;
+#[path = "../../bcore-worldgen/tests/support/registry_26_1.rs"]
+mod registry_26_1;
+
+const BEE_NEST: u32 = bcore_registry::block_state::BEE_NEST;
 const HIVE: (usize, i32, usize) = (1, 65, 2);
 
 fn reference() -> Value {
@@ -73,7 +79,10 @@ fn assert_hive_packet(payload: &[u8], [x, y, z]: [i32; 3]) {
         i16::from_be_bytes(take(&mut input, 2).try_into().unwrap()),
         y as i16
     );
-    assert_eq!(varint(&mut input), 34);
+    assert_eq!(
+        varint(&mut input) as u32,
+        bcore_registry::block_entity_type::BEEHIVE
+    );
     assert_eq!(
         take(&mut input, 1),
         [0],
@@ -121,7 +130,9 @@ fn native_beehives_keep_occupants_but_send_only_empty_updates() {
 
         let mut column = ChunkColumn::flat();
         let (lx, lz) = ((x & 15) as usize, (z & 15) as usize);
-        let state = u32::try_from(sample["state"].as_u64().unwrap()).unwrap();
+        let historical = u32::try_from(sample["state"].as_u64().unwrap()).unwrap();
+        let state = registry_26_1::target_state(historical);
+        assert_eq!(registry_26_1::historical_state(state), historical);
         let in_height = sample["inside_build_height"].as_bool().unwrap();
         assert_eq!(column.set(lx, y, lz, state), in_height);
         assert_eq!(column.set_block_entity(lx, y, lz, data), in_height);
@@ -129,7 +140,8 @@ fn native_beehives_keep_occupants_but_send_only_empty_updates() {
             continue;
         }
         let bytes = encode_chunk(x >> 4, z >> 4, &column);
-        assert_eq!(&bytes[..6], b"BCC1\x05\x00");
+        assert_eq!(&bytes[..4], b"BCC1");
+        assert_eq!(&bytes[4..6], &FORMAT_VERSION.to_le_bytes());
         let (cx, cz, loaded) = decode_chunk_at(&bytes).unwrap();
         assert_eq!((cx, cz), (x >> 4, z >> 4));
         assert_eq!(loaded, column);
@@ -165,7 +177,7 @@ fn native_occupant_list_sizes_and_state_changes_are_preserved() {
                 HIVE.0,
                 HIVE.1,
                 HIVE.2,
-                state["state"].as_u64().unwrap() as u32
+                registry_26_1::target_state(state["state"].as_u64().unwrap() as u32)
             ));
             assert_eq!(loaded.block_entities(), column.block_entities());
         }
@@ -175,7 +187,7 @@ fn native_occupant_list_sizes_and_state_changes_are_preserved() {
                 HIVE.0,
                 HIVE.1,
                 HIVE.2,
-                case["state"].as_u64().unwrap() as u32
+                registry_26_1::target_state(case["state"].as_u64().unwrap() as u32)
             ));
             assert!(loaded.block_entities().is_empty());
             assert!(!loaded.set_block_entity(
@@ -223,19 +235,23 @@ fn generated_beehive_and_requests_survive_bcc_and_queued_world_load() {
         .as_array()
         .unwrap()
         .iter()
-        .find(|sample| sample["kind"] == "signed_tick_bounds" && sample["state"] == BEE_NEST)
+        .find(|sample| {
+            sample["kind"] == "signed_tick_bounds"
+                && registry_26_1::target_state(sample["state"].as_u64().unwrap() as u32) == BEE_NEST
+        })
         .expect("native nest with signed occupant ages");
     let [x, y, z] =
         std::array::from_fn(|i| i32::try_from(native["pos"][i].as_i64().unwrap()).unwrap());
     let owner = ChunkPos::new(x >> 4, z >> 4);
     let hive = ((x & 15) as usize, y, (z & 15) as usize);
-    let state = u32::try_from(native["state"].as_u64().unwrap()).unwrap();
+    let state =
+        registry_26_1::target_state(u32::try_from(native["state"].as_u64().unwrap()).unwrap());
     let beehive = BlockEntity::Beehive {
         ticks_in_hive: serde_json::from_value(native["ticks_in_hive"].clone()).unwrap(),
     };
     let first = TickRequest {
         block_pos: [owner.x * 16 + 15, MAX_Y, owner.z * 16 + 15],
-        target: TickTarget::Block(29_872),
+        target: TickTarget::Block(bcore_registry::BLOCK_STATE_COUNT as u32 - 1),
         delay: i32::MIN,
     };
     let requests = [
@@ -374,7 +390,7 @@ fn tick_request_append_rejects_invalid_owners_heights_and_target_ids() {
             ..request
         },
         TickRequest {
-            target: TickTarget::Block(29_873),
+            target: TickTarget::Block(bcore_registry::BLOCK_STATE_COUNT as u32),
             ..request
         },
         TickRequest {
@@ -432,8 +448,10 @@ fn malformed_beehive_records_are_rejected() {
         Err(ChunkStoreError::Truncated { .. }) | Err(ChunkStoreError::InvalidBlockEntity)
     ));
 
-    let palette_len = u32::from_le_bytes(bytes[24..28].try_into().unwrap()) as usize;
-    let state = (28..28 + palette_len * 4)
+    let palette_len =
+        u32::from_le_bytes(bytes[HEADER_LEN..HEADER_LEN + 4].try_into().unwrap()) as usize;
+    let palette = HEADER_LEN + 4;
+    let state = (palette..palette + palette_len * 4)
         .step_by(4)
         .find(|&at| bytes[at..at + 4] == BEE_NEST.to_le_bytes())
         .unwrap();
@@ -445,7 +463,7 @@ fn malformed_beehive_records_are_rejected() {
         Err(ChunkStoreError::InvalidBlockEntity)
     ));
 
-    for version in [0u16, 6] {
+    for version in [0u16, FORMAT_VERSION + 1] {
         let mut invalid = bytes.clone();
         invalid[4..6].copy_from_slice(&version.to_le_bytes());
         rechecksum(&mut invalid);
@@ -454,14 +472,15 @@ fn malformed_beehive_records_are_rejected() {
             Err(ChunkStoreError::UnsupportedVersion(actual)) if actual == version
         ));
     }
-    let mut legacy = bytes;
-    legacy[4..6].copy_from_slice(&3u16.to_le_bytes());
-    legacy.truncate(legacy.len() - 4); // remove the v4 tick count; reuse its slot for checksum
-    rechecksum(&mut legacy);
-    assert!(matches!(
-        decode_chunk(&legacy),
-        Err(ChunkStoreError::InvalidBlockEntity)
-    ));
+    for version in 1..FORMAT_VERSION {
+        let mut legacy = bytes.clone();
+        legacy[4..6].copy_from_slice(&version.to_le_bytes());
+        rechecksum(&mut legacy);
+        assert!(matches!(
+            decode_chunk(&legacy),
+            Err(ChunkStoreError::MissingRegistryIdentity(actual)) if actual == version
+        ));
+    }
 }
 
 #[test]
@@ -482,7 +501,12 @@ fn malformed_tick_records_are_rejected() {
         (record, vec![255]),
         (record + 2, (MIN_Y - 1).to_le_bytes().to_vec()),
         (record + 2, (MAX_Y + 1).to_le_bytes().to_vec()),
-        (record + 6, 29_873u32.to_le_bytes().to_vec()),
+        (
+            record + 6,
+            (bcore_registry::BLOCK_STATE_COUNT as u32)
+                .to_le_bytes()
+                .to_vec(),
+        ),
         (record - 4, u32::MAX.to_le_bytes().to_vec()),
         (8, i32::MAX.to_le_bytes().to_vec()),
         (12, i32::MIN.to_le_bytes().to_vec()),

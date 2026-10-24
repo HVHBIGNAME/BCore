@@ -333,6 +333,7 @@ enum HeightDistribution {
 
 #[derive(Clone, Copy)]
 struct OrePlacement {
+    name: &'static str,
     index: i32,
     count_random: usize,
     kind: OreKind,
@@ -363,6 +364,7 @@ impl OrePlacement {
 
 const ORE_PLACEMENTS: &[OrePlacement] = &[
     OrePlacement {
+        name: "ore_dirt",
         index: 0,
         kind: OreKind::Dirt,
         size: 33,
@@ -374,6 +376,7 @@ const ORE_PLACEMENTS: &[OrePlacement] = &[
         distribution: HeightDistribution::Uniform,
     },
     OrePlacement {
+        name: "ore_gravel",
         index: 1,
         kind: OreKind::Gravel,
         size: 33,
@@ -385,6 +388,7 @@ const ORE_PLACEMENTS: &[OrePlacement] = &[
         distribution: HeightDistribution::Uniform,
     },
     OrePlacement {
+        name: "ore_granite_upper",
         index: 2,
         kind: OreKind::Granite,
         size: 64,
@@ -396,6 +400,7 @@ const ORE_PLACEMENTS: &[OrePlacement] = &[
         distribution: HeightDistribution::Uniform,
     },
     OrePlacement {
+        name: "ore_granite_lower",
         index: 3,
         kind: OreKind::Granite,
         size: 64,
@@ -407,6 +412,7 @@ const ORE_PLACEMENTS: &[OrePlacement] = &[
         distribution: HeightDistribution::Uniform,
     },
     OrePlacement {
+        name: "ore_diorite_upper",
         index: 4,
         kind: OreKind::Diorite,
         size: 64,
@@ -418,6 +424,7 @@ const ORE_PLACEMENTS: &[OrePlacement] = &[
         distribution: HeightDistribution::Uniform,
     },
     OrePlacement {
+        name: "ore_diorite_lower",
         index: 5,
         kind: OreKind::Diorite,
         size: 64,
@@ -429,6 +436,7 @@ const ORE_PLACEMENTS: &[OrePlacement] = &[
         distribution: HeightDistribution::Uniform,
     },
     OrePlacement {
+        name: "ore_andesite_upper",
         index: 6,
         kind: OreKind::Andesite,
         size: 64,
@@ -440,6 +448,7 @@ const ORE_PLACEMENTS: &[OrePlacement] = &[
         distribution: HeightDistribution::Uniform,
     },
     OrePlacement {
+        name: "ore_andesite_lower",
         index: 7,
         kind: OreKind::Andesite,
         size: 64,
@@ -451,6 +460,7 @@ const ORE_PLACEMENTS: &[OrePlacement] = &[
         distribution: HeightDistribution::Uniform,
     },
     OrePlacement {
+        name: "ore_tuff",
         index: 8,
         kind: OreKind::Tuff,
         size: 64,
@@ -462,6 +472,7 @@ const ORE_PLACEMENTS: &[OrePlacement] = &[
         distribution: HeightDistribution::Uniform,
     },
     OrePlacement {
+        name: "ore_coal_upper",
         index: 9,
         kind: OreKind::Coal,
         size: 17,
@@ -473,6 +484,7 @@ const ORE_PLACEMENTS: &[OrePlacement] = &[
         distribution: HeightDistribution::Uniform,
     },
     OrePlacement {
+        name: "ore_coal_lower",
         index: 10,
         kind: OreKind::Coal,
         size: 17,
@@ -484,6 +496,7 @@ const ORE_PLACEMENTS: &[OrePlacement] = &[
         distribution: HeightDistribution::Trapezoid,
     },
     OrePlacement {
+        name: "ore_iron_upper",
         index: 11,
         kind: OreKind::Iron,
         size: 9,
@@ -495,6 +508,7 @@ const ORE_PLACEMENTS: &[OrePlacement] = &[
         distribution: HeightDistribution::Trapezoid,
     },
     OrePlacement {
+        name: "ore_iron_middle",
         index: 12,
         kind: OreKind::Iron,
         size: 9,
@@ -506,6 +520,7 @@ const ORE_PLACEMENTS: &[OrePlacement] = &[
         distribution: HeightDistribution::Trapezoid,
     },
     OrePlacement {
+        name: "ore_iron_small",
         index: 13,
         kind: OreKind::Iron,
         size: 4,
@@ -517,6 +532,7 @@ const ORE_PLACEMENTS: &[OrePlacement] = &[
         distribution: HeightDistribution::Uniform,
     },
     OrePlacement {
+        name: "ore_gold",
         index: 14,
         kind: OreKind::Gold,
         size: 9,
@@ -528,6 +544,7 @@ const ORE_PLACEMENTS: &[OrePlacement] = &[
         distribution: HeightDistribution::Trapezoid,
     },
     OrePlacement {
+        name: "ore_gold_lower",
         index: 15,
         kind: OreKind::Gold,
         size: 9,
@@ -539,6 +556,7 @@ const ORE_PLACEMENTS: &[OrePlacement] = &[
         distribution: HeightDistribution::Uniform,
     },
     OrePlacement {
+        name: "ore_redstone",
         index: 16,
         kind: OreKind::Redstone,
         size: 8,
@@ -550,6 +568,7 @@ const ORE_PLACEMENTS: &[OrePlacement] = &[
         distribution: HeightDistribution::Uniform,
     },
     OrePlacement {
+        name: "ore_redstone_lower",
         index: 17,
         kind: OreKind::Redstone,
         size: 8,
@@ -561,6 +580,7 @@ const ORE_PLACEMENTS: &[OrePlacement] = &[
         distribution: HeightDistribution::Trapezoid,
     },
     OrePlacement {
+        name: "ore_diamond",
         index: 18,
         kind: OreKind::Diamond,
         size: 4,
@@ -572,6 +592,7 @@ const ORE_PLACEMENTS: &[OrePlacement] = &[
         distribution: HeightDistribution::Trapezoid,
     },
     OrePlacement {
+        name: "ore_diamond_medium",
         index: 19,
         kind: OreKind::Diamond,
         size: 8,
@@ -583,6 +604,7 @@ const ORE_PLACEMENTS: &[OrePlacement] = &[
         distribution: HeightDistribution::Uniform,
     },
     OrePlacement {
+        name: "ore_diamond_large",
         index: 20,
         kind: OreKind::Diamond,
         size: 12,
@@ -594,6 +616,7 @@ const ORE_PLACEMENTS: &[OrePlacement] = &[
         distribution: HeightDistribution::Trapezoid,
     },
     OrePlacement {
+        name: "ore_diamond_buried",
         index: 21,
         kind: OreKind::Diamond,
         size: 8,
@@ -605,6 +628,7 @@ const ORE_PLACEMENTS: &[OrePlacement] = &[
         distribution: HeightDistribution::Trapezoid,
     },
     OrePlacement {
+        name: "ore_lapis",
         index: 22,
         kind: OreKind::Lapis,
         size: 7,
@@ -616,6 +640,7 @@ const ORE_PLACEMENTS: &[OrePlacement] = &[
         distribution: HeightDistribution::Trapezoid,
     },
     OrePlacement {
+        name: "ore_lapis_buried",
         index: 23,
         kind: OreKind::Lapis,
         size: 7,
@@ -627,6 +652,7 @@ const ORE_PLACEMENTS: &[OrePlacement] = &[
         distribution: HeightDistribution::Uniform,
     },
     OrePlacement {
+        name: "ore_copper_large",
         index: 24,
         kind: OreKind::Copper,
         size: 20,
@@ -638,6 +664,7 @@ const ORE_PLACEMENTS: &[OrePlacement] = &[
         distribution: HeightDistribution::Trapezoid,
     },
     OrePlacement {
+        name: "ore_copper",
         // `ore_copper_large` occupies global index 24 (it exists in dripstone
         // caves, which shares the step-6 list), so plain `ore_copper` is 25.
         index: 25,
@@ -654,15 +681,36 @@ const ORE_PLACEMENTS: &[OrePlacement] = &[
 
 fn ore_placement(name: &str) -> Option<(i32, OrePlacement)> {
     let (step, index) = crate::feature_sorter::sorter().within_step_index(name)?;
-    if step == 6 {
-        if let Some(placement) = ORE_PLACEMENTS.iter().find(|f| f.index == index as i32) {
-            return Some((step as i32, *placement));
-        }
+    if let Some(placement) = ORE_PLACEMENTS.iter().find(|f| f.name == name) {
+        return Some((
+            step as i32,
+            OrePlacement {
+                index: index as i32,
+                ..*placement
+            },
+        ));
     }
-    let (kind, size, count, min_y, max_y, distribution) = match name {
-        "ore_clay" => (OreKind::Clay, 33, 46, -64, 256, HeightDistribution::Uniform),
-        "ore_gold_extra" => (OreKind::Gold, 9, 50, 32, 256, HeightDistribution::Uniform),
+    let (name, kind, size, count, min_y, max_y, distribution) = match name {
+        "ore_clay" => (
+            "ore_clay",
+            OreKind::Clay,
+            33,
+            46,
+            -64,
+            256,
+            HeightDistribution::Uniform,
+        ),
+        "ore_gold_extra" => (
+            "ore_gold_extra",
+            OreKind::Gold,
+            9,
+            50,
+            32,
+            256,
+            HeightDistribution::Uniform,
+        ),
         "ore_emerald" => (
+            "ore_emerald",
             OreKind::Emerald,
             3,
             100,
@@ -671,6 +719,7 @@ fn ore_placement(name: &str) -> Option<(i32, OrePlacement)> {
             HeightDistribution::Trapezoid,
         ),
         "ore_infested" => (
+            "ore_infested",
             OreKind::Infested,
             9,
             14,
@@ -683,6 +732,7 @@ fn ore_placement(name: &str) -> Option<(i32, OrePlacement)> {
     Some((
         step as i32,
         OrePlacement {
+            name,
             index: index as i32,
             count_random: 0,
             kind,
@@ -813,8 +863,7 @@ pub(crate) fn ore_state(kind: OreKind) -> BlockState {
         OreKind::Copper => block::COPPER_ORE,
         OreKind::Gold => block::GOLD_ORE,
         OreKind::Diamond => block::DIAMOND_ORE,
-        // blocks.json: minecraft:emerald_ore default state id 9573.
-        OreKind::Emerald => 9573,
+        OreKind::Emerald => block::EMERALD_ORE,
         OreKind::Lapis => block::LAPIS_ORE,
         OreKind::Redstone => block::REDSTONE_ORE,
         OreKind::Andesite => block::ANDESITE,
@@ -897,7 +946,7 @@ mod tests {
         );
         assert!(placed);
         assert!(!vein.is_empty());
-        assert!(vein.iter().all(|p| p.3 == 9573));
+        assert!(vein.iter().all(|p| p.3 == block::EMERALD_ORE));
         // Deterministic for the same seed.
         let mut vein2 = Vec::new();
         let mut rng2 = WorldgenRandom::new(7);

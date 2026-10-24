@@ -20,6 +20,11 @@ use bcore_worldgen::tick_request::{TickRequest, TickTarget};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 
+#[path = "support/feature_documents_26_1.rs"]
+pub mod feature_documents_26_1;
+#[path = "support/registry_26_1.rs"]
+mod registry_26_1;
+
 fn fixture() -> &'static Value {
     static DATA: OnceLock<Value> = OnceLock::new();
     DATA.get_or_init(|| serde_json::from_str(include_str!("../data/geode_26_1.json")).unwrap())
@@ -70,12 +75,17 @@ struct World {
 impl World {
     fn new(sample: &Value) -> Self {
         let origin = pos(&sample["origin"]);
-        let background = sample["background"].as_u64().unwrap() as u32;
+        let background = registry_26_1::target_state(sample["background"].as_u64().unwrap() as u32);
         let initial: BTreeMap<_, _> = sample["initial"]
             .as_array()
             .unwrap()
             .iter()
-            .map(|v| (pos(v), v[3].as_u64().unwrap() as u32))
+            .map(|v| {
+                (
+                    pos(v),
+                    registry_26_1::target_state(v[3].as_u64().unwrap() as u32),
+                )
+            })
             .collect();
         let mut non_air = BTreeMap::new();
         let default_count = if is_air(background) { 0 } else { 4096 };
@@ -94,7 +104,7 @@ impl World {
             .iter()
             .map(|row| {
                 (
-                    row[0].as_u64().unwrap() as u32,
+                    registry_26_1::target_state(row[0].as_u64().unwrap() as u32),
                     (
                         row[1].as_i64().unwrap() as i32,
                         row[2].as_i64().unwrap() as i32,
@@ -182,7 +192,7 @@ impl World {
             .collect();
         let mut counts = BTreeMap::<String, usize>::new();
         for p in touched {
-            let state = self.view(p).unwrap();
+            let state = registry_26_1::historical_state(self.view(p).unwrap());
             add_hash(&mut hash, &[p.0, p.1, p.2, state as i32]);
             *counts.entry(state.to_string()).or_default() += 1;
         }
@@ -236,7 +246,7 @@ impl World {
             .iter()
             .map(|request| {
                 let (id, fluid) = match request.target {
-                    TickTarget::Block(id) => (id, 0),
+                    TickTarget::Block(id) => (registry_26_1::historical_state(id), 0),
                     TickTarget::Fluid(id) => (id, 1),
                 };
                 let [x, y, z] = request.block_pos;
@@ -257,7 +267,11 @@ impl World {
                         x,
                         y,
                         z,
-                        tick.target as i32,
+                        if fluid == 0 {
+                            registry_26_1::historical_state(tick.target) as i32
+                        } else {
+                            tick.target as i32
+                        },
                         tick.delay,
                         fluid,
                         tick.priority.value(),
@@ -283,7 +297,7 @@ impl OreWorld for World {
             return None;
         };
         self.reads.set(self.reads.get() + 1);
-        let row = [p.0, p.1, p.2, state as i32];
+        let row = [p.0, p.1, p.2, registry_26_1::historical_state(state) as i32];
         add_hash(&mut self.read_hash.borrow_mut(), &row);
         if self.first_reads.borrow().len() < 24 {
             self.first_reads.borrow_mut().push(row);
@@ -310,8 +324,14 @@ impl FeatureWorld for World {
         // Actual WorldGenRegion does not apply a height guard for fresh chunks.
         let accepted =
             !self.reject && self.write_radius >= 0 && self.distance(p) <= self.write_radius;
-        self.calls
-            .push([p.0, p.1, p.2, state as i32, flags, i32::from(accepted)]);
+        self.calls.push([
+            p.0,
+            p.1,
+            p.2,
+            registry_26_1::historical_state(state) as i32,
+            flags,
+            i32::from(accepted),
+        ]);
         if accepted {
             if (-64..=319).contains(&p.1) {
                 let difference = i32::from(!is_air(state)) - i32::from(!is_air(self.raw(p)));
@@ -482,7 +502,8 @@ fn native_geode_registry_predicates_cover_every_state() {
         let first = row[0].as_u64().unwrap() as u32;
         let end = row[1].as_u64().unwrap() as u32;
         assert_eq!(first, total);
-        for state in first..end {
+        for historical in first..end {
+            let state = registry_26_1::target_state(historical);
             let info = catalog().info(state).unwrap();
             let block = catalog().block(state).unwrap().1;
             let full = info.fluid_amount == 8;
@@ -540,7 +561,7 @@ fn geode_fixture_provenance_and_builtin_config_are_pinned() {
     );
     assert_eq!(
         data["configs"]["amethyst_geode"],
-        *catalog().configured("amethyst_geode").unwrap()
+        feature_documents_26_1::configured(&Value::String("minecraft:amethyst_geode".into()))
     );
     let sources: [(&str, &[u8]); 6] = [
         (
@@ -581,7 +602,14 @@ fn geode_fixture_provenance_and_builtin_config_are_pinned() {
 fn native_geode_corpus_exercises_crystals_ticks_marks_and_precision() {
     let samples = fixture()["samples"].as_array().unwrap();
     let find = |name: &str| samples.iter().find(|s| s["name"] == name).unwrap();
-    let crystal = |state| catalog().block(state).unwrap().1.class == "AmethystClusterBlock";
+    let crystal = |state| {
+        catalog()
+            .block(registry_26_1::target_state(state))
+            .unwrap()
+            .1
+            .class
+            == "AmethystClusterBlock"
+    };
     let mut directions = BTreeSet::new();
     for sample in samples.iter().filter(|s| s["config"] == "all_placements") {
         for row in sample["write_calls"].as_array().unwrap() {
@@ -589,10 +617,10 @@ fn native_geode_corpus_exercises_crystals_ticks_marks_and_precision() {
             if crystal(state) {
                 directions.insert(
                     catalog()
-                        .block(state)
+                        .block(registry_26_1::target_state(state))
                         .unwrap()
                         .1
-                        .property(state, "facing")
+                        .property(registry_26_1::target_state(state), "facing")
                         .unwrap(),
                 );
             }
@@ -618,10 +646,10 @@ fn native_geode_corpus_exercises_crystals_ticks_marks_and_precision() {
         for state in states {
             assert_eq!(
                 catalog()
-                    .block(state)
+                    .block(registry_26_1::target_state(state))
                     .unwrap()
                     .1
-                    .property(state, "waterlogged"),
+                    .property(registry_26_1::target_state(state), "waterlogged"),
                 Some(wet),
                 "{name}"
             );

@@ -3,9 +3,12 @@ use super::{
     extra_data::{self, chance, number, Provider},
     Placement, Pos, StandingTreeWorld, TreeRandom,
 };
+use crate::block_predicate::{array, invalid, kind, string, FeatureResult};
+use crate::tree::IntProvider;
 use serde_json::Value;
 
-struct Roots {
+pub(crate) struct Roots {
+    pub offset: IntProvider,
     through: String,
     muddy: Vec<(u32, u32)>,
     width: i32,
@@ -16,36 +19,47 @@ struct Roots {
     above: Option<(f32, Provider)>,
 }
 impl Roots {
-    fn parse(value: &Value) -> Self {
-        assert_eq!(value["type"], "minecraft:mangrove_root_placer");
+    pub(crate) fn parse(value: &Value) -> FeatureResult<Self> {
+        if kind(value)? != "mangrove_root_placer" {
+            return Err(crate::feature_world::FeatureError::Unsupported(
+                "tree root placer".into(),
+            ));
+        }
         let p = &value["mangrove_root_placement"];
-        Self {
-            through: p["can_grow_through"]
-                .as_str()
-                .expect("root tag")
-                .trim_start_matches('#')
-                .to_owned(),
-            muddy: p["muddy_roots_in"]
-                .as_array()
-                .expect("muddy root blocks")
+        let width = number(&p["max_root_width"])?;
+        let length = number(&p["max_root_length"])?;
+        if width < 0 || length < 1 {
+            return Err(invalid("mangrove root bounds"));
+        }
+        Ok(Self {
+            offset: extra_data::int_provider(&value["trunk_offset_y"])?,
+            through: extra_data::tag_name(&p["can_grow_through"])?,
+            muddy: array(&p["muddy_roots_in"])?
                 .iter()
                 .map(|v| {
-                    let b = &extra_data::catalog().blocks[v.as_str().expect("muddy block")];
-                    (b.first, b.end)
+                    let name = string(v)?;
+                    let b = extra_data::catalog()
+                        .blocks
+                        .get(crate::block_predicate::qualified(name).as_ref())
+                        .ok_or_else(|| invalid(format!("muddy root block {name}")))?;
+                    Ok((b.first, b.end))
                 })
-                .collect(),
-            width: number(&p["max_root_width"]),
-            length: number(&p["max_root_length"]) as usize,
-            skew: chance(&p["random_skew_chance"]),
-            provider: Provider::parse(&value["root_provider"]),
-            muddy_provider: Provider::parse(&p["muddy_roots_provider"]),
-            above: value.get("above_root_placement").map(|p| {
-                (
-                    chance(&p["above_root_placement_chance"]),
-                    Provider::parse(&p["above_root_provider"]),
-                )
-            }),
-        }
+                .collect::<FeatureResult<_>>()?,
+            width,
+            length: length as usize,
+            skew: chance(&p["random_skew_chance"])?,
+            provider: Provider::parse(&value["root_provider"])?,
+            muddy_provider: Provider::parse(&p["muddy_roots_provider"])?,
+            above: value
+                .get("above_root_placement")
+                .map(|p| -> FeatureResult<_> {
+                    Ok((
+                        chance(&p["above_root_placement_chance"])?,
+                        Provider::parse(&p["above_root_provider"])?,
+                    ))
+                })
+                .transpose()?,
+        })
     }
     fn can_grow<W: StandingTreeWorld + ?Sized>(&self, world: &W, pos: Pos) -> bool {
         let state = world.get_block(pos);
@@ -113,12 +127,11 @@ pub(super) fn place<W: StandingTreeWorld + ?Sized, R: TreeRandom + ?Sized>(
     r: &mut R,
     origin: Pos,
     trunk: Pos,
-    config: &Value,
-) -> bool {
-    let roots = Roots::parse(config);
+    roots: &Roots,
+) -> FeatureResult<bool> {
     for y in origin.1..trunk.1 {
         if !roots.can_grow(p.world, (origin.0, y, origin.2)) {
-            return false;
+            return Ok(false);
         }
     }
     let mut positions = vec![(trunk.0, trunk.1 - 1, trunk.2)];
@@ -126,7 +139,7 @@ pub(super) fn place<W: StandingTreeWorld + ?Sized, R: TreeRandom + ?Sized>(
         let pos = (trunk.0 + dx, trunk.1, trunk.2 + dz);
         let mut branch = Vec::new();
         if !roots.simulate(p.world, r, pos, direction, trunk, &mut branch, 0) {
-            return false;
+            return Ok(false);
         }
         positions.extend(branch);
         positions.push(pos);
@@ -134,36 +147,19 @@ pub(super) fn place<W: StandingTreeWorld + ?Sized, R: TreeRandom + ?Sized>(
     for pos in positions {
         let state = p.world.get_block(pos);
         if roots.muddy.iter().any(|&(a, b)| (a..b).contains(&state)) {
-            set_root(
-                p,
-                pos,
-                roots
-                    .muddy_provider
-                    .sample(p.world, r, pos)
-                    .expect("muddy root provider"),
-            );
+            let state = roots.muddy_provider.sample_required(p.world, r, pos)?;
+            set_root(p, pos, state);
         } else if roots.can_grow(p.world, pos) {
-            set_root(
-                p,
-                pos,
-                roots
-                    .provider
-                    .sample(p.world, r, pos)
-                    .expect("root provider"),
-            );
+            let state = roots.provider.sample_required(p.world, r, pos)?;
+            set_root(p, pos, state);
             if let Some((chance, provider)) = &roots.above {
                 let above = (pos.0, pos.1 + 1, pos.2);
                 if r.next_f32() < *chance && crate::heightmap::is_air(p.world.get_block(above)) {
-                    set_root(
-                        p,
-                        above,
-                        provider
-                            .sample(p.world, r, above)
-                            .expect("above root provider"),
-                    );
+                    let state = provider.sample_required(p.world, r, above)?;
+                    set_root(p, above, state);
                 }
             }
         }
     }
-    true
+    Ok(true)
 }

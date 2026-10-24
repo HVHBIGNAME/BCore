@@ -6,25 +6,11 @@ use crate::{block, MIN_Y};
 /// A network block-state id (the default state of a block).
 pub type BlockState = u32;
 
-/// Extra ids for biomes commonly present in the vanilla report.  Registry ids
-/// can be replaced by the integration layer without changing the rules API.
-pub mod biome_ids {
-    pub const BADLANDS: u32 = 2;
-    pub const BEACH: u32 = 3;
-    pub const DESERT: u32 = 14;
-    pub const ERODED_BADLANDS: u32 = 18;
-    pub const FROZEN_OCEAN: u32 = 22;
-    pub const MUSHROOM_FIELDS: u32 = 34;
-    pub const OCEAN: u32 = 35;
-    pub const RIVER: u32 = 41;
-    pub const SNOWY_PLAINS: u32 = 46;
-    pub const SNOWY_SLOPES: u32 = 47;
-    pub const WOODED_BADLANDS: u32 = 64;
-}
+pub use bcore_registry::biome as biome_ids;
 
-const RED_SAND: BlockState = 123;
-const TERRACOTTA: BlockState = 12_912;
-const MYCELIUM: BlockState = 8_919;
+const RED_SAND: BlockState = block::RED_SAND;
+const TERRACOTTA: BlockState = block::TERRACOTTA;
+const MYCELIUM: BlockState = block::MYCELIUM;
 
 fn is_badlands(biome: BiomeId) -> bool {
     matches!(

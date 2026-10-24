@@ -21,10 +21,17 @@ const PROTECT_DARK_OAK: u32 = 2048;
 const LAVA: u32 = 4096;
 const BLOCKS_MOTION: u32 = 8192;
 const FENCE_CONNECT: u32 = 16384;
-const IRON_CHAIN: u32 = 8249;
-const COBWEB: u32 = 2247;
-const RAIL_NS: u32 = 5728;
-const RAIL_EW: u32 = 5730;
+const IRON_CHAIN: u32 = block::IRON_CHAIN;
+const COBWEB: u32 = block::COBWEB;
+const RAIL_NS: u32 = block::RAIL;
+
+fn rail_east_west() -> u32 {
+    crate::block_predicate::catalog()
+        .definition("rail")
+        .expect("native rail definition")
+        .with_property(RAIL_NS, "shape", "east_west")
+        .expect("native rail shape")
+}
 const DIRECTIONS: [Pos; 6] = [
     [0, -1, 0],
     [0, 1, 0],
@@ -43,9 +50,10 @@ pub trait MineshaftWorld: DungeonWorld {
 fn flags(state: u32) -> u32 {
     static FLAGS: OnceLock<Vec<u32>> = OnceLock::new();
     FLAGS.get_or_init(|| {
-        let data: serde_json::Value =
-            serde_json::from_str(include_str!("../../../data/mineshaft_blocks_26_1.json"))
-                .expect("native mineshaft block predicates");
+        let data: serde_json::Value = crate::block_predicate::parse_catalog(include_str!(
+            "../../../data/mineshaft_blocks_26_2.json"
+        ))
+        .expect("native mineshaft block predicates");
         let count = data["state_count"].as_u64().unwrap() as usize;
         let mut flags = Vec::with_capacity(count);
         for row in data["ranges"].as_array().unwrap() {
@@ -64,7 +72,7 @@ pub fn blocks_motion(state: u32) -> bool {
     flags(state) & BLOCKS_MOTION != 0
 }
 
-/// Native `BlockState.isFaceSturdy(..., UP, FULL)` from the 26.1 predicate table.
+/// Native `BlockState.isFaceSturdy(..., UP, FULL)` from the target predicate table.
 pub(crate) fn is_face_sturdy_up(state: u32) -> bool {
     flags(state) & FACE_UP != 0
 }
@@ -77,10 +85,15 @@ pub fn updated_shape(world: &impl crate::ore::OreWorld, [x, y, z]: Pos) -> u32 {
             .expect("shape update missing neighbour")
     };
     let state = read(x, y, z);
-    let fence = if (6965..=6996).contains(&state) {
-        Some(6996)
-    } else if (13932..=13963).contains(&state) {
-        Some(13963)
+    let catalog = crate::block_predicate::catalog();
+    let oak_fence = catalog.definition("oak_fence").expect("native oak fence");
+    let dark_fence = catalog
+        .definition("dark_oak_fence")
+        .expect("native dark oak fence");
+    let fence = if (oak_fence.first..oak_fence.first + oak_fence.count).contains(&state) {
+        Some(oak_fence.default_state)
+    } else if (dark_fence.first..dark_fence.first + dark_fence.count).contains(&state) {
+        Some(dark_fence.default_state)
     } else {
         None
     };
@@ -92,8 +105,8 @@ pub fn updated_shape(world: &impl crate::ore::OreWorld, [x, y, z]: Pos) -> u32 {
             }
         }
         result
-    } else if (3371..=3374).contains(&state) {
-        let direction = (state - 3371) as usize + 2;
+    } else if (block::WALL_TORCH..block::WALL_TORCH + 4).contains(&state) {
+        let direction = (state - block::WALL_TORCH) as usize + 2;
         let delta = DIRECTIONS[direction];
         if flags(read(x - delta[0], y, z - delta[2])) & (FACE_DOWN << direction) != 0 {
             state
@@ -119,13 +132,13 @@ impl Material {
             MineType::Normal => Self {
                 planks: block::OAK_PLANKS,
                 wood: block::OAK_LOG,
-                fence: 6996,
+                fence: block::OAK_FENCE,
                 protected: PROTECT_OAK,
             },
             MineType::Mesa => Self {
-                planks: 21,
+                planks: block::DARK_OAK_PLANKS,
                 wood: block::DARK_OAK_LOG,
-                fence: 13963,
+                fence: block::DARK_OAK_FENCE,
                 protected: PROTECT_DARK_OAK,
             },
         }
@@ -214,7 +227,7 @@ impl<W: MineshaftWorld> Placer<'_, W> {
         }
         self.write_world(pos, state);
         if (self.material.fence - 31..=self.material.fence).contains(&state)
-            || (3371..=3374).contains(&state)
+            || (block::WALL_TORCH..block::WALL_TORCH + 4).contains(&state)
         {
             self.world.mark_for_postprocessing(pos);
         }
@@ -453,10 +466,10 @@ impl<W: MineshaftWorld> Placer<'_, W> {
             self.fill([0, 2, z], [2, 2, z], self.material.planks);
             let orientation = self.orientation.unwrap().id() as usize;
             if random.next_float() < 0.05 {
-                self.put([1, 2, z - 1], [3371, 3374, 3372, 3373][orientation]);
+                self.put([1, 2, z - 1], block::WALL_TORCH + [0, 3, 1, 2][orientation]);
             }
             if random.next_float() < 0.05 {
-                self.put([1, 2, z + 1], [3372, 3373, 3371, 3374][orientation]);
+                self.put([1, 2, z + 1], block::WALL_TORCH + [1, 2, 0, 3][orientation]);
             }
         }
     }
@@ -480,7 +493,7 @@ impl<W: MineshaftWorld> Placer<'_, W> {
         if self.orientation.unwrap().along_z() == north_south {
             RAIL_NS
         } else {
-            RAIL_EW
+            rail_east_west()
         }
     }
 

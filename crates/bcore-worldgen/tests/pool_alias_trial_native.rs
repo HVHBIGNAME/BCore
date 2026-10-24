@@ -15,7 +15,7 @@ use std::sync::OnceLock;
 fn assets() -> &'static StructureAssets {
     static ASSETS: OnceLock<StructureAssets> = OnceLock::new();
     ASSETS.get_or_init(|| {
-        StructureAssets::from_json(include_str!(
+        StructureAssets::from_historical_json(include_str!(
             "../data/pool_alias_trial_combined_assets_26_1_v2.json"
         ))
         .unwrap()
@@ -79,7 +79,10 @@ fn generate(seed: i64, chunk: ChunkPos) -> jigsaw::JigsawStart {
 #[test]
 fn trial_assemblies_match_native_complete_piece_order_junctions_nbt_limits_and_rng() {
     let reference = fixture();
-    assert_eq!(reference["jar_sha256"], StructureAssets::JAR_SHA256);
+    assert_eq!(
+        reference["jar_sha256"],
+        StructureAssets::HISTORICAL_JAR_SHA256
+    );
     let samples = reference["assembly"].as_array().unwrap();
     assert_eq!(samples.len(), 13);
     assert_eq!(
@@ -207,9 +210,10 @@ fn trial_assemblies_match_native_complete_piece_order_junctions_nbt_limits_and_r
 
 #[test]
 fn captured_trial_assets_and_all_alias_targets_are_complete_and_typed() {
-    let trial =
-        StructureAssets::from_json(include_str!("../data/pool_alias_trial_assets_26_1.json"))
-            .unwrap();
+    let trial = StructureAssets::from_historical_json(include_str!(
+        "../data/pool_alias_trial_assets_26_1.json"
+    ))
+    .unwrap();
     let combined = assets();
     assert_eq!(trial.templates.len(), 191);
     assert_eq!(combined.templates.len(), 817);

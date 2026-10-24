@@ -1,10 +1,7 @@
 //! Login → configuration → play join flow (offline mode) for protocol 776.
 //!
-//! The configuration and play packets were captured verbatim from the official
-//! vanilla 26.2 server (flat world, offline mode) and are replayed here. Only
-//! the player identity (uuid + name) is substituted at runtime. This is a
-//! bootstrap path to reach a joinable server; the long-term plan is to generate
-//! the registry and chunk data natively (see `bcore-registry`).
+//! Embedded configuration/play captures provide bootstrap state. Identity,
+//! login, clocks and streamed terrain come from this connection's server owner.
 //!
 //! Chunks are **not** replayed: the captured `map_chunk` packets are dropped and
 //! the world is streamed from [`crate::chunk`] / [`crate::world`] instead, so the
@@ -27,22 +24,23 @@ use crate::command::{self, CommandContext, Destination, Effect};
 use crate::commands::{bcore_command_tree, CB_DECLARE_COMMANDS};
 use crate::gameplay::{
     encode_abilities_for, encode_full_health, encode_gamemode_switch, encode_player_info_add,
-    encode_player_info_remove, encode_set_day_time, encode_time_of_day, GameMode, CB_ABILITIES,
-    CB_UPDATE_HEALTH, CB_UPDATE_TIME,
+    encode_player_info_remove, GameMode, CB_ABILITIES, CB_UPDATE_HEALTH, CB_UPDATE_TIME,
 };
 use crate::nbt::Component;
-use crate::packet::{read_frame, read_string, write_packet, write_string, PacketError};
+use crate::packet::{
+    read_frame, read_string, read_varint, write_packet, write_string, PacketError,
+};
 use crate::shared::{PlayerHandle, SharedServer};
 use crate::world::{
     PlayerView, CB_CHUNK_BATCH_FINISHED, CB_CHUNK_BATCH_START, CB_MAP_CHUNK, CB_PING_RESPONSE,
     SB_CHUNK_BATCH_RECEIVED, SB_PING_REQUEST,
 };
+use crate::world_state::World;
 
 pub const LOGIN_SUCCESS_ID: i32 = 0x02;
 pub const LOGIN_ACKNOWLEDGED_ID: i32 = 0x03;
 const PLAY_LOGIN_ID: i32 = 0x31;
 pub(crate) const PLAY_LOGIN_ENTITY_ID: i32 = 392;
-const PLAY_VIEW_DISTANCE: i32 = 32;
 const PLAY_SEA_LEVEL: i32 = 63;
 
 /// Minecraft's `hashedSeed`: SHA-256 of the seed's little-endian bytes,
@@ -63,21 +61,15 @@ const PLAY_KEEP_ALIVE_ID: i32 = 0x2c;
 const PLAY_TELEPORT_CONFIRM_ID: i32 = 0x00;
 /// Clientbound `kick_disconnect`: present in the capture, never replayed.
 const PLAY_KICK_DISCONNECT_ID: i32 = 0x20;
-/// Clientbound `update_recipes` (declare_recipes). The captured recipe list has
-/// entries ViaVersion's RecipeDisplayRewriter rejects ("Template item cannot be
-/// empty"), so it is never replayed — the client uses an empty recipe book.
+/// Captured recipe declarations are omitted after template-item decode failures.
+/// Recipe-book packets have a separate replay policy.
 const PLAY_DECLARE_RECIPES_ID: i32 = 0x85;
 
-/// The world seed `/seed` reports.
-///
-/// This is the seed the terrain generator actually runs with, so `/seed` now
-/// reports something meaningful: two servers with this seed generate identical
-/// worlds.
+/// Default seed for compatibility callers. Live joins and `/seed` use the
+/// connection's server-local world seed.
 pub const WORLD_SEED: i64 = crate::world_state::DEFAULT_SEED;
 /// Player slots announced in the status response and reported by `/list`.
 pub const MAX_PLAYERS: usize = 20;
-/// Ticks per second the world clock advances at.
-const TICKS_PER_SECOND: i64 = 20;
 
 // Embedded vanilla 26.2 captures. Binary format:
 // [u32 count][ (i32 pid, u32 len, bytes)... ]
@@ -87,23 +79,27 @@ const PLAY_PACKETS: &[u8] = include_bytes!("../data/play_packets.bin");
 /// Read a login-start payload: player name + 16-byte UUID.
 pub fn read_login_start<R: Read>(r: &mut R) -> Result<(String, [u8; 16]), PacketError> {
     let name = read_string(r, 16)?;
+    if name.len() > 16 * 3 || name.encode_utf16().count() > 16 {
+        return Err(PacketError::TooLarge(name.len()));
+    }
     let mut uuid = [0u8; 16];
     r.read_exact(&mut uuid)?;
     Ok((name, uuid))
 }
 
-/// Encode a login-success packet (uuid + name + properties + profile id).
-pub fn encode_login_success(uuid: &[u8; 16], name: &str) -> Vec<u8> {
+/// Encode profile identity/properties followed by the server-session UUID.
+pub fn encode_login_success(uuid: &[u8; 16], name: &str, session_id: &[u8; 16]) -> Vec<u8> {
     let mut data = Vec::new();
     data.extend_from_slice(uuid);
     write_string(name, &mut data);
     encode_varint(0, &mut data); // properties count
+    data.extend_from_slice(session_id);
     let mut out = Vec::new();
     write_packet(&mut out, LOGIN_SUCCESS_ID, &data);
     out
 }
 
-fn encode_play_login(view: &PlayerView) -> Vec<u8> {
+fn encode_play_login(view: &PlayerView, seed: i64, view_distance: i32) -> Vec<u8> {
     let mut data = Vec::new();
     data.extend_from_slice(&PLAY_LOGIN_ENTITY_ID.to_be_bytes());
     data.push(0); // hardcore
@@ -116,19 +112,20 @@ fn encode_play_login(view: &PlayerView) -> Vec<u8> {
         write_string(name, &mut data);
     }
     encode_varint(MAX_PLAYERS as i32, &mut data);
-    encode_varint(PLAY_VIEW_DISTANCE, &mut data);
-    encode_varint(PLAY_VIEW_DISTANCE, &mut data);
+    encode_varint(view_distance, &mut data);
+    encode_varint(view_distance, &mut data);
     data.extend_from_slice(&[0, 1, 0]); // reducedDebugInfo, respawnScreen, limitedCrafting
     encode_varint(0, &mut data); // overworld dimension
     write_string("minecraft:overworld", &mut data);
-    data.extend_from_slice(&hashed_seed(WORLD_SEED).to_be_bytes());
+    data.extend_from_slice(&hashed_seed(seed).to_be_bytes());
     data.push(view.game_mode.id() as u8);
     data.push(0xff); // previous gamemode
     data.extend_from_slice(&[0, 0]); // debug, flat
     data.push(0); // last death location: absent (option<bool GlobalPos>)
     encode_varint(0, &mut data); // portal cooldown
     encode_varint(PLAY_SEA_LEVEL, &mut data);
-    data.push(0); // enforces secure chat
+    data.push(0); // onlineMode
+    data.push(0); // enforcesSecureChat
     let mut out = Vec::new();
     write_packet(&mut out, PLAY_LOGIN_ID, &data);
     out
@@ -172,29 +169,37 @@ pub fn run_login_and_join(
     }
     let mut cursor = Cursor::new(data);
     let (name, uuid) = read_login_start(&mut cursor)?;
+    if cursor.position() != cursor.get_ref().len() as u64 {
+        return Err(PacketError::Malformed("trailing login-start payload"));
+    }
     println!("[BCore] join: {name} (offline)");
 
-    stream.write_all(&encode_login_success(&uuid, &name))?;
+    stream.write_all(&encode_login_success(&uuid, &name, server.session_id()))?;
     eprintln!("[BCore] login success sent for {name}");
 
-    let (pid, _) = read_frame(stream)?;
+    let (pid, data) = read_frame(stream)?;
     eprintln!("[BCore] login ack: pid=0x{pid:02x}");
     if pid != LOGIN_ACKNOWLEDGED_ID {
         return Err(PacketError::UnexpectedPacket(pid));
+    }
+    if !data.is_empty() {
+        return Err(PacketError::Malformed(
+            "login acknowledgement must be empty",
+        ));
     }
 
     config_replay(stream)?;
     eprintln!("[BCore] config replay done");
     // Non-blocking reads for the play phase: teleport confirm may lag the chunks.
     stream.set_read_timeout(Some(Duration::from_millis(50)))?;
-    let mut view = play_replay(stream, &uuid, &name)?;
+    let mut view = play_replay(stream, &uuid, &name, server)?;
 
     // Register only once the player is really in the world, so a failed join
     // never leaves a ghost in `/list`.
     let handle = server.join(&name, uuid);
     let result = send_join_state(stream, &view, server, &handle).and_then(|_| {
         announce_join(server, &handle);
-        stream_initial_chunks(stream, &mut view)?;
+        stream_initial_chunks(stream, &mut view, server.world())?;
         play_loop(stream, &mut view, server, &handle)
     });
     server.leave(handle.id);
@@ -223,8 +228,6 @@ fn send_join_state(
     ));
     out.extend_from_slice(&bcore_command_tree().encode());
     out.extend_from_slice(&encode_full_health());
-    let age = world_age_ticks();
-    out.extend_from_slice(&encode_time_of_day(age, view.day_time));
     // Tab list: every online player. The joiner gets its own gamemode; the
     // others are tracked as survival until gamemode changes are persisted.
     for player in server.players() {
@@ -236,6 +239,8 @@ fn send_join_state(
         out.extend_from_slice(&encode_player_info_add(&player.uuid, &player.name, mode, 0));
     }
     stream.write_all(&out)?;
+    server.send_clock(handle.id);
+    stream.write_all(&handle.outbox.drain())?;
     Ok(())
 }
 
@@ -276,15 +281,6 @@ fn announce_leave(server: &SharedServer, handle: &PlayerHandle) {
     server.broadcast_except(handle.id, &encode_player_info_remove(&handle.uuid));
 }
 
-/// The world age in ticks, derived from the wall clock so every connection
-/// agrees without a tick loop.
-fn world_age_ticks() -> i64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_secs() as i64 * TICKS_PER_SECOND)
-        .unwrap_or(0)
-}
-
 fn config_replay(stream: &mut TcpStream) -> Result<(), PacketError> {
     let packets = parse_captured(CONFIG_PACKETS);
     for (pid, data) in &packets.items {
@@ -294,8 +290,9 @@ fn config_replay(stream: &mut TcpStream) -> Result<(), PacketError> {
         if *pid == CONFIG_SELECT_KNOWN_PACKS_ID {
             // Wait for the client's known-packs response before registries.
             loop {
-                let (cpid, _) = read_frame(stream)?;
+                let (cpid, data) = read_frame(stream)?;
                 if cpid == CONFIG_KNOWN_PACKS_RESPONSE_ID {
+                    validate_known_packs_response(&data)?;
                     break;
                 }
             }
@@ -303,10 +300,48 @@ fn config_replay(stream: &mut TcpStream) -> Result<(), PacketError> {
     }
     // Wait for the client's finish-configuration acknowledgement.
     loop {
-        let (cpid, _) = read_frame(stream)?;
+        let (cpid, data) = read_frame(stream)?;
         if cpid == CONFIG_FINISH_ID {
+            if !data.is_empty() {
+                return Err(PacketError::Malformed(
+                    "configuration acknowledgement must be empty",
+                ));
+            }
             break;
         }
+    }
+    Ok(())
+}
+
+fn skip_play_capture(id: i32) -> bool {
+    matches!(
+        id,
+        CB_MAP_CHUNK
+            | CB_CHUNK_BATCH_START
+            | CB_CHUNK_BATCH_FINISHED
+            | PLAY_DECLARE_RECIPES_ID
+            | CB_DECLARE_COMMANDS
+            | CB_UPDATE_HEALTH
+            | CB_UPDATE_TIME
+            | CB_ABILITIES
+            | PLAY_LOGIN_ID
+            | PLAY_KICK_DISCONNECT_ID
+    )
+}
+
+fn validate_known_packs_response(data: &[u8]) -> Result<(), PacketError> {
+    let mut cursor = Cursor::new(data);
+    let count = read_varint(&mut cursor)?;
+    if !(0..=64).contains(&count) {
+        return Err(PacketError::Malformed("invalid known-packs count"));
+    }
+    for _ in 0..count {
+        for _ in 0..3 {
+            read_string(&mut cursor, 32767)?;
+        }
+    }
+    if cursor.position() != data.len() as u64 {
+        return Err(PacketError::Malformed("trailing known-packs payload"));
     }
     Ok(())
 }
@@ -318,27 +353,19 @@ fn play_replay(
     stream: &mut TcpStream,
     uuid: &[u8; 16],
     name: &str,
+    server: &SharedServer,
 ) -> Result<PlayerView, PacketError> {
     let packets = parse_captured(PLAY_PACKETS);
-    let mut view = PlayerView::new(0.0, 0.0, 0.0);
-    stream.write_all(&encode_play_login(&view))?;
+    let mut view = PlayerView::new(0.0, 0.0, 0.0).with_view_distance(server.view_distance());
+    stream.write_all(&encode_play_login(
+        &view,
+        server.world().seed(),
+        server.view_distance(),
+    ))?;
     eprintln!("[BCore] play/login sent");
     for (pid, data) in &packets.items {
-        match *pid {
-            // The world is generated natively; drop the captured 3x3 batch so the
-            // streamer owns every chunk the client holds.
-            CB_MAP_CHUNK | CB_CHUNK_BATCH_START | CB_CHUNK_BATCH_FINISHED => continue,
-            // The captured recipe list crashes ViaVersion's RecipeDisplayRewriter.
-            PLAY_DECLARE_RECIPES_ID => continue,
-            // These are now built natively in `send_join_state`, from BCore's own
-            // state rather than the capture's. Replaying them too would send the
-            // client two command trees and two clocks.
-            CB_DECLARE_COMMANDS | CB_UPDATE_HEALTH | CB_UPDATE_TIME | CB_ABILITIES
-            | PLAY_LOGIN_ID => continue,
-            // The capture ends with vanilla kicking the capture client. Replaying
-            // it would disconnect every player the moment they joined.
-            PLAY_KICK_DISCONNECT_ID => continue,
-            _ => {}
+        if skip_play_capture(*pid) {
+            continue;
         }
 
         if *pid == PLAY_PLAYER_INFO_ID && data.len() > 2 {
@@ -354,7 +381,8 @@ fn play_replay(
 
         if *pid == PLAY_POSITION_ID {
             if let Some(spawn) = parse_spawn_position(data) {
-                view = PlayerView::new(spawn.0, spawn.1, spawn.2);
+                view = PlayerView::new(spawn.0, spawn.1, spawn.2)
+                    .with_view_distance(server.view_distance());
             }
             // Don't block on the teleport confirm here: the chunks must reach the
             // client immediately, and the confirm is handled later in play_loop.
@@ -378,21 +406,25 @@ fn parse_spawn_position(data: &[u8]) -> Option<(f64, f64, f64)> {
 /// (y = -60). Real terrain sits far above that, so the player is teleported to
 /// the generated surface *before* the chunks go out — otherwise they would spawn
 /// buried in stone and suffocate.
-fn stream_initial_chunks(stream: &mut TcpStream, view: &mut PlayerView) -> Result<(), PacketError> {
-    let world = crate::world_state::shared();
+fn stream_initial_chunks(
+    stream: &mut TcpStream,
+    view: &mut PlayerView,
+    world: &World,
+) -> Result<(), PacketError> {
     // Spawn on the nearest solid land near the live spawn (the captured
     // `position` packet pins a fixed spawn that may sit in the water).
-    let (x, y, z) = world.land_spawn(view.x.floor() as i32, view.z.floor() as i32);
+    let (x, y, z) = world
+        .try_land_spawn(view.x.floor() as i32, view.z.floor() as i32)
+        .map_err(|error| PacketError::Io(std::io::Error::other(error)))?;
     if (y - view.y).abs() > 0.5 || (x - view.x).abs() > 0.5 || (z - view.z).abs() > 0.5 {
         let frame = view.teleport(x, y, z);
         stream.write_all(&frame)?;
         view.spawn = (x, y, z);
     }
 
-    // Bound the very first batch so a fresh join does not burst the whole
-    // 41x41 view at once (the play loop streams the rest as the client acks).
+    // Stream the remaining view through subsequent bounded batches.
     view.set_chunk_batch_size(4);
-    let sent = view.stream_chunks(stream)?;
+    let sent = stream_world_chunks(stream, view, world)?;
     let (cx, cz) = view.chunk();
     println!(
         "[BCore] streamed {sent} chunks around ({cx}, {cz}); spawn y={:.1} (seed {})",
@@ -400,6 +432,19 @@ fn stream_initial_chunks(stream: &mut TcpStream, view: &mut PlayerView) -> Resul
         world.seed()
     );
     Ok(())
+}
+
+fn stream_world_chunks(
+    stream: &mut TcpStream,
+    view: &mut PlayerView,
+    world: &World,
+) -> Result<usize, PacketError> {
+    for (x, z) in view.missing_chunks().into_iter().take(8) {
+        if let Some(error) = world.payload_error(x, z) {
+            return Err(std::io::Error::other(error).into());
+        }
+    }
+    view.stream_chunks_from(stream, world)
 }
 
 /// Play loop: track movement, stream chunks, handle chat/commands, keep alive.
@@ -449,14 +494,10 @@ fn play_loop(
                     let current = view.chunk();
                     if current != last_chunk {
                         last_chunk = current;
-                        if view.stream_chunks(stream).is_err() {
-                            break;
-                        }
+                        stream_world_chunks(stream, view, server.world())?;
                     }
                 } else if let Some(input) = parse_chat_input(pid, &data) {
-                    if handle_chat_input(stream, view, server, handle, input).is_err() {
-                        break;
-                    }
+                    handle_chat_input(stream, view, server, handle, input)?;
                     last_chunk = view.chunk();
                 } else if pid == SB_CHANGE_GAMEMODE {
                     // F3+F4 debug screen: the client asks to switch gamemode.
@@ -504,10 +545,7 @@ fn play_loop(
         // chunk-batch acknowledgements may lower the per-batch flow-control
         // value, but all chunks in the configured view remain pending here.
         if view.has_pending_chunks() {
-            match view.stream_chunks(stream) {
-                Ok(_) => {}
-                Err(_) => break,
-            }
+            stream_world_chunks(stream, view, server.world())?;
         }
 
         // Deliver anything other players queued for us.
@@ -578,7 +616,7 @@ fn run_command(
         sender_name: &handle.name,
         online: &online,
         max_players: MAX_PLAYERS,
-        seed: WORLD_SEED,
+        seed: server.world().seed(),
         spawn: view.spawn,
         is_op: server.is_op(&handle.name),
     };
@@ -642,15 +680,11 @@ fn apply_effect(
                     Err(_) => return Ok(()), // peer closed; nothing more to do
                 }
             }
-            view.stream_chunks(stream)?;
+            stream_world_chunks(stream, view, server.world())?;
             Ok(())
         }
         Effect::SetDayTime(ticks) => {
-            view.day_time = *ticks;
-            let packet = encode_set_day_time(world_age_ticks(), *ticks);
-            stream.write_all(&packet)?;
-            // The world clock is shared, so everyone sees the change.
-            server.broadcast_except(handle.id, &packet);
+            server.set_day_time(*ticks);
             Ok(())
         }
         Effect::Kick(name) => {
@@ -705,6 +739,55 @@ mod tests {
     use super::*;
 
     #[test]
+    fn bootstrap_bytes_match_the_native_validated_26_2_publication() {
+        let publication: serde_json::Value =
+            serde_json::from_str(include_str!("../data/protocol_26_2.json")).unwrap();
+        assert_eq!(publication["schema"], "bcore.protocol-bootstrap.v1");
+        assert_eq!(publication["minecraft"], bcore_registry::MC_VERSION);
+        assert_eq!(publication["protocol"], bcore_registry::PROTOCOL_VERSION);
+        assert_eq!(publication["data_version"], bcore_registry::DATA_VERSION);
+        assert_eq!(publication["jar_sha256"], bcore_registry::SERVER_JAR_SHA256);
+        for (name, bytes) in [
+            ("config_packets.bin", CONFIG_PACKETS),
+            ("play_packets.bin", PLAY_PACKETS),
+        ] {
+            let receipt = &publication["files"][name];
+            assert_eq!(receipt["bytes"].as_u64(), Some(bytes.len() as u64));
+            assert_eq!(
+                receipt["sha256"],
+                format!("{:x}", sha2::Sha256::digest(bytes))
+            );
+            assert_eq!(
+                receipt["packet_count"].as_u64(),
+                Some(parse_captured(bytes).items.len() as u64)
+            );
+        }
+        assert_eq!(publication["configuration_comparison"]["equal"], true);
+        assert_eq!(publication["registry_bindings"]["biome_ids_match"], true);
+        assert_eq!(
+            publication["registry_bindings"]["biome_count"].as_u64(),
+            Some(bcore_registry::BIOME_COUNT as u64)
+        );
+        let proof = &publication["bcore_validation"];
+        assert_eq!(proof["coverage"].as_array().unwrap().len(), 3);
+        for session in proof["coverage"].as_array().unwrap() {
+            assert_eq!(session["decoded"], session["expected"]);
+            assert!(session["decoded"].as_u64().unwrap() > 0);
+            assert_eq!(session["coverage"]["network_registry_load"], true);
+        }
+        let persistence = &proof["persistence"];
+        assert_eq!(persistence["status"], "pass");
+        assert_ne!(
+            persistence["mutation"]["state"],
+            persistence["mutation"]["before_state"]
+        );
+        assert_eq!(
+            persistence["mutation"]["sha256"],
+            persistence["file_after_restart"]["sha256"]
+        );
+    }
+
+    #[test]
     fn hashed_seed_matches_protocol_value() {
         assert_eq!(hashed_seed(846692123413862008), -1328540181389140506);
     }
@@ -752,26 +835,27 @@ mod tests {
                 "capture should contain 0x{pid:02x}"
             );
         }
-        let replayed = packets
-            .items
-            .iter()
-            .filter(|(pid, _)| {
-                !matches!(
-                    *pid,
-                    CB_MAP_CHUNK
-                        | CB_CHUNK_BATCH_START
-                        | CB_CHUNK_BATCH_FINISHED
-                        | CB_DECLARE_COMMANDS
-                        | CB_UPDATE_HEALTH
-                        | CB_UPDATE_TIME
-                        | CB_ABILITIES
-                        | PLAY_KICK_DISCONNECT_ID
-                )
-            })
-            .count();
-        // 38 captured packets - 9 chunks - batch start - batch finished - kick
-        // - declare_commands - update_health - update_time - abilities.
-        assert_eq!(replayed, packets.items.len() - 16);
+        for id in [
+            CB_MAP_CHUNK,
+            CB_CHUNK_BATCH_START,
+            CB_CHUNK_BATCH_FINISHED,
+            CB_DECLARE_COMMANDS,
+            CB_UPDATE_HEALTH,
+            CB_UPDATE_TIME,
+            CB_ABILITIES,
+            PLAY_LOGIN_ID,
+            PLAY_DECLARE_RECIPES_ID,
+            PLAY_KICK_DISCONNECT_ID,
+        ] {
+            assert!(
+                skip_play_capture(id),
+                "captured packet 0x{id:02x} must be replaced or discarded"
+            );
+        }
+        assert!(
+            !skip_play_capture(PLAY_PLAYER_INFO_ID),
+            "player info is rebuilt in the replay path"
+        );
     }
 
     #[test]

@@ -130,13 +130,14 @@ impl ScatteredCatalog {
         DATA.get_or_init(|| {
             // Keep the published three-family catalog immutable. The additional
             // native family carries its own independently repeated provenance.
-            let mut data: Value = serde_json::from_str(include_str!(
-                "../../data/scattered_structure_catalog_26_1_v2.json"
+            let mut data: Value = crate::block_predicate::parse_catalog(include_str!(
+                "../../data/scattered_structure_catalog_26_2.json"
             ))
             .expect("pinned scattered catalog");
-            let pyramid: Value =
-                serde_json::from_str(include_str!("../../data/desert_pyramid_catalog_26_1.json"))
-                    .expect("pinned desert-pyramid catalog");
+            let pyramid: Value = crate::block_predicate::parse_catalog(include_str!(
+                "../../data/desert_pyramid_catalog_26_2.json"
+            ))
+            .expect("pinned desert-pyramid catalog");
             assert_eq!(pyramid["jar_sha256"], data["jar_sha256"]);
             data["catalog"]
                 .as_array_mut()
@@ -147,9 +148,11 @@ impl ScatteredCatalog {
     }
 
     pub fn from_json(source: &str) -> Result<Self> {
-        let data: Value = serde_json::from_str(source).map_err(|e| invalid(e.to_string()))?;
+        let data: Value = crate::block_predicate::parse_catalog(source)?;
         if data["jar_sha256"] != StructureAssets::JAR_SHA256 {
-            return Err(invalid("scattered catalog JAR differs from pinned 26.1"));
+            return Err(invalid(
+                "scattered catalog JAR differs from the shared registry",
+            ));
         }
         let mut configs = BTreeMap::new();
         for row in data["catalog"]
@@ -215,9 +218,19 @@ impl ScatteredCatalog {
                 .ok_or_else(|| invalid("scattered biomes"))?
                 .iter()
                 .map(|b| {
-                    b[0].as_u64()
+                    let native = b[0]
+                        .as_u64()
                         .and_then(|n| u32::try_from(n).ok())
-                        .ok_or_else(|| invalid("scattered biome ID"))
+                        .ok_or_else(|| invalid("scattered biome ID"))?;
+                    let name = b[1]
+                        .as_str()
+                        .ok_or_else(|| invalid("scattered biome name"))?;
+                    let shared = crate::biome::id(name)
+                        .ok_or_else(|| missing(format!("scattered biome {name}")))?;
+                    if native != shared {
+                        return Err(invalid(format!("scattered biome identity differs: {name}")));
+                    }
+                    Ok(shared)
                 })
                 .collect::<Result<Vec<_>>>()?;
             let configuration = ScatteredConfig {
@@ -256,8 +269,10 @@ impl ScatteredCatalog {
         let state_count = data["block_properties"]["state_count"]
             .as_u64()
             .ok_or_else(|| invalid("scattered state count"))?;
-        if state_count != 29_873 {
-            return Err(invalid("scattered state count differs from 26.1"));
+        if state_count != bcore_registry::BLOCK_STATE_COUNT as u64 {
+            return Err(invalid(
+                "scattered state count differs from the shared registry",
+            ));
         }
         let mut properties = Vec::with_capacity(state_count as usize);
         for row in data["block_properties"]["ranges"]
@@ -270,7 +285,7 @@ impl ScatteredCatalog {
                 || end <= first
                 || u64::from(end) > state_count
                 || flags >= 128
-                || fluid_id >= 5
+                || fluid_id as usize >= bcore_registry::vanilla().registries["FLUID"].len()
             {
                 return Err(invalid("scattered predicate range bounds"));
             }
@@ -1032,9 +1047,10 @@ struct NativeContainerTag {
 fn container_defaults() -> &'static BTreeMap<String, NativeContainerDefaults> {
     static DEFAULTS: OnceLock<BTreeMap<String, NativeContainerDefaults>> = OnceLock::new();
     DEFAULTS.get_or_init(|| {
-        let data: Value =
-            serde_json::from_str(include_str!("../../data/scattered_containers_26_1.json"))
-                .expect("native scattered container capture");
+        let data: Value = crate::block_predicate::parse_catalog(include_str!(
+            "../../data/scattered_containers_26_2.json"
+        ))
+        .expect("native scattered container capture");
         assert_eq!(data["jar_sha256"], StructureAssets::JAR_SHA256);
         serde_json::from_value(data["containers"]["defaults"].clone())
             .expect("native scattered container defaults")

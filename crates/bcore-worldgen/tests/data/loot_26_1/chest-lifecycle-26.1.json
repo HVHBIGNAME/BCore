@@ -1,0 +1,4194 @@
+{
+  "block_pos": [
+    8,
+    80,
+    8
+  ],
+  "cases": [
+    {
+      "fresh_load_api": "BlockEntity.loadStatic(pos,state,NbtIo.read(savedBytes),registries); ServerLevel.setBlockEntity",
+      "id": "deferred-dungeon-reopen",
+      "input_nbt_sha256": "209eccc707753611988522781af1e3168d32019aeb730c28a9d794bd1cecc83a",
+      "operations": [
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [],
+          "loot_rng_states_before": [],
+          "method_entries": {
+            "world/RandomizableContainer.tryLoadLootTable(Lnet/minecraft/world/level/storage/ValueInput;)Z": 1,
+            "world/level/block/entity/BlockEntity.loadStatic(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/nbt/CompoundTag;Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/world/level/block/entity/BlockEntity;": 1,
+            "world/level/block/entity/BlockEntity.loadWithComponents(Lnet/minecraft/world/level/storage/ValueInput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.loadAdditional(Lnet/minecraft/world/level/storage/ValueInput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "load_initial",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [],
+          "loot_rng_states_before": [],
+          "method_entries": {
+            "world/RandomizableContainer.trySaveLootTable(Lnet/minecraft/world/level/storage/ValueOutput;)Z": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/nbt/CompoundTag;": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.saveAdditional(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "save/loaded_before_unpack",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [
+            "1"
+          ],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "loot_rng_states_before": [],
+          "method_entries": {
+            "server/ReloadableServerRegistries$Holder.getLootTable(Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/world/level/storage/loot/LootTable;": 1,
+            "util/RandomSource.create(J)Lnet/minecraft/util/RandomSource;": 1,
+            "world/RandomizableContainer.unpackLootTable(Lnet/minecraft/world/entity/player/Player;)V": 40,
+            "world/level/levelgen/BitRandomSource.nextBoolean()Z": 6,
+            "world/level/levelgen/BitRandomSource.nextInt(I)I": 58,
+            "world/level/levelgen/LegacyRandomSource.next(I)I": 64,
+            "world/level/levelgen/LegacyRandomSource.setSeed(J)V": 1,
+            "world/level/storage/loot/LootContext$Builder.create(Ljava/util/Optional;)Lnet/minecraft/world/level/storage/loot/LootContext;": 1,
+            "world/level/storage/loot/LootTable.fill(Lnet/minecraft/world/Container;Lnet/minecraft/world/level/storage/loot/LootParams;J)V": 1
+          },
+          "new_contexts": [
+            {
+              "luck_f32_bits": "0",
+              "origin": [
+                8.5,
+                80.5,
+                8.5
+              ],
+              "random": {
+                "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+                "gaussian_bits": "0",
+                "gaussian_cached": false,
+                "seed48": "25214903916"
+              },
+              "rng_index": 0,
+              "same_server_level": true,
+              "this_entity": null
+            }
+          ],
+          "operation": "first_unpack_null",
+          "table_resolutions": [
+            {
+              "is_native_empty": false
+            }
+          ]
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "method_entries": {
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;Z)V": 1,
+            "world/RandomizableContainer.trySaveLootTable(Lnet/minecraft/world/level/storage/ValueOutput;)Z": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/nbt/CompoundTag;": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.saveAdditional(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "save/after_first_unpack",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "method_entries": {
+            "world/RandomizableContainer.unpackLootTable(Lnet/minecraft/world/entity/player/Player;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "second_unpack_null",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "method_entries": {
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;Z)V": 1,
+            "world/RandomizableContainer.trySaveLootTable(Lnet/minecraft/world/level/storage/ValueOutput;)Z": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/nbt/CompoundTag;": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.saveAdditional(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "save/after_second_unpack",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "method_entries": {
+            "world/ContainerHelper.loadAllItems(Lnet/minecraft/world/level/storage/ValueInput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/RandomizableContainer.tryLoadLootTable(Lnet/minecraft/world/level/storage/ValueInput;)Z": 1,
+            "world/level/block/entity/BlockEntity.loadStatic(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/nbt/CompoundTag;Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/world/level/block/entity/BlockEntity;": 1,
+            "world/level/block/entity/BlockEntity.loadWithComponents(Lnet/minecraft/world/level/storage/ValueInput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.loadAdditional(Lnet/minecraft/world/level/storage/ValueInput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "load_saved_materialized_into_fresh_chest",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "method_entries": {
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;Z)V": 1,
+            "world/RandomizableContainer.trySaveLootTable(Lnet/minecraft/world/level/storage/ValueOutput;)Z": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/nbt/CompoundTag;": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.saveAdditional(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "save/fresh_loaded_materialized",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "method_entries": {
+            "world/RandomizableContainer.unpackLootTable(Lnet/minecraft/world/entity/player/Player;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "reopened_unpack_null",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "method_entries": {
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;Z)V": 1,
+            "world/RandomizableContainer.trySaveLootTable(Lnet/minecraft/world/level/storage/ValueOutput;)Z": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/nbt/CompoundTag;": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.saveAdditional(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "save/after_reopened_unpack",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "method_entries": {
+            "world/RandomizableContainer.unpackLootTable(Lnet/minecraft/world/entity/player/Player;)V": 27
+          },
+          "new_contexts": [],
+          "operation": "reopened_getItem_all_slots",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "method_entries": {
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;Z)V": 1,
+            "world/RandomizableContainer.trySaveLootTable(Lnet/minecraft/world/level/storage/ValueOutput;)Z": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/nbt/CompoundTag;": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.saveAdditional(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "save/after_reopened_getItem",
+          "table_resolutions": []
+        }
+      ],
+      "snapshots": {
+        "after_first_unpack": {
+          "loot_seed_i64": "1",
+          "loot_table": null,
+          "native_level_attached": true,
+          "saved_nbt_sha256": "19aa5ab91ecafeeb33ff6d768acf3eb1dd741e1b0a6239334276694a6adf9845",
+          "slots": [
+            {
+              "count": 1,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 3,
+              "id": "minecraft:string"
+            },
+            {
+              "count": 1,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:string"
+            },
+            null,
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:bone"
+            },
+            {
+              "count": 2,
+              "id": "minecraft:string"
+            },
+            {
+              "count": 1,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:bucket"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            {
+              "count": 3,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:golden_apple"
+            },
+            null,
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:iron_ingot"
+            },
+            {
+              "count": 1,
+              "id": "minecraft:bone"
+            }
+          ]
+        },
+        "after_reopened_getItem": {
+          "loot_seed_i64": "0",
+          "loot_table": null,
+          "native_level_attached": true,
+          "saved_nbt_sha256": "19aa5ab91ecafeeb33ff6d768acf3eb1dd741e1b0a6239334276694a6adf9845",
+          "slots": [
+            {
+              "count": 1,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 3,
+              "id": "minecraft:string"
+            },
+            {
+              "count": 1,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:string"
+            },
+            null,
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:bone"
+            },
+            {
+              "count": 2,
+              "id": "minecraft:string"
+            },
+            {
+              "count": 1,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:bucket"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            {
+              "count": 3,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:golden_apple"
+            },
+            null,
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:iron_ingot"
+            },
+            {
+              "count": 1,
+              "id": "minecraft:bone"
+            }
+          ]
+        },
+        "after_reopened_unpack": {
+          "loot_seed_i64": "0",
+          "loot_table": null,
+          "native_level_attached": true,
+          "saved_nbt_sha256": "19aa5ab91ecafeeb33ff6d768acf3eb1dd741e1b0a6239334276694a6adf9845",
+          "slots": [
+            {
+              "count": 1,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 3,
+              "id": "minecraft:string"
+            },
+            {
+              "count": 1,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:string"
+            },
+            null,
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:bone"
+            },
+            {
+              "count": 2,
+              "id": "minecraft:string"
+            },
+            {
+              "count": 1,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:bucket"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            {
+              "count": 3,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:golden_apple"
+            },
+            null,
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:iron_ingot"
+            },
+            {
+              "count": 1,
+              "id": "minecraft:bone"
+            }
+          ]
+        },
+        "after_second_unpack": {
+          "loot_seed_i64": "1",
+          "loot_table": null,
+          "native_level_attached": true,
+          "saved_nbt_sha256": "19aa5ab91ecafeeb33ff6d768acf3eb1dd741e1b0a6239334276694a6adf9845",
+          "slots": [
+            {
+              "count": 1,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 3,
+              "id": "minecraft:string"
+            },
+            {
+              "count": 1,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:string"
+            },
+            null,
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:bone"
+            },
+            {
+              "count": 2,
+              "id": "minecraft:string"
+            },
+            {
+              "count": 1,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:bucket"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            {
+              "count": 3,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:golden_apple"
+            },
+            null,
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:iron_ingot"
+            },
+            {
+              "count": 1,
+              "id": "minecraft:bone"
+            }
+          ]
+        },
+        "fresh_loaded_materialized": {
+          "loot_seed_i64": "0",
+          "loot_table": null,
+          "native_level_attached": true,
+          "saved_nbt_sha256": "19aa5ab91ecafeeb33ff6d768acf3eb1dd741e1b0a6239334276694a6adf9845",
+          "slots": [
+            {
+              "count": 1,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 3,
+              "id": "minecraft:string"
+            },
+            {
+              "count": 1,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:string"
+            },
+            null,
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:bone"
+            },
+            {
+              "count": 2,
+              "id": "minecraft:string"
+            },
+            {
+              "count": 1,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:bucket"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            {
+              "count": 3,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:golden_apple"
+            },
+            null,
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:iron_ingot"
+            },
+            {
+              "count": 1,
+              "id": "minecraft:bone"
+            }
+          ]
+        },
+        "loaded_before_unpack": {
+          "loot_seed_i64": "1",
+          "loot_table": "minecraft:chests/simple_dungeon",
+          "native_level_attached": true,
+          "saved_nbt_sha256": "209eccc707753611988522781af1e3168d32019aeb730c28a9d794bd1cecc83a",
+          "slots": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        }
+      }
+    },
+    {
+      "fresh_load_api": "BlockEntity.loadStatic(pos,state,NbtIo.read(savedBytes),registries); ServerLevel.setBlockEntity",
+      "id": "deferred-book-reopen",
+      "input_nbt_sha256": "9b02a9fab655c730b9b6733cf7e27c888a0ea759bc8094ea8d6fc259d28376bf",
+      "operations": [
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [],
+          "loot_rng_states_before": [],
+          "method_entries": {
+            "world/RandomizableContainer.tryLoadLootTable(Lnet/minecraft/world/level/storage/ValueInput;)Z": 1,
+            "world/level/block/entity/BlockEntity.loadStatic(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/nbt/CompoundTag;Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/world/level/block/entity/BlockEntity;": 1,
+            "world/level/block/entity/BlockEntity.loadWithComponents(Lnet/minecraft/world/level/storage/ValueInput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.loadAdditional(Lnet/minecraft/world/level/storage/ValueInput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "load_initial",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [],
+          "loot_rng_states_before": [],
+          "method_entries": {
+            "world/RandomizableContainer.trySaveLootTable(Lnet/minecraft/world/level/storage/ValueOutput;)Z": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/nbt/CompoundTag;": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.saveAdditional(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "save/loaded_before_unpack",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [
+            "-36"
+          ],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "70939002262522"
+            }
+          ],
+          "loot_rng_states_before": [],
+          "method_entries": {
+            "server/ReloadableServerRegistries$Holder.getLootTable(Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/world/level/storage/loot/LootTable;": 1,
+            "util/RandomSource.create(J)Lnet/minecraft/util/RandomSource;": 1,
+            "world/RandomizableContainer.unpackLootTable(Lnet/minecraft/world/entity/player/Player;)V": 29,
+            "world/level/levelgen/BitRandomSource.nextInt(I)I": 27,
+            "world/level/levelgen/LegacyRandomSource.next(I)I": 27,
+            "world/level/levelgen/LegacyRandomSource.setSeed(J)V": 1,
+            "world/level/storage/loot/LootContext$Builder.create(Ljava/util/Optional;)Lnet/minecraft/world/level/storage/loot/LootContext;": 1,
+            "world/level/storage/loot/LootTable.fill(Lnet/minecraft/world/Container;Lnet/minecraft/world/level/storage/loot/LootParams;J)V": 1
+          },
+          "new_contexts": [
+            {
+              "luck_f32_bits": "0",
+              "origin": [
+                8.5,
+                80.5,
+                8.5
+              ],
+              "random": {
+                "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+                "gaussian_bits": "0",
+                "gaussian_cached": false,
+                "seed48": "281449761806769"
+              },
+              "rng_index": 0,
+              "same_server_level": true,
+              "this_entity": null
+            }
+          ],
+          "operation": "first_unpack_null",
+          "table_resolutions": [
+            {
+              "is_native_empty": false
+            }
+          ]
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "70939002262522"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "70939002262522"
+            }
+          ],
+          "method_entries": {
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;Z)V": 1,
+            "world/RandomizableContainer.trySaveLootTable(Lnet/minecraft/world/level/storage/ValueOutput;)Z": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/nbt/CompoundTag;": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.saveAdditional(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "save/after_first_unpack",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "70939002262522"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "70939002262522"
+            }
+          ],
+          "method_entries": {
+            "world/RandomizableContainer.unpackLootTable(Lnet/minecraft/world/entity/player/Player;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "second_unpack_null",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "70939002262522"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "70939002262522"
+            }
+          ],
+          "method_entries": {
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;Z)V": 1,
+            "world/RandomizableContainer.trySaveLootTable(Lnet/minecraft/world/level/storage/ValueOutput;)Z": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/nbt/CompoundTag;": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.saveAdditional(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "save/after_second_unpack",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "70939002262522"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "70939002262522"
+            }
+          ],
+          "method_entries": {
+            "world/ContainerHelper.loadAllItems(Lnet/minecraft/world/level/storage/ValueInput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/RandomizableContainer.tryLoadLootTable(Lnet/minecraft/world/level/storage/ValueInput;)Z": 1,
+            "world/level/block/entity/BlockEntity.loadStatic(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/nbt/CompoundTag;Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/world/level/block/entity/BlockEntity;": 1,
+            "world/level/block/entity/BlockEntity.loadWithComponents(Lnet/minecraft/world/level/storage/ValueInput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.loadAdditional(Lnet/minecraft/world/level/storage/ValueInput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "load_saved_materialized_into_fresh_chest",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "70939002262522"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "70939002262522"
+            }
+          ],
+          "method_entries": {
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;Z)V": 1,
+            "world/RandomizableContainer.trySaveLootTable(Lnet/minecraft/world/level/storage/ValueOutput;)Z": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/nbt/CompoundTag;": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.saveAdditional(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "save/fresh_loaded_materialized",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "70939002262522"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "70939002262522"
+            }
+          ],
+          "method_entries": {
+            "world/RandomizableContainer.unpackLootTable(Lnet/minecraft/world/entity/player/Player;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "reopened_unpack_null",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "70939002262522"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "70939002262522"
+            }
+          ],
+          "method_entries": {
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;Z)V": 1,
+            "world/RandomizableContainer.trySaveLootTable(Lnet/minecraft/world/level/storage/ValueOutput;)Z": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/nbt/CompoundTag;": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.saveAdditional(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "save/after_reopened_unpack",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "70939002262522"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "70939002262522"
+            }
+          ],
+          "method_entries": {
+            "world/RandomizableContainer.unpackLootTable(Lnet/minecraft/world/entity/player/Player;)V": 27
+          },
+          "new_contexts": [],
+          "operation": "reopened_getItem_all_slots",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "70939002262522"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "70939002262522"
+            }
+          ],
+          "method_entries": {
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;Z)V": 1,
+            "world/RandomizableContainer.trySaveLootTable(Lnet/minecraft/world/level/storage/ValueOutput;)Z": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/nbt/CompoundTag;": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.saveAdditional(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "save/after_reopened_getItem",
+          "table_resolutions": []
+        }
+      ],
+      "snapshots": {
+        "after_first_unpack": {
+          "loot_seed_i64": "-36",
+          "loot_table": null,
+          "native_level_attached": true,
+          "saved_nbt_sha256": "1a351f76fb8b1998dbdc77317857b43d980ef335ea22ed67b24de13f6d0b9a8e",
+          "slots": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            {
+              "components": {
+                "minecraft:stored_enchantments": {
+                  "minecraft:wind_burst": 1
+                }
+              },
+              "count": 1,
+              "id": "minecraft:enchanted_book"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        "after_reopened_getItem": {
+          "loot_seed_i64": "0",
+          "loot_table": null,
+          "native_level_attached": true,
+          "saved_nbt_sha256": "1a351f76fb8b1998dbdc77317857b43d980ef335ea22ed67b24de13f6d0b9a8e",
+          "slots": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            {
+              "components": {
+                "minecraft:stored_enchantments": {
+                  "minecraft:wind_burst": 1
+                }
+              },
+              "count": 1,
+              "id": "minecraft:enchanted_book"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        "after_reopened_unpack": {
+          "loot_seed_i64": "0",
+          "loot_table": null,
+          "native_level_attached": true,
+          "saved_nbt_sha256": "1a351f76fb8b1998dbdc77317857b43d980ef335ea22ed67b24de13f6d0b9a8e",
+          "slots": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            {
+              "components": {
+                "minecraft:stored_enchantments": {
+                  "minecraft:wind_burst": 1
+                }
+              },
+              "count": 1,
+              "id": "minecraft:enchanted_book"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        "after_second_unpack": {
+          "loot_seed_i64": "-36",
+          "loot_table": null,
+          "native_level_attached": true,
+          "saved_nbt_sha256": "1a351f76fb8b1998dbdc77317857b43d980ef335ea22ed67b24de13f6d0b9a8e",
+          "slots": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            {
+              "components": {
+                "minecraft:stored_enchantments": {
+                  "minecraft:wind_burst": 1
+                }
+              },
+              "count": 1,
+              "id": "minecraft:enchanted_book"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        "fresh_loaded_materialized": {
+          "loot_seed_i64": "0",
+          "loot_table": null,
+          "native_level_attached": true,
+          "saved_nbt_sha256": "1a351f76fb8b1998dbdc77317857b43d980ef335ea22ed67b24de13f6d0b9a8e",
+          "slots": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            {
+              "components": {
+                "minecraft:stored_enchantments": {
+                  "minecraft:wind_burst": 1
+                }
+              },
+              "count": 1,
+              "id": "minecraft:enchanted_book"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        "loaded_before_unpack": {
+          "loot_seed_i64": "-36",
+          "loot_table": "minecraft:chests/trial_chambers/reward_ominous_rare",
+          "native_level_attached": true,
+          "saved_nbt_sha256": "9b02a9fab655c730b9b6733cf7e27c888a0ea759bc8094ea8d6fc259d28376bf",
+          "slots": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        }
+      }
+    },
+    {
+      "fresh_load_api": "BlockEntity.loadStatic(pos,state,NbtIo.read(savedBytes),registries); ServerLevel.setBlockEntity",
+      "id": "preset-component-items",
+      "input_nbt_sha256": "9cee773bb2cd992866116b9cdc0cac757d3832bd64af726f2a7311b80dc6dc64",
+      "operations": [
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [],
+          "loot_rng_states_before": [],
+          "method_entries": {
+            "world/ContainerHelper.loadAllItems(Lnet/minecraft/world/level/storage/ValueInput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/RandomizableContainer.tryLoadLootTable(Lnet/minecraft/world/level/storage/ValueInput;)Z": 1,
+            "world/level/block/entity/BlockEntity.loadStatic(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/nbt/CompoundTag;Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/world/level/block/entity/BlockEntity;": 1,
+            "world/level/block/entity/BlockEntity.loadWithComponents(Lnet/minecraft/world/level/storage/ValueInput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.loadAdditional(Lnet/minecraft/world/level/storage/ValueInput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "load_initial",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [],
+          "loot_rng_states_before": [],
+          "method_entries": {
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;Z)V": 1,
+            "world/RandomizableContainer.trySaveLootTable(Lnet/minecraft/world/level/storage/ValueOutput;)Z": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/nbt/CompoundTag;": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.saveAdditional(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "save/loaded_before_unpack",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [],
+          "loot_rng_states_before": [],
+          "method_entries": {
+            "world/RandomizableContainer.unpackLootTable(Lnet/minecraft/world/entity/player/Player;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "first_unpack_null",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [],
+          "loot_rng_states_before": [],
+          "method_entries": {
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;Z)V": 1,
+            "world/RandomizableContainer.trySaveLootTable(Lnet/minecraft/world/level/storage/ValueOutput;)Z": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/nbt/CompoundTag;": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.saveAdditional(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "save/after_first_unpack",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [],
+          "loot_rng_states_before": [],
+          "method_entries": {
+            "world/RandomizableContainer.unpackLootTable(Lnet/minecraft/world/entity/player/Player;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "second_unpack_null",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [],
+          "loot_rng_states_before": [],
+          "method_entries": {
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;Z)V": 1,
+            "world/RandomizableContainer.trySaveLootTable(Lnet/minecraft/world/level/storage/ValueOutput;)Z": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/nbt/CompoundTag;": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.saveAdditional(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "save/after_second_unpack",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [],
+          "loot_rng_states_before": [],
+          "method_entries": {
+            "world/ContainerHelper.loadAllItems(Lnet/minecraft/world/level/storage/ValueInput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/RandomizableContainer.tryLoadLootTable(Lnet/minecraft/world/level/storage/ValueInput;)Z": 1,
+            "world/level/block/entity/BlockEntity.loadStatic(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/nbt/CompoundTag;Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/world/level/block/entity/BlockEntity;": 1,
+            "world/level/block/entity/BlockEntity.loadWithComponents(Lnet/minecraft/world/level/storage/ValueInput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.loadAdditional(Lnet/minecraft/world/level/storage/ValueInput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "load_saved_materialized_into_fresh_chest",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [],
+          "loot_rng_states_before": [],
+          "method_entries": {
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;Z)V": 1,
+            "world/RandomizableContainer.trySaveLootTable(Lnet/minecraft/world/level/storage/ValueOutput;)Z": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/nbt/CompoundTag;": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.saveAdditional(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "save/fresh_loaded_materialized",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [],
+          "loot_rng_states_before": [],
+          "method_entries": {
+            "world/RandomizableContainer.unpackLootTable(Lnet/minecraft/world/entity/player/Player;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "reopened_unpack_null",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [],
+          "loot_rng_states_before": [],
+          "method_entries": {
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;Z)V": 1,
+            "world/RandomizableContainer.trySaveLootTable(Lnet/minecraft/world/level/storage/ValueOutput;)Z": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/nbt/CompoundTag;": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.saveAdditional(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "save/after_reopened_unpack",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [],
+          "loot_rng_states_before": [],
+          "method_entries": {
+            "world/RandomizableContainer.unpackLootTable(Lnet/minecraft/world/entity/player/Player;)V": 27
+          },
+          "new_contexts": [],
+          "operation": "reopened_getItem_all_slots",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [],
+          "loot_rng_states_before": [],
+          "method_entries": {
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;Z)V": 1,
+            "world/RandomizableContainer.trySaveLootTable(Lnet/minecraft/world/level/storage/ValueOutput;)Z": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/nbt/CompoundTag;": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.saveAdditional(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "save/after_reopened_getItem",
+          "table_resolutions": []
+        }
+      ],
+      "snapshots": {
+        "after_first_unpack": {
+          "loot_seed_i64": "0",
+          "loot_table": null,
+          "native_level_attached": true,
+          "saved_nbt_sha256": "7604122338cf570b74d8908bfb231ca1f929fadf7d4ab827f0a199aab059cd54",
+          "slots": [
+            {
+              "components": {
+                "minecraft:damage": 7,
+                "minecraft:enchantments": {
+                  "minecraft:sharpness": 3
+                }
+              },
+              "count": 1,
+              "id": "minecraft:diamond_sword"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            {
+              "components": {
+                "minecraft:potion_contents": {
+                  "potion": "minecraft:strong_healing"
+                }
+              },
+              "count": 1,
+              "id": "minecraft:potion"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            {
+              "components": {
+                "minecraft:stored_enchantments": {
+                  "minecraft:wind_burst": 1
+                }
+              },
+              "count": 1,
+              "id": "minecraft:enchanted_book"
+            }
+          ]
+        },
+        "after_reopened_getItem": {
+          "loot_seed_i64": "0",
+          "loot_table": null,
+          "native_level_attached": true,
+          "saved_nbt_sha256": "7604122338cf570b74d8908bfb231ca1f929fadf7d4ab827f0a199aab059cd54",
+          "slots": [
+            {
+              "components": {
+                "minecraft:damage": 7,
+                "minecraft:enchantments": {
+                  "minecraft:sharpness": 3
+                }
+              },
+              "count": 1,
+              "id": "minecraft:diamond_sword"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            {
+              "components": {
+                "minecraft:potion_contents": {
+                  "potion": "minecraft:strong_healing"
+                }
+              },
+              "count": 1,
+              "id": "minecraft:potion"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            {
+              "components": {
+                "minecraft:stored_enchantments": {
+                  "minecraft:wind_burst": 1
+                }
+              },
+              "count": 1,
+              "id": "minecraft:enchanted_book"
+            }
+          ]
+        },
+        "after_reopened_unpack": {
+          "loot_seed_i64": "0",
+          "loot_table": null,
+          "native_level_attached": true,
+          "saved_nbt_sha256": "7604122338cf570b74d8908bfb231ca1f929fadf7d4ab827f0a199aab059cd54",
+          "slots": [
+            {
+              "components": {
+                "minecraft:damage": 7,
+                "minecraft:enchantments": {
+                  "minecraft:sharpness": 3
+                }
+              },
+              "count": 1,
+              "id": "minecraft:diamond_sword"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            {
+              "components": {
+                "minecraft:potion_contents": {
+                  "potion": "minecraft:strong_healing"
+                }
+              },
+              "count": 1,
+              "id": "minecraft:potion"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            {
+              "components": {
+                "minecraft:stored_enchantments": {
+                  "minecraft:wind_burst": 1
+                }
+              },
+              "count": 1,
+              "id": "minecraft:enchanted_book"
+            }
+          ]
+        },
+        "after_second_unpack": {
+          "loot_seed_i64": "0",
+          "loot_table": null,
+          "native_level_attached": true,
+          "saved_nbt_sha256": "7604122338cf570b74d8908bfb231ca1f929fadf7d4ab827f0a199aab059cd54",
+          "slots": [
+            {
+              "components": {
+                "minecraft:damage": 7,
+                "minecraft:enchantments": {
+                  "minecraft:sharpness": 3
+                }
+              },
+              "count": 1,
+              "id": "minecraft:diamond_sword"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            {
+              "components": {
+                "minecraft:potion_contents": {
+                  "potion": "minecraft:strong_healing"
+                }
+              },
+              "count": 1,
+              "id": "minecraft:potion"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            {
+              "components": {
+                "minecraft:stored_enchantments": {
+                  "minecraft:wind_burst": 1
+                }
+              },
+              "count": 1,
+              "id": "minecraft:enchanted_book"
+            }
+          ]
+        },
+        "fresh_loaded_materialized": {
+          "loot_seed_i64": "0",
+          "loot_table": null,
+          "native_level_attached": true,
+          "saved_nbt_sha256": "7604122338cf570b74d8908bfb231ca1f929fadf7d4ab827f0a199aab059cd54",
+          "slots": [
+            {
+              "components": {
+                "minecraft:damage": 7,
+                "minecraft:enchantments": {
+                  "minecraft:sharpness": 3
+                }
+              },
+              "count": 1,
+              "id": "minecraft:diamond_sword"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            {
+              "components": {
+                "minecraft:potion_contents": {
+                  "potion": "minecraft:strong_healing"
+                }
+              },
+              "count": 1,
+              "id": "minecraft:potion"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            {
+              "components": {
+                "minecraft:stored_enchantments": {
+                  "minecraft:wind_burst": 1
+                }
+              },
+              "count": 1,
+              "id": "minecraft:enchanted_book"
+            }
+          ]
+        },
+        "loaded_before_unpack": {
+          "loot_seed_i64": "0",
+          "loot_table": null,
+          "native_level_attached": true,
+          "saved_nbt_sha256": "7604122338cf570b74d8908bfb231ca1f929fadf7d4ab827f0a199aab059cd54",
+          "slots": [
+            {
+              "components": {
+                "minecraft:damage": 7,
+                "minecraft:enchantments": {
+                  "minecraft:sharpness": 3
+                }
+              },
+              "count": 1,
+              "id": "minecraft:diamond_sword"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            {
+              "components": {
+                "minecraft:potion_contents": {
+                  "potion": "minecraft:strong_healing"
+                }
+              },
+              "count": 1,
+              "id": "minecraft:potion"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            {
+              "components": {
+                "minecraft:stored_enchantments": {
+                  "minecraft:wind_burst": 1
+                }
+              },
+              "count": 1,
+              "id": "minecraft:enchanted_book"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "fresh_load_api": "BlockEntity.loadStatic(pos,state,NbtIo.read(savedBytes),registries); ServerLevel.setBlockEntity",
+      "id": "table-and-items",
+      "input_nbt_sha256": "6b3aff0094ecd65bd84e0c2806e59456254449b0e392e1c88d5716370dd6fc2d",
+      "operations": [
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [],
+          "loot_rng_states_before": [],
+          "method_entries": {
+            "world/RandomizableContainer.tryLoadLootTable(Lnet/minecraft/world/level/storage/ValueInput;)Z": 1,
+            "world/level/block/entity/BlockEntity.loadStatic(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/nbt/CompoundTag;Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/world/level/block/entity/BlockEntity;": 1,
+            "world/level/block/entity/BlockEntity.loadWithComponents(Lnet/minecraft/world/level/storage/ValueInput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.loadAdditional(Lnet/minecraft/world/level/storage/ValueInput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "load_initial",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [],
+          "loot_rng_states_before": [],
+          "method_entries": {
+            "world/RandomizableContainer.trySaveLootTable(Lnet/minecraft/world/level/storage/ValueOutput;)Z": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/nbt/CompoundTag;": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.saveAdditional(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "save/loaded_before_unpack",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [
+            "1"
+          ],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "loot_rng_states_before": [],
+          "method_entries": {
+            "server/ReloadableServerRegistries$Holder.getLootTable(Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/world/level/storage/loot/LootTable;": 1,
+            "util/RandomSource.create(J)Lnet/minecraft/util/RandomSource;": 1,
+            "world/RandomizableContainer.unpackLootTable(Lnet/minecraft/world/entity/player/Player;)V": 40,
+            "world/level/levelgen/BitRandomSource.nextBoolean()Z": 6,
+            "world/level/levelgen/BitRandomSource.nextInt(I)I": 58,
+            "world/level/levelgen/LegacyRandomSource.next(I)I": 64,
+            "world/level/levelgen/LegacyRandomSource.setSeed(J)V": 1,
+            "world/level/storage/loot/LootContext$Builder.create(Ljava/util/Optional;)Lnet/minecraft/world/level/storage/loot/LootContext;": 1,
+            "world/level/storage/loot/LootTable.fill(Lnet/minecraft/world/Container;Lnet/minecraft/world/level/storage/loot/LootParams;J)V": 1
+          },
+          "new_contexts": [
+            {
+              "luck_f32_bits": "0",
+              "origin": [
+                8.5,
+                80.5,
+                8.5
+              ],
+              "random": {
+                "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+                "gaussian_bits": "0",
+                "gaussian_cached": false,
+                "seed48": "25214903916"
+              },
+              "rng_index": 0,
+              "same_server_level": true,
+              "this_entity": null
+            }
+          ],
+          "operation": "first_unpack_null",
+          "table_resolutions": [
+            {
+              "is_native_empty": false
+            }
+          ]
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "method_entries": {
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;Z)V": 1,
+            "world/RandomizableContainer.trySaveLootTable(Lnet/minecraft/world/level/storage/ValueOutput;)Z": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/nbt/CompoundTag;": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.saveAdditional(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "save/after_first_unpack",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "method_entries": {
+            "world/RandomizableContainer.unpackLootTable(Lnet/minecraft/world/entity/player/Player;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "second_unpack_null",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "method_entries": {
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;Z)V": 1,
+            "world/RandomizableContainer.trySaveLootTable(Lnet/minecraft/world/level/storage/ValueOutput;)Z": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/nbt/CompoundTag;": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.saveAdditional(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "save/after_second_unpack",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "method_entries": {
+            "world/ContainerHelper.loadAllItems(Lnet/minecraft/world/level/storage/ValueInput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/RandomizableContainer.tryLoadLootTable(Lnet/minecraft/world/level/storage/ValueInput;)Z": 1,
+            "world/level/block/entity/BlockEntity.loadStatic(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/nbt/CompoundTag;Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/world/level/block/entity/BlockEntity;": 1,
+            "world/level/block/entity/BlockEntity.loadWithComponents(Lnet/minecraft/world/level/storage/ValueInput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.loadAdditional(Lnet/minecraft/world/level/storage/ValueInput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "load_saved_materialized_into_fresh_chest",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "method_entries": {
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;Z)V": 1,
+            "world/RandomizableContainer.trySaveLootTable(Lnet/minecraft/world/level/storage/ValueOutput;)Z": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/nbt/CompoundTag;": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.saveAdditional(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "save/fresh_loaded_materialized",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "method_entries": {
+            "world/RandomizableContainer.unpackLootTable(Lnet/minecraft/world/entity/player/Player;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "reopened_unpack_null",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "method_entries": {
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;Z)V": 1,
+            "world/RandomizableContainer.trySaveLootTable(Lnet/minecraft/world/level/storage/ValueOutput;)Z": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/nbt/CompoundTag;": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.saveAdditional(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "save/after_reopened_unpack",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "method_entries": {
+            "world/RandomizableContainer.unpackLootTable(Lnet/minecraft/world/entity/player/Player;)V": 27
+          },
+          "new_contexts": [],
+          "operation": "reopened_getItem_all_slots",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "365518356652"
+            }
+          ],
+          "method_entries": {
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;Z)V": 1,
+            "world/RandomizableContainer.trySaveLootTable(Lnet/minecraft/world/level/storage/ValueOutput;)Z": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/nbt/CompoundTag;": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.saveAdditional(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "save/after_reopened_getItem",
+          "table_resolutions": []
+        }
+      ],
+      "snapshots": {
+        "after_first_unpack": {
+          "loot_seed_i64": "1",
+          "loot_table": null,
+          "native_level_attached": true,
+          "saved_nbt_sha256": "19aa5ab91ecafeeb33ff6d768acf3eb1dd741e1b0a6239334276694a6adf9845",
+          "slots": [
+            {
+              "count": 1,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 3,
+              "id": "minecraft:string"
+            },
+            {
+              "count": 1,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:string"
+            },
+            null,
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:bone"
+            },
+            {
+              "count": 2,
+              "id": "minecraft:string"
+            },
+            {
+              "count": 1,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:bucket"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            {
+              "count": 3,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:golden_apple"
+            },
+            null,
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:iron_ingot"
+            },
+            {
+              "count": 1,
+              "id": "minecraft:bone"
+            }
+          ]
+        },
+        "after_reopened_getItem": {
+          "loot_seed_i64": "0",
+          "loot_table": null,
+          "native_level_attached": true,
+          "saved_nbt_sha256": "19aa5ab91ecafeeb33ff6d768acf3eb1dd741e1b0a6239334276694a6adf9845",
+          "slots": [
+            {
+              "count": 1,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 3,
+              "id": "minecraft:string"
+            },
+            {
+              "count": 1,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:string"
+            },
+            null,
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:bone"
+            },
+            {
+              "count": 2,
+              "id": "minecraft:string"
+            },
+            {
+              "count": 1,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:bucket"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            {
+              "count": 3,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:golden_apple"
+            },
+            null,
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:iron_ingot"
+            },
+            {
+              "count": 1,
+              "id": "minecraft:bone"
+            }
+          ]
+        },
+        "after_reopened_unpack": {
+          "loot_seed_i64": "0",
+          "loot_table": null,
+          "native_level_attached": true,
+          "saved_nbt_sha256": "19aa5ab91ecafeeb33ff6d768acf3eb1dd741e1b0a6239334276694a6adf9845",
+          "slots": [
+            {
+              "count": 1,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 3,
+              "id": "minecraft:string"
+            },
+            {
+              "count": 1,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:string"
+            },
+            null,
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:bone"
+            },
+            {
+              "count": 2,
+              "id": "minecraft:string"
+            },
+            {
+              "count": 1,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:bucket"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            {
+              "count": 3,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:golden_apple"
+            },
+            null,
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:iron_ingot"
+            },
+            {
+              "count": 1,
+              "id": "minecraft:bone"
+            }
+          ]
+        },
+        "after_second_unpack": {
+          "loot_seed_i64": "1",
+          "loot_table": null,
+          "native_level_attached": true,
+          "saved_nbt_sha256": "19aa5ab91ecafeeb33ff6d768acf3eb1dd741e1b0a6239334276694a6adf9845",
+          "slots": [
+            {
+              "count": 1,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 3,
+              "id": "minecraft:string"
+            },
+            {
+              "count": 1,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:string"
+            },
+            null,
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:bone"
+            },
+            {
+              "count": 2,
+              "id": "minecraft:string"
+            },
+            {
+              "count": 1,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:bucket"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            {
+              "count": 3,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:golden_apple"
+            },
+            null,
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:iron_ingot"
+            },
+            {
+              "count": 1,
+              "id": "minecraft:bone"
+            }
+          ]
+        },
+        "fresh_loaded_materialized": {
+          "loot_seed_i64": "0",
+          "loot_table": null,
+          "native_level_attached": true,
+          "saved_nbt_sha256": "19aa5ab91ecafeeb33ff6d768acf3eb1dd741e1b0a6239334276694a6adf9845",
+          "slots": [
+            {
+              "count": 1,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 3,
+              "id": "minecraft:string"
+            },
+            {
+              "count": 1,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:string"
+            },
+            null,
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:bone"
+            },
+            {
+              "count": 2,
+              "id": "minecraft:string"
+            },
+            {
+              "count": 1,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:bucket"
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            {
+              "count": 3,
+              "id": "minecraft:gunpowder"
+            },
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:golden_apple"
+            },
+            null,
+            null,
+            {
+              "count": 1,
+              "id": "minecraft:iron_ingot"
+            },
+            {
+              "count": 1,
+              "id": "minecraft:bone"
+            }
+          ]
+        },
+        "loaded_before_unpack": {
+          "loot_seed_i64": "1",
+          "loot_table": "minecraft:chests/simple_dungeon",
+          "native_level_attached": true,
+          "saved_nbt_sha256": "209eccc707753611988522781af1e3168d32019aeb730c28a9d794bd1cecc83a",
+          "slots": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        }
+      }
+    },
+    {
+      "fresh_load_api": "BlockEntity.loadStatic(pos,state,NbtIo.read(savedBytes),registries); ServerLevel.setBlockEntity",
+      "id": "missing-table-reopen",
+      "input_nbt_sha256": "838bbe66cd934fd2f90ccd14f5c5a8df920f88e5570b892769ceba17eab543bd",
+      "operations": [
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [],
+          "loot_rng_states_before": [],
+          "method_entries": {
+            "world/RandomizableContainer.tryLoadLootTable(Lnet/minecraft/world/level/storage/ValueInput;)Z": 1,
+            "world/level/block/entity/BlockEntity.loadStatic(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/nbt/CompoundTag;Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/world/level/block/entity/BlockEntity;": 1,
+            "world/level/block/entity/BlockEntity.loadWithComponents(Lnet/minecraft/world/level/storage/ValueInput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.loadAdditional(Lnet/minecraft/world/level/storage/ValueInput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "load_initial",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [],
+          "loot_rng_states_before": [],
+          "method_entries": {
+            "world/RandomizableContainer.trySaveLootTable(Lnet/minecraft/world/level/storage/ValueOutput;)Z": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/nbt/CompoundTag;": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.saveAdditional(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "save/loaded_before_unpack",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [
+            "29"
+          ],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "200886257670722"
+            }
+          ],
+          "loot_rng_states_before": [],
+          "method_entries": {
+            "server/ReloadableServerRegistries$Holder.getLootTable(Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/world/level/storage/loot/LootTable;": 1,
+            "util/RandomSource.create(J)Lnet/minecraft/util/RandomSource;": 1,
+            "world/RandomizableContainer.unpackLootTable(Lnet/minecraft/world/entity/player/Player;)V": 28,
+            "world/level/levelgen/BitRandomSource.nextInt(I)I": 26,
+            "world/level/levelgen/LegacyRandomSource.next(I)I": 26,
+            "world/level/levelgen/LegacyRandomSource.setSeed(J)V": 1,
+            "world/level/storage/loot/LootContext$Builder.create(Ljava/util/Optional;)Lnet/minecraft/world/level/storage/loot/LootContext;": 1,
+            "world/level/storage/loot/LootTable.fill(Lnet/minecraft/world/Container;Lnet/minecraft/world/level/storage/loot/LootParams;J)V": 1
+          },
+          "new_contexts": [
+            {
+              "luck_f32_bits": "0",
+              "origin": [
+                8.5,
+                80.5,
+                8.5
+              ],
+              "random": {
+                "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+                "gaussian_bits": "0",
+                "gaussian_cached": false,
+                "seed48": "25214903920"
+              },
+              "rng_index": 0,
+              "same_server_level": true,
+              "this_entity": null
+            }
+          ],
+          "operation": "first_unpack_null",
+          "table_resolutions": [
+            {
+              "is_native_empty": true
+            }
+          ]
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "200886257670722"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "200886257670722"
+            }
+          ],
+          "method_entries": {
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;Z)V": 1,
+            "world/RandomizableContainer.trySaveLootTable(Lnet/minecraft/world/level/storage/ValueOutput;)Z": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/nbt/CompoundTag;": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.saveAdditional(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "save/after_first_unpack",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "200886257670722"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "200886257670722"
+            }
+          ],
+          "method_entries": {
+            "world/RandomizableContainer.unpackLootTable(Lnet/minecraft/world/entity/player/Player;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "second_unpack_null",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "200886257670722"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "200886257670722"
+            }
+          ],
+          "method_entries": {
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;Z)V": 1,
+            "world/RandomizableContainer.trySaveLootTable(Lnet/minecraft/world/level/storage/ValueOutput;)Z": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/nbt/CompoundTag;": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.saveAdditional(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "save/after_second_unpack",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "200886257670722"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "200886257670722"
+            }
+          ],
+          "method_entries": {
+            "world/ContainerHelper.loadAllItems(Lnet/minecraft/world/level/storage/ValueInput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/RandomizableContainer.tryLoadLootTable(Lnet/minecraft/world/level/storage/ValueInput;)Z": 1,
+            "world/level/block/entity/BlockEntity.loadStatic(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/nbt/CompoundTag;Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/world/level/block/entity/BlockEntity;": 1,
+            "world/level/block/entity/BlockEntity.loadWithComponents(Lnet/minecraft/world/level/storage/ValueInput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.loadAdditional(Lnet/minecraft/world/level/storage/ValueInput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "load_saved_materialized_into_fresh_chest",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "200886257670722"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "200886257670722"
+            }
+          ],
+          "method_entries": {
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;Z)V": 1,
+            "world/RandomizableContainer.trySaveLootTable(Lnet/minecraft/world/level/storage/ValueOutput;)Z": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/nbt/CompoundTag;": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.saveAdditional(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "save/fresh_loaded_materialized",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "200886257670722"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "200886257670722"
+            }
+          ],
+          "method_entries": {
+            "world/RandomizableContainer.unpackLootTable(Lnet/minecraft/world/entity/player/Player;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "reopened_unpack_null",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "200886257670722"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "200886257670722"
+            }
+          ],
+          "method_entries": {
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;Z)V": 1,
+            "world/RandomizableContainer.trySaveLootTable(Lnet/minecraft/world/level/storage/ValueOutput;)Z": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/nbt/CompoundTag;": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.saveAdditional(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "save/after_reopened_unpack",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "200886257670722"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "200886257670722"
+            }
+          ],
+          "method_entries": {
+            "world/RandomizableContainer.unpackLootTable(Lnet/minecraft/world/entity/player/Player;)V": 27
+          },
+          "new_contexts": [],
+          "operation": "reopened_getItem_all_slots",
+          "table_resolutions": []
+        },
+        {
+          "fill_seeds_i64": [],
+          "loot_rng_states_after": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "200886257670722"
+            }
+          ],
+          "loot_rng_states_before": [
+            {
+              "class": "net.minecraft.world.level.levelgen.LegacyRandomSource",
+              "gaussian_bits": "0",
+              "gaussian_cached": false,
+              "seed48": "200886257670722"
+            }
+          ],
+          "method_entries": {
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;)V": 1,
+            "world/ContainerHelper.saveAllItems(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/NonNullList;Z)V": 1,
+            "world/RandomizableContainer.trySaveLootTable(Lnet/minecraft/world/level/storage/ValueOutput;)Z": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/nbt/CompoundTag;": 1,
+            "world/level/block/entity/BlockEntity.saveWithFullMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1,
+            "world/level/block/entity/ChestBlockEntity.saveAdditional(Lnet/minecraft/world/level/storage/ValueOutput;)V": 1
+          },
+          "new_contexts": [],
+          "operation": "save/after_reopened_getItem",
+          "table_resolutions": []
+        }
+      ],
+      "snapshots": {
+        "after_first_unpack": {
+          "loot_seed_i64": "29",
+          "loot_table": null,
+          "native_level_attached": true,
+          "saved_nbt_sha256": "8ae38084b262438b1517c4d46e4dbdd0f159b528b0642e42916dc6e4fb3118ee",
+          "slots": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        "after_reopened_getItem": {
+          "loot_seed_i64": "0",
+          "loot_table": null,
+          "native_level_attached": true,
+          "saved_nbt_sha256": "8ae38084b262438b1517c4d46e4dbdd0f159b528b0642e42916dc6e4fb3118ee",
+          "slots": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        "after_reopened_unpack": {
+          "loot_seed_i64": "0",
+          "loot_table": null,
+          "native_level_attached": true,
+          "saved_nbt_sha256": "8ae38084b262438b1517c4d46e4dbdd0f159b528b0642e42916dc6e4fb3118ee",
+          "slots": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        "after_second_unpack": {
+          "loot_seed_i64": "29",
+          "loot_table": null,
+          "native_level_attached": true,
+          "saved_nbt_sha256": "8ae38084b262438b1517c4d46e4dbdd0f159b528b0642e42916dc6e4fb3118ee",
+          "slots": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        "fresh_loaded_materialized": {
+          "loot_seed_i64": "0",
+          "loot_table": null,
+          "native_level_attached": true,
+          "saved_nbt_sha256": "8ae38084b262438b1517c4d46e4dbdd0f159b528b0642e42916dc6e4fb3118ee",
+          "slots": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        "loaded_before_unpack": {
+          "loot_seed_i64": "29",
+          "loot_table": "loot_reference:absent",
+          "native_level_attached": true,
+          "saved_nbt_sha256": "838bbe66cd934fd2f90ccd14f5c5a8df920f88e5570b892769ceba17eab543bd",
+          "slots": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        }
+      }
+    }
+  ],
+  "component_maps": {
+    "1272433543f1831b50e5acd709d2f0e7f50d66bd6291d98d380ac8ccaa28c149": {
+      "effective_components": {
+        "minecraft:attribute_modifiers": [],
+        "minecraft:break_sound": "minecraft:entity.item.break",
+        "minecraft:enchantments": {},
+        "minecraft:item_model": "minecraft:iron_ingot",
+        "minecraft:item_name": {
+          "translate": "item.minecraft.iron_ingot"
+        },
+        "minecraft:lore": [],
+        "minecraft:max_stack_size": 64,
+        "minecraft:provides_trim_material": "minecraft:iron",
+        "minecraft:rarity": "common",
+        "minecraft:repair_cost": 0,
+        "minecraft:swing_animation": {},
+        "minecraft:tooltip_display": {},
+        "minecraft:use_effects": {}
+      },
+      "stack": {
+        "count": 1,
+        "id": "minecraft:iron_ingot"
+      }
+    },
+    "2257e22bfb46e77c4a2fba868b4e838ed167cd44e0900aef7f3553e8f84dff53": {
+      "effective_components": {
+        "minecraft:attribute_modifiers": [],
+        "minecraft:break_sound": "minecraft:entity.item.break",
+        "minecraft:consumable": {
+          "animation": "drink",
+          "has_consume_particles": false,
+          "sound": "minecraft:entity.generic.drink"
+        },
+        "minecraft:enchantments": {},
+        "minecraft:item_model": "minecraft:potion",
+        "minecraft:item_name": {
+          "translate": "item.minecraft.potion"
+        },
+        "minecraft:lore": [],
+        "minecraft:max_stack_size": 1,
+        "minecraft:potion_contents": {
+          "potion": "minecraft:strong_healing"
+        },
+        "minecraft:rarity": "common",
+        "minecraft:repair_cost": 0,
+        "minecraft:swing_animation": {},
+        "minecraft:tooltip_display": {},
+        "minecraft:use_effects": {},
+        "minecraft:use_remainder": {
+          "id": "minecraft:glass_bottle"
+        }
+      },
+      "stack": {
+        "components": {
+          "minecraft:potion_contents": {
+            "potion": "minecraft:strong_healing"
+          }
+        },
+        "count": 1,
+        "id": "minecraft:potion"
+      }
+    },
+    "31c9d2277e36e1855b2324e2bef9e476aad0d2a5fbbc5b18d8e6a4ddb1086066": {
+      "effective_components": {
+        "minecraft:attribute_modifiers": [],
+        "minecraft:break_sound": "minecraft:entity.item.break",
+        "minecraft:enchantments": {},
+        "minecraft:item_model": "minecraft:string",
+        "minecraft:item_name": {
+          "translate": "item.minecraft.string"
+        },
+        "minecraft:lore": [],
+        "minecraft:max_stack_size": 64,
+        "minecraft:rarity": "common",
+        "minecraft:repair_cost": 0,
+        "minecraft:swing_animation": {},
+        "minecraft:tooltip_display": {},
+        "minecraft:use_effects": {}
+      },
+      "stack": {
+        "count": 1,
+        "id": "minecraft:string"
+      }
+    },
+    "725ddf1dc6c68c98445fbc561e651a77eaf2000f03921ab1eca8107483a47349": {
+      "effective_components": {
+        "minecraft:attribute_modifiers": [],
+        "minecraft:break_sound": "minecraft:entity.item.break",
+        "minecraft:enchantments": {},
+        "minecraft:item_model": "minecraft:bone",
+        "minecraft:item_name": {
+          "translate": "item.minecraft.bone"
+        },
+        "minecraft:lore": [],
+        "minecraft:max_stack_size": 64,
+        "minecraft:rarity": "common",
+        "minecraft:repair_cost": 0,
+        "minecraft:swing_animation": {},
+        "minecraft:tooltip_display": {},
+        "minecraft:use_effects": {}
+      },
+      "stack": {
+        "count": 1,
+        "id": "minecraft:bone"
+      }
+    },
+    "766a77130ff538691ebc333df19572e34197ad8623605a6491a82d138b124cd7": {
+      "effective_components": {
+        "minecraft:attribute_modifiers": [],
+        "minecraft:break_sound": "minecraft:entity.item.break",
+        "minecraft:enchantments": {},
+        "minecraft:item_model": "minecraft:string",
+        "minecraft:item_name": {
+          "translate": "item.minecraft.string"
+        },
+        "minecraft:lore": [],
+        "minecraft:max_stack_size": 64,
+        "minecraft:rarity": "common",
+        "minecraft:repair_cost": 0,
+        "minecraft:swing_animation": {},
+        "minecraft:tooltip_display": {},
+        "minecraft:use_effects": {}
+      },
+      "stack": {
+        "count": 3,
+        "id": "minecraft:string"
+      }
+    },
+    "8d7f6209bc40c8d56baf92512a47a5a3bd94cffc79c8c9ea37c8b3d6e7af67bf": {
+      "effective_components": {
+        "minecraft:attribute_modifiers": [],
+        "minecraft:break_sound": "minecraft:entity.item.break",
+        "minecraft:enchantment_glint_override": true,
+        "minecraft:enchantments": {},
+        "minecraft:item_model": "minecraft:enchanted_book",
+        "minecraft:item_name": {
+          "translate": "item.minecraft.enchanted_book"
+        },
+        "minecraft:lore": [],
+        "minecraft:max_stack_size": 1,
+        "minecraft:rarity": "rare",
+        "minecraft:repair_cost": 0,
+        "minecraft:stored_enchantments": {
+          "minecraft:wind_burst": 1
+        },
+        "minecraft:swing_animation": {},
+        "minecraft:tooltip_display": {},
+        "minecraft:use_effects": {}
+      },
+      "stack": {
+        "components": {
+          "minecraft:stored_enchantments": {
+            "minecraft:wind_burst": 1
+          }
+        },
+        "count": 1,
+        "id": "minecraft:enchanted_book"
+      }
+    },
+    "9e2dd0ab25423a6c64c1acc4ef5e65f12c4ebe3c952a4b0cf984f2f31c75729c": {
+      "effective_components": {
+        "minecraft:attribute_modifiers": [],
+        "minecraft:break_sound": "minecraft:entity.item.break",
+        "minecraft:consumable": {
+          "on_consume_effects": [
+            {
+              "effects": [
+                {
+                  "amplifier": 1,
+                  "duration": 100,
+                  "id": "minecraft:regeneration",
+                  "show_icon": true
+                },
+                {
+                  "duration": 2400,
+                  "id": "minecraft:absorption",
+                  "show_icon": true
+                }
+              ],
+              "type": "minecraft:apply_effects"
+            }
+          ]
+        },
+        "minecraft:enchantments": {},
+        "minecraft:food": {
+          "can_always_eat": true,
+          "nutrition": 4,
+          "saturation": 9.6
+        },
+        "minecraft:item_model": "minecraft:golden_apple",
+        "minecraft:item_name": {
+          "translate": "item.minecraft.golden_apple"
+        },
+        "minecraft:lore": [],
+        "minecraft:max_stack_size": 64,
+        "minecraft:rarity": "common",
+        "minecraft:repair_cost": 0,
+        "minecraft:swing_animation": {},
+        "minecraft:tooltip_display": {},
+        "minecraft:use_effects": {}
+      },
+      "stack": {
+        "count": 1,
+        "id": "minecraft:golden_apple"
+      }
+    },
+    "a06266d4083e61a6e6b451878bd93c008510caaa415f10109e1979b8bc9a6341": {
+      "effective_components": {
+        "minecraft:attribute_modifiers": [],
+        "minecraft:break_sound": "minecraft:entity.item.break",
+        "minecraft:enchantments": {},
+        "minecraft:item_model": "minecraft:gunpowder",
+        "minecraft:item_name": {
+          "translate": "item.minecraft.gunpowder"
+        },
+        "minecraft:lore": [],
+        "minecraft:max_stack_size": 64,
+        "minecraft:rarity": "common",
+        "minecraft:repair_cost": 0,
+        "minecraft:swing_animation": {},
+        "minecraft:tooltip_display": {},
+        "minecraft:use_effects": {}
+      },
+      "stack": {
+        "count": 3,
+        "id": "minecraft:gunpowder"
+      }
+    },
+    "a43c457970926122cfde8a02700d6a5e6225e3bcabc80002bf2b719108686213": {
+      "effective_components": {
+        "minecraft:attribute_modifiers": [],
+        "minecraft:break_sound": "minecraft:entity.item.break",
+        "minecraft:enchantments": {},
+        "minecraft:item_model": "minecraft:bucket",
+        "minecraft:item_name": {
+          "translate": "item.minecraft.bucket"
+        },
+        "minecraft:lore": [],
+        "minecraft:max_stack_size": 16,
+        "minecraft:rarity": "common",
+        "minecraft:repair_cost": 0,
+        "minecraft:swing_animation": {},
+        "minecraft:tooltip_display": {},
+        "minecraft:use_effects": {}
+      },
+      "stack": {
+        "count": 1,
+        "id": "minecraft:bucket"
+      }
+    },
+    "e1a3fb8ed3fcae682792101f3eeda50ce73914818dcaa7995569737177011fdc": {
+      "effective_components": {
+        "minecraft:attribute_modifiers": [],
+        "minecraft:break_sound": "minecraft:entity.item.break",
+        "minecraft:enchantments": {},
+        "minecraft:item_model": "minecraft:string",
+        "minecraft:item_name": {
+          "translate": "item.minecraft.string"
+        },
+        "minecraft:lore": [],
+        "minecraft:max_stack_size": 64,
+        "minecraft:rarity": "common",
+        "minecraft:repair_cost": 0,
+        "minecraft:swing_animation": {},
+        "minecraft:tooltip_display": {},
+        "minecraft:use_effects": {}
+      },
+      "stack": {
+        "count": 2,
+        "id": "minecraft:string"
+      }
+    },
+    "e3afae13a9456a6524b6677d500eaf094b202c63ffd08d0e982f9cbe6c7eda57": {
+      "effective_components": {
+        "minecraft:attribute_modifiers": [],
+        "minecraft:break_sound": "minecraft:entity.item.break",
+        "minecraft:enchantments": {},
+        "minecraft:item_model": "minecraft:gunpowder",
+        "minecraft:item_name": {
+          "translate": "item.minecraft.gunpowder"
+        },
+        "minecraft:lore": [],
+        "minecraft:max_stack_size": 64,
+        "minecraft:rarity": "common",
+        "minecraft:repair_cost": 0,
+        "minecraft:swing_animation": {},
+        "minecraft:tooltip_display": {},
+        "minecraft:use_effects": {}
+      },
+      "stack": {
+        "count": 1,
+        "id": "minecraft:gunpowder"
+      }
+    },
+    "e69da10d54195a1534ca891450324c57760b408f912ceb34890010175cc2565b": {
+      "effective_components": {
+        "minecraft:attribute_modifiers": [
+          {
+            "amount": 6.0,
+            "id": "minecraft:base_attack_damage",
+            "operation": "add_value",
+            "slot": "mainhand",
+            "type": "minecraft:attack_damage"
+          },
+          {
+            "amount": -2.4000000953674316,
+            "id": "minecraft:base_attack_speed",
+            "operation": "add_value",
+            "slot": "mainhand",
+            "type": "minecraft:attack_speed"
+          }
+        ],
+        "minecraft:break_sound": "minecraft:entity.item.break",
+        "minecraft:damage": 7,
+        "minecraft:enchantable": {
+          "value": 10
+        },
+        "minecraft:enchantments": {
+          "minecraft:sharpness": 3
+        },
+        "minecraft:item_model": "minecraft:diamond_sword",
+        "minecraft:item_name": {
+          "translate": "item.minecraft.diamond_sword"
+        },
+        "minecraft:lore": [],
+        "minecraft:max_damage": 1561,
+        "minecraft:max_stack_size": 1,
+        "minecraft:rarity": "common",
+        "minecraft:repair_cost": 0,
+        "minecraft:repairable": {
+          "items": "#minecraft:diamond_tool_materials"
+        },
+        "minecraft:swing_animation": {},
+        "minecraft:tool": {
+          "can_destroy_blocks_in_creative": false,
+          "damage_per_block": 2,
+          "rules": [
+            {
+              "blocks": "minecraft:cobweb",
+              "correct_for_drops": true,
+              "speed": 15.0
+            },
+            {
+              "blocks": "#minecraft:sword_instantly_mines",
+              "speed": 3.4028235e+38
+            },
+            {
+              "blocks": "#minecraft:sword_efficient",
+              "speed": 1.5
+            }
+          ]
+        },
+        "minecraft:tooltip_display": {},
+        "minecraft:use_effects": {},
+        "minecraft:weapon": {}
+      },
+      "stack": {
+        "components": {
+          "minecraft:damage": 7,
+          "minecraft:enchantments": {
+            "minecraft:sharpness": 3
+          }
+        },
+        "count": 1,
+        "id": "minecraft:diamond_sword"
+      }
+    }
+  },
+  "gameplay_ticks": 0,
+  "inputs_sha256": "2567566727f62b3c6336338552dde1e9b155d7b61d307432f3825d47e1023b89",
+  "jar_sha256": "a7fed6f7d88379349e35ae0c6e9881d4484605132f6f620376a3868eea6cce52",
+  "menu_creation_exercised": false,
+  "minecraft": "26.1",
+  "nbt_blobs": {
+    "19aa5ab91ecafeeb33ff6d768acf3eb1dd741e1b0a6239334276694a6adf9845": {
+      "base64": "CgAACgAKY29tcG9uZW50cwADAAF4AAAACAMAAXkAAABQCQAFSXRlbXMKAAAADAMABWNvdW50AAAAAQEABFNsb3QACAACaWQAE21pbmVjcmFmdDpndW5wb3dkZXIAAwAFY291bnQAAAADAQAEU2xvdAIIAAJpZAAQbWluZWNyYWZ0OnN0cmluZwADAAVjb3VudAAAAAEBAARTbG90AwgAAmlkABNtaW5lY3JhZnQ6Z3VucG93ZGVyAAMABWNvdW50AAAAAQEABFNsb3QFCAACaWQAEG1pbmVjcmFmdDpzdHJpbmcAAwAFY291bnQAAAABAQAEU2xvdAgIAAJpZAAObWluZWNyYWZ0OmJvbmUAAwAFY291bnQAAAACAQAEU2xvdAkIAAJpZAAQbWluZWNyYWZ0OnN0cmluZwADAAVjb3VudAAAAAEBAARTbG90CggAAmlkABNtaW5lY3JhZnQ6Z3VucG93ZGVyAAMABWNvdW50AAAAAQEABFNsb3QMCAACaWQAEG1pbmVjcmFmdDpidWNrZXQAAwAFY291bnQAAAADAQAEU2xvdBQIAAJpZAATbWluZWNyYWZ0Omd1bnBvd2RlcgADAAVjb3VudAAAAAEBAARTbG90FggAAmlkABZtaW5lY3JhZnQ6Z29sZGVuX2FwcGxlAAMABWNvdW50AAAAAQEABFNsb3QZCAACaWQAFG1pbmVjcmFmdDppcm9uX2luZ290AAMABWNvdW50AAAAAQEABFNsb3QaCAACaWQADm1pbmVjcmFmdDpib25lAAMAAXoAAAAICAACaWQAD21pbmVjcmFmdDpjaGVzdAA=",
+      "typed": {
+        "Compound": {
+          "Items": {
+            "List": {
+              "element_type": 10,
+              "values": [
+                {
+                  "Compound": {
+                    "Slot": {
+                      "Byte": 0
+                    },
+                    "count": {
+                      "Int": 1
+                    },
+                    "id": {
+                      "String": "minecraft:gunpowder"
+                    }
+                  }
+                },
+                {
+                  "Compound": {
+                    "Slot": {
+                      "Byte": 2
+                    },
+                    "count": {
+                      "Int": 3
+                    },
+                    "id": {
+                      "String": "minecraft:string"
+                    }
+                  }
+                },
+                {
+                  "Compound": {
+                    "Slot": {
+                      "Byte": 3
+                    },
+                    "count": {
+                      "Int": 1
+                    },
+                    "id": {
+                      "String": "minecraft:gunpowder"
+                    }
+                  }
+                },
+                {
+                  "Compound": {
+                    "Slot": {
+                      "Byte": 5
+                    },
+                    "count": {
+                      "Int": 1
+                    },
+                    "id": {
+                      "String": "minecraft:string"
+                    }
+                  }
+                },
+                {
+                  "Compound": {
+                    "Slot": {
+                      "Byte": 8
+                    },
+                    "count": {
+                      "Int": 1
+                    },
+                    "id": {
+                      "String": "minecraft:bone"
+                    }
+                  }
+                },
+                {
+                  "Compound": {
+                    "Slot": {
+                      "Byte": 9
+                    },
+                    "count": {
+                      "Int": 2
+                    },
+                    "id": {
+                      "String": "minecraft:string"
+                    }
+                  }
+                },
+                {
+                  "Compound": {
+                    "Slot": {
+                      "Byte": 10
+                    },
+                    "count": {
+                      "Int": 1
+                    },
+                    "id": {
+                      "String": "minecraft:gunpowder"
+                    }
+                  }
+                },
+                {
+                  "Compound": {
+                    "Slot": {
+                      "Byte": 12
+                    },
+                    "count": {
+                      "Int": 1
+                    },
+                    "id": {
+                      "String": "minecraft:bucket"
+                    }
+                  }
+                },
+                {
+                  "Compound": {
+                    "Slot": {
+                      "Byte": 20
+                    },
+                    "count": {
+                      "Int": 3
+                    },
+                    "id": {
+                      "String": "minecraft:gunpowder"
+                    }
+                  }
+                },
+                {
+                  "Compound": {
+                    "Slot": {
+                      "Byte": 22
+                    },
+                    "count": {
+                      "Int": 1
+                    },
+                    "id": {
+                      "String": "minecraft:golden_apple"
+                    }
+                  }
+                },
+                {
+                  "Compound": {
+                    "Slot": {
+                      "Byte": 25
+                    },
+                    "count": {
+                      "Int": 1
+                    },
+                    "id": {
+                      "String": "minecraft:iron_ingot"
+                    }
+                  }
+                },
+                {
+                  "Compound": {
+                    "Slot": {
+                      "Byte": 26
+                    },
+                    "count": {
+                      "Int": 1
+                    },
+                    "id": {
+                      "String": "minecraft:bone"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "components": {
+            "Compound": {}
+          },
+          "id": {
+            "String": "minecraft:chest"
+          },
+          "x": {
+            "Int": 8
+          },
+          "y": {
+            "Int": 80
+          },
+          "z": {
+            "Int": 8
+          }
+        }
+      }
+    },
+    "1a351f76fb8b1998dbdc77317857b43d980ef335ea22ed67b24de13f6d0b9a8e": {
+      "base64": "CgAACgAKY29tcG9uZW50cwADAAF4AAAACAMAAXkAAABQCQAFSXRlbXMKAAAAAQoACmNvbXBvbmVudHMKAB1taW5lY3JhZnQ6c3RvcmVkX2VuY2hhbnRtZW50cwMAFG1pbmVjcmFmdDp3aW5kX2J1cnN0AAAAAQAAAwAFY291bnQAAAABAQAEU2xvdBQIAAJpZAAYbWluZWNyYWZ0OmVuY2hhbnRlZF9ib29rAAMAAXoAAAAICAACaWQAD21pbmVjcmFmdDpjaGVzdAA=",
+      "typed": {
+        "Compound": {
+          "Items": {
+            "List": {
+              "element_type": 10,
+              "values": [
+                {
+                  "Compound": {
+                    "Slot": {
+                      "Byte": 20
+                    },
+                    "components": {
+                      "Compound": {
+                        "minecraft:stored_enchantments": {
+                          "Compound": {
+                            "minecraft:wind_burst": {
+                              "Int": 1
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "count": {
+                      "Int": 1
+                    },
+                    "id": {
+                      "String": "minecraft:enchanted_book"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "components": {
+            "Compound": {}
+          },
+          "id": {
+            "String": "minecraft:chest"
+          },
+          "x": {
+            "Int": 8
+          },
+          "y": {
+            "Int": 80
+          },
+          "z": {
+            "Int": 8
+          }
+        }
+      }
+    },
+    "209eccc707753611988522781af1e3168d32019aeb730c28a9d794bd1cecc83a": {
+      "base64": "CgAACAAJTG9vdFRhYmxlAB9taW5lY3JhZnQ6Y2hlc3RzL3NpbXBsZV9kdW5nZW9uCgAKY29tcG9uZW50cwADAAF4AAAACAMAAXkAAABQAwABegAAAAgIAAJpZAAPbWluZWNyYWZ0OmNoZXN0BAANTG9vdFRhYmxlU2VlZAAAAAAAAAABAA==",
+      "typed": {
+        "Compound": {
+          "LootTable": {
+            "String": "minecraft:chests/simple_dungeon"
+          },
+          "LootTableSeed": {
+            "Long": 1
+          },
+          "components": {
+            "Compound": {}
+          },
+          "id": {
+            "String": "minecraft:chest"
+          },
+          "x": {
+            "Int": 8
+          },
+          "y": {
+            "Int": 80
+          },
+          "z": {
+            "Int": 8
+          }
+        }
+      }
+    },
+    "6b3aff0094ecd65bd84e0c2806e59456254449b0e392e1c88d5716370dd6fc2d": {
+      "base64": "CgAACAAJTG9vdFRhYmxlAB9taW5lY3JhZnQ6Y2hlc3RzL3NpbXBsZV9kdW5nZW9uCgAKY29tcG9uZW50cwADAAF4AAAACAMAAXkAAABQAwABegAAAAgJAAVJdGVtcwoAAAADCgAKY29tcG9uZW50cwoAFm1pbmVjcmFmdDplbmNoYW50bWVudHMDABNtaW5lY3JhZnQ6c2hhcnBuZXNzAAAAAwADABBtaW5lY3JhZnQ6ZGFtYWdlAAAABwADAAVjb3VudAAAAAEBAARTbG90AAgAAmlkABdtaW5lY3JhZnQ6ZGlhbW9uZF9zd29yZAAKAApjb21wb25lbnRzCgAZbWluZWNyYWZ0OnBvdGlvbl9jb250ZW50cwgABnBvdGlvbgAYbWluZWNyYWZ0OnN0cm9uZ19oZWFsaW5nAAADAAVjb3VudAAAAAEBAARTbG90DQgAAmlkABBtaW5lY3JhZnQ6cG90aW9uAAoACmNvbXBvbmVudHMKAB1taW5lY3JhZnQ6c3RvcmVkX2VuY2hhbnRtZW50cwMAFG1pbmVjcmFmdDp3aW5kX2J1cnN0AAAAAQAAAwAFY291bnQAAAABAQAEU2xvdBoIAAJpZAAYbWluZWNyYWZ0OmVuY2hhbnRlZF9ib29rAAgAAmlkAA9taW5lY3JhZnQ6Y2hlc3QEAA1Mb290VGFibGVTZWVkAAAAAAAAAAEA",
+      "typed": {
+        "Compound": {
+          "Items": {
+            "List": {
+              "element_type": 10,
+              "values": [
+                {
+                  "Compound": {
+                    "Slot": {
+                      "Byte": 0
+                    },
+                    "components": {
+                      "Compound": {
+                        "minecraft:damage": {
+                          "Int": 7
+                        },
+                        "minecraft:enchantments": {
+                          "Compound": {
+                            "minecraft:sharpness": {
+                              "Int": 3
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "count": {
+                      "Int": 1
+                    },
+                    "id": {
+                      "String": "minecraft:diamond_sword"
+                    }
+                  }
+                },
+                {
+                  "Compound": {
+                    "Slot": {
+                      "Byte": 13
+                    },
+                    "components": {
+                      "Compound": {
+                        "minecraft:potion_contents": {
+                          "Compound": {
+                            "potion": {
+                              "String": "minecraft:strong_healing"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "count": {
+                      "Int": 1
+                    },
+                    "id": {
+                      "String": "minecraft:potion"
+                    }
+                  }
+                },
+                {
+                  "Compound": {
+                    "Slot": {
+                      "Byte": 26
+                    },
+                    "components": {
+                      "Compound": {
+                        "minecraft:stored_enchantments": {
+                          "Compound": {
+                            "minecraft:wind_burst": {
+                              "Int": 1
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "count": {
+                      "Int": 1
+                    },
+                    "id": {
+                      "String": "minecraft:enchanted_book"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "LootTable": {
+            "String": "minecraft:chests/simple_dungeon"
+          },
+          "LootTableSeed": {
+            "Long": 1
+          },
+          "components": {
+            "Compound": {}
+          },
+          "id": {
+            "String": "minecraft:chest"
+          },
+          "x": {
+            "Int": 8
+          },
+          "y": {
+            "Int": 80
+          },
+          "z": {
+            "Int": 8
+          }
+        }
+      }
+    },
+    "7604122338cf570b74d8908bfb231ca1f929fadf7d4ab827f0a199aab059cd54": {
+      "base64": "CgAACgAKY29tcG9uZW50cwADAAF4AAAACAMAAXkAAABQCQAFSXRlbXMKAAAAAwoACmNvbXBvbmVudHMKABZtaW5lY3JhZnQ6ZW5jaGFudG1lbnRzAwATbWluZWNyYWZ0OnNoYXJwbmVzcwAAAAMAAwAQbWluZWNyYWZ0OmRhbWFnZQAAAAcAAwAFY291bnQAAAABAQAEU2xvdAAIAAJpZAAXbWluZWNyYWZ0OmRpYW1vbmRfc3dvcmQACgAKY29tcG9uZW50cwoAGW1pbmVjcmFmdDpwb3Rpb25fY29udGVudHMIAAZwb3Rpb24AGG1pbmVjcmFmdDpzdHJvbmdfaGVhbGluZwAAAwAFY291bnQAAAABAQAEU2xvdA0IAAJpZAAQbWluZWNyYWZ0OnBvdGlvbgAKAApjb21wb25lbnRzCgAdbWluZWNyYWZ0OnN0b3JlZF9lbmNoYW50bWVudHMDABRtaW5lY3JhZnQ6d2luZF9idXJzdAAAAAEAAAMABWNvdW50AAAAAQEABFNsb3QaCAACaWQAGG1pbmVjcmFmdDplbmNoYW50ZWRfYm9vawADAAF6AAAACAgAAmlkAA9taW5lY3JhZnQ6Y2hlc3QA",
+      "typed": {
+        "Compound": {
+          "Items": {
+            "List": {
+              "element_type": 10,
+              "values": [
+                {
+                  "Compound": {
+                    "Slot": {
+                      "Byte": 0
+                    },
+                    "components": {
+                      "Compound": {
+                        "minecraft:damage": {
+                          "Int": 7
+                        },
+                        "minecraft:enchantments": {
+                          "Compound": {
+                            "minecraft:sharpness": {
+                              "Int": 3
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "count": {
+                      "Int": 1
+                    },
+                    "id": {
+                      "String": "minecraft:diamond_sword"
+                    }
+                  }
+                },
+                {
+                  "Compound": {
+                    "Slot": {
+                      "Byte": 13
+                    },
+                    "components": {
+                      "Compound": {
+                        "minecraft:potion_contents": {
+                          "Compound": {
+                            "potion": {
+                              "String": "minecraft:strong_healing"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "count": {
+                      "Int": 1
+                    },
+                    "id": {
+                      "String": "minecraft:potion"
+                    }
+                  }
+                },
+                {
+                  "Compound": {
+                    "Slot": {
+                      "Byte": 26
+                    },
+                    "components": {
+                      "Compound": {
+                        "minecraft:stored_enchantments": {
+                          "Compound": {
+                            "minecraft:wind_burst": {
+                              "Int": 1
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "count": {
+                      "Int": 1
+                    },
+                    "id": {
+                      "String": "minecraft:enchanted_book"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "components": {
+            "Compound": {}
+          },
+          "id": {
+            "String": "minecraft:chest"
+          },
+          "x": {
+            "Int": 8
+          },
+          "y": {
+            "Int": 80
+          },
+          "z": {
+            "Int": 8
+          }
+        }
+      }
+    },
+    "838bbe66cd934fd2f90ccd14f5c5a8df920f88e5570b892769ceba17eab543bd": {
+      "base64": "CgAACAAJTG9vdFRhYmxlABVsb290X3JlZmVyZW5jZTphYnNlbnQKAApjb21wb25lbnRzAAMAAXgAAAAIAwABeQAAAFADAAF6AAAACAgAAmlkAA9taW5lY3JhZnQ6Y2hlc3QEAA1Mb290VGFibGVTZWVkAAAAAAAAAB0A",
+      "typed": {
+        "Compound": {
+          "LootTable": {
+            "String": "loot_reference:absent"
+          },
+          "LootTableSeed": {
+            "Long": 29
+          },
+          "components": {
+            "Compound": {}
+          },
+          "id": {
+            "String": "minecraft:chest"
+          },
+          "x": {
+            "Int": 8
+          },
+          "y": {
+            "Int": 80
+          },
+          "z": {
+            "Int": 8
+          }
+        }
+      }
+    },
+    "8ae38084b262438b1517c4d46e4dbdd0f159b528b0642e42916dc6e4fb3118ee": {
+      "base64": "CgAACgAKY29tcG9uZW50cwADAAF4AAAACAMAAXkAAABQCQAFSXRlbXMAAAAAAAMAAXoAAAAICAACaWQAD21pbmVjcmFmdDpjaGVzdAA=",
+      "typed": {
+        "Compound": {
+          "Items": {
+            "List": {
+              "element_type": 0,
+              "values": []
+            }
+          },
+          "components": {
+            "Compound": {}
+          },
+          "id": {
+            "String": "minecraft:chest"
+          },
+          "x": {
+            "Int": 8
+          },
+          "y": {
+            "Int": 80
+          },
+          "z": {
+            "Int": 8
+          }
+        }
+      }
+    },
+    "9b02a9fab655c730b9b6733cf7e27c888a0ea759bc8094ea8d6fc259d28376bf": {
+      "base64": "CgAACAAJTG9vdFRhYmxlADNtaW5lY3JhZnQ6Y2hlc3RzL3RyaWFsX2NoYW1iZXJzL3Jld2FyZF9vbWlub3VzX3JhcmUKAApjb21wb25lbnRzAAMAAXgAAAAIAwABeQAAAFADAAF6AAAACAgAAmlkAA9taW5lY3JhZnQ6Y2hlc3QEAA1Mb290VGFibGVTZWVk/////////9wA",
+      "typed": {
+        "Compound": {
+          "LootTable": {
+            "String": "minecraft:chests/trial_chambers/reward_ominous_rare"
+          },
+          "LootTableSeed": {
+            "Long": -36
+          },
+          "components": {
+            "Compound": {}
+          },
+          "id": {
+            "String": "minecraft:chest"
+          },
+          "x": {
+            "Int": 8
+          },
+          "y": {
+            "Int": 80
+          },
+          "z": {
+            "Int": 8
+          }
+        }
+      }
+    },
+    "9cee773bb2cd992866116b9cdc0cac757d3832bd64af726f2a7311b80dc6dc64": {
+      "base64": "CgAAAwABeAAAAAgDAAF5AAAAUAMAAXoAAAAICQAFSXRlbXMKAAAAAwoACmNvbXBvbmVudHMKABZtaW5lY3JhZnQ6ZW5jaGFudG1lbnRzAwATbWluZWNyYWZ0OnNoYXJwbmVzcwAAAAMAAwAQbWluZWNyYWZ0OmRhbWFnZQAAAAcAAwAFY291bnQAAAABAQAEU2xvdAAIAAJpZAAXbWluZWNyYWZ0OmRpYW1vbmRfc3dvcmQACgAKY29tcG9uZW50cwoAGW1pbmVjcmFmdDpwb3Rpb25fY29udGVudHMIAAZwb3Rpb24AGG1pbmVjcmFmdDpzdHJvbmdfaGVhbGluZwAAAwAFY291bnQAAAABAQAEU2xvdA0IAAJpZAAQbWluZWNyYWZ0OnBvdGlvbgAKAApjb21wb25lbnRzCgAdbWluZWNyYWZ0OnN0b3JlZF9lbmNoYW50bWVudHMDABRtaW5lY3JhZnQ6d2luZF9idXJzdAAAAAEAAAMABWNvdW50AAAAAQEABFNsb3QaCAACaWQAGG1pbmVjcmFmdDplbmNoYW50ZWRfYm9vawAIAAJpZAAPbWluZWNyYWZ0OmNoZXN0AA==",
+      "typed": {
+        "Compound": {
+          "Items": {
+            "List": {
+              "element_type": 10,
+              "values": [
+                {
+                  "Compound": {
+                    "Slot": {
+                      "Byte": 0
+                    },
+                    "components": {
+                      "Compound": {
+                        "minecraft:damage": {
+                          "Int": 7
+                        },
+                        "minecraft:enchantments": {
+                          "Compound": {
+                            "minecraft:sharpness": {
+                              "Int": 3
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "count": {
+                      "Int": 1
+                    },
+                    "id": {
+                      "String": "minecraft:diamond_sword"
+                    }
+                  }
+                },
+                {
+                  "Compound": {
+                    "Slot": {
+                      "Byte": 13
+                    },
+                    "components": {
+                      "Compound": {
+                        "minecraft:potion_contents": {
+                          "Compound": {
+                            "potion": {
+                              "String": "minecraft:strong_healing"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "count": {
+                      "Int": 1
+                    },
+                    "id": {
+                      "String": "minecraft:potion"
+                    }
+                  }
+                },
+                {
+                  "Compound": {
+                    "Slot": {
+                      "Byte": 26
+                    },
+                    "components": {
+                      "Compound": {
+                        "minecraft:stored_enchantments": {
+                          "Compound": {
+                            "minecraft:wind_burst": {
+                              "Int": 1
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "count": {
+                      "Int": 1
+                    },
+                    "id": {
+                      "String": "minecraft:enchanted_book"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "id": {
+            "String": "minecraft:chest"
+          },
+          "x": {
+            "Int": 8
+          },
+          "y": {
+            "Int": 80
+          },
+          "z": {
+            "Int": 8
+          }
+        }
+      }
+    }
+  },
+  "player": null,
+  "protocol": 775,
+  "schema": "bcore.native-chest-lifecycle.v1",
+  "world_seed_i64": "846692123413862008"
+}

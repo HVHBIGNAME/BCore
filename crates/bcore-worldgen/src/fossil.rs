@@ -42,8 +42,9 @@ fn fossils() -> &'static Fossils {
             jar_sha256: String,
             templates: BTreeMap<String, NativeTemplate>,
         }
-        let data: Data = serde_json::from_str(include_str!("../data/fossil_assets_26_1.json"))
-            .expect("native fossil assets");
+        let data: Data =
+            crate::block_predicate::parse_catalog(include_str!("../data/fossil_assets_26_2.json"))
+                .expect("native fossil assets");
         assert_eq!(data.jar_sha256, StructureAssets::JAR_SHA256);
         let assets = StructureAssets::bundled();
         let templates: BTreeMap<_, _> = data

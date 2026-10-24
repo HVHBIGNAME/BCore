@@ -1,10 +1,13 @@
 //! Differential checks against actual native admission/reference/decoration entry points.
 use super::*;
-use crate::feature_world::FeatureHeightmap;
+use crate::feature_world::{FeatureError, FeatureHeightmap, FeatureWorld, Pos};
+use crate::ore::OreWorld;
 use crate::structure::jigsaw::{self, HeightContext};
-use crate::structure::template::{Nbt, TemplateBlockEntity};
+use crate::structure::template::{Nbt, TemplateBlockEntity, TemplateEffect};
 use crate::structure::template_pool::StructureAssets;
 use serde_json::{json, Value};
+use std::cell::RefCell;
+use std::rc::Rc;
 use std::sync::OnceLock;
 
 fn fixture() -> &'static Value {
@@ -33,12 +36,12 @@ fn point(value: &Value) -> (i32, i32, i32) {
 }
 
 fn flat_start(row: &Value) -> Option<jigsaw::NamedStart> {
-    let biome = crate::block_predicate::catalog().documents["biome_ids"]
+    let biome = crate::reference_26_1::feature_documents()["biome_ids"]
         [format!("minecraft:{}", row["biome"].as_str().unwrap())]
     .as_u64()
     .unwrap() as u32;
     jigsaw::for_chunk(
-        StructureAssets::bundled(),
+        crate::registry_26_1::historical_assets(),
         row["set"].as_str().unwrap(),
         row["seed"].as_i64().unwrap(),
         chunk(&row["chunk"]),
@@ -57,7 +60,10 @@ fn flat_start(row: &Value) -> Option<jigsaw::NamedStart> {
 
 #[test]
 fn native_structure_runtime_admission_retains_all_variants_and_real_noise_starts() {
-    assert_eq!(fixture()["jar_sha256"], StructureAssets::JAR_SHA256);
+    assert_eq!(
+        fixture()["jar_sha256"],
+        StructureAssets::HISTORICAL_JAR_SHA256
+    );
     for row in fixture()["admission"].as_array().unwrap() {
         let source = chunk(&row["chunk"]);
         let expected = row["starts"].as_array().unwrap();
@@ -142,7 +148,10 @@ fn native_trial_chambers_admission_and_saved_starts_match_real_noise_and_biome_r
 }
 
 fn verify_jigsaw_admission(fixture: &Value, structure: &str, count: usize) {
-    assert_eq!(fixture["jar_sha256"], StructureAssets::JAR_SHA256);
+    assert_eq!(
+        fixture["jar_sha256"],
+        StructureAssets::HISTORICAL_JAR_SHA256
+    );
     let rows = fixture["admission"].as_array().unwrap();
     assert_eq!(rows.len(), count);
     let mut actual_noise_starts = 0;
@@ -251,14 +260,20 @@ fn native_structure_runtime_reference_bounds_and_order_match_450_targets() {
 
 #[test]
 fn native_structure_runtime_template_load_save_update_preserves_inventories_and_widths() {
-    let assets = StructureAssets::bundled();
+    let assets = crate::registry_26_1::historical_assets();
     let cases = fixture()["template_block_entities"].as_array().unwrap();
     assert!(cases.len() > 100);
     for row in cases {
         let state = row["state"].as_u64().unwrap() as u32;
         let pos = point(&row["pos"]);
         let load: Nbt = serde_json::from_value(row["load"]["nbt"].clone()).unwrap();
-        let entity = TemplateBlockEntity::from_load(&assets.blocks, state, pos, load).unwrap();
+        let entity = TemplateBlockEntity::from_load(&assets.blocks, state, pos, load)
+            .unwrap_or_else(|error| {
+                panic!(
+                    "{} palette {} index {} state {state}: {error}",
+                    row["template"], row["palette"], row["index"]
+                )
+            });
         let saved = entity.full_data();
         let expected: Nbt = serde_json::from_value(row["full"]["nbt"].clone()).unwrap();
         assert_eq!(
@@ -266,7 +281,7 @@ fn native_structure_runtime_template_load_save_update_preserves_inventories_and_
             "{} palette {} index {} state {state}",
             row["template"], row["palette"], row["index"]
         );
-        let data = FeatureBlockEntity::from_template(&entity).unwrap();
+        let data = FeatureBlockEntity::from_template_in_registry(&entity, &assets.blocks).unwrap();
         let update: Nbt = serde_json::from_value(row["update"]["nbt"].clone()).unwrap();
         assert_eq!(
             data.update_nbt().unwrap(),
@@ -274,8 +289,8 @@ fn native_structure_runtime_template_load_save_update_preserves_inventories_and_
             "{} {pos:?}",
             row["template"]
         );
-        assert!(data.valid_for(state, pos));
-        assert!(!data.valid_for(state, (pos.0 + 1, pos.1, pos.2)));
+        assert!(data.valid_for_registry(&assets.blocks, state, pos));
+        assert!(!data.valid_for_registry(&assets.blocks, state, (pos.0 + 1, pos.1, pos.2)));
         assert_eq!(Nbt::from_typed_json(&data.typed_data).unwrap(), saved);
         let decoded: FeatureBlockEntity =
             serde_json::from_slice(&serde_json::to_vec(&data).unwrap()).unwrap();
@@ -309,13 +324,16 @@ fn native_structure_runtime_decorated_pot_load_save_update_preserves_codecs() {
 }
 
 fn verify_template_block_entity_loads(fixture: &Value, count: usize) {
-    assert_eq!(fixture["jar_sha256"], StructureAssets::JAR_SHA256);
+    assert_eq!(
+        fixture["jar_sha256"],
+        StructureAssets::HISTORICAL_JAR_SHA256
+    );
     let rows = fixture["block_entity_loads"].as_array().unwrap();
     assert_eq!(rows.len(), count);
     for row in rows {
         let name = row["name"].as_str().unwrap();
         let pos = point(&row["pos"]);
-        let state = row["state"].as_u64().unwrap() as u32;
+        let state = crate::registry_26_1::target_state(row["state"].as_u64().unwrap() as u32);
         let load: Nbt = serde_json::from_value(row["load"]["nbt"].clone()).unwrap();
         let entity = TemplateBlockEntity::from_load(
             &StructureAssets::bundled().blocks,
@@ -404,11 +422,251 @@ fn runtime_state(row: &Value) -> GenerationState {
     state
 }
 
+type HistoricalEntities = Rc<RefCell<BTreeMap<Pos, TemplateBlockEntity>>>;
+
+// The old runtime fixture includes bed factories. Target beds no longer have
+// block entities, so their historical factory outputs remain in this replay
+// context rather than entering current-registry chunk persistence.
+struct HistoricalWorld<'a> {
+    region: &'a mut dyn FeatureWorld,
+    entities: HistoricalEntities,
+}
+
+impl OreWorld for HistoricalWorld<'_> {
+    fn get_block(&self, pos: Pos) -> Option<u32> {
+        OreWorld::get_block(self.region, pos).map(crate::registry_26_1::historical_state)
+    }
+    fn ocean_floor_wg(&self, x: i32, z: i32) -> i32 {
+        self.region.ocean_floor_wg(x, z)
+    }
+    fn set_block(&mut self, pos: Pos, state: u32) -> bool {
+        self.set_feature_block(pos, state, 2)
+    }
+}
+
+impl FeatureWorld for HistoricalWorld<'_> {
+    fn feature_biome(&self, pos: Pos) -> u32 {
+        self.region.feature_biome(pos)
+    }
+    fn feature_height(&self, kind: FeatureHeightmap, x: i32, z: i32) -> i32 {
+        self.region.feature_height(kind, x, z)
+    }
+    fn can_write_feature(&self, pos: Pos) -> bool {
+        self.region.can_write_feature(pos)
+    }
+    fn set_feature_block(&mut self, pos: Pos, state: u32, flags: i32) -> bool {
+        let accepted =
+            self.region
+                .set_feature_block(pos, crate::registry_26_1::target_state(state), flags);
+        if accepted {
+            let mut entities = self.entities.borrow_mut();
+            match crate::registry_26_1::historical_assets()
+                .blocks
+                .default_block_entity(state, pos)
+                .unwrap()
+            {
+                Some(entity) => {
+                    entities.insert(pos, entity);
+                }
+                None => {
+                    entities.remove(&pos);
+                }
+            }
+        }
+        accepted
+    }
+    fn mark_feature_postprocessing(&mut self, pos: Pos) {
+        self.region.mark_feature_postprocessing(pos);
+    }
+    fn schedule_feature_tick(&mut self, mut request: crate::tick_request::TickRequest) -> bool {
+        if let crate::tick_request::TickTarget::Block(state) = &mut request.target {
+            *state = crate::registry_26_1::target_state(*state);
+        }
+        self.region.schedule_feature_tick(request)
+    }
+    fn update_feature_neighbours(&mut self, pos: Pos, state: u32) -> Result<(), FeatureError> {
+        self.region
+            .update_feature_neighbours(pos, crate::registry_26_1::target_state(state))
+    }
+    fn has_feature_tick(
+        &self,
+        pos: Pos,
+        mut target: crate::tick_request::TickTarget,
+    ) -> Result<bool, FeatureError> {
+        if let crate::tick_request::TickTarget::Block(state) = &mut target {
+            *state = crate::registry_26_1::target_state(*state);
+        }
+        self.region.has_feature_tick(pos, target)
+    }
+    fn lookup_feature_beehive(&mut self, pos: Pos) -> Result<Option<Vec<i32>>, FeatureError> {
+        self.region.lookup_feature_beehive(pos)
+    }
+    fn set_feature_brushable_loot(
+        &mut self,
+        pos: Pos,
+        table: &str,
+        seed: i64,
+    ) -> Result<bool, FeatureError> {
+        self.region.set_feature_brushable_loot(pos, table, seed)
+    }
+}
+
+struct CurrentWorld<'a>(&'a mut dyn FeatureWorld);
+impl OreWorld for CurrentWorld<'_> {
+    fn get_block(&self, pos: Pos) -> Option<u32> {
+        self.0
+            .get_block(pos)
+            .map(crate::registry_26_1::target_state)
+    }
+    fn ocean_floor_wg(&self, x: i32, z: i32) -> i32 {
+        self.0.ocean_floor_wg(x, z)
+    }
+    fn set_block(&mut self, pos: Pos, state: u32) -> bool {
+        self.0
+            .set_block(pos, crate::registry_26_1::historical_state(state))
+    }
+}
+impl FeatureWorld for CurrentWorld<'_> {
+    fn feature_biome(&self, pos: Pos) -> u32 {
+        self.0.feature_biome(pos)
+    }
+    fn feature_height(&self, kind: FeatureHeightmap, x: i32, z: i32) -> i32 {
+        self.0.feature_height(kind, x, z)
+    }
+    fn can_write_feature(&self, pos: Pos) -> bool {
+        self.0.can_write_feature(pos)
+    }
+    fn set_feature_block(&mut self, pos: Pos, state: u32, flags: i32) -> bool {
+        self.0
+            .set_feature_block(pos, crate::registry_26_1::historical_state(state), flags)
+    }
+    fn mark_feature_postprocessing(&mut self, pos: Pos) {
+        self.0.mark_feature_postprocessing(pos);
+    }
+    fn schedule_feature_tick(&mut self, mut request: crate::tick_request::TickRequest) -> bool {
+        if let crate::tick_request::TickTarget::Block(state) = &mut request.target {
+            *state = crate::registry_26_1::historical_state(*state);
+        }
+        self.0.schedule_feature_tick(request)
+    }
+    fn update_feature_neighbours(&mut self, pos: Pos, state: u32) -> Result<(), FeatureError> {
+        self.0
+            .update_feature_neighbours(pos, crate::registry_26_1::historical_state(state))
+    }
+    fn has_feature_tick(
+        &self,
+        pos: Pos,
+        mut target: crate::tick_request::TickTarget,
+    ) -> Result<bool, FeatureError> {
+        if let crate::tick_request::TickTarget::Block(state) = &mut target {
+            *state = crate::registry_26_1::historical_state(*state);
+        }
+        self.0.has_feature_tick(pos, target)
+    }
+    fn lookup_feature_beehive(&mut self, pos: Pos) -> Result<Option<Vec<i32>>, FeatureError> {
+        self.0.lookup_feature_beehive(pos)
+    }
+    fn set_feature_brushable_loot(
+        &mut self,
+        pos: Pos,
+        table: &str,
+        seed: i64,
+    ) -> Result<bool, FeatureError> {
+        self.0.set_feature_brushable_loot(pos, table, seed)
+    }
+}
+
+fn place_historical_jigsaw_source(
+    state: &mut GenerationState,
+    source: ChunkPos,
+    name: &str,
+    seed: i64,
+    random: &mut crate::simplex::WorldgenRandom,
+    gaussian: &mut crate::dripstone::CaveRandomState,
+    entities: &HistoricalEntities,
+) {
+    let assets = crate::registry_26_1::historical_assets();
+    let references = state.holders[&(source.x, source.z)]
+        .structures
+        .jigsaw_references
+        .get(name)
+        .cloned()
+        .unwrap_or_default();
+    let clip = crate::structure::template::BoundingBox {
+        min: (source.x * 16, crate::MIN_Y + 1, source.z * 16),
+        max: (source.x * 16 + 15, crate::MAX_Y, source.z * 16 + 15),
+    };
+    let mut spawned = Vec::new();
+    {
+        let mut region = tree_world::EffectWorld::new(&mut state.region);
+        let effects = region.effects.clone();
+        let mut world = HistoricalWorld {
+            region: &mut region,
+            entities: entities.clone(),
+        };
+        for [x, z] in references {
+            let start = &state.holders[&(x, z)].structures.jigsaw_starts[name];
+            jigsaw::place_in_chunk_with_callbacks(
+                assets,
+                start,
+                &mut world,
+                random,
+                clip,
+                seed,
+                &mut |feature, world, random, origin| {
+                    if let Some(document) = assets.placed_features.get(feature) {
+                        assert_eq!(
+                            document,
+                            crate::block_predicate::catalog().placed(feature).unwrap(),
+                            "nested historical configuration differs: {feature}"
+                        );
+                    }
+                    let reference = Value::String(feature.into());
+                    placed::check_nested(&reference, 0)?;
+                    let mut dispatcher = placed::dispatcher(gaussian, effects.clone(), seed);
+                    let placed = crate::placement::place_nested(
+                        &reference,
+                        &mut CurrentWorld(world),
+                        random,
+                        origin,
+                        &placed::GenerationEnvironment,
+                        &mut dispatcher,
+                    )?;
+                    Ok(crate::structure::template::PlacementResult {
+                        placed,
+                        ..Default::default()
+                    })
+                },
+                &mut |_, effect| {
+                    match effect {
+                        TemplateEffect::ClearBlockEntity(pos) => {
+                            entities.borrow_mut().remove(&pos);
+                        }
+                        TemplateEffect::BlockEntity(entity) => {
+                            entities.borrow_mut().insert(entity.pos, entity);
+                        }
+                        TemplateEffect::Entity(entity) => spawned.push(entity),
+                    }
+                    Ok(())
+                },
+            )
+            .unwrap();
+        }
+    }
+    for entity in spawned {
+        state
+            .region
+            .apply_template_effect(source, TemplateEffect::Entity(entity))
+            .unwrap();
+    }
+}
+
 #[test]
 fn native_structure_runtime_clipped_decoration_callbacks_effects_and_rng() {
     let mut pending_entities = 0;
     for row in fixture()["runtime"].as_array().unwrap() {
         let mut state = runtime_state(row);
+        let historical_entities = HistoricalEntities::default();
         let seed = row["admitted"]["seed"].as_i64().unwrap();
         let source = chunk(&row["source"]);
         let label = format!("{} {source:?}", row["admitted"]["biome"]);
@@ -437,13 +695,19 @@ fn native_structure_runtime_clipped_decoration_callbacks_effects_and_rng() {
             {
                 let name = ty["structure"].as_str().unwrap();
                 random.set_feature_seed(decoration, ty["index"].as_i64().unwrap() as i32, step);
-                if StructureAssets::bundled()
+                if crate::registry_26_1::historical_assets()
                     .structure_metadata
                     .contains_key(name)
                 {
-                    state
-                        .place_jigsaw_source(seed, source, name, &mut random, &mut gaussian)
-                        .unwrap_or_else(|e| panic!("{label}: {e}"));
+                    place_historical_jigsaw_source(
+                        &mut state,
+                        source,
+                        name,
+                        seed,
+                        &mut random,
+                        &mut gaussian,
+                        &historical_entities,
+                    );
                 }
                 let mut continuation = crate::simplex::WorldgenRandom::new(0);
                 continuation.source = random.source.clone();
@@ -455,7 +719,13 @@ fn native_structure_runtime_clipped_decoration_callbacks_effects_and_rng() {
             }
         }
         state.region.transfer_tree_effects().unwrap();
-        let writes = crate::region::take_structure_write_trace();
+        let writes: Vec<_> = crate::region::take_structure_write_trace()
+            .into_iter()
+            .map(|mut row| {
+                row[3] = crate::registry_26_1::historical_state(row[3] as u32) as i32;
+                row
+            })
+            .collect();
         assert_eq!(
             writes.len(),
             row["write_count"].as_u64().unwrap() as usize,
@@ -475,7 +745,12 @@ fn native_structure_runtime_clipped_decoration_callbacks_effects_and_rng() {
             .as_array()
             .unwrap()
             .iter()
-            .map(|r| (point(r), r[3].as_u64().unwrap() as u32))
+            .map(|r| {
+                (
+                    point(r),
+                    crate::registry_26_1::target_state(r[3].as_u64().unwrap() as u32),
+                )
+            })
             .collect();
         let mut actual_entities = BTreeMap::new();
         let mut ticks: BTreeMap<_, Vec<Value>> = BTreeMap::new();
@@ -510,10 +785,26 @@ fn native_structure_runtime_clipped_decoration_callbacks_effects_and_rng() {
                     }
                 }
             }
-            for (&(x, y, z), entity) in chunk.feature_block_entities() {
-                let p = (pos.x * 16 + x as i32, y, pos.z * 16 + z as i32);
+            for (&p, entity) in historical_entities
+                .borrow()
+                .iter()
+                .filter(|(p, _)| p.0 >> 4 == pos.x && p.2 >> 4 == pos.z)
+            {
+                let entity = FeatureBlockEntity::from_template_in_registry(
+                    entity,
+                    &crate::registry_26_1::historical_assets().blocks,
+                )
+                .unwrap();
                 assert!(
-                    entity.valid_for(chunk.get(x, y, z).unwrap(), p),
+                    entity.valid_for_registry(
+                        &crate::registry_26_1::historical_assets().blocks,
+                        crate::registry_26_1::historical_state(
+                            chunk
+                                .get((p.0 & 15) as usize, p.1, (p.2 & 15) as usize)
+                                .unwrap()
+                        ),
+                        p
+                    ),
                     "{label} invalid {p:?}"
                 );
                 actual_entities.insert(
@@ -534,11 +825,20 @@ fn native_structure_runtime_clipped_decoration_callbacks_effects_and_rng() {
                 let (kind, id) = match tick.target {
                     crate::tick_request::TickTarget::Fluid(id) => ("fluid", id),
                     crate::tick_request::TickTarget::Block(id) => {
-                        let catalog = crate::block_predicate::catalog();
-                        let first = catalog.block(id).unwrap().1.first;
+                        let blocks = &crate::registry_26_1::historical_assets().blocks;
+                        let name = &blocks
+                            .state(crate::registry_26_1::historical_state(id))
+                            .unwrap()
+                            .name;
+                        let first = blocks.state_range(name).unwrap()[0];
                         (
                             "block",
-                            catalog.blocks.values().filter(|b| b.first < first).count() as u32,
+                            (0..first)
+                                .filter(|&id| {
+                                    blocks.state(id).unwrap().name
+                                        != blocks.state(id + 1).unwrap().name
+                                })
+                                .count() as u32,
                         )
                     }
                 };

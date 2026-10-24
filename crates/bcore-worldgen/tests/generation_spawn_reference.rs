@@ -11,6 +11,11 @@ use bcore_worldgen::tick_request::TickRequest;
 use bcore_worldgen::{MAX_Y, MIN_Y};
 use serde_json::{json, Value};
 
+#[path = "support/registry_26_1.rs"]
+pub mod registry_26_1;
+#[path = "support/spawn_26_1.rs"]
+mod spawn_26_1;
+
 fn fixtures() -> &'static Value {
     static DATA: OnceLock<Value> = OnceLock::new();
     DATA.get_or_init(|| {
@@ -162,6 +167,15 @@ impl Environment {
 }
 
 impl SpawnEnvironment for Environment {
+    fn constructor_template(&self, kind: MobKind) -> SpawnResult<SpawnTag> {
+        spawn_26_1::constructor_template(kind)
+    }
+    fn biome_spawns(&self, biome: u32) -> SpawnResult<BiomeSpawns> {
+        spawn_26_1::biome_spawns(biome)
+    }
+    fn spawn_heightmap(&self, kind: MobKind) -> SpawnResult<FeatureHeightmap> {
+        spawn_26_1::heightmap(kind)
+    }
     fn spawn_mobs(&self) -> bool {
         self.enabled
     }
@@ -235,9 +249,7 @@ fn settings(input: &Value) -> BiomeSpawns {
             },
         }
     } else {
-        biome_spawns(biome::id(input["biome"].as_str().unwrap()).unwrap())
-            .unwrap()
-            .clone()
+        spawn_26_1::biome_spawns(biome::id(input["biome"].as_str().unwrap()).unwrap()).unwrap()
     }
 }
 
@@ -632,6 +644,15 @@ fn constructor_entropy_is_required_and_never_derived_from_world_seed() {
 fn camel_requires_the_actual_game_clock_before_it_can_become_a_spawned_entity() {
     struct Clockless(Environment);
     impl SpawnEnvironment for Clockless {
+        fn constructor_template(&self, kind: MobKind) -> SpawnResult<SpawnTag> {
+            self.0.constructor_template(kind)
+        }
+        fn biome_spawns(&self, biome: u32) -> SpawnResult<BiomeSpawns> {
+            self.0.biome_spawns(biome)
+        }
+        fn spawn_heightmap(&self, kind: MobKind) -> SpawnResult<FeatureHeightmap> {
+            self.0.spawn_heightmap(kind)
+        }
         fn spawn_mobs(&self) -> bool {
             self.0.spawn_mobs()
         }
@@ -757,7 +778,7 @@ fn unsupported_entity_callbacks_are_explicit_incomplete_executions() {
 fn generation_catalog_retains_native_biome_order_and_duplicate_groups() {
     for native in fixtures()["catalog"]["biomes"].as_array().unwrap() {
         let id = biome::id(native["name"].as_str().unwrap()).unwrap();
-        let actual = biome_spawns(id).unwrap();
+        let actual = spawn_26_1::biome_spawns(id).unwrap();
         assert_eq!(
             actual.probability.to_bits(),
             (native["probability"].as_f64().unwrap() as f32).to_bits()
@@ -765,7 +786,7 @@ fn generation_catalog_retains_native_biome_order_and_duplicate_groups() {
         let groups: Vec<_> = actual.groups.iter().map(|g| json!({"type": g.kind.name(), "weight": g.weight, "min": g.min_count, "max": g.max_count})).collect();
         assert_eq!(json!(groups), native["spawns"]);
     }
-    let bamboo = biome_spawns(biome::id("bamboo_jungle").unwrap()).unwrap();
+    let bamboo = spawn_26_1::biome_spawns(biome::id("bamboo_jungle").unwrap()).unwrap();
     assert!(
         bamboo
             .groups
@@ -786,7 +807,7 @@ fn native_position_dependent_collision_shapes_match_at_world_boundaries() {
     let samples = assets["blocks"]["shape_samples"].as_array().unwrap();
     assert!(!samples.is_empty());
     for sample in samples {
-        let state = sample["state"].as_u64().unwrap() as u32;
+        let state = registry_26_1::target_state(sample["state"].as_u64().unwrap() as u32);
         let [x, y, z]: [i32; 3] = serde_json::from_value(sample["pos"].clone()).unwrap();
         let actual = env.collision_boxes(&world, (x, y, z), state).unwrap();
         let expected: Vec<[f64; 6]> = serde_json::from_value(sample["boxes"].clone()).unwrap();

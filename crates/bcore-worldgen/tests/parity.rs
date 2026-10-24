@@ -1,9 +1,11 @@
 use bcore_core::ChunkPos;
-use bcore_worldgen::WorldGenerator;
+use bcore_worldgen::GenerationWorld;
 
 pub fn generate_chunk_blocks(seed: i64, cx: i32, cz: i32) -> Vec<u32> {
-    WorldGenerator::new(seed)
-        .generate_chunk_vanilla(ChunkPos::new(cx, cz))
+    GenerationWorld::new(seed)
+        .generate_chunk(ChunkPos::new(cx, cz))
+        .expect("chunk generation failed")
+        .chunk
         .states()
         .to_vec()
 }

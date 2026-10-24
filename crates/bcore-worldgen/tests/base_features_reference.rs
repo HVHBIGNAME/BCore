@@ -11,6 +11,11 @@ use block_predicate::{catalog, FeatureEnvironment, FeatureResult};
 use serde::Deserialize;
 use serde_json::{json, Value};
 
+#[path = "support/feature_documents_26_1.rs"]
+pub mod feature_documents_26_1;
+#[path = "support/registry_26_1.rs"]
+mod registry_26_1;
+
 const BASE: &str = include_str!("../data/base_features_26_1.json");
 const PLACEMENT: &str = include_str!("../data/placements_26_1.json");
 
@@ -36,14 +41,17 @@ struct World {
 
 impl World {
     fn new(value: &Value) -> Self {
-        let terrain: Terrain = serde_json::from_value(value.clone()).unwrap();
+        let mut terrain: Terrain = serde_json::from_value(value.clone()).unwrap();
+        for row in &mut terrain.layers {
+            row[2] = registry_26_1::target_state(row[2] as u32) as i32;
+        }
         let biome = catalog().documents["biome_ids"][&terrain.biome]
             .as_u64()
             .unwrap() as u32;
         let initial = terrain
             .overrides
             .iter()
-            .map(|&[x, y, z, state]| ((x, y, z), state as u32))
+            .map(|&[x, y, z, state]| ((x, y, z), registry_26_1::target_state(state as u32)))
             .collect();
         Self {
             terrain,
@@ -92,7 +100,7 @@ impl World {
             .blocks
             .iter()
             .filter(|(pos, state)| **state != self.initial(**pos))
-            .map(|(&(x, y, z), &state)| [x, y, z, state as i32])
+            .map(|(&(x, y, z), &state)| [x, y, z, registry_26_1::historical_state(state) as i32])
             .collect();
         assert_eq!(
             changed.len() as u64,
@@ -166,7 +174,7 @@ impl FeatureWorld for World {
             pos.0,
             pos.1,
             pos.2,
-            state as i32,
+            registry_26_1::historical_state(state) as i32,
             flags,
             i32::from(accepted),
         ]);
@@ -183,7 +191,7 @@ impl FeatureWorld for World {
     fn schedule_feature_tick(&mut self, request: TickRequest) -> bool {
         let [x, y, z] = request.block_pos;
         let (value, fluid) = match request.target {
-            TickTarget::Block(id) => (id, 0),
+            TickTarget::Block(id) => (registry_26_1::historical_state(id), 0),
             TickTarget::Fluid(id) => (id, 1),
         };
         self.ticks
@@ -277,15 +285,17 @@ fn native_overworld_modifier_streams_and_boundaries() {
     let fixture: Value = serde_json::from_str(PLACEMENT).unwrap();
     for sample in fixture["samples"].as_array().unwrap() {
         let name = sample["name"].as_str().unwrap();
-        let config = fixture["custom_placed"]
+        let reference = fixture["custom_placed"]
             .get(name)
-            .unwrap_or_else(|| catalog().placed(name).unwrap());
+            .cloned()
+            .unwrap_or_else(|| json!(name));
+        let config = feature_documents_26_1::placed(&reference);
         let mut world = World::new(&sample["terrain"]);
         let mut random = WorldgenRandom::new(sample["seed"].as_i64().unwrap());
         let environment = Environment(world.terrain.light);
         let mut terminal = Terminal::default();
         let result = placement::place(
-            config,
+            &config,
             Some(name),
             &mut world,
             &mut random,
@@ -334,8 +344,9 @@ fn native_configured_features_and_actual_plant_patches() {
         let mut random = WorldgenRandom::new(sample["seed"].as_i64().unwrap());
         let mut features = base_features::BaseFeatures::default();
         let result = if sample["placed"] == true {
-            placement::place_named(
-                name,
+            placement::place(
+                &feature_documents_26_1::placed(&json!(name)),
+                Some(name),
                 &mut world,
                 &mut random,
                 origin(&sample["origin"]),
@@ -343,11 +354,13 @@ fn native_configured_features_and_actual_plant_patches() {
                 &mut features,
             )
         } else {
-            let config = fixture["custom_configured"]
+            let reference = fixture["custom_configured"]
                 .get(name)
-                .unwrap_or_else(|| catalog().configured(name).unwrap());
+                .cloned()
+                .unwrap_or_else(|| json!(name));
+            let config = feature_documents_26_1::configured(&reference);
             features.place_configured(
-                config,
+                &config,
                 Some(name),
                 &mut world,
                 &mut random,
@@ -386,7 +399,10 @@ fn native_survival_soils_light_fluids_and_upper_halves() {
     let mut errors = Vec::new();
     for sample in fixture["survival"].as_array().unwrap() {
         let state = catalog().state(&sample["state"]).unwrap();
-        assert_eq!(state as u64, sample["state_id"].as_u64().unwrap());
+        assert_eq!(
+            registry_26_1::historical_state(state) as u64,
+            sample["state_id"].as_u64().unwrap()
+        );
         let world = World::new(&sample["terrain"]);
         match block_predicate::would_survive(
             &world,
@@ -417,7 +433,7 @@ fn native_state_providers_and_independent_legacy_noise() {
             .sample_optional(&world, &mut random, pos, &Environment(world.terrain.light))
             .unwrap();
         assert_eq!(
-            actual,
+            actual.map(registry_26_1::historical_state),
             sample["state"].as_u64().map(|v| v as u32),
             "provider {sample}"
         );

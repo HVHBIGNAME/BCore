@@ -1,4 +1,4 @@
-//! Minecraft 26.1 pointed, cluster, and large dripstone configured features.
+//! Dripstone and configurable 26.2 speleothem kernels, sharing native growth order.
 //!
 //! Call [`place_configured`] with the **feature type** and its `config` object
 //! after the external placed-feature driver has applied modifiers. In particular,
@@ -62,6 +62,14 @@ pub fn place_configured(
     random_state: &mut CaveRandomState,
 ) -> Result<bool, FeatureError> {
     match key(name) {
+        "speleothem" => place_speleothem(config, world, random, origin),
+        "speleothem_cluster" => place_cluster(
+            ClusterConfig::parse(config, true)?,
+            world,
+            random,
+            origin,
+            random_state,
+        ),
         "pointed_dripstone" => place_pointed_dripstone(config, world, random, origin),
         "dripstone_cluster" => place_dripstone_cluster(config, world, random, origin, random_state),
         "large_dripstone" => place_large_dripstone(config, world, random, origin, random_state),
@@ -69,6 +77,125 @@ pub fn place_configured(
             "dripstone feature {name}"
         ))),
     }
+}
+
+enum Material {
+    Dripstone,
+    Configured {
+        base: [u32; 2],
+        base_state: u32,
+        pointed: String,
+        replaceable: Vec<[u32; 2]>,
+    },
+}
+
+impl Material {
+    fn parse(config: &Value) -> Result<Self, FeatureError> {
+        let catalog = crate::block_predicate::catalog();
+        let base = catalog.block(catalog.state(&config["base_block"])?)?.1;
+        let (pointed_name, pointed) = catalog.block(catalog.state(&config["pointed_block"])?)?;
+        for (property, value) in [
+            ("vertical_direction", "up"),
+            ("thickness", "tip"),
+            ("waterlogged", "false"),
+        ] {
+            pointed.with_property(pointed.default_state, property, value)?;
+        }
+        let blocks = catalog.block_holder_set(&config["replaceable_blocks"])?;
+        let mut replaceable = Vec::new();
+        for (name, block) in &catalog.blocks {
+            if blocks.contains(&catalog.block_id(name)?) {
+                replaceable.push([block.first, block.first + block.count]);
+            }
+        }
+        replaceable.sort_unstable();
+        Ok(Self::Configured {
+            base: [base.first, base.first + base.count],
+            base_state: base.default_state,
+            pointed: pointed_name.to_owned(),
+            replaceable,
+        })
+    }
+
+    fn pointed(&self) -> &str {
+        match self {
+            Self::Dripstone => "pointed_dripstone",
+            Self::Configured { pointed, .. } => pointed,
+        }
+    }
+
+    fn base_block(&self, state: u32) -> Result<bool, FeatureError> {
+        match self {
+            Self::Dripstone => Ok(state == block_id("dripstone_block")?),
+            Self::Configured { base, .. } => Ok((base[0]..base[1]).contains(&state)),
+        }
+    }
+
+    fn replaceable(&self, state: u32) -> Result<bool, FeatureError> {
+        match self {
+            Self::Dripstone => in_tag(state, "dripstone_replaceable"),
+            Self::Configured { replaceable, .. } => {
+                crate::block_predicate::catalog().block(state)?;
+                let index = replaceable.partition_point(|range| range[0] <= state);
+                Ok(index > 0 && state < replaceable[index - 1][1])
+            }
+        }
+    }
+
+    fn is_base(&self, state: u32) -> Result<bool, FeatureError> {
+        Ok(self.base_block(state)? || self.replaceable(state)?)
+    }
+
+    fn replace(&self, world: &mut impl FeatureWorld, pos: Pos) -> Result<bool, FeatureError> {
+        if !self.replaceable(read(world, pos)?)? {
+            return Ok(false);
+        }
+        let state = match self {
+            Self::Dripstone => block_id("dripstone_block")?,
+            Self::Configured { base_state, .. } => *base_state,
+        };
+        world.set_feature_block(pos, state, 2);
+        Ok(true)
+    }
+}
+
+pub(crate) fn check_speleothem(name: &str, config: &Value) -> Result<(), FeatureError> {
+    match name {
+        "speleothem" => {
+            Material::parse(config)?;
+            pointed_chances(config, "chance_of_taller_generation")?;
+            Ok(())
+        }
+        "speleothem_cluster" => ClusterConfig::parse(config, true).map(|_| ()),
+        _ => Err(FeatureError::Unsupported(format!(
+            "speleothem feature {name}"
+        ))),
+    }
+}
+
+fn pointed_chances(config: &Value, taller: &str) -> Result<[f32; 4], FeatureError> {
+    Ok([
+        float_default(config, taller, 0.2, 0.0, 1.0)?,
+        float_default(config, "chance_of_directional_spread", 0.7, 0.0, 1.0)?,
+        float_default(config, "chance_of_spread_radius2", 0.5, 0.0, 1.0)?,
+        float_default(config, "chance_of_spread_radius3", 0.5, 0.0, 1.0)?,
+    ])
+}
+
+pub fn place_speleothem(
+    config: &Value,
+    world: &mut impl FeatureWorld,
+    random: &mut WorldgenRandom,
+    origin: Pos,
+) -> Result<bool, FeatureError> {
+    let material = Material::parse(config)?;
+    place_pointed(
+        world,
+        random,
+        origin,
+        &material,
+        pointed_chances(config, "chance_of_taller_generation")?,
+    )
 }
 
 pub fn place_pointed_dripstone(
@@ -82,15 +209,27 @@ pub fn place_pointed_dripstone(
             "pointed dripstone config must be an object".into(),
         ));
     }
-    let taller = float_default(config, "chance_of_taller_dripstone", 0.2, 0.0, 1.0)?;
-    let spread = float_default(config, "chance_of_directional_spread", 0.7, 0.0, 1.0)?;
-    let radius2 = float_default(config, "chance_of_spread_radius2", 0.5, 0.0, 1.0)?;
-    let radius3 = float_default(config, "chance_of_spread_radius3", 0.5, 0.0, 1.0)?;
+    place_pointed(
+        world,
+        random,
+        origin,
+        &Material::Dripstone,
+        pointed_chances(config, "chance_of_taller_dripstone")?,
+    )
+}
+
+fn place_pointed(
+    world: &mut impl FeatureWorld,
+    random: &mut WorldgenRandom,
+    origin: Pos,
+    material: &Material,
+    [taller, spread, radius2, radius3]: [f32; 4],
+) -> Result<bool, FeatureError> {
     if !world.can_write_feature(origin) {
         return Ok(false);
     }
-    let above = dripstone_base(read(world, offset(origin, UP))?)?;
-    let below = dripstone_base(read(world, offset(origin, DOWN))?)?;
+    let above = material.is_base(read(world, offset(origin, UP))?)?;
+    let below = material.is_base(read(world, offset(origin, DOWN))?)?;
     let direction = match (above, below) {
         (true, true) => {
             if random.next_bool() {
@@ -104,23 +243,23 @@ pub fn place_pointed_dripstone(
         (false, false) => return Ok(false),
     };
     let base = offset(origin, opposite(direction));
-    replace_dripstone(world, base)?;
+    material.replace(world, base)?;
     for side in HORIZONTAL {
         if random.next_float() > spread {
             continue;
         }
         let first = offset(base, side);
-        replace_dripstone(world, first)?;
+        material.replace(world, first)?;
         if random.next_float() > radius2 {
             continue;
         }
         let second = offset(first, random.next_int(6));
-        replace_dripstone(world, second)?;
+        material.replace(world, second)?;
         if random.next_float() > radius3 {
             continue;
         }
         let third = offset(second, random.next_int(6));
-        replace_dripstone(world, third)?;
+        material.replace(world, third)?;
     }
     let height = if random.next_float() < taller
         && empty_or_water(read(world, offset(origin, direction))?)?
@@ -129,7 +268,7 @@ pub fn place_pointed_dripstone(
     } else {
         1
     };
-    grow_pointed(world, origin, direction, height, false)?;
+    grow_with_material(world, origin, direction, height, false, material)?;
     Ok(true)
 }
 
@@ -137,22 +276,15 @@ fn dripstone_base(state: u32) -> Result<bool, FeatureError> {
     Ok(state == block_id("dripstone_block")? || in_tag(state, "dripstone_replaceable")?)
 }
 
-fn replace_dripstone(world: &mut impl FeatureWorld, pos: Pos) -> Result<bool, FeatureError> {
-    if !in_tag(read(world, pos)?, "dripstone_replaceable")? {
-        return Ok(false);
-    }
-    world.set_feature_block(pos, block_id("dripstone_block")?, 2);
-    Ok(true)
-}
-
-fn grow_pointed(
+fn grow_with_material(
     world: &mut impl FeatureWorld,
     mut pos: Pos,
     direction: usize,
     height: i32,
     merge: bool,
+    material: &Material,
 ) -> Result<(), FeatureError> {
-    if !dripstone_base(read(world, offset(pos, opposite(direction)))?)? {
+    if !material.is_base(read(world, offset(pos, opposite(direction)))?)? {
         return Ok(());
     }
     for index in 0..height {
@@ -170,17 +302,18 @@ fn grow_pointed(
             "middle"
         };
         let wet = state_info(read(world, pos)?)?.flags & 8 != 0;
-        let state = state_with(
-            "pointed_dripstone",
-            &[
-                (
-                    "vertical_direction",
-                    if direction == UP { "up" } else { "down" },
-                ),
-                ("thickness", thickness),
-                ("waterlogged", if wet { "true" } else { "false" }),
-            ],
-        )?;
+        let definition = crate::block_predicate::catalog().definition(material.pointed())?;
+        let mut state = definition.default_state;
+        for (property, value) in [
+            (
+                "vertical_direction",
+                if direction == UP { "up" } else { "down" },
+            ),
+            ("thickness", thickness),
+            ("waterlogged", if wet { "true" } else { "false" }),
+        ] {
+            state = definition.with_property(state, property, value)?;
+        }
         world.set_feature_block(pos, state, 2);
         pos = offset(pos, direction);
     }
@@ -188,6 +321,7 @@ fn grow_pointed(
 }
 
 struct ClusterConfig {
+    material: Material,
     search: i32,
     height: IntProvider,
     radius: IntProvider,
@@ -202,25 +336,46 @@ struct ClusterConfig {
 }
 
 impl ClusterConfig {
-    fn parse(v: &Value) -> Result<Self, FeatureError> {
+    fn parse(v: &Value, target: bool) -> Result<Self, FeatureError> {
         Ok(Self {
+            material: if target {
+                Material::parse(v)?
+            } else {
+                Material::Dripstone
+            },
             search: int_field(v, "floor_to_ceiling_search_range", 1, 512)?,
             height: IntProvider::parse(&v["height"], 1, 128)?,
             radius: IntProvider::parse(&v["radius"], 1, 128)?,
             difference: int_field(v, "max_stalagmite_stalactite_height_diff", 0, 64)?,
             deviation: int_field(v, "height_deviation", 1, 64)?,
-            thickness: IntProvider::parse(&v["dripstone_block_layer_thickness"], 0, 128)?,
+            thickness: IntProvider::parse(
+                &v[if target {
+                    "speleothem_block_layer_thickness"
+                } else {
+                    "dripstone_block_layer_thickness"
+                }],
+                0,
+                128,
+            )?,
             density: FloatProvider::parse(&v["density"], 0.0, 2.0)?,
             wetness: FloatProvider::parse(&v["wetness"], 0.0, 2.0)?,
             edge_chance: float_field(
                 v,
-                "chance_of_dripstone_column_at_max_distance_from_center",
+                if target {
+                    "chance_of_speleothem_at_max_distance_from_center"
+                } else {
+                    "chance_of_dripstone_column_at_max_distance_from_center"
+                },
                 0.0,
                 1.0,
             )?,
             edge_distance: int_field(
                 v,
-                "max_distance_from_edge_affecting_chance_of_dripstone_column",
+                if target {
+                    "max_distance_from_edge_affecting_chance_of_speleothem"
+                } else {
+                    "max_distance_from_edge_affecting_chance_of_dripstone_column"
+                },
                 1,
                 64,
             )?,
@@ -236,7 +391,22 @@ pub fn place_dripstone_cluster(
     origin: Pos,
     random_state: &mut CaveRandomState,
 ) -> Result<bool, FeatureError> {
-    let config = ClusterConfig::parse(config)?;
+    place_cluster(
+        ClusterConfig::parse(config, false)?,
+        world,
+        random,
+        origin,
+        random_state,
+    )
+}
+
+fn place_cluster(
+    config: ClusterConfig,
+    world: &mut impl FeatureWorld,
+    random: &mut WorldgenRandom,
+    origin: Pos,
+    random_state: &mut CaveRandomState,
+) -> Result<bool, FeatureError> {
     if !world.can_write_feature(origin) || !empty_or_water(read(world, origin)?)? {
         return Ok(false);
     }
@@ -306,7 +476,7 @@ impl ClusterColumn<'_> {
         let wet = random.next_float() < self.wetness;
         if wet {
             if let Some(y) = floor {
-                if can_place_pool(world, at_y(pos, y))? {
+                if can_place_pool(world, at_y(pos, y), &self.config.material)? {
                     floor = Some(y - 1);
                     world.set_feature_block(at_y(pos, y), block_id("water")?, 2);
                 }
@@ -316,7 +486,7 @@ impl ClusterColumn<'_> {
         let top_height = if let Some(y) = ceiling.filter(|_| top_roll) {
             if state_info(read(world, at_y(pos, y))?)?.flags & 4 == 0 {
                 let thickness = self.config.thickness.sample(random, state);
-                replace_layer(world, at_y(pos, y), thickness, UP)?;
+                replace_layer(world, at_y(pos, y), thickness, UP, &self.config.material)?;
                 self.height(
                     random,
                     state,
@@ -332,7 +502,7 @@ impl ClusterColumn<'_> {
         let bottom_height = if let Some(y) = floor.filter(|_| bottom_roll) {
             if state_info(read(world, at_y(pos, y))?)?.flags & 4 == 0 {
                 let thickness = self.config.thickness.sample(random, state);
-                replace_layer(world, at_y(pos, y), thickness, DOWN)?;
+                replace_layer(world, at_y(pos, y), thickness, DOWN, &self.config.material)?;
                 if ceiling.is_some() {
                     (top_height + between(random, -self.config.difference, self.config.difference))
                         .max(0)
@@ -363,20 +533,39 @@ impl ClusterColumn<'_> {
                 .zip(ceiling)
                 .is_some_and(|(f, c)| top + bottom == c - f - 1);
         if let Some(y) = ceiling {
-            grow_pointed(world, at_y(pos, y - 1), DOWN, top, merge)?;
+            grow_with_material(
+                world,
+                at_y(pos, y - 1),
+                DOWN,
+                top,
+                merge,
+                &self.config.material,
+            )?;
         }
         if let Some(y) = floor {
-            grow_pointed(world, at_y(pos, y + 1), UP, bottom, merge)?;
+            grow_with_material(
+                world,
+                at_y(pos, y + 1),
+                UP,
+                bottom,
+                merge,
+                &self.config.material,
+            )?;
         }
         Ok(())
     }
 }
 
-fn can_place_pool(world: &impl FeatureWorld, pos: Pos) -> Result<bool, FeatureError> {
+fn can_place_pool(
+    world: &impl FeatureWorld,
+    pos: Pos,
+    material: &Material,
+) -> Result<bool, FeatureError> {
     let current = read(world, pos)?;
+    let pointed = crate::block_predicate::catalog().definition(material.pointed())?;
     if state_info(current)?.flags & 2 != 0
-        || current == block_id("dripstone_block")?
-        || state_info(current)?.block == block_id("pointed_dripstone")?
+        || material.base_block(current)?
+        || (pointed.first..pointed.first + pointed.count).contains(&current)
     {
         return Ok(false);
     }
@@ -397,9 +586,10 @@ fn replace_layer(
     mut pos: Pos,
     height: i32,
     direction: usize,
+    material: &Material,
 ) -> Result<(), FeatureError> {
     for _ in 0..height {
-        if !replace_dripstone(world, pos)? {
+        if !material.replace(world, pos)? {
             break;
         }
         pos = offset(pos, direction);
@@ -677,7 +867,7 @@ pub(crate) fn key(name: &str) -> &str {
 
 pub(crate) fn read(world: &impl FeatureWorld, pos: Pos) -> Result<u32, FeatureError> {
     if !(MIN_Y..=MAX_Y).contains(&pos.1) {
-        return Ok(0);
+        return Ok(crate::block::AIR);
     }
     world
         .get_block(pos)
@@ -707,8 +897,21 @@ pub(crate) struct StateSchema {
 pub(crate) fn data() -> &'static CaveData {
     static DATA: OnceLock<CaveData> = OnceLock::new();
     DATA.get_or_init(|| {
-        serde_json::from_str(include_str!("../data/cave_feature_data_26_1.json"))
-            .expect("captured cave block data")
+        let data: CaveData = crate::block_predicate::parse_catalog(include_str!(
+            "../data/cave_feature_data_26_2.json"
+        ))
+        .expect("authenticated cave block data");
+        let mut end = 0;
+        for row in &data.state_ranges {
+            assert!(
+                row[0] == end
+                    && row[1] > end
+                    && row[1] as usize <= bcore_registry::BLOCK_STATE_COUNT
+            );
+            end = row[1];
+        }
+        assert_eq!(end as usize, bcore_registry::BLOCK_STATE_COUNT);
+        data
     })
 }
 
@@ -790,8 +993,10 @@ pub(crate) fn empty_or_water(state: u32) -> Result<bool, FeatureError> {
 
 pub(crate) fn integer(v: &Value, min: i32, max: i32) -> Result<i32, FeatureError> {
     let value = v
-        .as_i64()
-        .filter(|v| *v >= min as i64 && *v <= max as i64)
+        .as_f64()
+        .filter(|v| v.is_finite())
+        .map(f64::trunc)
+        .filter(|v| *v >= f64::from(min) && *v <= f64::from(max))
         .ok_or_else(|| {
             FeatureError::InvalidConfig(format!("expected integer in {min}..={max}: {v}"))
         })?;

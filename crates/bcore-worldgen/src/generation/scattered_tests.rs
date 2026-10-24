@@ -189,6 +189,68 @@ fn deferred_structure_lookup_supports_chest_and_suspicious_sand_loot_guards() {
 }
 
 #[test]
+fn full_review_scattered_loot_callback_preserves_unrelated_live_storage() {
+    use crate::block_entity::BlockEntity;
+
+    let source = ChunkPos::new(-1, 0);
+    let owner = ChunkPos::new(0, 0);
+    let mut region = FeatureRegion::shared(WorldGenerator::new(0));
+    let chunk = region.owned_chunk_mut(owner);
+    chunk.set(1, 80, 1, crate::dungeon::CHEST);
+    assert!(chunk.set_block_entity(1, 80, 1, BlockEntity::DungeonChest { loot_seed: 7 }));
+    chunk.set(2, 80, 1, 21774);
+    assert!(chunk.set_block_entity(
+        2,
+        80,
+        1,
+        BlockEntity::Beehive {
+            ticks_in_hive: vec![97]
+        }
+    ));
+    region.begin_source_with_levels(
+        source,
+        ChunkStatus::Features,
+        [((-1, 0), ChunkStatus::Carvers), ((0, 0), ChunkStatus::Full)].into(),
+        [(0, 0)].into(),
+    );
+    let pointers = |region: &FeatureRegion| {
+        let chunk = region.owned_chunk_ref(owner).unwrap();
+        let BlockEntity::Beehive { ticks_in_hive } = &chunk.block_entities()[&(2, 80, 1)] else {
+            panic!("retained hive");
+        };
+        (
+            chunk.states().as_ptr() as usize,
+            ticks_in_hive.as_ptr() as usize,
+        )
+    };
+    let before = pointers(&region);
+    ScatteredRegion {
+        region: &mut region,
+        source,
+    }
+    .apply_scattered_effect(ScatteredEffect::LootTable {
+        pos: (1, 80, 1),
+        block_entity: "minecraft:chest".into(),
+        table: "minecraft:chests/jungle_temple".into(),
+        seed: 19,
+    })
+    .unwrap();
+    assert_eq!(
+        pointers(&region),
+        before,
+        "a live loot callback must not fork canonical storage"
+    );
+    assert_eq!(
+        region
+            .owned_chunk_ref(owner)
+            .unwrap()
+            .feature_block_entities()[&(1, 80, 1)]
+            .full_data["LootTableSeed"],
+        19
+    );
+}
+
+#[test]
 fn native_scattered_admission_matches_actual_noise_heights_and_retained_starts() {
     let mut admitted = 0;
     for fixture in fixtures() {

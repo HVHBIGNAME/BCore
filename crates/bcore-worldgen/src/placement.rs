@@ -1,4 +1,4 @@
-//! Lazy Java 26.1 placed-feature traversal.
+//! Lazy placed-feature traversal with Java 26.1 native algorithm provenance.
 //!
 //! A terminal feature runs before the next sibling origin is generated. The
 //! sole eager modifier is vanilla's own `count_on_every_layer` stream builder.
@@ -15,7 +15,7 @@ use crate::simplex::{SimplexNoise, WorldgenRandom};
 use crate::{MAX_Y, MIN_Y};
 
 /// The scheduler supplies configured implementations through this boundary.
-/// Named references have been resolved against the captured 26.1 catalog.
+/// Named references resolve against the authenticated target catalog.
 pub trait ConfiguredFeatureDispatcher {
     /// Use the cache belonging to this exact WorldgenRandom, including across
     /// feature reseeding. Cave kernels and placement must share the same cache.
@@ -508,7 +508,7 @@ impl Modifier {
             ),
             other => {
                 return Err(FeatureError::Unsupported(format!(
-                    "placement modifier {other} (not a 26.1 registered modifier)"
+                    "placement modifier {other} has no implemented kernel"
                 )))
             }
         })

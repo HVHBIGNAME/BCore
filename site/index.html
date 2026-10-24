@@ -110,7 +110,7 @@
   <div id="categories"></div>
 
   <footer>
-    BCore — a native Rust Minecraft server. Development protocol 775; 776 migration planned. MIT licensed.
+    BCore — a native Rust Minecraft server. Minecraft 26.2 / protocol 776; alpha. MIT licensed.
     This tracker updates automatically from <code>tracker.json</code> in the repository.
   </footer>
 </div>
@@ -146,17 +146,45 @@
 
     const container = document.getElementById('categories');
     container.innerHTML = '';
+    if (data.migration) {
+      const m = data.migration;
+      const section = document.createElement('section');
+      section.className = 'category parity';
+      section.innerHTML = `<h2>Minecraft ${escapeHtml(data.minecraft)} migration checkpoint</h2>` +
+        `<div class="checkpoint-grid">` +
+        `<div class="checkpoint-stat"><strong>${m.tests_passed}</strong><span>release tests · ${m.tests_failed} failed · ${m.tests_ignored} ignored</span></div>` +
+        `<div class="checkpoint-stat"><strong>${m.native_frames}</strong><span>native-decoded frames across ${m.session_count} sessions</span></div>` +
+        `<div class="checkpoint-stat"><strong>${m.terrain_packets}</strong><span>native-decoded terrain packets</span></div></div>` +
+        `<p>Protocol ${data.protocol} · data version ${m.data_version}. ${escapeHtml(m.persistence)}</p>` +
+        `<p class="caveat">Alpha: full generation, gameplay, menus and online authentication remain incomplete. Current clocks and versioned save admission are integrated.</p>` +
+        `<p><a href="${escapeHtml(m.report)}">Migration and connection instructions</a> · <a href="${escapeHtml(m.tests_data)}">Workspace results</a> · <a href="${escapeHtml(m.data)}">Bootstrap evidence</a> · <a href="${escapeHtml(m.profile_report)}">Current CPU profile</a></p>`;
+      section.innerHTML += `<a class="chart-link" href="${escapeHtml(m.benchmark_data)}"><img class="chart" src="assets/performance-26_2.svg" alt="Current 26.2 NOISE baseline: BCore 47.79 / 83.98 / 156.81 chunks per second; Vanilla 49.77 / 74.03 / 215.35 at one, two and four workers. Kernel scope only." width="1000" height="598" loading="lazy" /></a>`;
+      container.appendChild(section);
+    }
+    if (data.maintenance) {
+      const m = data.maintenance;
+      const section = document.createElement('section');
+      section.className = 'category parity';
+      section.innerHTML = `<h2>Completed work and open requirements</h2>` +
+        `<div class="checkpoint-grid">` +
+        `<div class="checkpoint-stat"><strong>${(m.removed_bytes / 2 ** 30).toFixed(2)} GiB</strong><span>expendable build/snapshot files removed</span></div>` +
+        `<div class="checkpoint-stat"><strong>${m.verified_source_archives}</strong><span>expanded copies verified before removal; source.zip retained</span></div>` +
+        `<div class="checkpoint-stat"><strong>${m.replay_tests_passed}</strong><span>replay evidence tests passed</span></div></div>` +
+        `<p>Native fixture bytes survive Git checkout unchanged. Frozen binaries, raw measurements and user world data are retained.</p>` +
+        `<p><a href="${escapeHtml(m.status_report)}">Latest work log</a> · <a href="${escapeHtml(m.cleanup_data)}">Cleanup evidence</a> · <a href="${escapeHtml(m.roadmap)}">Complete roadmap and requirements</a></p>`;
+      container.appendChild(section);
+    }
     if (data.checkpoint) {
       const c = data.checkpoint;
       const latest = document.createElement('section');
       latest.className = 'category parity';
-      latest.innerHTML = `<h2>Latest verified checkpoint</h2>` +
+      latest.innerHTML = `<h2>Historical 26.1 broader-corpus checkpoint</h2>` +
         `<div class="checkpoint-grid">` +
         `<div class="checkpoint-stat"><strong>${c.tests_passed}</strong><span>tests passed · ${c.tests_failed} failed · ${c.tests_ignored} ignored</span></div>` +
         `<div class="checkpoint-stat"><strong>${c.requests} / ${c.histories}</strong><span>native requests / matched histories</span></div>` +
         `<div class="checkpoint-stat"><strong>${c.light_scored_requests - c.light_mismatching_requests}</strong><span>matching scored light snapshots</span></div></div>` +
         `<p>Differences in these histories: ${c.state_differences} block states, ${c.biome_differences} biomes and ${c.source_order_differences} source-order entries.</p>` +
-        `<p class="caveat">Full parity remains incomplete: ${c.remaining_nbt_field_differences} NBT field differences and ${c.remaining_wg_presence_differences} WG-presence differences remain across repeated snapshots. Ticket-driven FULL conversion, ticking and remaining terrain families are next; live SPAWN clock/settings hookup is still pending.</p>` +
+        `<p class="caveat">This historical scope retains ${c.remaining_nbt_field_differences} NBT field differences and ${c.remaining_wg_presence_differences} WG-presence differences across repeated snapshots. FULL conversion, ticking and remaining terrain families are incomplete.</p>` +
         `<p><a href="${escapeHtml(c.report)}">Detailed report</a> · <a href="${escapeHtml(c.data)}">Published evidence</a></p>`;
       if (c.tests_note) {
         const note = document.createElement('p');
@@ -167,7 +195,7 @@
       container.appendChild(latest);
       const plots = document.createElement('section');
       plots.innerHTML = `<a class="chart-link" href="${escapeHtml(c.report)}"><img class="chart" src="assets/generation-accuracy.svg" alt="Matched-history accuracy and the separately preserved historical region sample" width="1000" height="614" loading="lazy" /></a>` +
-        `<a class="chart-link" href="https://github.com/HVHBIGNAME/BCore/blob/main/docs/performance.md"><img class="chart" src="assets/performance.svg" alt="Measured BCore versus Vanilla NOISE-kernel throughput at one, two and four workers; this is not a complete-server benchmark" width="1000" height="598" loading="lazy" /></a>`;
+        `<a class="chart-link" href="https://github.com/HVHBIGNAME/BCore/blob/main/docs/performance.md"><img class="chart" src="assets/performance.svg" alt="Historical 26.1 BCore versus Vanilla NOISE-kernel throughput at one, two and four workers; this is not a complete-server benchmark" width="1000" height="598" loading="lazy" /></a>`;
       container.appendChild(plots);
     }
     if (data.parity) {
@@ -176,7 +204,7 @@
       measured.className = 'category parity';
       measured.innerHTML = `<h2>Historical three-region snapshot</h2>` +
         `<p class="sub">${escapeHtml(p.scope)}</p>` +
-        `<p>Seed: <code>${escapeHtml(p.seed)}</code> · protocol ${data.protocol}</p>` +
+        `<p>Seed: <code>${escapeHtml(p.seed)}</code> · historical protocol ${p.protocol}</p>` +
         `<p>Terrain: ${escapeHtml(p.terrain)}<br>Biomes: ${escapeHtml(p.biomes)}</p>` +
         `<p class="accuracy">Exact block-state matches: ${escapeHtml(p.states)}</p>` +
         `<p class="caveat">This is a three-region sample match, including air—not a percentage of generator features implemented.</p>` +

@@ -8,6 +8,9 @@ use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
 
+#[path = "native_26_2_tests.rs"]
+mod native_26_2_tests;
+
 #[derive(Deserialize)]
 struct Reference {
     jar_sha256: String,
@@ -34,6 +37,10 @@ struct Sample {
     block_entities: Vec<Entity>,
     write_source: Option<[i32; 2]>,
     raw_brightness: i32,
+    #[serde(default)]
+    config: Option<serde_json::Value>,
+    #[serde(default)]
+    biome: Option<String>,
 }
 #[derive(Deserialize)]
 struct Outcome {
@@ -49,6 +56,7 @@ struct Entity {
 
 struct World<'a> {
     sample: &'a Sample,
+    historical: bool,
     initial: BTreeMap<Pos, u32>,
     writes: BTreeMap<Pos, u32>,
     calls: Vec<[i32; 6]>,
@@ -66,9 +74,17 @@ impl FallenTreeWorld for World<'_> {
             .copied()
             .unwrap_or_else(|| {
                 if p.1 == self.sample.floor_y {
-                    self.sample.soil
+                    if self.historical {
+                        crate::registry_26_1::target_state(self.sample.soil)
+                    } else {
+                        self.sample.soil
+                    }
                 } else if p.1 == self.sample.floor_y + 1 {
-                    self.sample.cover
+                    if self.historical {
+                        crate::registry_26_1::target_state(self.sample.cover)
+                    } else {
+                        self.sample.cover
+                    }
                 } else {
                     block::AIR
                 }
@@ -81,21 +97,35 @@ impl FallenTreeWorld for World<'_> {
                 .sample
                 .write_source
                 .is_none_or(|[x, z]| ((p.0 >> 4) - x).abs() <= 1 && ((p.2 >> 4) - z).abs() <= 1);
-        self.calls
-            .push([p.0, p.1, p.2, state as i32, flags, i32::from(accepted)]);
+        let observed_state = if self.historical {
+            crate::registry_26_1::historical_state(state)
+        } else {
+            state
+        };
+        self.calls.push([
+            p.0,
+            p.1,
+            p.2,
+            observed_state as i32,
+            flags,
+            i32::from(accepted),
+        ]);
         if accepted {
             let old = self.get_block(p);
             self.writes.insert(p, state);
             if super::extra_data::block(old).first != super::extra_data::block(state).first {
                 self.effects.beehives.remove(&p);
-                if (21768..21816).contains(&state) {
+                if matches!(
+                    bcore_registry::block_state_name(state),
+                    Some("minecraft:bee_nest" | "minecraft:beehive")
+                ) {
                     self.effects.beehives.insert(p, Vec::new());
                 }
             }
             if flags & 16 == 0 {
                 match state {
-                    2336 | 2337 => self.marks.push(p.into()),
-                    6998 | 14845 => self.marks.push([p.0, p.1 + 1, p.2]),
+                    block::BROWN_MUSHROOM | block::RED_MUSHROOM => self.marks.push(p.into()),
+                    block::SOUL_SAND | block::MAGMA_BLOCK => self.marks.push([p.0, p.1 + 1, p.2]),
                     _ => {}
                 }
             }
@@ -110,6 +140,15 @@ impl FallenTreeWorld for World<'_> {
     }
 }
 impl StandingTreeWorld for World<'_> {
+    fn standing_biome(&self, _pos: Pos) -> crate::block_predicate::FeatureResult<u32> {
+        self.sample
+            .biome
+            .as_deref()
+            .and_then(|name| bcore_registry::registry_id("BIOME", name))
+            .ok_or_else(|| {
+                crate::feature_world::FeatureError::MissingData("tree fixture biome".into())
+            })
+    }
     fn has_beehive(&mut self, p: Pos) -> bool {
         self.effects.beehives.contains_key(&p)
     }
@@ -117,6 +156,10 @@ impl StandingTreeWorld for World<'_> {
         self.effects.beehives.get_mut(&p).unwrap().push(age);
     }
     fn schedule_tree_tick(&mut self, request: [i32; 6]) {
+        let mut request = request;
+        if self.historical && request[5] == 0 {
+            request[3] = crate::registry_26_1::historical_state(request[3] as u32) as i32;
+        }
         self.effects.tick_requests.push(request);
     }
     fn tree_raw_brightness(&self, _p: Pos) -> Option<i32> {
@@ -176,17 +219,27 @@ fn assert_trace<const N: usize>(
         actual.len(),expected.len(),&actual[index.saturating_sub(2)..actual.len().min(index+4)],&expected[index.saturating_sub(2)..expected.len().min(index+4)]);
 }
 
-fn replay<R: ReplayRandom>(sample: &Sample) {
+fn replay<R: ReplayRandom>(sample: &Sample, historical: bool) {
     let label = format!(
         "{} seed={} {} {:?}",
         sample.kind, sample.seed, sample.scenario, sample.origin
     );
     let mut world = World {
         sample,
+        historical,
         initial: sample
             .initial_blocks
             .iter()
-            .map(|&[x, y, z, s]| ((x, y, z), s as u32))
+            .map(|&[x, y, z, s]| {
+                (
+                    (x, y, z),
+                    if historical {
+                        crate::registry_26_1::target_state(s as u32)
+                    } else {
+                        s as u32
+                    },
+                )
+            })
             .collect(),
         writes: BTreeMap::new(),
         calls: Vec::new(),
@@ -202,16 +255,31 @@ fn replay<R: ReplayRandom>(sample: &Sample) {
     let mut draws = Vec::new();
     let mut continuation = None;
     for outcome in &sample.results {
-        let result = standing::place(
-            &mut world,
-            &mut Random {
-                raw: &mut raw,
-                draws: &mut draws,
-            },
-            &sample.kind,
-            outcome.origin.into(),
-        )
-        .unwrap_or_else(|error| panic!("{label}: {error}"));
+        let mut random = Random {
+            raw: &mut raw,
+            draws: &mut draws,
+        };
+        let historical_config = historical.then(|| {
+            crate::reference_26_1::feature_documents()["configured_feature"]
+                [format!("minecraft:{}", sample.kind)]["config"]
+                .clone()
+        });
+        let result = if let Some(config) = sample.config.as_ref().or(historical_config.as_ref()) {
+            let definition = super::extra_data::parse_tree(config).unwrap();
+            Some(
+                standing::place_definition(
+                    &mut world,
+                    &mut random,
+                    &definition.shape,
+                    Some(&definition),
+                    outcome.origin.into(),
+                )
+                .unwrap_or_else(|error| panic!("{label}: {error}")),
+            )
+        } else {
+            standing::place(&mut world, &mut random, &sample.kind, outcome.origin.into())
+                .unwrap_or_else(|error| panic!("{label}: {error}"))
+        };
         assert_eq!(result, Some(outcome.placed), "placement: {label}");
         if let Some(next) = outcome.next_i64 {
             continuation = Some((raw.next_long(), next));
@@ -238,7 +306,18 @@ fn replay<R: ReplayRandom>(sample: &Sample) {
     let states: Vec<_> = world
         .writes
         .iter()
-        .map(|(&(x, y, z), &s)| [x, y, z, s as i32])
+        .map(|(&(x, y, z), &s)| {
+            [
+                x,
+                y,
+                z,
+                if historical {
+                    crate::registry_26_1::historical_state(s)
+                } else {
+                    s
+                } as i32,
+            ]
+        })
         .collect();
     assert_trace("final states", &states, &sample.writes, &label);
     assert_trace("marks", &world.marks, &sample.postprocessing, &label);
@@ -302,8 +381,8 @@ fn verify(kinds: &[&str]) {
         };
         assert_eq!(cases.len(), expected, "native matrix: {kind}");
         for sample in cases {
-            replay::<crate::random::WorldgenRandom>(sample);
-            replay::<crate::simplex::WorldgenRandom>(sample);
+            replay::<crate::random::WorldgenRandom>(sample, true);
+            replay::<crate::simplex::WorldgenRandom>(sample, true);
         }
         println!("Verified {expected} full native {kind} cases on both RNG backends");
     }

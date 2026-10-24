@@ -1,13 +1,20 @@
 use bcore_core::ChunkPos;
-use bcore_worldgen::{WorldGenerator, MIN_Y};
+use bcore_worldgen::{GenerationWorld, MIN_Y};
 
 fn main() {
     let seed = 0x0BC0_0E00_1234_5678u64 as i64;
-    let g = WorldGenerator::new(seed);
+    let world = GenerationWorld::new(seed);
     // (cx, cz) coordinates to sample: spawn area + far coordinates.
     let points = [(0, -1), (625, 312), (-938, -625)];
     for (cx, cz) in points {
-        let chunk = g.generate_chunk_vanilla(ChunkPos::new(cx, cz));
+        let result = world
+            .generate_chunk(ChunkPos::new(cx, cz))
+            .expect("chunk generation failed");
+        eprintln!(
+            "chunk ({cx},{cz}) coverage complete: {}",
+            result.coverage.is_complete()
+        );
+        let chunk = result.chunk;
         let states = chunk.states();
         println!("=== chunk ({cx},{cz}) ===");
         // Print the surface height + fluid marker on a coarse grid (every 4 blocks).

@@ -1,0 +1,1040 @@
+{
+  "jar_sha256": "183c0499c5f855570ee487dd38e141a53f0121f83a0b07a3bac2d8b6698823e8",
+  "minecraft": "26.2",
+  "probe_sha256": "1968ccf5452cc48b1e7c4dbe52b0dbf127e1c386cec53c34bc1fef4ce5f8162a",
+  "protected_trunk_states": [
+    10,
+    11,
+    12,
+    13,
+    165,
+    166,
+    167,
+    30355,
+    30414,
+    30415,
+    32196
+  ],
+  "protocol": 776,
+  "ranges": [
+    [
+      0,
+      1,
+      0
+    ],
+    [
+      1,
+      8,
+      3
+    ],
+    [
+      8,
+      14,
+      7
+    ],
+    [
+      14,
+      29,
+      3
+    ],
+    [
+      29,
+      85,
+      1
+    ],
+    [
+      85,
+      86,
+      3
+    ],
+    [
+      86,
+      118,
+      1
+    ],
+    [
+      118,
+      165,
+      3
+    ],
+    [
+      165,
+      168,
+      7
+    ],
+    [
+      168,
+      2187,
+      3
+    ],
+    [
+      2187,
+      2235,
+      1
+    ],
+    [
+      2235,
+      2247,
+      3
+    ],
+    [
+      2247,
+      2257,
+      1
+    ],
+    [
+      2257,
+      2321,
+      3
+    ],
+    [
+      2321,
+      2338,
+      1
+    ],
+    [
+      2338,
+      3370,
+      3
+    ],
+    [
+      3370,
+      3888,
+      1
+    ],
+    [
+      3888,
+      4011,
+      3
+    ],
+    [
+      4011,
+      5307,
+      1
+    ],
+    [
+      5307,
+      5311,
+      3
+    ],
+    [
+      5311,
+      5319,
+      1
+    ],
+    [
+      5319,
+      5327,
+      7
+    ],
+    [
+      5327,
+      5719,
+      3
+    ],
+    [
+      5719,
+      5747,
+      1
+    ],
+    [
+      5747,
+      6771,
+      3
+    ],
+    [
+      6771,
+      6795,
+      1
+    ],
+    [
+      6795,
+      6885,
+      3
+    ],
+    [
+      6885,
+      6927,
+      1
+    ],
+    [
+      6927,
+      6945,
+      3
+    ],
+    [
+      6945,
+      6946,
+      1
+    ],
+    [
+      6946,
+      6947,
+      3
+    ],
+    [
+      6947,
+      6963,
+      1
+    ],
+    [
+      6963,
+      7006,
+      3
+    ],
+    [
+      7006,
+      7016,
+      1
+    ],
+    [
+      7016,
+      7017,
+      3
+    ],
+    [
+      7017,
+      7019,
+      1
+    ],
+    [
+      7019,
+      7034,
+      3
+    ],
+    [
+      7034,
+      7098,
+      1
+    ],
+    [
+      7098,
+      8334,
+      3
+    ],
+    [
+      8334,
+      8646,
+      1
+    ],
+    [
+      8646,
+      8918,
+      3
+    ],
+    [
+      8918,
+      8920,
+      7
+    ],
+    [
+      8920,
+      8921,
+      1
+    ],
+    [
+      8921,
+      9015,
+      3
+    ],
+    [
+      9015,
+      9016,
+      1
+    ],
+    [
+      9016,
+      9018,
+      3
+    ],
+    [
+      9018,
+      9019,
+      1
+    ],
+    [
+      9019,
+      9447,
+      3
+    ],
+    [
+      9447,
+      9451,
+      1
+    ],
+    [
+      9451,
+      9468,
+      3
+    ],
+    [
+      9468,
+      9469,
+      1
+    ],
+    [
+      9469,
+      9481,
+      3
+    ],
+    [
+      9481,
+      9493,
+      1
+    ],
+    [
+      9493,
+      9583,
+      3
+    ],
+    [
+      9583,
+      9727,
+      1
+    ],
+    [
+      9727,
+      10629,
+      3
+    ],
+    [
+      10629,
+      11195,
+      1
+    ],
+    [
+      11195,
+      11263,
+      3
+    ],
+    [
+      11263,
+      11279,
+      1
+    ],
+    [
+      11279,
+      11408,
+      3
+    ],
+    [
+      11408,
+      11432,
+      1
+    ],
+    [
+      11432,
+      12535,
+      3
+    ],
+    [
+      12535,
+      12567,
+      1
+    ],
+    [
+      12567,
+      12896,
+      3
+    ],
+    [
+      12896,
+      12912,
+      1
+    ],
+    [
+      12912,
+      12915,
+      3
+    ],
+    [
+      12915,
+      12927,
+      1
+    ],
+    [
+      12927,
+      14636,
+      3
+    ],
+    [
+      14636,
+      14712,
+      1
+    ],
+    [
+      14712,
+      14797,
+      3
+    ],
+    [
+      14797,
+      14815,
+      1
+    ],
+    [
+      14815,
+      14816,
+      3
+    ],
+    [
+      14816,
+      14817,
+      1
+    ],
+    [
+      14817,
+      14851,
+      3
+    ],
+    [
+      14851,
+      14852,
+      1
+    ],
+    [
+      14852,
+      15062,
+      3
+    ],
+    [
+      15062,
+      15089,
+      1
+    ],
+    [
+      15089,
+      15157,
+      3
+    ],
+    [
+      15157,
+      15167,
+      1
+    ],
+    [
+      15167,
+      15177,
+      3
+    ],
+    [
+      15177,
+      15187,
+      1
+    ],
+    [
+      15187,
+      15227,
+      3
+    ],
+    [
+      15227,
+      15275,
+      1
+    ],
+    [
+      15275,
+      15278,
+      3
+    ],
+    [
+      15278,
+      15279,
+      1
+    ],
+    [
+      15279,
+      15291,
+      3
+    ],
+    [
+      15291,
+      15292,
+      1
+    ],
+    [
+      15292,
+      15294,
+      0
+    ],
+    [
+      15294,
+      15296,
+      1
+    ],
+    [
+      15296,
+      20706,
+      3
+    ],
+    [
+      20706,
+      20738,
+      1
+    ],
+    [
+      20738,
+      20941,
+      3
+    ],
+    [
+      20941,
+      20945,
+      1
+    ],
+    [
+      20945,
+      20958,
+      3
+    ],
+    [
+      20958,
+      20959,
+      1
+    ],
+    [
+      20959,
+      20960,
+      3
+    ],
+    [
+      20960,
+      20962,
+      1
+    ],
+    [
+      20962,
+      20975,
+      3
+    ],
+    [
+      20975,
+      20976,
+      1
+    ],
+    [
+      20976,
+      20977,
+      3
+    ],
+    [
+      20977,
+      21032,
+      1
+    ],
+    [
+      21032,
+      21466,
+      3
+    ],
+    [
+      21466,
+      21514,
+      1
+    ],
+    [
+      21514,
+      21826,
+      3
+    ],
+    [
+      21826,
+      21830,
+      1
+    ],
+    [
+      21830,
+      22745,
+      3
+    ],
+    [
+      22745,
+      22769,
+      1
+    ],
+    [
+      22769,
+      23096,
+      3
+    ],
+    [
+      23096,
+      23368,
+      1
+    ],
+    [
+      23368,
+      27162,
+      3
+    ],
+    [
+      27162,
+      27163,
+      1
+    ],
+    [
+      27163,
+      29760,
+      3
+    ],
+    [
+      29760,
+      30016,
+      1
+    ],
+    [
+      30016,
+      30249,
+      3
+    ],
+    [
+      30249,
+      30355,
+      1
+    ],
+    [
+      30355,
+      30356,
+      7
+    ],
+    [
+      30356,
+      30414,
+      1
+    ],
+    [
+      30414,
+      30416,
+      7
+    ],
+    [
+      30416,
+      32073,
+      3
+    ],
+    [
+      32073,
+      32075,
+      1
+    ],
+    [
+      32075,
+      32084,
+      3
+    ],
+    [
+      32084,
+      32085,
+      1
+    ],
+    [
+      32085,
+      32194,
+      3
+    ],
+    [
+      32194,
+      32196,
+      1
+    ],
+    [
+      32196,
+      32197,
+      7
+    ],
+    [
+      32197,
+      32366,
+      1
+    ]
+  ],
+  "samples": [
+    {
+      "base_y": 40,
+      "ocean_floor": -64,
+      "sapling_survives": false,
+      "states": [],
+      "world_surface": -64
+    },
+    {
+      "base_y": 40,
+      "ocean_floor": 41,
+      "sapling_survives": true,
+      "states": [
+        9
+      ],
+      "world_surface": 41
+    },
+    {
+      "base_y": 40,
+      "ocean_floor": 41,
+      "sapling_survives": true,
+      "states": [
+        10
+      ],
+      "world_surface": 41
+    },
+    {
+      "base_y": 40,
+      "ocean_floor": 41,
+      "sapling_survives": true,
+      "states": [
+        11
+      ],
+      "world_surface": 41
+    },
+    {
+      "base_y": 40,
+      "ocean_floor": 41,
+      "sapling_survives": true,
+      "states": [
+        13
+      ],
+      "world_surface": 41
+    },
+    {
+      "base_y": 40,
+      "ocean_floor": 41,
+      "sapling_survives": true,
+      "states": [
+        30414
+      ],
+      "world_surface": 41
+    },
+    {
+      "base_y": 40,
+      "ocean_floor": 41,
+      "sapling_survives": true,
+      "states": [
+        30355
+      ],
+      "world_surface": 41
+    },
+    {
+      "base_y": 40,
+      "ocean_floor": 41,
+      "sapling_survives": true,
+      "states": [
+        30415
+      ],
+      "world_surface": 41
+    },
+    {
+      "base_y": 40,
+      "ocean_floor": 41,
+      "sapling_survives": true,
+      "states": [
+        5319
+      ],
+      "world_surface": 41
+    },
+    {
+      "base_y": 40,
+      "ocean_floor": 41,
+      "sapling_survives": false,
+      "states": [
+        118
+      ],
+      "world_surface": 41
+    },
+    {
+      "base_y": 40,
+      "ocean_floor": 41,
+      "sapling_survives": true,
+      "states": [
+        9,
+        2248
+      ],
+      "world_surface": 42
+    },
+    {
+      "base_y": 40,
+      "ocean_floor": 41,
+      "sapling_survives": true,
+      "states": [
+        9,
+        30339
+      ],
+      "world_surface": 42
+    },
+    {
+      "base_y": 40,
+      "ocean_floor": 41,
+      "sapling_survives": true,
+      "states": [
+        10,
+        86
+      ],
+      "world_surface": 42
+    },
+    {
+      "base_y": 40,
+      "ocean_floor": 41,
+      "sapling_survives": true,
+      "states": [
+        10,
+        86,
+        86
+      ],
+      "world_surface": 43
+    },
+    {
+      "base_y": 40,
+      "ocean_floor": 41,
+      "sapling_survives": true,
+      "states": [
+        10,
+        86,
+        86,
+        86
+      ],
+      "world_surface": 44
+    },
+    {
+      "base_y": 40,
+      "ocean_floor": 41,
+      "sapling_survives": true,
+      "states": [
+        10,
+        102
+      ],
+      "world_surface": 42
+    },
+    {
+      "base_y": 40,
+      "ocean_floor": 43,
+      "sapling_survives": false,
+      "states": [
+        9,
+        137,
+        279
+      ],
+      "world_surface": 43
+    },
+    {
+      "base_y": 40,
+      "ocean_floor": 43,
+      "sapling_survives": false,
+      "states": [
+        9,
+        0,
+        335
+      ],
+      "world_surface": 43
+    },
+    {
+      "base_y": 40,
+      "ocean_floor": 41,
+      "sapling_survives": false,
+      "states": [
+        1,
+        15293
+      ],
+      "world_surface": 41
+    },
+    {
+      "base_y": 40,
+      "ocean_floor": 41,
+      "sapling_survives": false,
+      "states": [
+        1,
+        15292
+      ],
+      "world_surface": 41
+    },
+    {
+      "base_y": 64,
+      "ocean_floor": -64,
+      "sapling_survives": false,
+      "states": [],
+      "world_surface": -64
+    },
+    {
+      "base_y": 64,
+      "ocean_floor": 65,
+      "sapling_survives": true,
+      "states": [
+        9
+      ],
+      "world_surface": 65
+    },
+    {
+      "base_y": 64,
+      "ocean_floor": 65,
+      "sapling_survives": true,
+      "states": [
+        10
+      ],
+      "world_surface": 65
+    },
+    {
+      "base_y": 64,
+      "ocean_floor": 65,
+      "sapling_survives": true,
+      "states": [
+        11
+      ],
+      "world_surface": 65
+    },
+    {
+      "base_y": 64,
+      "ocean_floor": 65,
+      "sapling_survives": true,
+      "states": [
+        13
+      ],
+      "world_surface": 65
+    },
+    {
+      "base_y": 64,
+      "ocean_floor": 65,
+      "sapling_survives": true,
+      "states": [
+        30414
+      ],
+      "world_surface": 65
+    },
+    {
+      "base_y": 64,
+      "ocean_floor": 65,
+      "sapling_survives": true,
+      "states": [
+        30355
+      ],
+      "world_surface": 65
+    },
+    {
+      "base_y": 64,
+      "ocean_floor": 65,
+      "sapling_survives": true,
+      "states": [
+        30415
+      ],
+      "world_surface": 65
+    },
+    {
+      "base_y": 64,
+      "ocean_floor": 65,
+      "sapling_survives": true,
+      "states": [
+        5319
+      ],
+      "world_surface": 65
+    },
+    {
+      "base_y": 64,
+      "ocean_floor": 65,
+      "sapling_survives": false,
+      "states": [
+        118
+      ],
+      "world_surface": 65
+    },
+    {
+      "base_y": 64,
+      "ocean_floor": 65,
+      "sapling_survives": true,
+      "states": [
+        9,
+        2248
+      ],
+      "world_surface": 66
+    },
+    {
+      "base_y": 64,
+      "ocean_floor": 65,
+      "sapling_survives": true,
+      "states": [
+        9,
+        30339
+      ],
+      "world_surface": 66
+    },
+    {
+      "base_y": 64,
+      "ocean_floor": 65,
+      "sapling_survives": true,
+      "states": [
+        10,
+        86
+      ],
+      "world_surface": 66
+    },
+    {
+      "base_y": 64,
+      "ocean_floor": 65,
+      "sapling_survives": true,
+      "states": [
+        10,
+        86,
+        86
+      ],
+      "world_surface": 67
+    },
+    {
+      "base_y": 64,
+      "ocean_floor": 65,
+      "sapling_survives": true,
+      "states": [
+        10,
+        86,
+        86,
+        86
+      ],
+      "world_surface": 68
+    },
+    {
+      "base_y": 64,
+      "ocean_floor": 65,
+      "sapling_survives": true,
+      "states": [
+        10,
+        102
+      ],
+      "world_surface": 66
+    },
+    {
+      "base_y": 64,
+      "ocean_floor": 67,
+      "sapling_survives": false,
+      "states": [
+        9,
+        137,
+        279
+      ],
+      "world_surface": 67
+    },
+    {
+      "base_y": 64,
+      "ocean_floor": 67,
+      "sapling_survives": false,
+      "states": [
+        9,
+        0,
+        335
+      ],
+      "world_surface": 67
+    },
+    {
+      "base_y": 64,
+      "ocean_floor": 65,
+      "sapling_survives": false,
+      "states": [
+        1,
+        15293
+      ],
+      "world_surface": 65
+    },
+    {
+      "base_y": 64,
+      "ocean_floor": 65,
+      "sapling_survives": false,
+      "states": [
+        1,
+        15292
+      ],
+      "world_surface": 65
+    }
+  ],
+  "state_count": 32366
+}

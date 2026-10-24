@@ -5,17 +5,22 @@
 //! target snapshot returned to the caller. Request histories may affect features.
 #[cfg(feature = "diagnostics")]
 pub mod benchmark;
+mod chest;
 mod coverage;
 #[cfg(feature = "diagnostics")]
 mod diagnostics;
 mod driver;
 mod effects;
+mod full;
 pub mod graph;
 mod light;
+mod objects;
 mod placed;
+pub mod request;
 mod scattered;
 mod spawn;
 mod structures;
+mod template_feature;
 mod terrain;
 mod tree_world;
 
@@ -24,7 +29,9 @@ pub use coverage::*;
 pub use diagnostics::FeatureTrace;
 pub(crate) use effects::sculk_block_entity;
 pub use effects::{FeatureBlockEntity, StructureEntityRequest};
+pub use full::{ChunkAccess, ChunkAccessKind, ChunkRead, LevelChunkSave, LevelChunkState};
 pub use graph::{ChunkPyramid, ChunkStatus};
+pub use objects::{ReturnedChunk, ReturnedChunkSave, ReturnedChunkView};
 pub use spawn::{SpawnInputs, SpawnSettings, WorldSpawnInputs};
 
 use std::collections::{BTreeMap, BTreeSet};
@@ -43,6 +50,12 @@ type Key = (i32, i32);
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum GenerationError {
     CoordinateOutOfRange(ChunkPos),
+    NotConverted(ChunkPos),
+    BlockEntityFailed {
+        pos: ChunkPos,
+        boundary: &'static str,
+        detail: String,
+    },
     StageFailed {
         pos: ChunkPos,
         status: ChunkStatus,
@@ -58,6 +71,14 @@ impl std::fmt::Display for GenerationError {
                 f,
                 "generation dependencies exceed block coordinate bounds for {pos:?}"
             ),
+            Self::NotConverted(pos) => write!(f, "no retained level chunk at {pos:?}"),
+            Self::BlockEntityFailed {
+                pos,
+                boundary,
+                detail,
+            } => {
+                write!(f, "block-entity {boundary} at {pos:?}: {detail}")
+            }
             Self::StageFailed {
                 pos,
                 status,
@@ -123,15 +144,7 @@ impl GenerationWorld {
         pos: ChunkPos,
         target: ChunkStatus,
     ) -> Result<GenerationResult, GenerationError> {
-        // Include the largest pyramid envelope and structure-piece horizontal reach.
-        // Validate before any holder is claimed or any coordinate multiplication.
-        const MARGIN: i64 = 16 * (11 + 9);
-        if [pos.x, pos.z].into_iter().any(|v| {
-            let block = i64::from(v) * 16;
-            block - MARGIN < i64::from(i32::MIN) || block + MARGIN + 15 > i64::from(i32::MAX)
-        }) {
-            return Err(GenerationError::CoordinateOutOfRange(pos));
-        }
+        validate_generation_pos(pos)?;
         let mut state = self.state.lock().map_err(|_| GenerationError::Poisoned)?;
         state.generate(self.generator, pos, target)
     }
@@ -153,6 +166,8 @@ impl GenerationWorld {
 
 struct ChunkHolder {
     progress: ChunkProgress,
+    lifecycle: full::ChunkLifecycle,
+    objects: objects::ChunkObjects,
     structures: StructureData,
     features: Option<SourceFeatureCoverage>,
     spawn: Option<crate::spawn::SpawnReport>,
@@ -168,6 +183,8 @@ impl ChunkHolder {
                 pos,
                 stages: std::array::from_fn(|_| StageProgress::default()),
             },
+            lifecycle: full::ChunkLifecycle::Proto,
+            objects: objects::ChunkObjects::default(),
             structures: StructureData::default(),
             features: None,
             spawn: None,
@@ -219,9 +236,6 @@ impl GenerationState {
             let Some(radius) = step.layer_radius(status) else {
                 continue;
             };
-            if status > ChunkStatus::Spawn {
-                continue;
-            }
             for source in layer_positions(pos, radius) {
                 self.run_stage(generator, source, status)?;
             }
@@ -230,17 +244,6 @@ impl GenerationState {
         let structures = self.holders[&(pos.x, pos.z)].structures.clone();
         let chunk = self.region.owned_chunk_mut(pos);
         chunk.structures = structures;
-        if target == ChunkStatus::Full {
-            // Execute the verified BE-only boundary. Native FULL conversion
-            // (including ticks, postprocessing and WG retirement) remains pending.
-            chunk
-                .materialize_block_entities()
-                .map_err(|error| GenerationError::StageFailed {
-                    pos,
-                    status: ChunkStatus::Full,
-                    detail: format!("block-entity materialization: {error}"),
-                })?;
-        }
         Ok(GenerationResult {
             chunk: chunk.clone(),
             coverage,
@@ -283,7 +286,15 @@ impl GenerationState {
                         holder.progress.available_status().map(|s| (key, s))
                     })
                     .collect();
-                self.region.begin_source(pos, status, available);
+                let converted = self
+                    .holders
+                    .iter()
+                    .filter_map(|(&key, holder)| {
+                        matches!(holder.lifecycle, full::ChunkLifecycle::Level(_)).then_some(key)
+                    })
+                    .collect();
+                self.region
+                    .begin_source_with_levels(pos, status, available, converted);
             }
             let missing = self.execute_stage(generator, pos, status)?;
             if matches!(
@@ -381,6 +392,10 @@ impl GenerationState {
         pos: ChunkPos,
         status: ChunkStatus,
     ) -> Result<Vec<String>, String> {
+        // Test terrain hooks may replace earlier stages, never the real converter.
+        if status == ChunkStatus::Full {
+            return self.convert_full(pos);
+        }
         #[cfg(test)]
         if let Some(stage) = self.test_stage {
             stage(status, pos, &mut self.region)?;
@@ -535,12 +550,6 @@ impl GenerationState {
                     }
                 }
             }
-            if status > ChunkStatus::Spawn {
-                missing_stages.insert(MissingStage {
-                    status,
-                    reason: "Native FULL conversion, postprocessing and tick-container lifecycle remain pending; only the supported block-entity materialization boundary is executed".into(),
-                });
-            }
             layers.push(layer);
         }
         feature_sources.sort_by_key(|source| source.sequence);
@@ -563,6 +572,19 @@ impl GenerationState {
             missing_stages: missing_stages.into_iter().collect(),
             incoming_sources_finished,
         }
+    }
+}
+
+fn validate_generation_pos(pos: ChunkPos) -> Result<(), GenerationError> {
+    // Include the largest pyramid envelope and structure-piece horizontal reach.
+    const MARGIN: i64 = 16 * (11 + 9);
+    if [pos.x, pos.z].into_iter().any(|v| {
+        let block = i64::from(v) * 16;
+        block - MARGIN < i64::from(i32::MIN) || block + MARGIN + 15 > i64::from(i32::MAX)
+    }) {
+        Err(GenerationError::CoordinateOutOfRange(pos))
+    } else {
+        Ok(())
     }
 }
 

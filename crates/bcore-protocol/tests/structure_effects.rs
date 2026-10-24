@@ -1,12 +1,17 @@
 use bcore_core::ChunkPos;
 use bcore_protocol::chunk::ChunkColumn;
-use bcore_protocol::chunk_store::{decode_chunk, decode_chunk_at, encode_chunk, ChunkStoreError};
+use bcore_protocol::chunk_store::{
+    decode_chunk, decode_chunk_at, encode_chunk, ChunkStoreError, FORMAT_VERSION,
+};
 use bcore_protocol::nbt::encode_feature_block_entity_update;
 use bcore_worldgen::generation::{FeatureBlockEntity, StructureEntityRequest};
 use bcore_worldgen::structure::template::{Mirror, Nbt, Rotation, TemplateBlockEntity};
 use bcore_worldgen::structure::template_pool::StructureAssets;
 use serde_json::Value;
 use std::collections::BTreeMap;
+
+#[path = "../../bcore-worldgen/tests/support/registry_26_1.rs"]
+mod registry_26_1;
 
 #[test]
 fn native_city_inventories_and_loot_keep_typed_data_through_storage() {
@@ -90,7 +95,9 @@ fn native_decorated_pot_full_and_update_tags_survive_bcc_storage() {
         let p: [i32; 3] = serde_json::from_value(row["pos"].clone()).unwrap();
         let owner = ChunkPos::new(p[0] >> 4, p[2] >> 4);
         let local = ((p[0] & 15) as usize, p[1], (p[2] & 15) as usize);
-        let state = row["state"].as_u64().unwrap() as u32;
+        let historical = row["state"].as_u64().unwrap() as u32;
+        let state = registry_26_1::target_state(historical);
+        assert_eq!(registry_26_1::historical_state(state), historical);
         let load: Nbt = serde_json::from_value(row["load"]["nbt"].clone()).unwrap();
         let full: Nbt = serde_json::from_value(row["full"]["nbt"].clone()).unwrap();
         let update: Nbt = serde_json::from_value(row["update"]["nbt"].clone()).unwrap();
@@ -223,7 +230,10 @@ fn native_template_entity_requests_round_trip_with_both_extension_flags() {
                 assert!(column.mark_postprocessing(0, 80, 0));
             }
             let bytes = encode_chunk(owner.x, owner.z, &column);
-            assert_eq!(u16::from_le_bytes(bytes[4..6].try_into().unwrap()), 5);
+            assert_eq!(
+                u16::from_le_bytes(bytes[4..6].try_into().unwrap()),
+                FORMAT_VERSION
+            );
             assert_eq!(
                 u16::from_le_bytes(bytes[6..8].try_into().unwrap()),
                 if with_marks { 3 } else { 2 }

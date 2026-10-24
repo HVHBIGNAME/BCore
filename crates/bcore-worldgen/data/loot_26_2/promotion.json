@@ -1,0 +1,81 @@
+{
+  "capture": "C:\\coding\\MINECRAFT\\BCore\\target\\migration-26_2-loot-catalog-20261023-01",
+  "capture_manifest_sha256": "b1c6e90f1f790bb3e28a24fb8cd0715cabf2c0655a3b83baab3c32007e0858aa",
+  "counts": {
+    "chest_and_trial_tables": 60,
+    "enchantments": 43,
+    "enchantments_tags": 22,
+    "instruments": 8,
+    "instruments_tags": 3,
+    "item_tags": 224,
+    "items": 1537,
+    "loaded_tables": 1355,
+    "potions": 46,
+    "registry_types": {
+      "DATA_COMPONENT_TYPE": 111,
+      "LOOT_CONDITION_TYPE": 20,
+      "LOOT_FUNCTION_TYPE": 43,
+      "LOOT_NBT_PROVIDER_TYPE": 2,
+      "LOOT_NUMBER_PROVIDER_TYPE": 8,
+      "LOOT_POOL_ENTRY_TYPE": 9,
+      "LOOT_SCORE_PROVIDER_TYPE": 2
+    }
+  },
+  "data_version": 4903,
+  "files": {
+    "crates/bcore-worldgen/data/loot_26_2/enchantment.json": {
+      "bytes": 41575,
+      "sha256": "7a1a831bec9978727f524cd2598554355ee55fe928c891e6b25bc4211068378c",
+      "source": "enchantment.json"
+    },
+    "crates/bcore-worldgen/data/loot_26_2/instrument.json": {
+      "bytes": 2221,
+      "sha256": "0aa54ea01b410ec7df48bc4c74f74bb37599d305cad06edb8160c44304c48667",
+      "source": "instrument.json"
+    },
+    "crates/bcore-worldgen/data/loot_26_2/items.json": {
+      "bytes": 1034912,
+      "sha256": "8fbda0dbd0d34c90c221308c9ef1bbfe3a22cc9757b6616cad3f8401208d3262",
+      "source": "items.json"
+    },
+    "crates/bcore-worldgen/data/loot_26_2/loaded-tables.json": {
+      "bytes": 175166,
+      "sha256": "5f66d2faa3a095741aeec9f820db09c353ce6fcbbfbd5aa2f6cd62a378b0c28b",
+      "source": "loaded-tables.json"
+    },
+    "crates/bcore-worldgen/data/loot_26_2/loot-catalog.json": {
+      "bytes": 1342,
+      "sha256": "55e9cdc0421330f1447fb862873f90bd66417974f4a87fea0e834808e7b97321",
+      "source": "loot-catalog.json"
+    },
+    "crates/bcore-worldgen/data/loot_26_2/potions.json": {
+      "bytes": 6322,
+      "sha256": "65268536e1db3619439a9293d95fbf837d49d99883ecf47b923165e4d0a3fc12",
+      "source": "potions.json"
+    },
+    "crates/bcore-worldgen/data/loot_26_2/registry-types.json": {
+      "bytes": 10400,
+      "sha256": "5ef7d2007cc1aaeec2ca7cd2ca338ff6a76844cec6d929feab6d2730745f5378",
+      "source": "registry-types.json"
+    },
+    "crates/bcore-worldgen/data/loot_26_2/table-inventory.json": {
+      "bytes": 397814,
+      "sha256": "c14f44e54b2dbd3e60692f65674d2a8b28e504dceae711c1c67b74eae4157116",
+      "source": "table-inventory.json"
+    },
+    "crates/bcore-worldgen/data/loot_26_2/tables.json": {
+      "bytes": 645242,
+      "sha256": "29598bbb67cbd2531cb097d8e6c19ad2b4c07bb56fd3ab05daeead35bd67465c",
+      "source": "tables.json"
+    }
+  },
+  "independent_repeat": false,
+  "minecraft": "26.2",
+  "mode": "catalog",
+  "native_case_count": 0,
+  "promoter_sha256": "3f888b3b101d63c94bae81d6d0d87946455032181aec3593dba26b91a88d6edf",
+  "protocol": 776,
+  "schema": "bcore.loot-data-promotion.v2",
+  "server_sha256": "183c0499c5f855570ee487dd38e141a53f0121f83a0b07a3bac2d8b6698823e8",
+  "validator_sha256": "16c23d26c3ec263d53ac5c92716ac2fd7d265ce1cf2605a7366c7bf6568b17d0"
+}

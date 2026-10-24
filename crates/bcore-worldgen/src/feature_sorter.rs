@@ -2,17 +2,38 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::sync::OnceLock;
 
-/// The overworld biome source used by vanilla feature sorting.
-/// The overworld biome source's possible biomes, in vanilla's parameter-list
-/// order (first occurrence in the multi-noise biome source parameter list).
-///
-/// ORDER MATTERS: FeatureSorter assigns each placed feature a global
-/// first-seen order while walking this list, and that order drives the
-/// topological sort and the within-step indices. The list must therefore be
-/// the parameter-list order (see SteelMC `OVERWORLD_BIOME_PARAMETERS`), NOT
-/// alphabetical — sorting it alphabetically shifts every tree feature's index
-/// (e.g. trees_birch_and_oak_leaf_litter 25 -> 43) and mis-seeds all trees.
-pub const POSSIBLE_BIOMES: [&str; 54] = [
+/// First occurrences in the captured native climate parameter list. This order
+/// determines global feature identity and the within-step decoration seeds.
+pub fn possible_biomes() -> &'static [&'static str] {
+    static BIOMES: OnceLock<Vec<&'static str>> = OnceLock::new();
+    BIOMES.get_or_init(|| {
+        #[derive(serde::Deserialize)]
+        struct Row {
+            biome: String,
+        }
+        #[derive(serde::Deserialize)]
+        struct Capture {
+            rows: Vec<Row>,
+        }
+        let data: Capture = crate::block_predicate::parse_catalog(include_str!(
+            "../data/biome_parameters_26_2.json"
+        ))
+        .expect("authenticated climate parameter order");
+        let mut seen = BTreeSet::new();
+        let mut biomes = Vec::new();
+        for row in data.rows {
+            let id = crate::biome::id(&row.biome).expect("native possible biome identity");
+            if seen.insert(id) {
+                biomes.push(crate::biome::name(id));
+            }
+        }
+        assert!(!biomes.is_empty(), "empty native possible-biome list");
+        biomes
+    })
+}
+
+#[cfg(test)]
+const HISTORICAL_POSSIBLE_BIOMES: [&str; 54] = [
     "mushroom_fields",
     "deep_frozen_ocean",
     "frozen_ocean",
@@ -89,11 +110,40 @@ pub struct FeatureStep {
 
 impl FeatureSorter {
     fn build() -> Self {
-        let biomes: HashMap<String, Vec<Vec<String>>> =
-            serde_json::from_str(include_str!("../data/biome_features.json"))
-                .expect("valid biome feature data");
-        let names: Vec<String> = serde_json::from_str(include_str!("../data/placed_features.json"))
-            .expect("valid placed feature data");
+        let documents = &crate::block_predicate::catalog().documents;
+        let biomes = documents["biome"]
+            .as_object()
+            .expect("native biome feature definitions")
+            .iter()
+            .map(|(name, biome)| {
+                (
+                    name.strip_prefix("minecraft:")
+                        .expect("vanilla biome namespace")
+                        .to_owned(),
+                    serde_json::from_value(biome["features"].clone())
+                        .expect("native feature steps"),
+                )
+            })
+            .collect();
+        let names = documents["placed_feature"]
+            .as_object()
+            .expect("native placed-feature definitions")
+            .keys()
+            .map(|name| {
+                name.strip_prefix("minecraft:")
+                    .expect("vanilla feature namespace")
+                    .to_owned()
+            })
+            .collect();
+        Self::from_inputs(possible_biomes(), biomes, names)
+    }
+
+    /// Build from caller-owned feature documents and the native possible-biome order.
+    pub fn from_inputs(
+        possible: &[&str],
+        biomes: HashMap<String, Vec<Vec<String>>>,
+        names: Vec<String>,
+    ) -> Self {
         let ids: HashMap<&str, usize> = names
             .iter()
             .enumerate()
@@ -101,14 +151,14 @@ impl FeatureSorter {
             .collect();
         let mut first_order = HashMap::new();
         let mut edges = BTreeMap::<Vertex, BTreeSet<Vertex>>::new();
-        for biome in POSSIBLE_BIOMES {
-            let Some(stages) = biomes.get(biome) else {
-                continue;
-            };
+        for &biome in possible {
+            let stages = biomes
+                .get(biome)
+                .expect("possible biome feature definitions");
             let mut vertices = Vec::new();
             for (step, stage) in stages.iter().enumerate() {
                 for raw in stage {
-                    let key = raw.rsplit(':').next().unwrap_or(raw);
+                    let key = raw.strip_prefix("minecraft:").unwrap_or(raw);
                     let Some(&id) = ids.get(key) else {
                         panic!("unknown placed feature {raw}")
                     };
@@ -167,15 +217,15 @@ impl FeatureSorter {
             steps[step].indices.insert(id, index);
         }
         let mut biome_features = HashMap::new();
-        for biome in POSSIBLE_BIOMES {
-            let Some(stages) = biomes.get(biome) else {
-                continue;
-            };
+        for &biome in possible {
+            let stages = biomes
+                .get(biome)
+                .expect("possible biome feature definitions");
             for (step, stage) in stages.iter().enumerate() {
                 let mut ids_at_step = stage
                     .iter()
                     .filter_map(|raw| {
-                        ids.get(raw.rsplit(':').next().unwrap_or(raw))
+                        ids.get(raw.strip_prefix("minecraft:").unwrap_or(raw))
                             .and_then(|id| steps.get(step)?.indices.get(id).copied())
                     })
                     .collect::<Vec<_>>();
@@ -196,7 +246,7 @@ impl FeatureSorter {
                     .map(|stage| {
                         stage
                             .iter()
-                            .map(|raw| raw.rsplit(':').next().unwrap_or(raw).to_owned())
+                            .map(|raw| raw.strip_prefix("minecraft:").unwrap_or(raw).to_owned())
                             .collect()
                     })
                     .collect(),
@@ -216,7 +266,7 @@ impl FeatureSorter {
         self.steps.get(step)
     }
     pub fn within_step_index(&self, feature: &str) -> Option<(usize, usize)> {
-        let key = feature.rsplit(':').next().unwrap_or(feature);
+        let key = feature.strip_prefix("minecraft:").unwrap_or(feature);
         self.steps.iter().enumerate().find_map(|(step, data)| {
             self.names
                 .iter()
@@ -225,7 +275,7 @@ impl FeatureSorter {
         })
     }
     pub fn feature_in_biome(&self, biome: &str, feature: &str) -> bool {
-        let key = feature.rsplit(':').next().unwrap_or(feature);
+        let key = feature.strip_prefix("minecraft:").unwrap_or(feature);
         self.biome_features.get(biome).is_some_and(|stages| {
             stages
                 .iter()
@@ -254,8 +304,39 @@ pub fn sorter() -> &'static FeatureSorter {
 }
 
 #[cfg(test)]
+pub(crate) fn historical_sorter() -> &'static FeatureSorter {
+    static SORTER: OnceLock<FeatureSorter> = OnceLock::new();
+    SORTER.get_or_init(|| {
+        FeatureSorter::from_inputs(
+            &HISTORICAL_POSSIBLE_BIOMES,
+            serde_json::from_str(include_str!("../data/biome_features.json")).unwrap(),
+            serde_json::from_str(include_str!("../data/placed_features.json")).unwrap(),
+        )
+    })
+}
+
+#[cfg(test)]
 mod tests {
-    use super::sorter;
+    use super::{historical_sorter, HISTORICAL_POSSIBLE_BIOMES};
+
+    #[test]
+    fn target_tree_slots_match_the_independent_native_sorter_capture() {
+        let data: serde_json::Value = crate::block_predicate::parse_catalog(include_str!(
+            "../data/extra_tree_catalog_26_2.json"
+        ))
+        .unwrap();
+        let roots = data["roots"].as_object().unwrap();
+        assert!(!roots.is_empty());
+        for (name, root) in roots {
+            let slot: [usize; 2] = serde_json::from_value(root["slot"].clone()).unwrap();
+            assert_eq!(
+                super::sorter().within_step_index(name),
+                Some((slot[0], slot[1])),
+                "{name}"
+            );
+        }
+        assert!(super::possible_biomes().contains(&"sulfur_caves"));
+    }
     #[test]
     fn all_overworld_feature_indices_match_native_sorter() {
         let data: serde_json::Value =
@@ -266,15 +347,16 @@ mod tests {
             .iter()
             .map(|b| b.as_str().unwrap().strip_prefix("minecraft:").unwrap())
             .collect();
-        assert_eq!(possible, super::POSSIBLE_BIOMES);
+        assert_eq!(possible, HISTORICAL_POSSIBLE_BIOMES);
+        let sorter = historical_sorter();
         let steps = data["steps"].as_array().unwrap();
-        assert_eq!(sorter().step_count(), steps.len());
+        assert_eq!(sorter.step_count(), steps.len());
         for (step, features) in steps.iter().enumerate() {
             let features = features.as_array().unwrap();
-            assert_eq!(sorter().step(step).unwrap().features.len(), features.len());
+            assert_eq!(sorter.step(step).unwrap().features.len(), features.len());
             for (index, name) in features.iter().enumerate() {
                 assert_eq!(
-                    sorter().within_step_index(name.as_str().unwrap()),
+                    sorter.within_step_index(name.as_str().unwrap()),
                     Some((step, index)),
                     "{name}"
                 );
@@ -283,7 +365,7 @@ mod tests {
     }
     #[test]
     fn within_step_indices_match_vanilla_anchors() {
-        let s = sorter();
+        let s = historical_sorter();
         for (name, expected) in [
             ("ore_copper", (6, 25)),
             ("trees_plains", (9, 52)),
@@ -298,7 +380,7 @@ mod tests {
 
     #[test]
     fn feature_in_biome_checks_names_not_indices() {
-        let s = sorter();
+        let s = historical_sorter();
         // Positive membership: these are real entries in each biome's vegetal
         // stage, so the gate must admit them (regression for the bug where
         // within-step indices were read as global feature-name indices).
@@ -308,5 +390,6 @@ mod tests {
         // Negative membership: a biome must not admit another biome's feature.
         assert!(!s.feature_in_biome("plains", "trees_jungle"));
         assert!(!s.feature_in_biome("taiga", "trees_plains"));
+        assert!(!s.feature_in_biome("plains", "probe:trees_plains"));
     }
 }

@@ -1,0 +1,27 @@
+{
+  "capture_manifest_sha256": "75074e6c5677560e7840ddc303fb81b80303716a2c7a9a2b4b3e43002ce75b9a",
+  "captured_runtime_sha256": {
+    "enchantment.json": "7a1a831bec9978727f524cd2598554355ee55fe928c891e6b25bc4211068378c",
+    "instrument.json": "0aa54ea01b410ec7df48bc4c74f74bb37599d305cad06edb8160c44304c48667",
+    "items.json": "e5a433eb53e0213a44b60c742a39d2790a05b4faf314b8c7319f6b3bd839f542",
+    "potions.json": "65268536e1db3619439a9293d95fbf837d49d99883ecf47b923165e4d0a3fc12",
+    "registry-types.json": "5ef7d2007cc1aaeec2ca7cd2ca338ff6a76844cec6d929feab6d2730745f5378",
+    "tables.json": "29598bbb67cbd2531cb097d8e6c19ad2b4c07bb56fd3ab05daeead35bd67465c"
+  },
+  "context_comparison": "Exact JSON values; object key order is not a value, native arrays and holder order are retained.",
+  "fixture_sha256": "5e0095c9c11928fb01cf9e7cde73c8d36779fa3f5877e535413500c6a3a3488f",
+  "independent_repeat": true,
+  "minecraft": "26.2",
+  "native_case_count": 137,
+  "protocol": 776,
+  "runtime_sha256": {
+    "enchantment.json": "7a1a831bec9978727f524cd2598554355ee55fe928c891e6b25bc4211068378c",
+    "instrument.json": "0aa54ea01b410ec7df48bc4c74f74bb37599d305cad06edb8160c44304c48667",
+    "items.json": "8fbda0dbd0d34c90c221308c9ef1bbfe3a22cc9757b6616cad3f8401208d3262",
+    "potions.json": "65268536e1db3619439a9293d95fbf837d49d99883ecf47b923165e4d0a3fc12",
+    "registry-types.json": "5ef7d2007cc1aaeec2ca7cd2ca338ff6a76844cec6d929feab6d2730745f5378",
+    "tables.json": "29598bbb67cbd2531cb097d8e6c19ad2b4c07bb56fd3ab05daeead35bd67465c"
+  },
+  "schema": "bcore.loot-fixture-promotion.v1",
+  "server_sha256": "183c0499c5f855570ee487dd38e141a53f0121f83a0b07a3bac2d8b6698823e8"
+}

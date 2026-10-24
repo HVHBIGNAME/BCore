@@ -5,12 +5,23 @@ use crate::simplex::WorldgenRandom;
 use crate::{block, MIN_Y};
 use std::sync::OnceLock;
 
-pub const CAVE_AIR: u32 = 15293;
-pub const CHEST: u32 = 3988;
-pub const SPAWNER: u32 = 3888;
-const MOSSY_COBBLESTONE: u32 = 3368;
+pub use bcore_registry::block_state::{CAVE_AIR, CHEST, SPAWNER};
+const MOSSY_COBBLESTONE: u32 = block::MOSSY_COBBLESTONE;
 const HORIZONTAL: [(i32, i32); 4] = [(0, -1), (1, 0), (0, 1), (-1, 0)];
-const CHEST_FACING: [u32; 4] = [3988, 4006, 3994, 4000];
+
+fn chest_facings() -> &'static [u32; 4] {
+    static STATES: OnceLock<[u32; 4]> = OnceLock::new();
+    STATES.get_or_init(|| {
+        let chest = crate::block_predicate::catalog()
+            .definition("chest")
+            .expect("native chest definition");
+        ["north", "east", "south", "west"].map(|facing| {
+            chest
+                .with_property(CHEST, "facing", facing)
+                .expect("native chest facing")
+        })
+    })
+}
 
 pub trait DungeonWorld: OreWorld {
     fn set_block_entity(&mut self, pos: (i32, i32, i32), data: BlockEntity);
@@ -20,15 +31,16 @@ pub(crate) fn state_flags(state: u32) -> u8 {
     static FLAGS: OnceLock<Vec<u8>> = OnceLock::new();
     let flags = FLAGS.get_or_init(|| {
         let data: serde_json::Value =
-            serde_json::from_str(include_str!("../data/monster_rooms_26_1.json"))
+            crate::block_predicate::parse_catalog(include_str!("../data/monster_rooms_26_2.json"))
                 .expect("dungeon block predicates");
         let mut result = Vec::new();
         for range in data["ranges"].as_array().unwrap() {
             let start = range[0].as_u64().unwrap() as usize;
             let end = range[1].as_u64().unwrap() as usize;
             assert_eq!(start, result.len());
-            assert!(end > start);
-            result.resize(end, range[2].as_u64().unwrap() as u8);
+            let value = range[2].as_u64().unwrap();
+            assert!(end > start && end <= bcore_registry::BLOCK_STATE_COUNT && value <= 63);
+            result.resize(end, value as u8);
         }
         assert_eq!(result.len(), data["state_count"].as_u64().unwrap() as usize);
         result
@@ -63,7 +75,7 @@ fn chest_state(world: &impl OreWorld, (x, y, z): (i32, i32, i32)) -> u32 {
         }
     }
     if let Some(wall) = wall {
-        return CHEST_FACING[(wall + 2) % 4];
+        return chest_facings()[(wall + 2) % 4];
     }
     let solid = |dir: usize| {
         let (dx, dz) = HORIZONTAL[dir];
@@ -79,7 +91,7 @@ fn chest_state(world: &impl OreWorld, (x, y, z): (i32, i32, i32)) -> u32 {
     if solid(facing) {
         facing = (facing + 2) % 4;
     }
-    CHEST_FACING[facing]
+    chest_facings()[facing]
 }
 
 pub fn place(

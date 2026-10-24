@@ -10,9 +10,10 @@ fn update_flags(state: u32) -> FeatureResult<u8> {
                 state_count: usize,
                 update_state_ranges: Vec<[usize; 3]>,
             }
-            let data: Capture =
-                serde_json::from_str(include_str!("../../data/lighting_updates_26_1.json"))
-                    .expect("native light update flags");
+            let data: Capture = crate::block_predicate::parse_catalog(include_str!(
+                "../../data/lighting_updates_26_2.json"
+            ))
+            .expect("native light update flags");
             let mut flags = Vec::with_capacity(data.state_count);
             for [start, end, value] in data.update_state_ranges {
                 assert_eq!(start, flags.len());

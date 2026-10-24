@@ -30,7 +30,7 @@ fn decode(columns: &Value) -> Vec<u32> {
 fn active_surface_stage_matches_native_slabs_and_retains_fluid_marks() {
     let reference: Value =
         serde_json::from_str(include_str!("../data/surface_builder_26_1.json")).unwrap();
-    let graph = crate::VanillaGraph::load().unwrap();
+    let graph = crate::reference_26_1::graph();
     let mut checked = 0;
     for sample in reference["samples"].as_array().unwrap() {
         if sample["preliminary_mode"] != "native" || sample["rule"] != "overworld" {
@@ -41,13 +41,18 @@ fn active_surface_stage_matches_native_slabs_and_retains_fluid_marks() {
         let mut chunk = GeneratedChunk::new(ChunkPos::new(cx, cz));
         let input = decode(&reference["profiles"][sample["profile"].as_str().unwrap()]);
         for (i, state) in input.into_iter().enumerate() {
-            chunk.set(i % 16, MIN_Y + (i / 256) as i32, (i / 16) % 16, state);
+            chunk.set(
+                i % 16,
+                MIN_Y + (i / 256) as i32,
+                (i / 16) % 16,
+                crate::registry_26_1::target_state(state),
+            );
         }
         let existing_mark = (3, MIN_Y, 7);
         chunk.postprocessing.push(existing_mark);
         WorldGenerator::new(sample["seed"].as_i64().unwrap()).generate_surface_with_biomes(
             &mut chunk,
-            graph,
+            &graph,
             |_, qx, qy, qz| {
                 assert!((MIN_Y >> 2..=MAX_Y >> 2).contains(&qy));
                 let source = sample["biome_source"].as_str().unwrap();
@@ -76,7 +81,7 @@ fn active_surface_stage_matches_native_slabs_and_retains_fluid_marks() {
             .states()
             .iter()
             .zip(&expected)
-            .position(|(a, b)| a != b);
+            .position(|(a, b)| crate::registry_26_1::historical_state(*a) != *b);
         assert_eq!(
             mismatch, None,
             "{}: first mismatched wire voxel",

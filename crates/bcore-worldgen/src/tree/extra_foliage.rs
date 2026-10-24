@@ -4,6 +4,8 @@ use super::{
     place_leaves_row, try_place_leaf, FoliageAttachment, IntProvider, ShapeSink, TreeConfig,
     TreeRandom,
 };
+use crate::block_predicate::{kind, FeatureResult};
+use crate::feature_world::FeatureError;
 use serde_json::Value;
 
 #[derive(Debug, PartialEq)]
@@ -25,26 +27,24 @@ pub enum ExtraFoliage {
 }
 
 impl ExtraFoliage {
-    pub(super) fn parse(value: &Value) -> Self {
-        match value["type"].as_str().expect("foliage type") {
-            "minecraft:bush_foliage_placer" => Self::Bush(number(&value["height"])),
-            "minecraft:jungle_foliage_placer" => Self::Jungle(number(&value["height"])),
-            "minecraft:mega_pine_foliage_placer" => {
-                Self::MegaPine(int_provider(&value["crown_height"]))
-            }
-            "minecraft:random_spread_foliage_placer" => Self::RandomSpread {
-                height: int_provider(&value["foliage_height"]),
-                attempts: number(&value["leaf_placement_attempts"]),
+    pub(super) fn parse(value: &Value) -> FeatureResult<Self> {
+        Ok(match kind(value)? {
+            "bush_foliage_placer" => Self::Bush(number(&value["height"])?),
+            "jungle_foliage_placer" => Self::Jungle(number(&value["height"])?),
+            "mega_pine_foliage_placer" => Self::MegaPine(int_provider(&value["crown_height"])?),
+            "random_spread_foliage_placer" => Self::RandomSpread {
+                height: int_provider(&value["foliage_height"])?,
+                attempts: number(&value["leaf_placement_attempts"])?,
             },
-            "minecraft:cherry_foliage_placer" => Self::Cherry {
-                height: int_provider(&value["height"]),
-                wide_hole: chance(&value["wide_bottom_layer_hole_chance"]),
-                corner_hole: chance(&value["corner_hole_chance"]),
-                hanging: chance(&value["hanging_leaves_chance"]),
-                extension: chance(&value["hanging_leaves_extension_chance"]),
+            "cherry_foliage_placer" => Self::Cherry {
+                height: int_provider(&value["height"])?,
+                wide_hole: chance(&value["wide_bottom_layer_hole_chance"])?,
+                corner_hole: chance(&value["corner_hole_chance"])?,
+                hanging: chance(&value["hanging_leaves_chance"])?,
+                extension: chance(&value["hanging_leaves_extension_chance"])?,
             },
-            kind => panic!("unsupported native foliage {kind}"),
-        }
+            other => return Err(FeatureError::Unsupported(format!("tree foliage {other}"))),
+        })
     }
     pub(super) fn height<R: TreeRandom + ?Sized>(&self, random: &mut R) -> i32 {
         match self {
@@ -125,6 +125,9 @@ pub(super) fn place<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
         }
         ExtraFoliage::RandomSpread { attempts, .. } => {
             for _ in 0..*attempts {
+                if world.failed() {
+                    return;
+                }
                 let x = a.x + r.next_i32_bounded(radius) - r.next_i32_bounded(radius);
                 let y = a.y + r.next_i32_bounded(height) - r.next_i32_bounded(height);
                 let z = a.z + r.next_i32_bounded(radius) - r.next_i32_bounded(radius);
@@ -161,6 +164,9 @@ fn hanging_row<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
     extension: f32,
 ) {
     place_leaves_row(world, r, config, a, radius, y);
+    if world.failed() {
+        return;
+    }
     let offset = i32::from(a.double_trunk);
     let log = (a.x, a.y - 1, a.z);
     for ((dx, dz), (ex, ez)) in [
@@ -176,6 +182,9 @@ fn hanging_row<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
             a.z + ez * edge - dz * radius,
         );
         for _ in -radius..radius + offset {
+            if world.failed() {
+                return;
+            }
             if world.leaf_is_set((p.0, p.1 + 1, p.2))
                 && try_extension(world, r, config, chance, log, p)
             {
@@ -195,6 +204,9 @@ fn try_extension<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
     log: Pos,
     pos: Pos,
 ) -> bool {
+    if world.failed() {
+        return false;
+    }
     if (pos.0 - log.0).abs() + (pos.1 - log.1).abs() + (pos.2 - log.2).abs() >= 7
         || r.next_f32() > chance
     {

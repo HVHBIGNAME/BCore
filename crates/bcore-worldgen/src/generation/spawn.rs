@@ -4,7 +4,7 @@ use std::hash::BuildHasher;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::RwLock;
 
-use crate::feature_world::{FeatureWorld, Pos};
+use crate::feature_world::{FeatureHeightmap, FeatureWorld, Pos};
 use crate::generated_entity::{GeneratedEntity, GeneratedMob};
 use crate::spawn::{
     self, MobKind, SpawnBorder, SpawnDifficulty, SpawnEnvironment, SpawnError, SpawnOptions,
@@ -19,6 +19,15 @@ use super::GenerationState;
 pub trait SpawnInputs: Send + Sync {
     fn spawn_mobs(&self) -> bool;
     fn entity_seed(&self, kind: MobKind) -> SpawnResult<i64>;
+    fn constructor_template(&self, kind: MobKind) -> SpawnResult<spawn::SpawnTag> {
+        Ok(spawn::constructor_template(kind))
+    }
+    fn biome_spawns(&self, biome: u32) -> SpawnResult<spawn::BiomeSpawns> {
+        spawn::biome_spawns(biome).cloned()
+    }
+    fn spawn_heightmap(&self, kind: MobKind) -> SpawnResult<FeatureHeightmap> {
+        Ok(spawn::spawn_type(kind).heightmap)
+    }
     fn difficulty_at(&self, pos: Pos) -> SpawnResult<SpawnDifficulty>;
     fn game_time(&self) -> SpawnResult<i64>;
     fn border(&self) -> SpawnBorder {
@@ -134,6 +143,15 @@ impl SpawnEnvironment for RegionSpawnEnvironment<'_> {
     }
     fn entity_seed(&mut self, kind: MobKind) -> SpawnResult<i64> {
         self.inputs.entity_seed(kind)
+    }
+    fn constructor_template(&self, kind: MobKind) -> SpawnResult<spawn::SpawnTag> {
+        self.inputs.constructor_template(kind)
+    }
+    fn biome_spawns(&self, biome: u32) -> SpawnResult<spawn::BiomeSpawns> {
+        self.inputs.biome_spawns(biome)
+    }
+    fn spawn_heightmap(&self, kind: MobKind) -> SpawnResult<FeatureHeightmap> {
+        self.inputs.spawn_heightmap(kind)
     }
     fn current_difficulty_at(&self, pos: Pos) -> SpawnResult<SpawnDifficulty> {
         self.inputs.difficulty_at(pos)

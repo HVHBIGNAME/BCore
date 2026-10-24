@@ -38,13 +38,23 @@ fn random(rng: &Value) -> WorldgenRandom {
     random
 }
 
+fn historical_writes(writes: Vec<[i32; 5]>) -> Vec<[i32; 5]> {
+    writes
+        .into_iter()
+        .map(|mut row| {
+            row[3] = crate::registry_26_1::historical_state(row[3] as u32) as i32;
+            row
+        })
+        .collect()
+}
+
 #[test]
 fn native_fossil_histories_match_region_blocks_writes_rng_and_retained_maps() {
     let data: Value =
         serde_json::from_str(include_str!("../../data/fossil_history_26_1.json")).unwrap();
     assert_eq!(
         data["jar_sha256"],
-        crate::structure::template_pool::StructureAssets::JAR_SHA256
+        crate::structure::template_pool::StructureAssets::HISTORICAL_JAR_SHA256
     );
     let seed = data["seed"].as_str().unwrap().parse().unwrap();
     let cases = data["cases"].as_array().unwrap();
@@ -61,7 +71,9 @@ fn native_fossil_histories_match_region_blocks_writes_rng_and_retained_maps() {
             let pos = position(&expected["pos"]);
             available.insert((pos.x, pos.z), ChunkStatus::Carvers);
             let chunk = region.owned_chunk_mut(pos);
-            chunk.states = expand(&expected["states"], |v| v.as_u64().unwrap() as u32);
+            chunk.states = expand(&expected["states"], |v| {
+                crate::registry_26_1::target_state(v.as_u64().unwrap() as u32)
+            });
             assert_eq!(chunk.states.len(), 98304);
             chunk.noise_biomes = Some(expand(&expected["biomes"], |v| {
                 crate::biome::id(v.as_str().unwrap()).unwrap()
@@ -99,7 +111,7 @@ fn native_fossil_histories_match_region_blocks_writes_rng_and_retained_maps() {
             &mut CaveRandomState::default(),
         )
         .unwrap();
-        let writes = crate::region::take_structure_write_trace();
+        let writes = historical_writes(crate::region::take_structure_write_trace());
         let Outcome::Complete(placed) = result else {
             panic!("unavailable {label}")
         };
@@ -154,7 +166,7 @@ fn native_fossil_histories_match_region_blocks_writes_rng_and_retained_maps() {
             let actual = region.owned_chunk(pos).unwrap();
             let mut digest = Sha256::new();
             for state in actual.states() {
-                digest.update(state.to_le_bytes());
+                digest.update(crate::registry_26_1::historical_state(*state).to_le_bytes());
             }
             assert_eq!(
                 format!("{:x}", digest.finalize()),
@@ -207,7 +219,7 @@ fn native_fossil_configured_templates_rotations_corners_and_ticks() {
     let assets = crate::structure::template_pool::StructureAssets::bundled();
     assert_eq!(
         data["jar_sha256"],
-        crate::structure::template_pool::StructureAssets::JAR_SHA256
+        crate::structure::template_pool::StructureAssets::HISTORICAL_JAR_SHA256
     );
     assert_eq!(
         data["shape_order"],
@@ -273,7 +285,7 @@ fn native_fossil_configured_templates_rotations_corners_and_ticks() {
             &GenerationEnvironment,
         )
         .unwrap();
-        let writes = crate::region::take_structure_write_trace();
+        let writes = historical_writes(crate::region::take_structure_write_trace());
         assert_eq!(placed, case["result"].as_bool().unwrap(), "{label}");
         rejected += usize::from(!placed);
         assert_eq!(
@@ -305,7 +317,12 @@ fn native_fossil_configured_templates_rotations_corners_and_ticks() {
                     let y = -64 + (i / 256) as i32;
                     let z = cz * 16 + (i / 16 % 16) as i32;
                     if state != initial(x, y) {
-                        changes.push([x, y, z, state as i32]);
+                        changes.push([
+                            x,
+                            y,
+                            z,
+                            crate::registry_26_1::historical_state(state) as i32,
+                        ]);
                     }
                 }
                 marks.extend(

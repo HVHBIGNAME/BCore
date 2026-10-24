@@ -7,6 +7,9 @@ use bcore_worldgen::{
     simplex::WorldgenRandom,
 };
 
+#[path = "support/registry_26_1.rs"]
+mod registry_26_1;
+
 struct ReferenceWorld<'a> {
     terrain: &'a str,
     cave_air: u32,
@@ -20,7 +23,7 @@ impl ReferenceWorld<'_> {
             digest.consume(x.to_le_bytes());
             digest.consume(y.to_le_bytes());
             digest.consume(z.to_le_bytes());
-            digest.consume(state.to_le_bytes());
+            digest.consume(registry_26_1::historical_state(state).to_le_bytes());
         }
         assert_eq!(
             self.writes.len() as u64,
@@ -50,8 +53,8 @@ impl ReferenceWorld<'_> {
         }
         match self.terrain {
             "deepslate" => block::DEEPSLATE,
-            "deepslate_x" => 27923,
-            "deepslate_z" => 27925,
+            "deepslate_x" => registry_26_1::target_state(27923),
+            "deepslate_z" => registry_26_1::target_state(27925),
             "tuff" => block::TUFF,
             _ => block::STONE,
         }
@@ -109,7 +112,15 @@ fn configured_ores_match_native_26_1() {
             .iter()
             .map(|s| s.as_u64().unwrap() as u32)
             .collect();
-        assert_eq!(states, expected, "{name}");
+        assert_eq!(
+            states,
+            expected
+                .iter()
+                .copied()
+                .map(registry_26_1::historical_state)
+                .collect::<Vec<_>>(),
+            "{name}"
+        );
     }
     for sample in fixture["samples"].as_array().unwrap() {
         let name = sample["kind"].as_str().unwrap();
@@ -131,7 +142,9 @@ fn configured_ores_match_native_26_1() {
         };
         let mut world = ReferenceWorld {
             terrain: sample["terrain"].as_str().unwrap(),
-            cave_air: fixture["cave_air_state"].as_u64().unwrap() as u32,
+            cave_air: registry_26_1::target_state(
+                fixture["cave_air_state"].as_u64().unwrap() as u32
+            ),
             writes: BTreeMap::new(),
         };
         let mut rng = WorldgenRandom::new(sample["seed"].as_i64().unwrap());
@@ -161,13 +174,34 @@ fn configured_ores_match_native_26_1() {
 fn placed_ores_match_native_modifier_and_shape_streams() {
     let fixture: serde_json::Value =
         serde_json::from_str(include_str!("../data/ore_placements_26_1.json")).unwrap();
+    let climate: serde_json::Value =
+        serde_json::from_str(include_str!("../data/biome_parameters_26_1.json")).unwrap();
+    let mut seen = std::collections::BTreeSet::new();
+    let possible: Vec<_> = climate["rows"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter_map(|row| {
+            let name = row["biome"]
+                .as_str()
+                .unwrap()
+                .strip_prefix("minecraft:")
+                .unwrap();
+            seen.insert(name).then_some(name)
+        })
+        .collect();
+    let sorter = bcore_worldgen::feature_sorter::FeatureSorter::from_inputs(
+        &possible,
+        serde_json::from_str(include_str!("../data/biome_features.json")).unwrap(),
+        serde_json::from_str(include_str!("../data/placed_features.json")).unwrap(),
+    );
     for (name, state) in [
         ("CLAY", block::CLAY),
         ("INFESTED_STONE", block::INFESTED_STONE),
         ("INFESTED_DEEPSLATE", block::INFESTED_DEEPSLATE),
     ] {
         assert_eq!(
-            state as u64,
+            u64::from(registry_26_1::historical_state(state)),
             fixture["block_states"][name].as_u64().unwrap()
         );
     }
@@ -186,7 +220,7 @@ fn placed_ores_match_native_modifier_and_shape_streams() {
         let index = sample["index"].as_i64().unwrap() as i32;
         let step = sample["step"].as_i64().unwrap() as i32;
         assert_eq!(
-            bcore_worldgen::feature_sorter::sorter().within_step_index(name),
+            sorter.within_step_index(name),
             Some((step as usize, index as usize))
         );
         let mut rng = WorldgenRandom::new(seed);

@@ -3,7 +3,7 @@
 //! The bundled registry describes the pinned JAR's block states (including each
 //! block's rotation/mirror implementation). Coordinates, ordering, processing,
 //! clipping, liquid restoration and RNG ownership are evaluated at runtime.
-//! This module uses the known-shape placement mode used by native pool elements.
+//! Pool elements use known shapes; template features supply neighbour callbacks.
 
 use super::processors::{process_block_infos, Processor};
 use crate::feature_world::{FeatureError, FeatureWorld, Pos};
@@ -638,6 +638,25 @@ pub struct BlockRegistry {
     defaults: BTreeMap<String, u32>,
     pub block_entities: BTreeMap<String, BlockEntityType>,
     pub water_fluid_id: u32,
+    version: RegistryVersion,
+}
+
+impl<R: TemplateRandom + ?Sized> TemplateRandom for &mut R {
+    fn next_int(&mut self, bound: usize) -> usize {
+        (**self).next_int(bound)
+    }
+    fn next_long(&mut self) -> i64 {
+        (**self).next_long()
+    }
+    fn next_float(&mut self) -> f32 {
+        (**self).next_float()
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum RegistryVersion {
+    Current,
+    V26_1,
 }
 
 impl BlockRegistry {
@@ -646,12 +665,26 @@ impl BlockRegistry {
         defaults: BTreeMap<String, u32>,
         mut block_entities: BTreeMap<String, BlockEntityType>,
         water_fluid_id: u32,
+        version: RegistryVersion,
     ) -> Result<Self> {
         let count = rows.len() as u32;
         for (i, row) in rows.iter().enumerate() {
             if row.0 != i as u32 || row.2.iter().chain(&row.3).any(|v| *v >= count) {
                 return Err(invalid("non-dense or invalid block-state registry"));
             }
+        }
+        for (name, &state) in &defaults {
+            if rows
+                .get(state as usize)
+                .is_none_or(|row| row.1.name != *name)
+            {
+                return Err(invalid(format!(
+                    "invalid default block-state identity {name}"
+                )));
+            }
+        }
+        for ty in block_entities.values() {
+            ty.nbt.compound()?;
         }
         // The original structure-only asset capture did not contain hive
         // factories. Both blocks use this native empty hive payload, verified
@@ -662,7 +695,10 @@ impl BlockRegistry {
                 block_entities
                     .entry(name.into())
                     .or_insert_with(|| BlockEntityType {
-                        type_id: 34,
+                        type_id: match version {
+                            RegistryVersion::Current => bcore_registry::block_entity_type::BEEHIVE,
+                            RegistryVersion::V26_1 => 34,
+                        },
                         id: "minecraft:beehive".into(),
                         randomizable: false,
                         nbt: Nbt::Compound(BTreeMap::from([
@@ -682,7 +718,10 @@ impl BlockRegistry {
             block_entities
                 .entry("minecraft:comparator".into())
                 .or_insert_with(|| BlockEntityType {
-                    type_id: 19,
+                    type_id: match version {
+                        RegistryVersion::Current => bcore_registry::block_entity_type::COMPARATOR,
+                        RegistryVersion::V26_1 => 19,
+                    },
                     id: "minecraft:comparator".into(),
                     randomizable: false,
                     nbt: Nbt::Compound(BTreeMap::from([
@@ -698,7 +737,15 @@ impl BlockRegistry {
             defaults,
             block_entities,
             water_fluid_id,
+            version,
         })
+    }
+
+    fn item_names(&self) -> &'static BTreeSet<String> {
+        match self.version {
+            RegistryVersion::Current => item_names(),
+            RegistryVersion::V26_1 => historical_item_names(),
+        }
     }
 
     pub fn len(&self) -> usize {
@@ -720,6 +767,18 @@ impl BlockRegistry {
             .get(&id(name))
             .copied()
             .ok_or_else(|| missing(format!("block {name}")))
+    }
+
+    pub fn state_range(&self, name: &str) -> Result<[u32; 2]> {
+        let default = self.default_state(name)? as usize;
+        let name = &self.rows[default].1.name;
+        let first = self.rows[..=default].partition_point(|row| row.1.name != *name);
+        let end = default + 1 + self.rows[default + 1..].partition_point(|row| row.1.name == *name);
+        Ok([first as u32, end as u32])
+    }
+
+    pub(crate) fn is_current(&self) -> bool {
+        self.version == RegistryVersion::Current
     }
 
     pub fn resolve(&self, spec: &BlockState) -> Result<u32> {
@@ -791,6 +850,7 @@ impl BlockRegistry {
             loot_seed: None,
             defaults: ty.nbt.clone(),
             single_item: None,
+            version: self.version,
         }))
     }
 }
@@ -875,6 +935,7 @@ pub struct TemplateBlockEntity {
     pub loot_seed: Option<i64>,
     defaults: Nbt,
     single_item: Option<Nbt>,
+    version: RegistryVersion,
 }
 
 impl TemplateBlockEntity {
@@ -915,8 +976,21 @@ impl TemplateBlockEntity {
                 )));
             }
             if entity.loot_table.is_none() {
-                entity.single_item = decode_item_stack(load_data.get("item"))?;
+                entity.single_item =
+                    decode_item_stack(load_data.get("item"), registry.item_names())?;
             }
+        }
+        if entity.id == "minecraft:potent_sulfur" {
+            if load_data
+                .get("components")
+                .is_some_and(|data| !matches!(data, Nbt::Compound(fields) if fields.is_empty()))
+            {
+                return Err(FeatureError::Unsupported(
+                    "potent sulfur data-component codecs".into(),
+                ));
+            }
+            entity.loot_table = None;
+            entity.loot_seed = None;
         }
         entity.load_data = load_data;
         Ok(entity)
@@ -945,10 +1019,25 @@ impl TemplateBlockEntity {
                 data.insert("item".into(), item.clone());
             }
             if self.id == "minecraft:decorated_pot" {
-                if let Some(sherds) = pot_decorations(self.load_data.get("sherds")) {
+                let items = match self.version {
+                    RegistryVersion::Current => item_names(),
+                    RegistryVersion::V26_1 => historical_item_names(),
+                };
+                if let Some(sherds) = pot_decorations(self.load_data.get("sherds"), items) {
                     data.insert("sherds".into(), sherds);
                 }
             }
+        } else if self.id == "minecraft:potent_sulfur" {
+            let countdown = self
+                .load_data
+                .get("countdown")
+                .and_then(|value| match value {
+                    Nbt::Float(value) => Some(value.floor() as i32),
+                    Nbt::Double(value) => Some(value.floor() as i32),
+                    _ => value.int(),
+                })
+                .unwrap_or(-1);
+            data.insert("countdown".into(), Nbt::Int(countdown));
         } else {
             data.extend(
                 self.load_data
@@ -1080,15 +1169,30 @@ fn codec_identifier(name: &str) -> Option<String> {
 fn item_names() -> &'static BTreeSet<String> {
     static ITEMS: std::sync::OnceLock<BTreeSet<String>> = std::sync::OnceLock::new();
     ITEMS.get_or_init(|| {
-        let data: Value = serde_json::from_str(include_str!(
-            "../../data/brushable_block_entities_26_1_v2.json"
-        ))
-        .expect("pinned item registry");
-        serde_json::from_value(data["item_names"].clone()).expect("native item identifiers")
+        bcore_registry::vanilla().registries["ITEM"]
+            .iter()
+            .map(|item| item.key.clone())
+            .collect()
     })
 }
 
-fn pot_decorations(value: Option<&Nbt>) -> Option<Nbt> {
+fn historical_item_names() -> &'static BTreeSet<String> {
+    static ITEMS: std::sync::OnceLock<BTreeSet<String>> = std::sync::OnceLock::new();
+    ITEMS.get_or_init(|| {
+        let data: Value = serde_json::from_str(include_str!(
+            "../../data/brushable_block_entities_26_1_v2.json"
+        ))
+        .expect("historical item registry capture");
+        assert_eq!(data["minecraft"], "26.1");
+        assert_eq!(
+            data["jar_sha256"],
+            super::template_pool::StructureAssets::HISTORICAL_JAR_SHA256
+        );
+        serde_json::from_value(data["item_names"].clone()).expect("historical item identifiers")
+    })
+}
+
+fn pot_decorations(value: Option<&Nbt>, item_names: &BTreeSet<String>) -> Option<Nbt> {
     // TagValueInput retains ListCodec's partial successes. Invalid entries are
     // removed, and PotDecorations takes the first four items in back/left/right/
     // front order. Missing sides are bricks; all-brick decorations are omitted.
@@ -1097,7 +1201,7 @@ fn pot_decorations(value: Option<&Nbt>) -> Option<Nbt> {
         .iter()
         .filter_map(Nbt::string)
         .filter_map(codec_identifier)
-        .filter(|name| item_names().contains(name))
+        .filter(|name| item_names.contains(name))
         .take(4)
         .collect();
     items.resize(4, "minecraft:brick".into());
@@ -1110,7 +1214,7 @@ fn pot_decorations(value: Option<&Nbt>) -> Option<Nbt> {
         })
 }
 
-fn decode_item_stack(value: Option<&Nbt>) -> Result<Option<Nbt>> {
+fn decode_item_stack(value: Option<&Nbt>, items: &BTreeSet<String>) -> Result<Option<Nbt>> {
     let Some(Nbt::Compound(input)) = value else {
         return Ok(None);
     };
@@ -1121,7 +1225,7 @@ fn decode_item_stack(value: Option<&Nbt>) -> Result<Option<Nbt>> {
     else {
         return Ok(None);
     };
-    if name == "minecraft:air" || !item_names().contains(&name) {
+    if name == "minecraft:air" || !items.contains(&name) {
         return Ok(None);
     }
     if input
@@ -1392,9 +1496,77 @@ impl StructureTemplate {
                 "template neighbour-shape callbacks (known_shape=false)".into(),
             ));
         }
-        let mut result = PlacementResult::default();
+        let Some(infos) = self.process_for_placement(
+            world,
+            processor_random,
+            registry,
+            origin,
+            reference,
+            settings,
+        )?
+        else {
+            return Ok(PlacementResult::default());
+        };
+        self.place_processed(
+            world, random, registry, origin, settings, infos, effects, None,
+        )
+    }
+
+    /// TemplateFeature aliases settings and placement randomness. Shape callbacks
+    /// finish accepted writes before entity spawning, retaining preceding effects.
+    pub fn place_feature<W, R, F, S>(
+        &self,
+        world: &mut W,
+        random: &mut R,
+        registry: &BlockRegistry,
+        origin: Pos,
+        settings: &PlacementSettings,
+        effects: &mut F,
+        shapes: &mut S,
+    ) -> Result<PlacementResult>
+    where
+        W: FeatureWorld + ?Sized,
+        R: TemplateRandom + ?Sized,
+        F: FnMut(&mut W, TemplateEffect) -> Result<()>,
+        S: FnMut(&mut W, &[Pos], i32) -> Result<()>,
+    {
+        let infos = {
+            let mut borrowed = &mut *random;
+            self.process_for_placement(
+                world,
+                &mut ProcessorRandom(Some(&mut borrowed)),
+                registry,
+                origin,
+                origin,
+                settings,
+            )?
+        };
+        let Some(infos) = infos else {
+            return Ok(PlacementResult::default());
+        };
+        self.place_processed(
+            world,
+            random,
+            registry,
+            origin,
+            settings,
+            infos,
+            effects,
+            Some(shapes),
+        )
+    }
+
+    fn process_for_placement<W: FeatureWorld + ?Sized>(
+        &self,
+        world: &W,
+        processor_random: &mut ProcessorRandom<'_>,
+        registry: &BlockRegistry,
+        origin: Pos,
+        reference: Pos,
+        settings: &PlacementSettings,
+    ) -> Result<Option<Vec<BlockInfo>>> {
         if self.palettes.is_empty() {
-            return Ok(result);
+            return Ok(None);
         }
         let palette = self.palette_with_random(origin, processor_random)?;
         if (palette.is_empty() && (settings.ignore_entities || self.entities.is_empty()))
@@ -1402,9 +1574,9 @@ impl StructureTemplate {
             || self.size.1 < 1
             || self.size.2 < 1
         {
-            return Ok(result);
+            return Ok(None);
         }
-        let infos = process_block_infos(
+        process_block_infos(
             world,
             registry,
             origin,
@@ -1412,17 +1584,42 @@ impl StructureTemplate {
             palette,
             settings,
             processor_random,
-        )?;
+        )
+        .map(Some)
+    }
+
+    fn place_processed<W, R, F>(
+        &self,
+        world: &mut W,
+        random: &mut R,
+        registry: &BlockRegistry,
+        origin: Pos,
+        settings: &PlacementSettings,
+        infos: Vec<BlockInfo>,
+        effects: &mut F,
+        shapes: Option<&mut dyn FnMut(&mut W, &[Pos], i32) -> Result<()>>,
+    ) -> Result<PlacementResult>
+    where
+        W: FeatureWorld + ?Sized,
+        R: TemplateRandom + ?Sized,
+        F: FnMut(&mut W, TemplateEffect) -> Result<()>,
+    {
+        let mut result = PlacementResult::default();
+        let mut written = Vec::new();
         let mut pending = Vec::new();
         let mut new_sources = BTreeSet::new();
         for mut info in infos {
             let pos = info.pos;
-            if settings.clip.is_some_and(|bb| !bb.contains(pos)) || !world.can_write_feature(pos) {
+            if settings.clip.is_some_and(|bb| !bb.contains(pos)) {
                 continue;
             }
-            let previous = world
-                .get_block(pos)
-                .ok_or_else(|| missing(format!("template placement read {pos:?}")))?;
+            let previous = if !(crate::MIN_Y..=crate::MAX_Y).contains(&pos.1) {
+                registry.default_state("void_air")?
+            } else {
+                world
+                    .get_block(pos)
+                    .ok_or_else(|| missing(format!("template placement read {pos:?}")))?
+            };
             let old_fluid = if settings.apply_waterlogging {
                 registry.fluid(previous)?
             } else {
@@ -1443,6 +1640,7 @@ impl StructureTemplate {
                 continue;
             }
             result.blocks_written += 1;
+            written.push(pos);
             if registry.flags(state)? & 8 != 0 {
                 let kind = &registry.state(state)?.name;
                 let ty = registry
@@ -1507,6 +1705,9 @@ impl StructureTemplate {
                 }
             }
             pending = remaining;
+        }
+        if let Some(shapes) = shapes.filter(|_| !settings.known_shape) {
+            shapes(world, &written, settings.flags)?;
         }
         for entity in result.block_entities.values_mut() {
             entity.state = world

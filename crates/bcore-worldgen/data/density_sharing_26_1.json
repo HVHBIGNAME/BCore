@@ -1,0 +1,834 @@
+{
+  "minecraft": "26.1",
+  "protocol": 775,
+  "jar_sha256": "a7fed6f7d88379349e35ae0c6e9881d4484605132f6f620376a3868eea6cce52",
+  "sources": {
+    "scripts/TreeReference.java": "47f021860550c9d1006c050fa48345ab3f2c09ec472c8a172a79d509ae74b670",
+    "scripts/NativeWorldgenRegistries.java": "8c7baf226eb3fd20976d59f261bda13095e014327dff617a5e98ad5044a91e35",
+    "scripts/jigsaw-reference/JigsawSupport.java": "ec236e3fb27a92f54d36392c1698ee57cc7495a81acab7fee86cf011eeb37469",
+    "scripts/density-materials-reference/DensityMaterialsReference.java": "bd1ee92bf904e29d8ced378f44a69c5fc3361e9abfe6f1bff26ef7d54fd6958f",
+    "scripts/density-sharing-reference/DensitySharingReference.java": "61aae73d988fc16ae3b3601a4ceca3381342bb5b97a04f367293d44fdc084e44"
+  },
+  "cases": [
+    {
+      "input": {
+        "type": "minecraft:add",
+        "argument1": "minecraft:overworld/depth",
+        "argument2": "minecraft:overworld/depth"
+      },
+      "name": "minecraft:overworld/depth",
+      "holders_same": true,
+      "holder_wrappers_same": false,
+      "values_same": true,
+      "seeded": [
+        {
+          "mapped_class": "net.minecraft.world.level.levelgen.DensityFunctions$HolderHolder",
+          "mapped_arguments_same": true,
+          "wrapped_arguments_same": true,
+          "points": [
+            {
+              "pos": [
+                -17,
+                -55,
+                31
+              ],
+              "bits": "3ffdadea30600000"
+            },
+            {
+              "pos": [
+                -1,
+                17,
+                -3
+              ],
+              "bits": "3fe187d198000000"
+            },
+            {
+              "pos": [
+                0,
+                0,
+                0
+              ],
+              "bits": "3fea5c46f0000000"
+            },
+            {
+              "pos": [
+                7,
+                63,
+                9
+              ],
+              "bits": "bfb293ec00000000"
+            },
+            {
+              "pos": [
+                29999983,
+                255,
+                -29999983
+              ],
+              "bits": "c007e5cd6e300000"
+            }
+          ],
+          "seed": 0
+        },
+        {
+          "mapped_class": "net.minecraft.world.level.levelgen.DensityFunctions$HolderHolder",
+          "mapped_arguments_same": true,
+          "wrapped_arguments_same": true,
+          "points": [
+            {
+              "pos": [
+                -17,
+                -55,
+                31
+              ],
+              "bits": "3ff6850470000000"
+            },
+            {
+              "pos": [
+                -1,
+                17,
+                -3
+              ],
+              "bits": "3fd21411c0000000"
+            },
+            {
+              "pos": [
+                0,
+                0,
+                0
+              ],
+              "bits": "3fe18a08e0000000"
+            },
+            {
+              "pos": [
+                7,
+                63,
+                9
+              ],
+              "bits": "bfdbebee40000000"
+            },
+            {
+              "pos": [
+                29999983,
+                255,
+                -29999983
+              ],
+              "bits": "c008402616800000"
+            }
+          ],
+          "seed": -7
+        },
+        {
+          "mapped_class": "net.minecraft.world.level.levelgen.DensityFunctions$HolderHolder",
+          "mapped_arguments_same": true,
+          "wrapped_arguments_same": true,
+          "points": [
+            {
+              "pos": [
+                -17,
+                -55,
+                31
+              ],
+              "bits": "3ff6850470000000"
+            },
+            {
+              "pos": [
+                -1,
+                17,
+                -3
+              ],
+              "bits": "3fd21ef5e0000000"
+            },
+            {
+              "pos": [
+                0,
+                0,
+                0
+              ],
+              "bits": "3fe18a08e0000000"
+            },
+            {
+              "pos": [
+                7,
+                63,
+                9
+              ],
+              "bits": "bfdbebee40000000"
+            },
+            {
+              "pos": [
+                29999983,
+                255,
+                -29999983
+              ],
+              "bits": "c0085bf9d9800000"
+            }
+          ],
+          "seed": 1234
+        },
+        {
+          "mapped_class": "net.minecraft.world.level.levelgen.DensityFunctions$HolderHolder",
+          "mapped_arguments_same": true,
+          "wrapped_arguments_same": true,
+          "points": [
+            {
+              "pos": [
+                -17,
+                -55,
+                31
+              ],
+              "bits": "400aede220000000"
+            },
+            {
+              "pos": [
+                -1,
+                17,
+                -3
+              ],
+              "bits": "40003dd3e0000000"
+            },
+            {
+              "pos": [
+                0,
+                0,
+                0
+              ],
+              "bits": "40029cbb20000000"
+            },
+            {
+              "pos": [
+                7,
+                63,
+                9
+              ],
+              "bits": "3ff696a9e0000000"
+            },
+            {
+              "pos": [
+                29999983,
+                255,
+                -29999983
+              ],
+              "bits": "bfff5b7ce0000000"
+            }
+          ],
+          "seed": -9223372036854775808
+        }
+      ]
+    },
+    {
+      "input": {
+        "type": "minecraft:add",
+        "argument1": "minecraft:overworld/sloped_cheese",
+        "argument2": "minecraft:overworld/sloped_cheese"
+      },
+      "name": "minecraft:overworld/sloped_cheese",
+      "holders_same": true,
+      "holder_wrappers_same": false,
+      "values_same": true,
+      "seeded": [
+        {
+          "mapped_class": "net.minecraft.world.level.levelgen.DensityFunctions$HolderHolder",
+          "mapped_arguments_same": true,
+          "wrapped_arguments_same": true,
+          "points": [
+            {
+              "pos": [
+                -17,
+                -55,
+                31
+              ],
+              "bits": "4047bd4df1fb29f3"
+            },
+            {
+              "pos": [
+                -1,
+                17,
+                -3
+              ],
+              "bits": "4025610b604021a3"
+            },
+            {
+              "pos": [
+                0,
+                0,
+                0
+              ],
+              "bits": "4030c9bc5ff04727"
+            },
+            {
+              "pos": [
+                7,
+                63,
+                9
+              ],
+              "bits": "bfc465a89fba4698"
+            },
+            {
+              "pos": [
+                29999983,
+                255,
+                -29999983
+              ],
+              "bits": "c0321fe386a6c2af"
+            }
+          ],
+          "seed": 0
+        },
+        {
+          "mapped_class": "net.minecraft.world.level.levelgen.DensityFunctions$HolderHolder",
+          "mapped_arguments_same": true,
+          "wrapped_arguments_same": true,
+          "points": [
+            {
+              "pos": [
+                -17,
+                -55,
+                31
+              ],
+              "bits": "403556378514ec98"
+            },
+            {
+              "pos": [
+                -1,
+                17,
+                -3
+              ],
+              "bits": "4010cf625da227d6"
+            },
+            {
+              "pos": [
+                0,
+                0,
+                0
+              ],
+              "bits": "4020b1500f70dd03"
+            },
+            {
+              "pos": [
+                7,
+                63,
+                9
+              ],
+              "bits": "c00025fde08b5eb3"
+            },
+            {
+              "pos": [
+                29999983,
+                255,
+                -29999983
+              ],
+              "bits": "c02d82ee0145a14a"
+            }
+          ],
+          "seed": -7
+        },
+        {
+          "mapped_class": "net.minecraft.world.level.levelgen.DensityFunctions$HolderHolder",
+          "mapped_arguments_same": true,
+          "wrapped_arguments_same": true,
+          "points": [
+            {
+              "pos": [
+                -17,
+                -55,
+                31
+              ],
+              "bits": "4036bfa0c8cb542b"
+            },
+            {
+              "pos": [
+                -1,
+                17,
+                -3
+              ],
+              "bits": "4012585089c96dd6"
+            },
+            {
+              "pos": [
+                0,
+                0,
+                0
+              ],
+              "bits": "40213dcef88603c3"
+            },
+            {
+              "pos": [
+                7,
+                63,
+                9
+              ],
+              "bits": "c0000c02378343ef"
+            },
+            {
+              "pos": [
+                29999983,
+                255,
+                -29999983
+              ],
+              "bits": "c020943fff9c3b26"
+            }
+          ],
+          "seed": 1234
+        },
+        {
+          "mapped_class": "net.minecraft.world.level.levelgen.DensityFunctions$HolderHolder",
+          "mapped_arguments_same": true,
+          "wrapped_arguments_same": true,
+          "points": [
+            {
+              "pos": [
+                -17,
+                -55,
+                31
+              ],
+              "bits": "4055687af7f0ca64"
+            },
+            {
+              "pos": [
+                -1,
+                17,
+                -3
+              ],
+              "bits": "4049a180c9de50c0"
+            },
+            {
+              "pos": [
+                0,
+                0,
+                0
+              ],
+              "bits": "404d5ca8406a70c5"
+            },
+            {
+              "pos": [
+                7,
+                63,
+                9
+              ],
+              "bits": "4041bc751b7d2d02"
+            },
+            {
+              "pos": [
+                29999983,
+                255,
+                -29999983
+              ],
+              "bits": "c027f0e5579d6e0c"
+            }
+          ],
+          "seed": -9223372036854775808
+        }
+      ]
+    },
+    {
+      "input": {
+        "type": "minecraft:add",
+        "argument1": "minecraft:overworld/caves/noodle",
+        "argument2": "minecraft:overworld/caves/noodle"
+      },
+      "name": "minecraft:overworld/caves/noodle",
+      "holders_same": true,
+      "holder_wrappers_same": false,
+      "values_same": true,
+      "seeded": [
+        {
+          "mapped_class": "net.minecraft.world.level.levelgen.DensityFunctions$HolderHolder",
+          "mapped_arguments_same": true,
+          "wrapped_arguments_same": true,
+          "points": [
+            {
+              "pos": [
+                -17,
+                -55,
+                31
+              ],
+              "bits": "4060000000000000"
+            },
+            {
+              "pos": [
+                -1,
+                17,
+                -3
+              ],
+              "bits": "4060000000000000"
+            },
+            {
+              "pos": [
+                0,
+                0,
+                0
+              ],
+              "bits": "4060000000000000"
+            },
+            {
+              "pos": [
+                7,
+                63,
+                9
+              ],
+              "bits": "4060000000000000"
+            },
+            {
+              "pos": [
+                29999983,
+                255,
+                -29999983
+              ],
+              "bits": "3fd63d69b82b78d2"
+            }
+          ],
+          "seed": 0
+        },
+        {
+          "mapped_class": "net.minecraft.world.level.levelgen.DensityFunctions$HolderHolder",
+          "mapped_arguments_same": true,
+          "wrapped_arguments_same": true,
+          "points": [
+            {
+              "pos": [
+                -17,
+                -55,
+                31
+              ],
+              "bits": "4060000000000000"
+            },
+            {
+              "pos": [
+                -1,
+                17,
+                -3
+              ],
+              "bits": "4060000000000000"
+            },
+            {
+              "pos": [
+                0,
+                0,
+                0
+              ],
+              "bits": "4060000000000000"
+            },
+            {
+              "pos": [
+                7,
+                63,
+                9
+              ],
+              "bits": "3fec2b9c4a1f674e"
+            },
+            {
+              "pos": [
+                29999983,
+                255,
+                -29999983
+              ],
+              "bits": "3fe61448cd794474"
+            }
+          ],
+          "seed": -7
+        },
+        {
+          "mapped_class": "net.minecraft.world.level.levelgen.DensityFunctions$HolderHolder",
+          "mapped_arguments_same": true,
+          "wrapped_arguments_same": true,
+          "points": [
+            {
+              "pos": [
+                -17,
+                -55,
+                31
+              ],
+              "bits": "4060000000000000"
+            },
+            {
+              "pos": [
+                -1,
+                17,
+                -3
+              ],
+              "bits": "4060000000000000"
+            },
+            {
+              "pos": [
+                0,
+                0,
+                0
+              ],
+              "bits": "4060000000000000"
+            },
+            {
+              "pos": [
+                7,
+                63,
+                9
+              ],
+              "bits": "3fed1b8e8373fd1b"
+            },
+            {
+              "pos": [
+                29999983,
+                255,
+                -29999983
+              ],
+              "bits": "4003ae3aa8648603"
+            }
+          ],
+          "seed": 1234
+        },
+        {
+          "mapped_class": "net.minecraft.world.level.levelgen.DensityFunctions$HolderHolder",
+          "mapped_arguments_same": true,
+          "wrapped_arguments_same": true,
+          "points": [
+            {
+              "pos": [
+                -17,
+                -55,
+                31
+              ],
+              "bits": "3fec8d4727b11d5d"
+            },
+            {
+              "pos": [
+                -1,
+                17,
+                -3
+              ],
+              "bits": "3fed9952a9c56dae"
+            },
+            {
+              "pos": [
+                0,
+                0,
+                0
+              ],
+              "bits": "3ff0ee1ed51c65d0"
+            },
+            {
+              "pos": [
+                7,
+                63,
+                9
+              ],
+              "bits": "3ff0517a70990266"
+            },
+            {
+              "pos": [
+                29999983,
+                255,
+                -29999983
+              ],
+              "bits": "4060000000000000"
+            }
+          ],
+          "seed": -9223372036854775808
+        }
+      ]
+    },
+    {
+      "input": {
+        "type": "minecraft:add",
+        "argument1": "minecraft:shift_x",
+        "argument2": "minecraft:shift_x"
+      },
+      "name": "minecraft:shift_x",
+      "holders_same": true,
+      "holder_wrappers_same": false,
+      "values_same": true,
+      "seeded": [
+        {
+          "mapped_class": "net.minecraft.world.level.levelgen.DensityFunctions$HolderHolder",
+          "mapped_arguments_same": true,
+          "wrapped_arguments_same": true,
+          "points": [
+            {
+              "pos": [
+                -17,
+                -55,
+                31
+              ],
+              "bits": "bfe08aa2570be554"
+            },
+            {
+              "pos": [
+                -1,
+                17,
+                -3
+              ],
+              "bits": "c0119c409f0b88df"
+            },
+            {
+              "pos": [
+                0,
+                0,
+                0
+              ],
+              "bits": "c011650f2efc9ae5"
+            },
+            {
+              "pos": [
+                7,
+                63,
+                9
+              ],
+              "bits": "c00acd9a2243ebd6"
+            },
+            {
+              "pos": [
+                29999983,
+                255,
+                -29999983
+              ],
+              "bits": "c003e28c872664f0"
+            }
+          ],
+          "seed": 0
+        },
+        {
+          "mapped_class": "net.minecraft.world.level.levelgen.DensityFunctions$HolderHolder",
+          "mapped_arguments_same": true,
+          "wrapped_arguments_same": true,
+          "points": [
+            {
+              "pos": [
+                -17,
+                -55,
+                31
+              ],
+              "bits": "c015e6608130fcf6"
+            },
+            {
+              "pos": [
+                -1,
+                17,
+                -3
+              ],
+              "bits": "c015a657a6e04a3c"
+            },
+            {
+              "pos": [
+                0,
+                0,
+                0
+              ],
+              "bits": "c015ff1810daa771"
+            },
+            {
+              "pos": [
+                7,
+                63,
+                9
+              ],
+              "bits": "c00a25ec7badb588"
+            },
+            {
+              "pos": [
+                29999983,
+                255,
+                -29999983
+              ],
+              "bits": "c0127393deee08a2"
+            }
+          ],
+          "seed": -7
+        },
+        {
+          "mapped_class": "net.minecraft.world.level.levelgen.DensityFunctions$HolderHolder",
+          "mapped_arguments_same": true,
+          "wrapped_arguments_same": true,
+          "points": [
+            {
+              "pos": [
+                -17,
+                -55,
+                31
+              ],
+              "bits": "3ff0de99ef18118f"
+            },
+            {
+              "pos": [
+                -1,
+                17,
+                -3
+              ],
+              "bits": "4003d8805d4c5552"
+            },
+            {
+              "pos": [
+                0,
+                0,
+                0
+              ],
+              "bits": "40008bf18f07ce6e"
+            },
+            {
+              "pos": [
+                7,
+                63,
+                9
+              ],
+              "bits": "4017e2d822e92109"
+            },
+            {
+              "pos": [
+                29999983,
+                255,
+                -29999983
+              ],
+              "bits": "bfdfbcd36e390652"
+            }
+          ],
+          "seed": 1234
+        },
+        {
+          "mapped_class": "net.minecraft.world.level.levelgen.DensityFunctions$HolderHolder",
+          "mapped_arguments_same": true,
+          "wrapped_arguments_same": true,
+          "points": [
+            {
+              "pos": [
+                -17,
+                -55,
+                31
+              ],
+              "bits": "3ffa959a91e4fee4"
+            },
+            {
+              "pos": [
+                -1,
+                17,
+                -3
+              ],
+              "bits": "c00a2a35938e99ae"
+            },
+            {
+              "pos": [
+                0,
+                0,
+                0
+              ],
+              "bits": "c0084a289ac644b2"
+            },
+            {
+              "pos": [
+                7,
+                63,
+                9
+              ],
+              "bits": "3fe386c2ed44b48f"
+            },
+            {
+              "pos": [
+                29999983,
+                255,
+                -29999983
+              ],
+              "bits": "3ffadb1876b67073"
+            }
+          ],
+          "seed": -9223372036854775808
+        }
+      ]
+    }
+  ]
+}

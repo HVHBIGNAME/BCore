@@ -1,21 +1,28 @@
 # BCore
 
 <p align="center">
-  <img src="site/assets/overview.svg" alt="BCore checkpoint: 665 passing tests on unchanged production code, 91 native requests in 15 histories, 40 matching scored light snapshots. Alpha; full parity remains incomplete." width="100%" />
+  <img src="site/assets/migration-26_2.svg" alt="Minecraft 26.2 migration: 886 passing release tests, zero failures, 1179 native-decoded frames and 127 terrain packets across three sessions. A persisted edit survives restart. Alpha; full generation and gameplay remain incomplete." width="100%" />
 </p>
 
 <p align="center">
   <a href="https://github.com/HVHBIGNAME/BCore/actions/workflows/ci.yml"><img src="https://github.com/HVHBIGNAME/BCore/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   <a href="https://HVHBIGNAME.github.io/BCore/"><img src="https://img.shields.io/badge/live-implementation_tracker-50e3c2?style=flat-square&amp;labelColor=111e31" alt="Live implementation tracker" /></a>
-  <a href="docs/parity-report.md"><img src="https://img.shields.io/badge/native_target-26.1_%2F_775-73aaff?style=flat-square&amp;labelColor=111e31" alt="Native target: Minecraft 26.1 / protocol 775" /></a>
+  <a href="docs/migration-26.2.md"><img src="https://img.shields.io/badge/native_target-26.2_%2F_776-73aaff?style=flat-square&amp;labelColor=111e31" alt="Native target: Minecraft 26.2 / protocol 776" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-b89bff?style=flat-square&amp;labelColor=111e31" alt="MIT license" /></a>
 </p>
 
-A native [Minecraft: Java Edition](https://www.minecraft.net) server written in Rust. Development and vanilla comparisons currently use **26.1 / protocol 775**; migration to **26.2 / 776** follows parity work. [SteelMC](https://github.com/Steel-Foundation/SteelMC) is the primary implementation reference.
+A native [Minecraft: Java Edition](https://www.minecraft.net) server written in Rust, targeting **26.2 / protocol 776 / data version 4903**. [SteelMC](https://github.com/Steel-Foundation/SteelMC) is the primary implementation reference.
 
 BCore is an **independent implementation** (not a fork) aiming for vanilla parity while making better use of modern multi-core hardware — plus a native plugin system and a Bukkit/Spigot/Paper plugin bridge.
 
 > **Status: alpha, vanilla parity incomplete.** Offline login, chunk streaming, chat, commands and persistence are implemented. Worldgen is the current priority. See the [implementation tracker](https://HVHBIGNAME.github.io/BCore/) and [measured parity report](docs/parity-report.md).
+
+The [26.2 migration checkpoint](docs/migration-26.2.md) includes **886 passing
+workspace release tests**, native decoding of **1,179 BCore frames / 127 terrain
+packets**, reconnect/process-session checks and a saved-block edit observed after
+restart. Shared registries and BCC v6 bind numeric IDs to the authenticated target.
+
+[Development status, cleanup and open requirements — 2026-10-24](docs/development-status-2026-10-24.md).
 
 <p align="center">
   <a href="#generation-accuracy">Accuracy</a> ·
@@ -27,9 +34,14 @@ BCore is an **independent implementation** (not a fork) aiming for vanilla parit
 
 ## Generation accuracy
 
-<img src="site/assets/generation-accuracy.svg" alt="Latest matched-history checks: zero state or biome differences in 91 requests; 40 scored light snapshots match. The older three-region snapshot has 96.99% exact-state matches. NBT and FULL-lifecycle differences remain." width="100%" />
+<img src="site/assets/generation-accuracy.svg" alt="Historical broader-corpus checks: zero state or biome differences in 91 requests; 40 scored light snapshots match. The older three-region snapshot has 96.99% exact-state matches. The latest four-history checkpoint is reported separately below." width="100%" />
 
-**Latest checkpoint:** 91 requests across 15 matching native execution histories,
+**Historical 26.1 retained implementation:** [791 passing workspace release tests](docs/metrics/noise-final-validation-2026-10-21.json),
+zero failures, and four fresh schema-3 histories with **27/27 requested** and
+**52/54 watch** scored matches. The four known LIGHT/SPAWN status fields remain
+different; implementation coverage stays Partial.
+
+**Earlier broader corpus:** 91 requests across 15 matching native execution histories,
 with **0 block-state, biome, source-order or scored-light differences**. That is
 8,945,664 block-state observations, including air and repeated snapshots.
 The [2026-10-10 evidence](docs/metrics/checkpoint-2026-10-10.json) adds the
@@ -64,42 +76,61 @@ are tracked with FULL conversion and other omissions in the
 
 ## Performance comparison
 
-<img src="site/assets/performance.svg" alt="Measured BCore versus Vanilla 26.1 NOISE material-fill throughput at one, two and four workers, including both worldgen heightmaps, with identical block, ordered effect and WG-map hashes. BCore is still slower in this bounded kernel workload. See the benchmark guide for exact values, the optimization series and limitations." width="100%" />
+<img src="site/assets/performance-26_2.svg" alt="Measured BCore versus Vanilla 26.2 NOISE throughput at one, two and four workers: BCore 47.79, 83.98 and 156.81 chunks/s; Vanilla 49.77, 74.03 and 215.35. All block, ordered mark and WG-heightmap fingerprints match. This is a bounded kernel workload." width="100%" />
 
-This compares the **terrain material-fill kernel** in BCore and the original
-Vanilla 26.1 JAR on the same machine, seed, eight chunks and worker budgets.
+This chart compares the **terrain material-fill kernel** in BCore and the authenticated
+Vanilla 26.2 JAR on the same machine, seed, eight chunks and worker budgets.
 It includes aquifers, noise ore veins, fluid postprocessing requests and both
 worldgen heightmaps; it excludes server startup, later generation stages,
 storage, packets and gameplay. It is **not a full-server TPS ranking**.
 Bars show medians; whiskers show variation between fresh processes.
 
-At four workers this local test measures **44.14 chunks/s for BCore** and
-**202.77 chunks/s for Vanilla**, i.e. BCore is about **4.6× slower** in this run.
-Three exact-behavior passes
-(aquifer/preliminary-surface reuse, cheaper internal lookup tables and seeded
-noise lookups, and chunk-scoped material caches) took BCore from 4.31 to
-44.14 chunks/s on the same contract while every benchmark fingerprint stayed
-identical: **10.24×** against the first baseline, **8.88×** against its repeat.
-The [recorded series](docs/metrics/noise-fill-wg-v2-series-2026-10-08.json)
-preserves both baselines; the older October 5 result uses a different contract.
+The 26.2 baseline measures **47.79 / 83.98 / 156.81 chunks/s for BCore** and
+**49.77 / 74.03 / 215.35 for Vanilla** at 1/2/4 workers. BCore is faster at two
+workers in this run; Java is faster at one and four. All **18 process records**
+match blocks, ordered marks and both WG maps, with **180 warmup and 180 measured
+batches** retained. The host is unisolated; this is a baseline, not a cross-version
+optimization gain.
+
+[26.2 timings and frozen-input provenance](docs/metrics/noise-fill-wg-v2-baseline-26_2-2026-10-24.json) ·
+[Hardware, controls and reproduction commands](docs/performance.md)
+
+The [fresh CPU profile](docs/performance-profile-26.2-2026-10-24.md) collected
+**4,002 leaf samples** with matching kernel outputs. It identifies interpolation
+and noise/density evaluation as current optimization targets; sampled diagnostic
+timings are excluded from these throughput numbers.
+
+### Historical 26.1 optimization series
+
+The separate [October 21 run](docs/metrics/noise-fill-wg-v2-final-2026-10-21.json)
+measures **39.60 / 71.13 / 140.00 chunks/s for BCore** and **44.16 / 88.43 / 198.41
+for Vanilla 26.1**. These historical measurements retain their original target.
+
+Selective density outlining, chunk-owned indexed interpolation and borrowed-point
+evaluation produced a directly measured **2.02–2.45× gain** against the October 18
+checkpoint in two alternating frozen comparisons. All 18 individual pairs
+improved, with matching block/effect/WG-map fingerprints. The
+[complete series](docs/metrics/noise-fill-wg-v2-series-2026-10-21.json) preserves
+every process's warmup and measured durations, including rejected experiments.
+Historical gains from different sessions are not multiplied into this result.
 
 [Exact timings, optimization series, hardware and reproduction commands](docs/performance.md) ·
-[Raw measurements and hashes](docs/metrics/noise-fill-wg-v2-2026-10-08.json)
+[Final measurements and hashes](docs/metrics/noise-fill-wg-v2-final-2026-10-21.json)
 
-Two further October 9 cache prototypes were **not accepted**: one regressed,
-the other gave mixed throughput across worker counts. Their
-[complete experiments and alternating-binary measurements](docs/performance-experiments-2026-10-09.md)
-are recorded separately. No additional production speedup is claimed.
+The later cell-miss, constant-operand and Perlin-rounding prototypes were
+**rejected and restored** after mixed or regressing comparisons. Their
+[experiment report](docs/performance-experiments-2026-10-21.md) records the checks
+and timings; they contribute no production speedup.
 
 ## Current work
 
-<img src="site/assets/generation-pipeline.svg" alt="Runtime pipeline through SPAWN with explicit inputs and partial coverage. FULL conversion, live clock hookup and remaining terrain families are incomplete." width="100%" />
+<img src="site/assets/generation-pipeline.svg" alt="Runtime pipeline through SPAWN with explicit inputs, world-local clocks and partial coverage. FULL conversion and remaining terrain families are incomplete." width="100%" />
 
 | Delivered | Current focus | Following work |
 |---|---|---|
 | Shared cross-chunk generation; native light storage and updates | Ticket-driven FULL conversion, remaining terrain families and broader seed samples | Worldgen-heightmap retirement, saved-holder hydration, Nether/End |
 | Fossils; villages, ancient cities, trail/trial jigsaws; treasure, huts, jungle, desert pyramids and **desert wells** | Preserve real native behavior across combined request histories | Remaining structure families, persistent generation graph |
-| Pending/materialized typed NBT; `.bcc` v5; retained SPAWN and 456 native mob handoffs | Finish live clock/settings integration and FULL boundaries | Broader performance work on the remaining ~4.6× kernel gap |
+| Shared 26.2 registries; BCC v6 admission; world-local clocks; native-decoded reconnect/restart; matched 26.2 NOISE baseline and fresh CPU profile | FULL boundaries and source-owned runtime effects | Isolated interpolation/noise optimization with exact-output and paired-run gates |
 
 Project updates and evidence are published together in the
 [tracker](https://HVHBIGNAME.github.io/BCore/), [parity report](docs/parity-report.md)
@@ -108,7 +139,7 @@ and [roadmap](docs/roadmap.md).
 ## Highlights
 
 - Native Rust, multi-crate workspace (bounded contexts).
-- Protocol 775: handshake, status, offline login, configuration and play.
+- Protocol 776: strict handshake admission, status, offline login, configuration and play.
 - Native plugin system: trait-based `Plugin`, thread-safe `PluginManager`, events, dynamic `.dll`/`.so` loading.
 - Data-driven seed-based Overworld generation with bundled assets and offline vanilla-reference tests. Trees, caves, ores and structures are not yet block-for-block compatible.
 - Shared, status-aware generation across chunk requests, with explicit source coverage and persisted generated block-entity data, ticks and postprocessing marks.
@@ -120,29 +151,34 @@ and [roadmap](docs/roadmap.md).
 |---|---|
 | `bcore` | Server binary |
 | `bcore-core` | Shared types, version constants, protocol primitives |
-| `bcore-protocol` | Protocol 775: login/play, commands, streaming and persistence |
+| `bcore-protocol` | Protocol 776: login/play, commands, streaming and versioned persistence |
 | `bcore-plugin` | Native plugin API and manager |
 | `bcore-plugin-java` | JVM bridge for legacy Java plugins |
 | `bcore-worldgen` | Deterministic seed-based generation |
-| `bcore-registry` | Data-driven block/item registry (future) |
+| `bcore-registry` | Authenticated shared block/state/item/entity/attribute identities |
 
 ## Building
 
 ```bash
-cargo build --workspace
+cargo build --workspace --release --locked -j 1
 cargo test --workspace --release --locked --no-fail-fast -j 1 -- --test-threads=2
 ```
 
 Run the server:
 
 ```bash
-cargo run -p bcore -- --host 0.0.0.0 --port 25565
+cargo run -p bcore --release --locked -- --world world-26.2 --seed 846692123413862008 --host 127.0.0.1 --port 25565
 ```
 
-Use a 26.1 client for the current development protocol. Generated chunks are saved
-under `world/`; existing saves preserve the output of the generator that created
-them. The worldgen data ships inside the executable. `BCORE_DATAPACK` optionally
-selects an external extracted datapack for development.
+Use a **Java 26.2** client and connect to **127.0.0.1:25565**. The server uses offline
+login. The default fresh world is `world-26.2`; `--world` and `--seed` select an
+explicit world identity. Operators and bans are stored inside that world root.
+
+BCC v6 checks the seed, data/protocol version and registry fingerprint before
+loading. Older or foreign saves require a separate compatible build; this migration
+does not convert them. The worldgen data ships inside the executable.
+`BCORE_DATAPACK` optionally selects an external extracted datapack for development.
+See [validation scope and frozen-executable instructions](docs/migration-26.2.md).
 
 ### Generate with explicit coverage
 
@@ -172,7 +208,9 @@ python scripts/render_readme.py --check
 ## Documentation
 
 - [Implementation tracker](https://HVHBIGNAME.github.io/BCore/)
+- [Latest completed tasks and open requirements](docs/development-status-2026-10-24.md)
 - [Measured parity report](docs/parity-report.md)
+- [26.2 migration, protocol validation and fresh-world instructions](docs/migration-26.2.md)
 - [Performance comparison and methodology](docs/performance.md)
 - [Published measurement data](docs/metrics/README.md)
 - [Worldgen parity plan](docs/worldgen-parity-plan.md)

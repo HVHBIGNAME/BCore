@@ -8,8 +8,14 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    env:
+      CARGO_BUILD_JOBS: 1
+      RAYON_NUM_THREADS: 2
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly-2026-08-21
@@ -20,4 +26,16 @@ jobs:
       - name: Build
         run: cargo build --workspace --release --locked
       - name: Test
-        run: cargo test --workspace --release --locked --no-fail-fast -- --test-threads=4
+        run: cargo test --workspace --release --locked --no-fail-fast -- --test-threads=2
+      - name: Build standalone replay programs
+        run: cargo build --manifest-path scripts/native-generation-reference/Cargo.toml --release --locked --bins
+      - name: Portable evidence and publication checks
+        run: |
+          python -B -m unittest discover -s scripts -p 'test_export*.py'
+          python -B -m unittest discover -s scripts -p 'test_test_timings.py'
+          python -B -m unittest discover -s scripts -p 'test_render_readme.py'
+          python -B -m unittest discover -s scripts -p 'test_run_generation_check.py'
+          python -B -m unittest discover -s scripts/benchmarks -p 'test_*.py'
+          python -B -m unittest discover -s scripts/native-generation-reference -p 'test_*.py'
+          python -B -m unittest discover -s scripts/migration-26.2 -p 'test_*.py'
+          python -B scripts/render_readme.py --check

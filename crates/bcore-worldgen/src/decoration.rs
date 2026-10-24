@@ -70,7 +70,7 @@ pub enum TreeHeightmap {
 }
 
 /// Reads required by the native modifiers in addition to fallen-tree placement.
-/// Biome IDs refer to the bundled 26.1 registry. Heights are the first free Y.
+/// Biome IDs use the shared target registry. Heights are the first free Y.
 pub trait TreeFeatureWorld: tree::fallen::FallenTreeWorld {
     fn tree_height(&self, heightmap: TreeHeightmap, x: i32, z: i32) -> i32;
     fn tree_biome(&self, pos: tree::fallen::Pos) -> u32;

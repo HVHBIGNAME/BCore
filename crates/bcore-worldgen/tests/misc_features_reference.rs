@@ -14,6 +14,11 @@ use bcore_worldgen::{misc_features, MAX_Y, MIN_Y};
 use serde::Deserialize;
 use serde_json::{json, Value};
 
+#[path = "support/feature_documents_26_1.rs"]
+pub mod feature_documents_26_1;
+#[path = "support/registry_26_1.rs"]
+mod registry_26_1;
+
 const PRIORITY: &str = include_str!("../data/misc_features_priority_26_1.json");
 const EXTRA: &str = include_str!("../data/misc_features_extra_26_1.json");
 const SHAPES: &str = include_str!("../data/misc_features_shapes_26_1.json");
@@ -47,7 +52,10 @@ fn biome_id(name: &str) -> u32 {
 
 impl World {
     fn new(sample: &Value) -> Self {
-        let terrain: Terrain = serde_json::from_value(sample["terrain"].clone()).unwrap();
+        let mut terrain: Terrain = serde_json::from_value(sample["terrain"].clone()).unwrap();
+        for row in &mut terrain.layers {
+            row[2] = registry_26_1::target_state(row[2] as u32) as i32;
+        }
         Self {
             origin: position(&sample["origin"]),
             biome: biome_id(&terrain.biome),
@@ -56,7 +64,7 @@ impl World {
             initial: terrain
                 .overrides
                 .iter()
-                .map(|&[x, y, z, state]| ((x, y, z), state as u32))
+                .map(|&[x, y, z, state]| ((x, y, z), registry_26_1::target_state(state as u32)))
                 .collect(),
             terrain,
             blocks: BTreeMap::new(),
@@ -106,7 +114,7 @@ impl World {
             .blocks
             .iter()
             .filter(|(pos, state)| **state != self.initial(**pos))
-            .map(|(&(x, y, z), &state)| [x, y, z, state as i32])
+            .map(|(&(x, y, z), &state)| [x, y, z, registry_26_1::historical_state(state) as i32])
             .collect();
         assert_eq!(
             changed.len() as u64,
@@ -187,7 +195,7 @@ impl FeatureWorld for World {
             pos.0,
             pos.1,
             pos.2,
-            state as i32,
+            registry_26_1::historical_state(state) as i32,
             flags,
             i32::from(accepted),
         ]);
@@ -202,7 +210,7 @@ impl FeatureWorld for World {
     fn schedule_feature_tick(&mut self, request: TickRequest) -> bool {
         let [x, y, z] = request.block_pos;
         let (id, fluid) = match request.target {
-            TickTarget::Block(id) => (id, 0),
+            TickTarget::Block(id) => (registry_26_1::historical_state(id), 0),
             TickTarget::Fluid(id) => (id, 1),
         };
         self.ticks.push([x, y, z, id as i32, request.delay, fluid]);
@@ -239,19 +247,29 @@ impl Environment {
             .observations
             .get(i)
             .unwrap_or_else(|| panic!("unexpected native callback {op} at {pos:?}"));
+        let historical_biomes = feature_documents_26_1::catalog()["biome_ids"]
+            .as_object()
+            .unwrap();
+        let name = historical_biomes
+            .iter()
+            .find(|(_, id)| id.as_i64() == Some(row[1] as i64))
+            .expect("historical callback biome resource")
+            .0;
+        let mut observed = [row[0], row[1], row[2], row[3], row[4], row[5]];
+        observed[1] = biome_id(name) as i32;
         assert_eq!(
-            &row[..6],
+            &observed,
             &[op, biome as i32, pos.0, pos.1, pos.2, i32::from(edge)],
             "callback order #{i}"
         );
         assert_eq!(
             world.get_block(pos).unwrap(),
-            row[7] as u32,
+            registry_26_1::target_state(row[7] as u32),
             "callback input state #{i}"
         );
         assert_eq!(
             world.get_block((pos.0, pos.1 - 1, pos.2)).unwrap(),
-            row[8] as u32,
+            registry_26_1::target_state(row[8] as u32),
             "callback support state #{i}"
         );
         self.cursor.set(i + 1);
@@ -329,9 +347,9 @@ fn verify_fixture(fixture: &str) -> usize {
     let samples = data["samples"].as_array().unwrap();
     for sample in samples {
         let name = sample["name"].as_str().unwrap();
-        let document = &data["configured"][name];
+        let document = feature_documents_26_1::configured(&data["configured"][name]);
         assert!(
-            misc_features::supports_configured(document).unwrap(),
+            misc_features::supports_configured(&document).unwrap(),
             "{name}"
         );
         for through_base in [false, true] {
@@ -342,7 +360,7 @@ fn verify_fixture(fixture: &str) -> usize {
                 bcore_worldgen::base_features::BaseFeatures::with_dispatcher(Dispatcher::default());
             let result = if through_base {
                 dispatcher.place_configured(
-                    document,
+                    &document,
                     Some(name),
                     &mut world,
                     &mut random,
@@ -351,7 +369,7 @@ fn verify_fixture(fixture: &str) -> usize {
                 )
             } else {
                 misc_features::place_configured_with(
-                    document,
+                    &document,
                     &mut world,
                     &mut random,
                     position(&sample["origin"]),
@@ -431,7 +449,7 @@ fn native_survival_of_six_new_plants_on_every_block_state_and_hanging_vines() {
     world.initial.clear();
     world.terrain.layers.clear();
     for plant in data["survival_support"].as_array().unwrap() {
-        let state = plant["state"].as_u64().unwrap() as u32;
+        let state = registry_26_1::target_state(plant["state"].as_u64().unwrap() as u32);
         assert_eq!(catalog().state(&plant["state_json"]).unwrap(), state);
         let mut end = 0;
         for row in plant["ranges"].as_array().unwrap() {
@@ -439,7 +457,9 @@ fn native_survival_of_six_new_plants_on_every_block_state_and_hanging_vines() {
             assert_eq!(start, end);
             end = stop;
             for soil in start..stop {
-                world.initial.insert((0, 63, 0), soil);
+                world
+                    .initial
+                    .insert((0, 63, 0), registry_26_1::target_state(soil));
                 let result = bcore_worldgen::block_predicate::would_survive(
                     &world,
                     state,
@@ -450,16 +470,13 @@ fn native_survival_of_six_new_plants_on_every_block_state_and_hanging_vines() {
                 assert_eq!(result, expected != 0, "native plant {state} on {soil}");
             }
         }
-        assert_eq!(
-            end,
-            catalog().documents["state_count"].as_u64().unwrap() as u32
-        );
+        assert_eq!(end, registry_26_1::historical_assets().blocks.len() as u32);
     }
     for sample in data["vine_survival"].as_array().unwrap() {
         let world = World::new(sample);
         let result = bcore_worldgen::block_predicate::would_survive(
             &world,
-            sample["state"].as_u64().unwrap() as u32,
+            registry_26_1::target_state(sample["state"].as_u64().unwrap() as u32),
             position(&sample["origin"]),
             &RegistryEnvironment,
         )

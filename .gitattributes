@@ -1,7 +1,21 @@
 # Native probe sources are byte-hashed by the reference fixtures.
 # Keep checkout bytes stable on Windows and Linux without changing git config.
+.gitattributes text eol=lf
 *.java text eol=lf
 *.py text eol=lf
 *.rs text eol=lf
+*.lock text eol=lf
 *.json text eol=lf
 *.zip binary
+
+# Native reference bytes and their SHA-256 receipts must survive checkout intact.
+# Recognize captured CRLF while retaining the default whitespace checks.
+[attr]native-fixture -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+crates/bcore-registry/data/**/*.json native-fixture
+crates/bcore-protocol/data/*_26_2.json native-fixture
+crates/bcore-worldgen/data/*_26_2.json native-fixture
+crates/bcore-worldgen/data/aquifer_bound_26_1.json native-fixture
+crates/bcore-worldgen/data/density_sharing_26_1.json native-fixture
+crates/bcore-worldgen/data/loot_26_1/**/*.json native-fixture
+crates/bcore-worldgen/data/loot_26_2/**/*.json native-fixture
+crates/bcore-worldgen/tests/data/**/*.json native-fixture

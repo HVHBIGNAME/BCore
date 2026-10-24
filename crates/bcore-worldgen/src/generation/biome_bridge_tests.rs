@@ -1,7 +1,7 @@
 use super::{catalog, place_named, GenerationEnvironment, Outcome};
 use crate::block_predicate::{FeatureEnvironment, RegistryEnvironment};
 use crate::dripstone::CaveRandomState;
-use crate::feature_sorter::{sorter, POSSIBLE_BIOMES};
+use crate::feature_sorter::{possible_biomes, sorter};
 use crate::feature_world::FeatureError;
 use crate::generation::graph::{layer_positions, ChunkPyramid, ChunkStatus};
 use crate::region::FeatureRegion;
@@ -10,22 +10,16 @@ use crate::{block, ChunkPos, WorldGenerator};
 use std::collections::BTreeSet;
 
 #[test]
-fn all_overworld_feature_memberships_bridge_by_resource_identity() {
+fn all_overworld_feature_memberships_use_shared_resource_identity() {
     let documents = &catalog().documents;
     let native_ids = documents["biome_ids"].as_object().unwrap();
     let placed = documents["placed_feature"].as_object().unwrap();
-    let wire = crate::assets::load("biome_registry.json").unwrap();
-    assert_eq!(native_ids.len(), 65);
-    assert_eq!(wire.as_array().unwrap().len(), 66);
-    let mut shifted = Vec::new();
-    let (mut checked, mut false_rejections, mut false_admissions) = (0, 0, 0);
-    for biome in POSSIBLE_BIOMES {
+    assert_eq!(native_ids.len(), bcore_registry::BIOME_COUNT);
+    for biome in possible_biomes() {
         let name = format!("minecraft:{biome}");
         let wire = crate::biome::id(&name).unwrap();
         let native = native_ids[&name].as_u64().unwrap() as u32;
-        if wire != native {
-            shifted.push(format!("{biome}: {wire}->{native}"));
-        }
+        assert_eq!(wire, native, "shared biome identity {name}");
         let expected: BTreeSet<_> = documents["biome"][&name]["features"]
             .as_array()
             .unwrap()
@@ -49,20 +43,8 @@ fn all_overworld_feature_memberships_bridge_by_resource_identity() {
                 admitted,
                 "standalone native identity must remain valid: {name}, {feature}"
             );
-            if let Ok(unbridged) = RegistryEnvironment.biome_has_feature(wire, feature) {
-                false_rejections += usize::from(admitted && !unbridged);
-                false_admissions += usize::from(!admitted && unbridged);
-            }
-            checked += 1;
         }
     }
-    assert!(!shifted.is_empty());
-    assert!(false_rejections > 0 && false_admissions > 0);
-    println!(
-        "Biome bridge: {} possible biomes, {} placed definitions, {checked} membership checks, {} shifted overworld IDs; old numeric path falsely rejected {false_rejections} and admitted {false_admissions} memberships",
-        POSSIBLE_BIOMES.len(), placed.len(), shifted.len()
-    );
-    println!("Shifted identities: {}", shifted.join(", "));
 }
 
 fn flooded_region(biome: &str) -> FeatureRegion {
@@ -88,15 +70,15 @@ fn flooded_region(biome: &str) -> FeatureRegion {
 }
 
 #[test]
-fn named_seagrass_stream_uses_shifted_swamp_identity_in_the_live_region() {
+fn named_seagrass_stream_uses_shared_swamp_identity_in_the_live_region() {
     let name = "seagrass_swamp";
     let wire = crate::biome::id("swamp").unwrap();
     let native = catalog().documents["biome_ids"]["minecraft:swamp"]
         .as_u64()
         .unwrap() as u32;
-    assert_ne!(wire, native);
+    assert_eq!(wire, native);
     assert!(RegistryEnvironment.biome_has_feature(native, name).unwrap());
-    assert!(!RegistryEnvironment.biome_has_feature(wire, name).unwrap());
+    assert!(RegistryEnvironment.biome_has_feature(wire, name).unwrap());
     for (biome, expected) in [("swamp", true), ("taiga", false)] {
         let mut region = flooded_region(biome);
         let mut random = WorldgenRandom::new(1234);
@@ -127,23 +109,10 @@ fn named_seagrass_stream_uses_shifted_swamp_identity_in_the_live_region() {
 }
 
 #[test]
-fn unmapped_biomes_remain_errors_and_fresh_environment_uses_native_observations() {
+fn invalid_biomes_remain_errors_and_fresh_environment_uses_native_observations() {
     let native = catalog().documents["biome_ids"].as_object().unwrap();
-    let wire = crate::assets::load("biome_registry.json").unwrap();
-    let extra: Vec<_> = wire
-        .as_array()
-        .unwrap()
-        .iter()
-        .enumerate()
-        .filter(|(_, name)| !native.contains_key(name.as_str().unwrap()))
-        .collect();
-    assert_eq!(extra.len(), 1);
-    for (id, name) in extra {
-        assert!(matches!(
-            GenerationEnvironment.biome_has_feature(id as u32, "seagrass_swamp"),
-            Err(FeatureError::MissingData(_))
-        ));
-        println!("Unmapped biome remains explicit: {name}, wire ID {id}");
+    for entry in &bcore_registry::vanilla().registries["BIOME"] {
+        assert_eq!(native[&entry.key].as_u64(), Some(u64::from(entry.id)));
     }
     assert!(matches!(
         GenerationEnvironment.biome_has_feature(u32::MAX, "seagrass_swamp"),

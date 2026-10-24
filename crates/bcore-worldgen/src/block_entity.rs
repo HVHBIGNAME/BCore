@@ -1,7 +1,9 @@
 //! Generated block-entity data, before gameplay or loot unpacking.
 use serde_json::{json, Value};
 
+mod chest;
 mod pending;
+pub use chest::ChestInventory;
 pub(crate) use pending::has_block_entity;
 pub use pending::{MaterializedBlockEntity, PendingBlockEntity};
 
@@ -42,9 +44,9 @@ pub enum BlockEntity {
 impl BlockEntity {
     pub fn type_id(&self) -> u32 {
         match self {
-            Self::DungeonChest { .. } => 1,
-            Self::Spawner { .. } => 9,
-            Self::Beehive { .. } => 34,
+            Self::DungeonChest { .. } => bcore_registry::block_entity_type::CHEST,
+            Self::Spawner { .. } => bcore_registry::block_entity_type::MOB_SPAWNER,
+            Self::Beehive { .. } => bcore_registry::block_entity_type::BEEHIVE,
         }
     }
 
@@ -52,7 +54,10 @@ impl BlockEntity {
         match self {
             Self::DungeonChest { .. } => crate::dungeon::state_flags(state) & 16 != 0,
             Self::Spawner { .. } => crate::dungeon::state_flags(state) & 32 != 0,
-            Self::Beehive { .. } => (21768..21816).contains(&state),
+            Self::Beehive { .. } => matches!(
+                bcore_registry::block_state_name(state),
+                Some("minecraft:bee_nest" | "minecraft:beehive")
+            ),
         }
     }
 

@@ -1,3 +1,5 @@
+//! Historical 26.1 packet bytes and current shared-registry entity factories.
+
 use bcore_core::varint::decode_varint;
 use bcore_protocol::entity::{
     encode_entity_metadata, encode_entity_teleport, encode_remove_entities, encode_spawn_entity,
@@ -79,6 +81,14 @@ fn entity_packets_match_native_26_1_game_codec() {
         assert_eq!(packet_id as i64, sample["packet_id"].as_i64().unwrap());
     }
     let types = &fixture["entity_types"];
+    assert_eq!(types["item"], 71);
+    assert_eq!(types["cow"], 30);
+    assert_eq!(types["zombie"], 150);
+    assert_eq!(types["chest_minecart"], 25);
+}
+
+#[test]
+fn entity_factories_use_the_shared_26_2_registry() {
     assert_eq!(
         ItemEntity::new(
             1,
@@ -89,14 +99,14 @@ fn entity_packets_match_native_26_1_game_codec() {
             }
         )
         .entity_type as i64,
-        types["item"].as_i64().unwrap()
+        i64::from(bcore_registry::registry_id("ENTITY_TYPE", "minecraft:item").unwrap())
     );
     assert_eq!(
         MobKind::Cow.entity_type() as i64,
-        types["cow"].as_i64().unwrap()
+        i64::from(bcore_registry::registry_id("ENTITY_TYPE", "minecraft:cow").unwrap())
     );
     assert_eq!(
         MobKind::Zombie.entity_type() as i64,
-        types["zombie"].as_i64().unwrap()
+        i64::from(bcore_registry::registry_id("ENTITY_TYPE", "minecraft:zombie").unwrap())
     );
 }

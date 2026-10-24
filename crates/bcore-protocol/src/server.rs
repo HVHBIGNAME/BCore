@@ -5,7 +5,9 @@
 //! in `/list`. The accept loop stops once `/stop` has flagged a shutdown.
 
 use std::io::{Cursor, Write};
-use std::net::{TcpListener, TcpStream};
+use std::net::{Shutdown, TcpListener, TcpStream};
+use std::thread::JoinHandle;
+use std::time::Duration;
 
 use bcore_core::version::{IMPLEMENTATION_NAME, MC_VERSION, PROTOCOL_VERSION};
 
@@ -16,22 +18,38 @@ use crate::status::{
     StatusResponse, StatusVersion,
 };
 
-/// Run the accept loop until `/stop` is issued (or the process exits).
+/// Run an isolated in-memory server until shutdown.
 pub fn run(listener: TcpListener) {
     run_with_state(listener, new_shared_server());
 }
 
-/// Run the accept loop against an existing shared state.
+/// Validate the world's store, then run connection and tick workers until shutdown.
 ///
 /// Exposed so tests (and future embedders) can inspect the player registry the
-/// connections share.
+/// connections share. Stdin ownership belongs to the executable/embedding caller.
 pub fn run_with_state(listener: TcpListener, server: SharedServer) {
+    if let Err(error) = server.world().prepare_store() {
+        eprintln!("[{IMPLEMENTATION_NAME}] world admission failed: {error}");
+        server.request_shutdown();
+        return;
+    }
     let _tick_state = crate::tick::start(SharedServer::clone(&server));
-    crate::console::start(SharedServer::clone(&server));
     listener
         .set_nonblocking(true)
         .expect("configure listener as nonblocking");
+    let mut connections: Vec<(TcpStream, JoinHandle<()>)> = Vec::new();
     while !server.is_shutting_down() {
+        let mut index = 0;
+        while index < connections.len() {
+            if connections[index].1.is_finished() {
+                let (_, worker) = connections.swap_remove(index);
+                if worker.join().is_err() {
+                    eprintln!("connection worker panicked");
+                }
+            } else {
+                index += 1;
+            }
+        }
         let incoming = match listener.accept() {
             Ok((stream, _)) => {
                 if let Err(e) = stream.set_nonblocking(false) {
@@ -52,26 +70,56 @@ pub fn run_with_state(listener: TcpListener, server: SharedServer) {
         }
         match incoming {
             Ok(stream) => {
+                let shutdown_stream = match stream.try_clone() {
+                    Ok(clone) => clone,
+                    Err(error) => {
+                        eprintln!("cannot retain connection shutdown handle: {error}");
+                        continue;
+                    }
+                };
                 let server = SharedServer::clone(&server);
-                std::thread::spawn(move || {
+                let worker = std::thread::spawn(move || {
                     let _ = stream.set_nodelay(true);
                     if let Err(e) = handle_connection(stream, &server) {
                         eprintln!("connection error: {e}");
                     }
                 });
+                connections.push((shutdown_stream, worker));
             }
             Err(e) => eprintln!("accept error: {e}"),
+        }
+    }
+    for (stream, _) in &connections {
+        if let Err(error) = stream.shutdown(Shutdown::Both) {
+            if error.kind() != std::io::ErrorKind::NotConnected {
+                eprintln!("connection shutdown error: {error}");
+            }
+        }
+    }
+    for (_, worker) in connections {
+        if worker.join().is_err() {
+            eprintln!("connection worker panicked during shutdown");
         }
     }
 }
 
 fn handle_connection(mut stream: TcpStream, server: &SharedServer) -> Result<(), PacketError> {
+    stream.set_read_timeout(Some(Duration::from_secs(10)))?;
+    stream.set_write_timeout(Some(Duration::from_secs(10)))?;
     let (packet_id, data) = read_frame(&mut stream)?;
     if packet_id != 0x00 {
         return Err(PacketError::UnexpectedPacket(packet_id));
     }
     let mut cursor = Cursor::new(data);
     let handshake = read_handshake(&mut cursor)?;
+    if cursor.position() != cursor.get_ref().len() as u64 {
+        return Err(PacketError::Malformed("trailing handshake payload"));
+    }
+    if handshake.server_address.len() > 255 * 3
+        || handshake.server_address.encode_utf16().count() > 255
+    {
+        return Err(PacketError::TooLarge(handshake.server_address.len()));
+    }
     eprintln!(
         "[BCore] handshake: protocol={}, state={:?}",
         handshake.protocol_version, handshake.next_state
@@ -79,6 +127,13 @@ fn handle_connection(mut stream: TcpStream, server: &SharedServer) -> Result<(),
 
     match handshake.next_state {
         NextState::Status => handle_status(&mut stream, server),
+        NextState::Login if handshake.protocol_version != PROTOCOL_VERSION => {
+            stream.write_all(&crate::login::encode_login_disconnect(&format!(
+                "This server requires Minecraft {MC_VERSION} (protocol {PROTOCOL_VERSION}); received protocol {}",
+                handshake.protocol_version
+            )))?;
+            Ok(())
+        }
         NextState::Login => handle_login(&mut stream, server),
     }
 }
@@ -88,6 +143,9 @@ fn handle_status(stream: &mut TcpStream, server: &SharedServer) -> Result<(), Pa
         let (packet_id, data) = read_frame(stream)?;
         match packet_id {
             0x00 => {
+                if !data.is_empty() {
+                    return Err(PacketError::Malformed("status request must be empty"));
+                }
                 let response = StatusResponse {
                     version: StatusVersion {
                         name: MC_VERSION,

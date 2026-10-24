@@ -1,11 +1,104 @@
 use super::{
     blocks,
     extra_data::{self, chance, default_state, number, with_property, Provider},
-    relative, Placement, Pos, StandingTreeWorld, TreeRandom, UnsupportedShape,
+    relative, Placement, Pos, StandingTreeWorld, TreeError, TreeRandom,
 };
+use crate::block_predicate::{array, invalid, kind, string, FeatureResult};
+use crate::feature_world::FeatureError;
 use crate::heightmap::is_air;
 use serde_json::Value;
 use std::collections::BTreeSet;
+
+pub(crate) enum Decorator {
+    Beehive(f32),
+    TrunkVine,
+    LeafVine(f32),
+    Cocoa(f32),
+    AlterGround(Provider),
+    PlaceOnGround {
+        radius: i32,
+        height: i32,
+        tries: i32,
+        provider: Provider,
+    },
+    AttachedToLeaves {
+        directions: Vec<usize>,
+        probability: f32,
+        required_empty: i32,
+        exclusion_xz: i32,
+        exclusion_y: i32,
+        provider: Provider,
+    },
+    PaleMoss {
+        ground: f32,
+        trunk: f32,
+        leaves: f32,
+    },
+    CreakingHeart(f32),
+}
+
+impl Decorator {
+    pub(crate) fn parse(value: &Value) -> FeatureResult<Self> {
+        Ok(match kind(value)? {
+            "beehive" => Self::Beehive(chance(&value["probability"])?),
+            "trunk_vine" => Self::TrunkVine,
+            "leave_vine" => Self::LeafVine(chance(&value["probability"])?),
+            "cocoa" => Self::Cocoa(chance(&value["probability"])?),
+            "alter_ground" => Self::AlterGround(Provider::parse(&value["provider"])?),
+            "place_on_ground" => {
+                let field = |name: &str, default: i32, minimum: i32| -> FeatureResult<i32> {
+                    let result = value.get(name).map(number).transpose()?.unwrap_or(default);
+                    if result < minimum {
+                        return Err(invalid(format!("place-on-ground {name} below {minimum}")));
+                    }
+                    Ok(result)
+                };
+                Self::PlaceOnGround {
+                    radius: field("radius", 2, 0)?,
+                    height: field("height", 1, 0)?,
+                    tries: field("tries", 128, 1)?,
+                    provider: Provider::parse(&value["block_state_provider"])?,
+                }
+            }
+            "attached_to_leaves" => {
+                let directions = array(&value["directions"])?
+                    .iter()
+                    .map(|v| {
+                        Ok(match string(v)? {
+                            "down" => 0,
+                            "up" => 1,
+                            "north" => 2,
+                            "south" => 3,
+                            "west" => 4,
+                            "east" => 5,
+                            other => {
+                                return Err(invalid(format!("tree attachment direction {other}")))
+                            }
+                        })
+                    })
+                    .collect::<FeatureResult<Vec<_>>>()?;
+                if directions.is_empty() {
+                    return Err(invalid("empty tree attachment directions"));
+                }
+                Self::AttachedToLeaves {
+                    directions,
+                    probability: chance(&value["probability"])?,
+                    required_empty: number(&value["required_empty_blocks"])?,
+                    exclusion_xz: number(&value["exclusion_radius_xz"])?,
+                    exclusion_y: number(&value["exclusion_radius_y"])?,
+                    provider: Provider::parse(&value["block_provider"])?,
+                }
+            }
+            "pale_moss" => Self::PaleMoss {
+                ground: chance(&value["ground_probability"])?,
+                trunk: chance(&value["trunk_probability"])?,
+                leaves: chance(&value["leaves_probability"])?,
+            },
+            "creaking_heart" => Self::CreakingHeart(chance(&value["probability"])?),
+            other => return Err(FeatureError::Unsupported(format!("tree decorator {other}"))),
+        })
+    }
+}
 
 fn shuffled<R: TreeRandom + ?Sized>(mut positions: Vec<Pos>, r: &mut R) -> Vec<Pos> {
     for size in (2..=positions.len()).rev() {
@@ -28,13 +121,13 @@ fn lowest<W: StandingTreeWorld + ?Sized>(p: &Placement<'_, W>) -> Vec<Pos> {
 pub(super) fn place<W: StandingTreeWorld + ?Sized, R: TreeRandom + ?Sized>(
     p: &mut Placement<'_, W>,
     r: &mut R,
-    decorators: &[Value],
-) -> Result<(), UnsupportedShape> {
+    decorators: &[Decorator],
+) -> Result<(), TreeError> {
     for d in decorators {
-        match d["type"].as_str().expect("tree decorator") {
-            "minecraft:beehive" => p.beehive(r, chance(&d["probability"])),
-            "minecraft:trunk_vine" | "minecraft:leave_vine" => {
-                let trunk = d["type"] == "minecraft:trunk_vine";
+        match d {
+            Decorator::Beehive(probability) => p.beehive(r, *probability),
+            Decorator::TrunkVine | Decorator::LeafVine(_) => {
+                let trunk = matches!(d, Decorator::TrunkVine);
                 let positions = if trunk {
                     p.logs.sorted_y()
                 } else {
@@ -47,7 +140,11 @@ pub(super) fn place<W: StandingTreeWorld + ?Sized, R: TreeRandom + ?Sized>(
                         let selected = if trunk {
                             r.next_i32_bounded(3) > 0
                         } else {
-                            r.next_f32() < chance(&d["probability"])
+                            r.next_f32()
+                                < match d {
+                                    Decorator::LeafVine(chance) => *chance,
+                                    _ => unreachable!(),
+                                }
                         };
                         let mut at = relative(pos, direction);
                         if selected && is_air(p.world.get_block(at)) {
@@ -67,8 +164,8 @@ pub(super) fn place<W: StandingTreeWorld + ?Sized, R: TreeRandom + ?Sized>(
                     }
                 }
             }
-            "minecraft:cocoa" => {
-                if r.next_f32() >= chance(&d["probability"]) {
+            Decorator::Cocoa(probability) => {
+                if r.next_f32() >= *probability {
                     continue;
                 }
                 let logs = p.logs.sorted_y();
@@ -95,26 +192,30 @@ pub(super) fn place<W: StandingTreeWorld + ?Sized, R: TreeRandom + ?Sized>(
                     }
                 }
             }
-            "minecraft:alter_ground" => {
+            Decorator::AlterGround(provider) => {
                 let positions = lowest(p);
                 let Some(first) = positions.first() else {
                     continue;
                 };
-                let provider = Provider::parse(&d["provider"]);
                 for &pos in positions.iter().filter(|pos| pos.1 == first.1) {
                     for (x, z) in [(-1, -1), (2, -1), (-1, 2), (2, 2)] {
-                        ground_circle(p, r, &provider, (pos.0 + x, pos.1, pos.2 + z));
+                        ground_circle(p, r, provider, (pos.0 + x, pos.1, pos.2 + z))?;
                     }
                     for _ in 0..5 {
                         let index = r.next_i32_bounded(64);
                         let (x, z) = (index % 8, index / 8);
                         if x == 0 || x == 7 || z == 0 || z == 7 {
-                            ground_circle(p, r, &provider, (pos.0 - 3 + x, pos.1, pos.2 - 3 + z));
+                            ground_circle(p, r, provider, (pos.0 - 3 + x, pos.1, pos.2 - 3 + z))?;
                         }
                     }
                 }
             }
-            "minecraft:place_on_ground" => {
+            Decorator::PlaceOnGround {
+                radius,
+                height,
+                tries,
+                provider,
+            } => {
                 let positions = lowest(p);
                 let Some(&first) = positions.first() else {
                     continue;
@@ -126,51 +227,41 @@ pub(super) fn place<W: StandingTreeWorld + ?Sized, R: TreeRandom + ?Sized>(
                     z0 = z0.min(z);
                     z1 = z1.max(z);
                 }
-                let radius = number(&d["radius"]);
-                let height = number(&d["height"]);
-                let provider = Provider::parse(&d["block_state_provider"]);
-                for _ in 0..number(&d["tries"]) {
+                for _ in 0..*tries {
                     let x = x0 - radius + r.next_i32_bounded(x1 - x0 + 2 * radius + 1);
                     let y = first.1 - height + r.next_i32_bounded(2 * height + 1);
                     let z = z0 - radius + r.next_i32_bounded(z1 - z0 + 2 * radius + 1);
                     let above = p.world.get_block((x, y + 1, z));
-                    if (is_air(above) || (8358..=8389).contains(&above))
+                    if (is_air(above)
+                        || crate::block_predicate::catalog().is_block(above, "vine")?)
                         && blocks::get(p.world.get_block((x, y, z))).flags & 1 != 0
                         && p.world.motion_no_leaves_height(x, z) <= y + 1
                     {
                         let at = (x, y + 1, z);
-                        let state = provider.sample(p.world, r, at).expect("ground provider");
+                        let state = provider.sample_required(p.world, r, at)?;
                         p.decorate(at, state);
                     }
                 }
             }
-            "minecraft:attached_to_leaves" => {
+            Decorator::AttachedToLeaves {
+                directions,
+                probability,
+                required_empty,
+                exclusion_xz,
+                exclusion_y,
+                provider,
+            } => {
                 let mut excluded = BTreeSet::new();
-                let directions: Vec<_> = d["directions"]
-                    .as_array()
-                    .expect("attachment directions")
-                    .iter()
-                    .map(|v| match v.as_str().expect("direction") {
-                        "down" => 0,
-                        "up" => 1,
-                        "north" => 2,
-                        "south" => 3,
-                        "west" => 4,
-                        "east" => 5,
-                        _ => unreachable!(),
-                    })
-                    .collect();
-                let provider = Provider::parse(&d["block_provider"]);
                 for leaf in shuffled(p.leaves.sorted_y(), r) {
                     let direction =
                         directions[r.next_i32_bounded(directions.len() as i32) as usize];
                     let at = relative(leaf, direction);
-                    if excluded.contains(&at) || r.next_f32() >= chance(&d["probability"]) {
+                    if excluded.contains(&at) || r.next_f32() >= *probability {
                         continue;
                     }
                     let mut cursor = leaf;
                     let mut clear = true;
-                    for _ in 0..number(&d["required_empty_blocks"]) {
+                    for _ in 0..*required_empty {
                         cursor = relative(cursor, direction);
                         if !is_air(p.world.get_block(cursor)) {
                             clear = false;
@@ -180,8 +271,8 @@ pub(super) fn place<W: StandingTreeWorld + ?Sized, R: TreeRandom + ?Sized>(
                     if !clear {
                         continue;
                     }
-                    let xz = number(&d["exclusion_radius_xz"]);
-                    let y = number(&d["exclusion_radius_y"]);
+                    let xz = *exclusion_xz;
+                    let y = *exclusion_y;
                     for x in at.0 - xz..=at.0 + xz {
                         for yy in at.1 - y..=at.1 + y {
                             for z in at.2 - xz..=at.2 + xz {
@@ -189,26 +280,29 @@ pub(super) fn place<W: StandingTreeWorld + ?Sized, R: TreeRandom + ?Sized>(
                             }
                         }
                     }
-                    let state = provider.sample(p.world, r, at).expect("attached provider");
+                    let state = provider.sample_required(p.world, r, at)?;
                     p.decorate(at, state);
                 }
             }
-            "minecraft:pale_moss" => {
+            Decorator::PaleMoss {
+                ground,
+                trunk,
+                leaves,
+            } => {
                 let logs = shuffled(p.logs.sorted_y(), r);
                 let Some(&origin) = logs.iter().min_by_key(|pos| pos.1) else {
                     continue;
                 };
-                if r.next_f32() < chance(&d["ground_probability"]) {
+                if r.next_f32() < *ground {
                     p.world.place_tree_subfeature(
                         r,
                         "pale_moss_patch",
                         (origin.0, origin.1 + 1, origin.2),
                     )?;
                 }
-                for (positions, probability) in [
-                    (p.logs.sorted_y(), chance(&d["trunk_probability"])),
-                    (p.leaves.sorted_y(), chance(&d["leaves_probability"])),
-                ] {
+                for (positions, probability) in
+                    [(p.logs.sorted_y(), *trunk), (p.leaves.sorted_y(), *leaves)]
+                {
                     for pos in positions {
                         if r.next_f32() < probability {
                             let mut at = relative(pos, 0);
@@ -239,9 +333,9 @@ pub(super) fn place<W: StandingTreeWorld + ?Sized, R: TreeRandom + ?Sized>(
                     }
                 }
             }
-            "minecraft:creaking_heart" => {
+            Decorator::CreakingHeart(probability) => {
                 let logs = p.logs.sorted_y();
-                if logs.is_empty() || r.next_f32() >= chance(&d["probability"]) {
+                if logs.is_empty() || r.next_f32() >= *probability {
                     continue;
                 }
                 if let Some(pos) = shuffled(logs, r).into_iter().find(|&pos| {
@@ -262,7 +356,6 @@ pub(super) fn place<W: StandingTreeWorld + ?Sized, R: TreeRandom + ?Sized>(
                     p.world.set_creaking_heart(pos, state)?;
                 }
             }
-            kind => panic!("unsupported native tree decorator {kind}"),
         }
     }
     Ok(())
@@ -273,7 +366,7 @@ fn ground_circle<W: StandingTreeWorld + ?Sized, R: TreeRandom + ?Sized>(
     r: &mut R,
     provider: &Provider,
     origin: Pos,
-) {
+) -> FeatureResult<()> {
     for x in -2_i32..=2 {
         for z in -2_i32..=2 {
             if x.abs() == 2 && z.abs() == 2 {
@@ -281,7 +374,7 @@ fn ground_circle<W: StandingTreeWorld + ?Sized, R: TreeRandom + ?Sized>(
             }
             for dy in (-3..=2).rev() {
                 let pos = (origin.0 + x, origin.1 + dy, origin.2 + z);
-                if let Some(state) = provider.sample(p.world, r, pos) {
+                if let Some(state) = provider.sample(p.world, r, pos)? {
                     p.decorate(pos, state);
                     break;
                 }
@@ -291,4 +384,5 @@ fn ground_circle<W: StandingTreeWorld + ?Sized, R: TreeRandom + ?Sized>(
             }
         }
     }
+    Ok(())
 }

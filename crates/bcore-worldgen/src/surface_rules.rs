@@ -29,6 +29,7 @@ pub enum SurfaceRule {
     Block(BlockState),
     Bandlands,
     Empty,
+    Unsupported(String),
 }
 #[derive(Clone, Debug)]
 pub enum SurfaceCondition {
@@ -64,7 +65,7 @@ pub enum SurfaceCondition {
         min: f64,
         max: f64,
     },
-    Unsupported,
+    Unsupported(String),
 }
 
 impl SurfaceRule {
@@ -72,14 +73,16 @@ impl SurfaceRule {
         let Some(typ) = value.get("type").and_then(Value::as_str) else {
             return Self::Empty;
         };
-        let typ = typ.rsplit(':').next().unwrap_or(typ);
+        let typ = typ.strip_prefix("minecraft:").unwrap_or(typ);
         match typ {
             "sequence" => Self::Sequence(
                 value
                     .get("sequence")
                     .and_then(Value::as_array)
-                    .map(|a| a.iter().map(Self::parse).collect())
-                    .unwrap_or_default(),
+                    .expect("surface rule sequence")
+                    .iter()
+                    .map(Self::parse)
+                    .collect(),
             ),
             "condition" => match (value.get("if_true"), value.get("then_run")) {
                 (Some(c), Some(r)) => Self::Condition(parse_condition(c), Box::new(Self::parse(r))),
@@ -87,12 +90,36 @@ impl SurfaceRule {
             },
             "block" => Self::Block(block_id(value.get("result_state"))),
             "bandlands" => Self::Bandlands,
-            _ => Self::Empty,
+            _ => Self::Unsupported(typ.to_owned()),
         }
     }
     pub fn from_json_str(s: &str) -> Result<Self, serde_json::Error> {
         Ok(Self::parse(&serde_json::from_str(s)?))
     }
+
+    pub fn check_supported(&self) -> crate::block_predicate::FeatureResult<()> {
+        use crate::block_predicate::invalid;
+        use crate::feature_world::FeatureError;
+
+        match self {
+            Self::Sequence(rules) => {
+                for rule in rules {
+                    rule.check_supported()?;
+                }
+                Ok(())
+            }
+            Self::Condition(condition, rule) => {
+                condition.check_supported()?;
+                rule.check_supported()
+            }
+            Self::Unsupported(name) => {
+                Err(FeatureError::Unsupported(format!("surface rule {name}")))
+            }
+            Self::Empty => Err(invalid("missing surface rule")),
+            _ => Ok(()),
+        }
+    }
+
     pub fn evaluate(&self, c: &SurfaceContext<'_>) -> Option<BlockState> {
         self.evaluate_with_steep(c, &mut || false)
     }
@@ -119,11 +146,25 @@ impl SurfaceRule {
             Self::Condition(cond, rule) if cond.test_with_steep(c, steep) => {
                 rule.evaluate_with_steep(c, steep)
             }
+            Self::Unsupported(name) => panic!("unsupported surface rule {name}"),
             _ => None,
         }
     }
 }
 impl SurfaceCondition {
+    fn check_supported(&self) -> crate::block_predicate::FeatureResult<()> {
+        match self {
+            Self::Not(condition) => condition.check_supported(),
+            Self::Unsupported(name) => Err(crate::feature_world::FeatureError::Unsupported(
+                format!("surface condition {name}"),
+            )),
+            Self::Biome(ids) if ids.contains(&u32::MAX) => {
+                Err(crate::block_predicate::invalid("unknown surface biome"))
+            }
+            _ => Ok(()),
+        }
+    }
+
     pub fn test(&self, c: &SurfaceContext<'_>) -> bool {
         self.test_with_steep(c, &mut || false)
     }
@@ -211,15 +252,15 @@ impl SurfaceCondition {
                     v >= *min && v <= *max
                 })
                 .unwrap_or(false),
-            Self::Unsupported => false,
+            Self::Unsupported(name) => panic!("unsupported surface condition {name}"),
         }
     }
 }
 fn parse_condition(v: &Value) -> SurfaceCondition {
     let Some(typ) = v.get("type").and_then(Value::as_str) else {
-        return SurfaceCondition::Unsupported;
+        return SurfaceCondition::Unsupported("missing condition type".into());
     };
-    let typ = typ.rsplit(':').next().unwrap_or(typ);
+    let typ = typ.strip_prefix("minecraft:").unwrap_or(typ);
     match typ {
         "biome" => SurfaceCondition::Biome(v.get("biome_is").map(parse_biomes).unwrap_or_default()),
         "stone_depth" => SurfaceCondition::StoneDepth {
@@ -249,9 +290,9 @@ fn parse_condition(v: &Value) -> SurfaceCondition {
             add_stone_depth: boolv(v, "add_stone_depth", false),
         },
         "not" => SurfaceCondition::Not(Box::new(
-            v.get("invert")
-                .map(parse_condition)
-                .unwrap_or(SurfaceCondition::Unsupported),
+            v.get("invert").map(parse_condition).unwrap_or_else(|| {
+                SurfaceCondition::Unsupported("missing inverted condition".into())
+            }),
         )),
         "hole" => SurfaceCondition::Hole,
         "steep" => SurfaceCondition::Steep,
@@ -261,7 +302,7 @@ fn parse_condition(v: &Value) -> SurfaceCondition {
             min: f64v(v, "min_threshold", f64::MIN),
             max: f64v(v, "max_threshold", f64::MAX),
         },
-        _ => SurfaceCondition::Unsupported,
+        _ => SurfaceCondition::Unsupported(typ.to_owned()),
     }
 }
 fn parse_biomes(v: &Value) -> Vec<BiomeId> {
@@ -275,73 +316,9 @@ fn biome_id(s: &str) -> BiomeId {
     crate::biome::id(s).unwrap_or(u32::MAX)
 }
 fn block_id(v: Option<&Value>) -> BlockState {
-    let n = v
-        .and_then(|x| x.get("Name"))
-        .and_then(Value::as_str)
-        .unwrap_or("");
-    let properties = v.and_then(|v| v.get("Properties"));
-    let property = |name: &str| properties.and_then(|p| p.get(name)).and_then(Value::as_str);
-    match n.rsplit(':').next().unwrap_or(n) {
-        "air" => block::AIR,
-        "stone" => block::STONE,
-        "dirt" => block::DIRT,
-        "grass_block" => {
-            if property("snowy") == Some("true") {
-                8
-            } else {
-                block::GRASS_BLOCK
-            }
-        }
-        "coarse_dirt" => block::COARSE_DIRT,
-        "podzol" => {
-            if property("snowy") == Some("true") {
-                12
-            } else {
-                block::PODZOL
-            }
-        }
-        "bedrock" => block::BEDROCK,
-        "water" => {
-            block::WATER
-                + property("level")
-                    .map(|v| v.parse::<u32>().expect("water level"))
-                    .unwrap_or(0)
-        }
-        "lava" => {
-            block::LAVA
-                + property("level")
-                    .map(|v| v.parse::<u32>().expect("lava level"))
-                    .unwrap_or(0)
-        }
-        "sand" => block::SAND,
-        "gravel" => block::GRAVEL,
-        "sandstone" => block::SANDSTONE,
-        "snow_block" => block::SNOW_BLOCK,
-        "deepslate" => match property("axis") {
-            Some("x") => 27923,
-            Some("z") => 27925,
-            _ => block::DEEPSLATE,
-        },
-        "tuff" => block::TUFF,
-        "terracotta" => 12912,
-        "orange_terracotta" => 11445,
-        "white_terracotta" => 11444,
-        "red_sand" => 123,
-        "red_sandstone" => 13247,
-        "ice" => 6927,
-        "packed_ice" => 12914,
-        "powder_snow" => 24689,
-        "calcite" => 24687,
-        "mud" => 27922,
-        "mycelium" => {
-            if property("snowy") == Some("true") {
-                8918
-            } else {
-                8919
-            }
-        }
-        _ => panic!("unsupported surface block: {n}"),
-    }
+    crate::block_predicate::catalog()
+        .state(v.expect("surface block state"))
+        .expect("native surface block name and properties")
 }
 
 /// Native steepness is directional, with both neighbor coordinates clamped to this chunk.
@@ -392,16 +369,20 @@ fn clay_bands(seed: i64) -> [u32; 192] {
     let mut random = crate::noise_perlin::Xoroshiro::new(seed)
         .fork_positional()
         .from_hash_of("minecraft:clay_bands");
-    let mut bands = [12912; 192];
+    let mut bands = [block::TERRACOTTA; 192];
     let mut i = 0;
     while i < bands.len() {
         i += random.next_int(5) as usize + 1;
         if i < bands.len() {
-            bands[i] = 11445;
+            bands[i] = block::ORANGE_TERRACOTTA;
         }
         i += 1;
     }
-    for (min_width, state) in [(1, 11448), (2, 11456), (1, 11458)] {
+    for (min_width, state) in [
+        (1, block::YELLOW_TERRACOTTA),
+        (2, block::BROWN_TERRACOTTA),
+        (1, block::RED_TERRACOTTA),
+    ] {
         let count = random.next_int(10) + 6;
         for _ in 0..count {
             let width = min_width + random.next_int(3) as usize;
@@ -415,12 +396,12 @@ fn clay_bands(seed: i64) -> [u32; 192] {
         if start >= bands.len() {
             break;
         }
-        bands[start] = 11444;
+        bands[start] = block::WHITE_TERRACOTTA;
         if start > 1 && random.next_long() & 1 != 0 {
-            bands[start - 1] = 11452;
+            bands[start - 1] = block::LIGHT_GRAY_TERRACOTTA;
         }
         if start + 1 < bands.len() && random.next_long() & 1 != 0 {
-            bands[start + 1] = 11452;
+            bands[start + 1] = block::LIGHT_GRAY_TERRACOTTA;
         }
         start += random.next_int(16) as usize + 4;
     }
@@ -502,16 +483,23 @@ impl SurfaceContext<'_> {
             OnceLock::new();
         let climates = CLIMATES.get_or_init(|| {
             let climates: Value =
-                serde_json::from_str(include_str!("../data/surface_climates_26_1.json"))
+                serde_json::from_str(include_str!("../data/surface_climates_26_2.json"))
                     .expect("native surface climates");
-            climates
-                .as_object()
-                .unwrap()
-                .iter()
+            let rows = climates.as_object().expect("native climate map");
+            assert_eq!(rows.len(), bcore_registry::BIOME_COUNT);
+            rows.iter()
                 .map(|(name, row)| {
+                    assert!(
+                        crate::biome::id(name).is_some(),
+                        "unknown native climate {name}"
+                    );
                     let bits =
                         u32::from_str_radix(row[0].as_str().expect("native temperature bits"), 16)
                             .expect("hex temperature");
+                    assert!(
+                        f32::from_bits(bits).is_finite(),
+                        "non-finite native temperature"
+                    );
                     (
                         name.strip_prefix("minecraft:").unwrap().to_owned(),
                         (
@@ -610,7 +598,7 @@ mod tests {
         for sample in fixture["surface_metadata"]["palette"].as_array().unwrap() {
             let state = block_id(Some(&sample["spec"]));
             assert_eq!(
-                state as u64,
+                u64::from(crate::registry_26_1::historical_state(state)),
                 sample["state"].as_u64().unwrap(),
                 "{}",
                 sample["spec"]
@@ -627,34 +615,19 @@ mod tests {
             .filter(|s| s["op"] == "surface_bands")
         {
             assert_eq!(
-                serde_json::json!(clay_bands(sample["seed"].as_i64().unwrap()).as_slice()),
+                serde_json::json!(clay_bands(sample["seed"].as_i64().unwrap())
+                    .iter()
+                    .copied()
+                    .map(crate::registry_26_1::historical_state)
+                    .collect::<Vec<_>>()),
                 sample["states"],
                 "{}",
                 sample["id"]
             );
         }
-        fn condition(c: &SurfaceCondition) {
-            match c {
-                SurfaceCondition::Unsupported => panic!("unsupported native surface condition"),
-                SurfaceCondition::Not(c) => condition(c),
-                SurfaceCondition::Biome(ids) => assert!(!ids.contains(&u32::MAX)),
-                _ => (),
-            }
-        }
-        fn rule(r: &SurfaceRule) {
-            match r {
-                SurfaceRule::Empty => panic!("unsupported native surface rule"),
-                SurfaceRule::Sequence(rules) => rules.iter().for_each(rule),
-                SurfaceRule::Condition(c, r) => {
-                    condition(c);
-                    rule(r);
-                }
-                _ => (),
-            }
-        }
-        rule(&SurfaceRule::parse(
-            &fixture["surface_metadata"]["surface_rule"],
-        ));
+        SurfaceRule::parse(&fixture["surface_metadata"]["surface_rule"])
+            .check_supported()
+            .unwrap();
     }
 
     #[test]
@@ -676,5 +649,29 @@ mod tests {
             noise: None,
         };
         assert!(r.evaluate(&c).is_some());
+    }
+
+    #[test]
+    fn unsupported_surface_branches_remain_explicit_under_conditions_and_inversion() {
+        use crate::feature_world::FeatureError;
+        use serde_json::json;
+
+        let rule = SurfaceRule::parse(&json!({
+            "type": "minecraft:condition",
+            "if_true": {"type": "minecraft:biome", "biome_is": []},
+            "then_run": {"type": "probe:surface_rule"}
+        }));
+        assert!(
+            matches!(rule.check_supported(), Err(FeatureError::Unsupported(name))
+            if name.contains("probe:surface_rule"))
+        );
+        let condition = parse_condition(&json!({
+            "type": "minecraft:not",
+            "invert": {"type": "probe:surface_condition"}
+        }));
+        assert!(
+            matches!(condition.check_supported(), Err(FeatureError::Unsupported(name))
+            if name.contains("probe:surface_condition"))
+        );
     }
 }

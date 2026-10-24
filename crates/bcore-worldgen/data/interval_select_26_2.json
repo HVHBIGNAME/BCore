@@ -1,0 +1,4006 @@
+{
+  "codecs": [
+    {
+      "accepted": true,
+      "encoded": {
+        "functions": [
+          -0.0,
+          -2.0,
+          3.0,
+          4.0,
+          5.0
+        ],
+        "input": 0.0,
+        "thresholds": [
+          -1.0,
+          -0.0,
+          0.0,
+          1.0
+        ],
+        "type": "minecraft:interval_select"
+      },
+      "id": "valid",
+      "value_bits": "4010000000000000"
+    },
+    {
+      "accepted": true,
+      "encoded": {
+        "functions": [
+          1.0,
+          2.0,
+          3.0
+        ],
+        "input": 0.0,
+        "thresholds": [
+          0.0,
+          0.0
+        ],
+        "type": "minecraft:interval_select"
+      },
+      "id": "duplicate",
+      "value_bits": "4008000000000000"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"functions\":[1.0,2.0,3.0],\"input\":0.0,\"thresholds\":[0.0,-0.0],\"type\":\"minecraft:interval_select\"}; Second: Threshold values must be ordered from smallest to largest",
+      "id": "signed_zero_reverse"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"functions\":[1.0,2.0,3.0],\"input\":0.0,\"thresholds\":[1.0,-1.0],\"type\":\"minecraft:interval_select\"}; Second: Threshold values must be ordered from smallest to largest",
+      "id": "unsorted"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"functions\":[],\"input\":0.0,\"thresholds\":[],\"type\":\"minecraft:interval_select\"}; Second: List is too short: 0, expected range [2-2147483647]",
+      "id": "empty"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"functions\":[1.0],\"input\":0.0,\"thresholds\":[],\"type\":\"minecraft:interval_select\"}; Second: List is too short: 1, expected range [2-2147483647]",
+      "id": "singleton"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"functions\":[1.0,2.0],\"input\":0.0,\"thresholds\":[-1.0,-0.0,0.0,1.0],\"type\":\"minecraft:interval_select\"}; Second: Expected 1 thresholds for 2 functions, but got 4",
+      "id": "too_few"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"functions\":[1.0,2.0,3.0,4.0,5.0,6.0],\"input\":0.0,\"thresholds\":[-1.0,-0.0,0.0,1.0],\"type\":\"minecraft:interval_select\"}; Second: Expected 5 thresholds for 6 functions, but got 4",
+      "id": "too_many"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"functions\":[1.0,2.0],\"input\":0.0,\"thresholds\":[\"0\"],\"type\":\"minecraft:interval_select\"}; Second: Not a number: \"0\"; Expected 1 thresholds for 2 functions, but got 0",
+      "id": "threshold_string"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"functions\":[1.0,2.0],\"input\":0.0,\"thresholds\":[true],\"type\":\"minecraft:interval_select\"}; Second: Not a number: true; Expected 1 thresholds for 2 functions, but got 0",
+      "id": "threshold_bool"
+    },
+    {
+      "accepted": true,
+      "encoded": {
+        "functions": [
+          1.0,
+          2.0
+        ],
+        "input": 0.0,
+        "thresholds": [
+          -1000000.0
+        ],
+        "type": "minecraft:interval_select"
+      },
+      "id": "lower_limit",
+      "value_bits": "4000000000000000"
+    },
+    {
+      "accepted": true,
+      "encoded": {
+        "functions": [
+          1.0,
+          2.0
+        ],
+        "input": 0.0,
+        "thresholds": [
+          1000000.0
+        ],
+        "type": "minecraft:interval_select"
+      },
+      "id": "upper_limit",
+      "value_bits": "3ff0000000000000"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"functions\":[1.0,2.0],\"input\":0.0,\"thresholds\":[-1000000.0000000001],\"type\":\"minecraft:interval_select\"}; Second: Value -1000000.0000000001 outside of range [-1000000.0:1000000.0]; Expected 1 thresholds for 2 functions, but got 0",
+      "id": "below_limit"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"functions\":[1.0,2.0],\"input\":0.0,\"thresholds\":[1000000.0000000001],\"type\":\"minecraft:interval_select\"}; Second: Value 1000000.0000000001 outside of range [-1000000.0:1000000.0]; Expected 1 thresholds for 2 functions, but got 0",
+      "id": "above_limit"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"functions\":[1.0,2.0,3.0,4.0,{\"type\":\"minecraft:missing\"}],\"input\":0.0,\"thresholds\":[-1.0,-0.0,0.0,1.0],\"type\":\"minecraft:interval_select\"}; Second: Failed to parse either. First: Not a number: {\"type\":\"minecraft:missing\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:missing; Expected 3 thresholds for 4 functions, but got 4",
+      "id": "invalid_child"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"functions\":[-0.0,-2.0,3.0,4.0,5.0],\"thresholds\":[-1.0,-0.0,0.0,1.0],\"type\":\"minecraft:interval_select\"}; Second: No key input in MapLike[{\"functions\":[-0.0,-2.0,3.0,4.0,5.0],\"thresholds\":[-1.0,-0.0,0.0,1.0],\"type\":\"minecraft:interval_select\"}]",
+      "id": "missing_input"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"functions\":[-0.0,-2.0,3.0,4.0,5.0],\"input\":0.0,\"type\":\"minecraft:interval_select\"}; Second: No key thresholds in MapLike[{\"functions\":[-0.0,-2.0,3.0,4.0,5.0],\"input\":0.0,\"type\":\"minecraft:interval_select\"}]",
+      "id": "missing_thresholds"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.0,\"thresholds\":[-1.0,-0.0,0.0,1.0],\"type\":\"minecraft:interval_select\"}; Second: No key functions in MapLike[{\"input\":0.0,\"thresholds\":[-1.0,-0.0,0.0,1.0],\"type\":\"minecraft:interval_select\"}]",
+      "id": "missing_functions"
+    }
+  ],
+  "data_version": 4903,
+  "inputs": {
+    "codecs": [
+      {
+        "function": {
+          "functions": [
+            -0.0,
+            -2.0,
+            3.0,
+            4.0,
+            5.0
+          ],
+          "input": 0.0,
+          "thresholds": [
+            -1.0,
+            -0.0,
+            0.0,
+            1.0
+          ],
+          "type": "minecraft:interval_select"
+        },
+        "id": "valid"
+      },
+      {
+        "function": {
+          "functions": [
+            1.0,
+            2.0,
+            3.0
+          ],
+          "input": 0.0,
+          "thresholds": [
+            0.0,
+            0.0
+          ],
+          "type": "minecraft:interval_select"
+        },
+        "id": "duplicate"
+      },
+      {
+        "function": {
+          "functions": [
+            1.0,
+            2.0,
+            3.0
+          ],
+          "input": 0.0,
+          "thresholds": [
+            0.0,
+            -0.0
+          ],
+          "type": "minecraft:interval_select"
+        },
+        "id": "signed_zero_reverse"
+      },
+      {
+        "function": {
+          "functions": [
+            1.0,
+            2.0,
+            3.0
+          ],
+          "input": 0.0,
+          "thresholds": [
+            1.0,
+            -1.0
+          ],
+          "type": "minecraft:interval_select"
+        },
+        "id": "unsorted"
+      },
+      {
+        "function": {
+          "functions": [],
+          "input": 0.0,
+          "thresholds": [],
+          "type": "minecraft:interval_select"
+        },
+        "id": "empty"
+      },
+      {
+        "function": {
+          "functions": [
+            1.0
+          ],
+          "input": 0.0,
+          "thresholds": [],
+          "type": "minecraft:interval_select"
+        },
+        "id": "singleton"
+      },
+      {
+        "function": {
+          "functions": [
+            1.0,
+            2.0
+          ],
+          "input": 0.0,
+          "thresholds": [
+            -1.0,
+            -0.0,
+            0.0,
+            1.0
+          ],
+          "type": "minecraft:interval_select"
+        },
+        "id": "too_few"
+      },
+      {
+        "function": {
+          "functions": [
+            1.0,
+            2.0,
+            3.0,
+            4.0,
+            5.0,
+            6.0
+          ],
+          "input": 0.0,
+          "thresholds": [
+            -1.0,
+            -0.0,
+            0.0,
+            1.0
+          ],
+          "type": "minecraft:interval_select"
+        },
+        "id": "too_many"
+      },
+      {
+        "function": {
+          "functions": [
+            1.0,
+            2.0
+          ],
+          "input": 0.0,
+          "thresholds": [
+            "0"
+          ],
+          "type": "minecraft:interval_select"
+        },
+        "id": "threshold_string"
+      },
+      {
+        "function": {
+          "functions": [
+            1.0,
+            2.0
+          ],
+          "input": 0.0,
+          "thresholds": [
+            true
+          ],
+          "type": "minecraft:interval_select"
+        },
+        "id": "threshold_bool"
+      },
+      {
+        "function": {
+          "functions": [
+            1.0,
+            2.0
+          ],
+          "input": 0.0,
+          "thresholds": [
+            -1000000.0
+          ],
+          "type": "minecraft:interval_select"
+        },
+        "id": "lower_limit"
+      },
+      {
+        "function": {
+          "functions": [
+            1.0,
+            2.0
+          ],
+          "input": 0.0,
+          "thresholds": [
+            1000000.0
+          ],
+          "type": "minecraft:interval_select"
+        },
+        "id": "upper_limit"
+      },
+      {
+        "function": {
+          "functions": [
+            1.0,
+            2.0
+          ],
+          "input": 0.0,
+          "thresholds": [
+            -1000000.0000000001
+          ],
+          "type": "minecraft:interval_select"
+        },
+        "id": "below_limit"
+      },
+      {
+        "function": {
+          "functions": [
+            1.0,
+            2.0
+          ],
+          "input": 0.0,
+          "thresholds": [
+            1000000.0000000001
+          ],
+          "type": "minecraft:interval_select"
+        },
+        "id": "above_limit"
+      },
+      {
+        "function": {
+          "functions": [
+            1.0,
+            2.0,
+            3.0,
+            4.0,
+            {
+              "type": "minecraft:missing"
+            }
+          ],
+          "input": 0.0,
+          "thresholds": [
+            -1.0,
+            -0.0,
+            0.0,
+            1.0
+          ],
+          "type": "minecraft:interval_select"
+        },
+        "id": "invalid_child"
+      },
+      {
+        "function": {
+          "functions": [
+            -0.0,
+            -2.0,
+            3.0,
+            4.0,
+            5.0
+          ],
+          "thresholds": [
+            -1.0,
+            -0.0,
+            0.0,
+            1.0
+          ],
+          "type": "minecraft:interval_select"
+        },
+        "id": "missing_input"
+      },
+      {
+        "function": {
+          "functions": [
+            -0.0,
+            -2.0,
+            3.0,
+            4.0,
+            5.0
+          ],
+          "input": 0.0,
+          "type": "minecraft:interval_select"
+        },
+        "id": "missing_thresholds"
+      },
+      {
+        "function": {
+          "input": 0.0,
+          "thresholds": [
+            -1.0,
+            -0.0,
+            0.0,
+            1.0
+          ],
+          "type": "minecraft:interval_select"
+        },
+        "id": "missing_functions"
+      }
+    ],
+    "removed_codecs": [
+      {
+        "function": {
+          "input": -1.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/0/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": 1.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/1/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": -0.7500000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/2/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": -0.75,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/3/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": -0.7499999999999999,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/4/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": -0.5000000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/5/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": -0.5,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/6/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": -0.49999999999999994,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/7/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": -5e-324,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/8/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": 0.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/9/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": 5e-324,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/10/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": 0.49999999999999994,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/11/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": 0.5,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/12/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": 0.5000000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/13/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": 0.7499999999999999,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/14/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": 0.75,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/15/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": 0.7500000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/16/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": -1.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/0/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": 1.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/1/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": -0.7500000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/2/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": -0.75,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/3/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": -0.7499999999999999,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/4/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": -0.5000000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/5/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": -0.5,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/6/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": -0.49999999999999994,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/7/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": -5e-324,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/8/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": 0.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/9/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": 5e-324,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/10/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": 0.49999999999999994,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/11/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": 0.5,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/12/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": 0.5000000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/13/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": 0.7499999999999999,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/14/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": 0.75,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/15/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": 0.7500000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/16/0",
+        "op": "density",
+        "points": "blocks",
+        "seed": 0
+      },
+      {
+        "function": {
+          "input": -1.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/0/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": 1.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/1/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": -0.7500000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/2/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": -0.75,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/3/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": -0.7499999999999999,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/4/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": -0.5000000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/5/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": -0.5,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/6/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": -0.49999999999999994,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/7/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": -5e-324,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/8/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": 0.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/9/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": 5e-324,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/10/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": 0.49999999999999994,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/11/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": 0.5,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/12/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": 0.5000000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/13/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": 0.7499999999999999,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/14/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": 0.75,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/15/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": 0.7500000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/16/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": -1.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/0/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": 1.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/1/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": -0.7500000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/2/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": -0.75,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/3/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": -0.7499999999999999,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/4/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": -0.5000000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/5/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": -0.5,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/6/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": -0.49999999999999994,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/7/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": -5e-324,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/8/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": 0.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/9/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": 5e-324,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/10/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": 0.49999999999999994,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/11/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": 0.5,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/12/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": 0.5000000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/13/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": 0.7499999999999999,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/14/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": 0.75,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/15/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": 0.7500000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/16/1",
+        "op": "density",
+        "points": "blocks",
+        "seed": 1
+      },
+      {
+        "function": {
+          "input": -1.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/0/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": 1.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/1/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": -0.7500000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/2/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": -0.75,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/3/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": -0.7499999999999999,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/4/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": -0.5000000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/5/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": -0.5,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/6/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": -0.49999999999999994,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/7/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": -5e-324,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/8/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": 0.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/9/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": 5e-324,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/10/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": 0.49999999999999994,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/11/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": 0.5,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/12/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": 0.5000000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/13/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": 0.7499999999999999,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/14/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": 0.75,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/15/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": 0.7500000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/16/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": -1.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/0/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": 1.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/1/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": -0.7500000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/2/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": -0.75,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/3/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": -0.7499999999999999,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/4/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": -0.5000000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/5/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": -0.5,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/6/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": -0.49999999999999994,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/7/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": -5e-324,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/8/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": 0.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/9/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": 5e-324,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/10/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": 0.49999999999999994,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/11/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": 0.5,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/12/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": 0.5000000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/13/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": 0.7499999999999999,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/14/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": 0.75,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/15/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": 0.7500000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/16/-1",
+        "op": "density",
+        "points": "blocks",
+        "seed": -1
+      },
+      {
+        "function": {
+          "input": -1.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/0/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": 1.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/1/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": -0.7500000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/2/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": -0.75,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/3/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": -0.7499999999999999,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/4/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": -0.5000000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/5/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": -0.5,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/6/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": -0.49999999999999994,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/7/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": -5e-324,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/8/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": 0.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/9/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": 5e-324,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/10/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": 0.49999999999999994,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/11/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": 0.5,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/12/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": 0.5000000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/13/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": 0.7499999999999999,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/14/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": 0.75,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/15/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": 0.7500000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/16/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": -1.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/0/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": 1.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/1/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": -0.7500000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/2/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": -0.75,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/3/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": -0.7499999999999999,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/4/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": -0.5000000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/5/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": -0.5,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/6/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": -0.49999999999999994,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/7/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": -5e-324,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/8/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": 0.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/9/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": 5e-324,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/10/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": 0.49999999999999994,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/11/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": 0.5,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/12/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": 0.5000000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/13/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": 0.7499999999999999,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/14/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": 0.75,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/15/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": 0.7500000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/16/846692123413862008",
+        "op": "density",
+        "points": "blocks",
+        "seed": 846692123413862008
+      },
+      {
+        "function": {
+          "input": -1.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/0/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": 1.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/1/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": -0.7500000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/2/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": -0.75,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/3/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": -0.7499999999999999,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/4/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": -0.5000000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/5/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": -0.5,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/6/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": -0.49999999999999994,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/7/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": -5e-324,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/8/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": 0.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/9/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": 5e-324,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/10/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": 0.49999999999999994,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/11/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": 0.5,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/12/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": 0.5000000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/13/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": 0.7499999999999999,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/14/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": 0.75,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/15/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": 0.7500000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/16/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": -1.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/0/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": 1.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/1/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": -0.7500000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/2/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": -0.75,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/3/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": -0.7499999999999999,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/4/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": -0.5000000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/5/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": -0.5,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/6/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": -0.49999999999999994,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/7/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": -5e-324,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/8/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": 0.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/9/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": 5e-324,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/10/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": 0.49999999999999994,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/11/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": 0.5,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/12/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": 0.5000000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/13/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": 0.7499999999999999,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/14/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": 0.75,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/15/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": 0.7500000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/16/-9223372036854775808",
+        "op": "density",
+        "points": "blocks",
+        "seed": -9223372036854775808
+      },
+      {
+        "function": {
+          "input": -1.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/0/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": 1.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/1/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": -0.7500000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/2/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": -0.75,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/3/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": -0.7499999999999999,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/4/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": -0.5000000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/5/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": -0.5,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/6/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": -0.49999999999999994,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/7/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": -5e-324,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/8/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": 0.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/9/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": 5e-324,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/10/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": 0.49999999999999994,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/11/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": 0.5,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/12/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": 0.5000000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/13/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": 0.7499999999999999,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/14/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": 0.75,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/15/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": 0.7500000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_1",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_1/16/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": -1.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/0/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": 1.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/1/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": -0.7500000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/2/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": -0.75,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/3/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": -0.7499999999999999,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/4/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": -0.5000000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/5/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": -0.5,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/6/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": -0.49999999999999994,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/7/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": -5e-324,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/8/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": 0.0,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/9/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": 5e-324,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/10/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": 0.49999999999999994,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/11/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": 0.5,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/12/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": 0.5000000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/13/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": 0.7499999999999999,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/14/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": 0.75,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/15/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      },
+      {
+        "function": {
+          "input": 0.7500000000000001,
+          "noise": "minecraft:spaghetti_2d",
+          "rarity_value_mapper": "type_2",
+          "type": "minecraft:weird_scaled_sampler"
+        },
+        "id": "weird/type_2/16/9223372036854775807",
+        "op": "density",
+        "points": "blocks",
+        "seed": 9223372036854775807
+      }
+    ],
+    "runtime": {
+      "functions": [
+        -0.0,
+        -2.0,
+        3.0,
+        4.0,
+        5.0
+      ],
+      "inputs": [
+        "fff0000000000000",
+        "c000000000000000",
+        "bff0000000000000",
+        "8000000000000000",
+        "0000000000000000",
+        "3ff0000000000000",
+        "4000000000000000",
+        "7ff0000000000000",
+        "7ff8000000000011"
+      ],
+      "thresholds": [
+        -1.0,
+        -0.0,
+        0.0,
+        1.0
+      ]
+    }
+  },
+  "jar_sha256": "183c0499c5f855570ee487dd38e141a53f0121f83a0b07a3bac2d8b6698823e8",
+  "minecraft": "26.2",
+  "probe_sha256": "59af4db6bcaf6d9dc5ec856f95bee95f080c73f0820f7e888174d673e33c6021",
+  "protocol": 776,
+  "removed_codecs": [
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-1.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/0/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":1.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/1/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.7500000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/2/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.75,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/3/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.7499999999999999,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/4/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.5000000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/5/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.5,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/6/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.49999999999999994,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/7/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-5e-324,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/8/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/9/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":5e-324,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/10/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.49999999999999994,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/11/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.5,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/12/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.5000000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/13/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.7499999999999999,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/14/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.75,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/15/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.7500000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/16/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-1.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/0/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":1.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/1/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.7500000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/2/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.75,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/3/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.7499999999999999,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/4/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.5000000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/5/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.5,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/6/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.49999999999999994,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/7/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-5e-324,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/8/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/9/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":5e-324,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/10/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.49999999999999994,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/11/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.5,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/12/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.5000000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/13/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.7499999999999999,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/14/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.75,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/15/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.7500000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/16/0"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-1.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/0/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":1.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/1/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.7500000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/2/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.75,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/3/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.7499999999999999,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/4/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.5000000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/5/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.5,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/6/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.49999999999999994,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/7/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-5e-324,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/8/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/9/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":5e-324,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/10/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.49999999999999994,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/11/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.5,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/12/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.5000000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/13/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.7499999999999999,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/14/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.75,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/15/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.7500000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/16/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-1.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/0/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":1.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/1/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.7500000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/2/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.75,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/3/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.7499999999999999,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/4/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.5000000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/5/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.5,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/6/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.49999999999999994,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/7/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-5e-324,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/8/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/9/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":5e-324,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/10/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.49999999999999994,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/11/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.5,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/12/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.5000000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/13/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.7499999999999999,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/14/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.75,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/15/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.7500000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/16/1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-1.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/0/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":1.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/1/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.7500000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/2/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.75,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/3/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.7499999999999999,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/4/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.5000000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/5/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.5,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/6/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.49999999999999994,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/7/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-5e-324,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/8/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/9/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":5e-324,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/10/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.49999999999999994,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/11/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.5,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/12/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.5000000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/13/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.7499999999999999,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/14/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.75,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/15/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.7500000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/16/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-1.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/0/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":1.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/1/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.7500000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/2/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.75,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/3/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.7499999999999999,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/4/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.5000000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/5/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.5,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/6/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.49999999999999994,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/7/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-5e-324,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/8/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/9/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":5e-324,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/10/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.49999999999999994,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/11/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.5,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/12/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.5000000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/13/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.7499999999999999,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/14/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.75,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/15/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.7500000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/16/-1"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-1.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/0/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":1.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/1/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.7500000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/2/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.75,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/3/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.7499999999999999,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/4/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.5000000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/5/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.5,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/6/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.49999999999999994,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/7/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-5e-324,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/8/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/9/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":5e-324,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/10/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.49999999999999994,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/11/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.5,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/12/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.5000000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/13/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.7499999999999999,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/14/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.75,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/15/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.7500000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/16/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-1.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/0/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":1.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/1/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.7500000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/2/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.75,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/3/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.7499999999999999,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/4/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.5000000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/5/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.5,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/6/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.49999999999999994,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/7/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-5e-324,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/8/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/9/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":5e-324,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/10/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.49999999999999994,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/11/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.5,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/12/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.5000000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/13/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.7499999999999999,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/14/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.75,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/15/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.7500000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/16/846692123413862008"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-1.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/0/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":1.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/1/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.7500000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/2/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.75,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/3/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.7499999999999999,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/4/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.5000000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/5/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.5,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/6/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.49999999999999994,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/7/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-5e-324,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/8/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/9/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":5e-324,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/10/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.49999999999999994,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/11/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.5,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/12/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.5000000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/13/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.7499999999999999,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/14/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.75,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/15/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.7500000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/16/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-1.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/0/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":1.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/1/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.7500000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/2/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.75,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/3/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.7499999999999999,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/4/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.5000000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/5/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.5,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/6/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.49999999999999994,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/7/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-5e-324,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/8/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/9/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":5e-324,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/10/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.49999999999999994,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/11/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.5,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/12/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.5000000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/13/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.7499999999999999,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/14/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.75,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/15/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.7500000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/16/-9223372036854775808"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-1.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/0/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":1.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/1/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.7500000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/2/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.75,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/3/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.7499999999999999,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/4/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.5000000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/5/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.5,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/6/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.49999999999999994,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/7/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-5e-324,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/8/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/9/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":5e-324,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/10/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.49999999999999994,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/11/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.5,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/12/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.5000000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/13/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.7499999999999999,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/14/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.75,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/15/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.7500000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_1\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_1/16/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-1.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/0/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":1.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/1/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.7500000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/2/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.75,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/3/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.7499999999999999,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/4/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.5000000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/5/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.5,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/6/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-0.49999999999999994,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/7/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":-5e-324,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/8/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.0,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/9/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":5e-324,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/10/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.49999999999999994,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/11/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.5,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/12/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.5000000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/13/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.7499999999999999,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/14/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.75,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/15/9223372036854775807"
+    },
+    {
+      "accepted": false,
+      "error": "Failed to parse either. First: Not a number: {\"input\":0.7500000000000001,\"noise\":\"minecraft:spaghetti_2d\",\"rarity_value_mapper\":\"type_2\",\"type\":\"minecraft:weird_scaled_sampler\"}; Second: Unknown registry key in ResourceKey[minecraft:root / minecraft:worldgen/density_function_type]: minecraft:weird_scaled_sampler",
+      "id": "weird/type_2/16/9223372036854775807"
+    }
+  ],
+  "runtime": [
+    {
+      "calls": [
+        "input",
+        "function/0"
+      ],
+      "input_bits": "fff0000000000000",
+      "output_bits": "8000000000000000"
+    },
+    {
+      "calls": [
+        "input",
+        "function/0"
+      ],
+      "input_bits": "c000000000000000",
+      "output_bits": "8000000000000000"
+    },
+    {
+      "calls": [
+        "input",
+        "function/1"
+      ],
+      "input_bits": "bff0000000000000",
+      "output_bits": "c000000000000000"
+    },
+    {
+      "calls": [
+        "input",
+        "function/3"
+      ],
+      "input_bits": "8000000000000000",
+      "output_bits": "4010000000000000"
+    },
+    {
+      "calls": [
+        "input",
+        "function/3"
+      ],
+      "input_bits": "0000000000000000",
+      "output_bits": "4010000000000000"
+    },
+    {
+      "calls": [
+        "input",
+        "function/4"
+      ],
+      "input_bits": "3ff0000000000000",
+      "output_bits": "4014000000000000"
+    },
+    {
+      "calls": [
+        "input",
+        "function/4"
+      ],
+      "input_bits": "4000000000000000",
+      "output_bits": "4014000000000000"
+    },
+    {
+      "calls": [
+        "input",
+        "function/4"
+      ],
+      "input_bits": "7ff0000000000000",
+      "output_bits": "4014000000000000"
+    },
+    {
+      "calls": [
+        "input",
+        "function/4"
+      ],
+      "input_bits": "7ff8000000000011",
+      "output_bits": "4014000000000000"
+    }
+  ],
+  "schema": "bcore.native-interval-select.v1"
+}

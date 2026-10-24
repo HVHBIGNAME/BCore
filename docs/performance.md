@@ -6,14 +6,93 @@ produce the same complete block-state arrays, ordered per-section fluid
 postprocessing marks **and both worldgen heightmaps** for every measured and
 warmup batch.
 
-![Measured NOISE throughput](../site/assets/performance.svg)
+![Measured 26.2 NOISE throughput](../site/assets/performance-26_2.svg)
 
-The chart remains the October 8 measurement of the accepted implementation.
-Two later [October 9 cache experiments](performance-experiments-2026-10-09.md)
-were removed after negative or mixed alternating-binary measurements. Their full
-statistics are retained; neither is counted as a production speedup.
+## Current target — 26.2 / protocol 776
 
-## Results — 2026-10-08, contract `noise-fill-wg-v2`
+The baseline was captured on October 23 UTC and published on October 24. It runs
+the authenticated **26.2 / 776 / data version 4903** JAR with all **39 libraries**;
+the native runtime reports that identity and its actual worker pool. BCore is built
+from a frozen **489-input** source archive. All **18 fresh process records** and
+their **180 warmup / 180 measured batches** match the kernel fingerprints.
+
+| Worker budget | Vanilla 26.2 batch | BCore release batch | Vanilla chunks/s | BCore chunks/s |
+|---|---:|---:|---:|---:|
+| 1 | 160.73 ms | 167.39 ms | 49.77 | 47.79 |
+| 2 | 108.06 ms | 95.26 ms | 74.03 | 83.98 |
+| 4 | 37.15 ms | 51.02 ms | 215.35 | 156.81 |
+
+BCore is faster at two workers in this run; Java is faster at one and four.
+Bars use the median of three process medians; whiskers show their full range.
+Native process medians range **118.30–166.45 ms** at one worker and
+**83.20–114.68 ms** at two. Fixed warmup counts and all durations are retained;
+steady-state convergence and the cause of this variation are not established.
+The host is unisolated. These are baseline observations, not an optimization gain
+against historical 26.1 or complete-server throughput.
+
+Raw results SHA-256:
+`445993fa5be405614d139122672459bb9dccf1cbf7c7e6d3ac3f17e25f66816c`.
+Frozen source archive SHA-256:
+`c41879e3ecfa5d2c05c13d563b446596641e3d40568a55d2c4a5c83f894013ea`.
+Native logs retain the bundled JOML 1.10.8 warning about
+`sun.misc.Unsafe::objectFieldOffset`; the authenticated library is unchanged.
+
+[26.2 samples, fingerprints and provenance](metrics/noise-fill-wg-v2-baseline-26_2-2026-10-24.json) ·
+[Migration and protocol validation](migration-26.2.md)
+
+A [fresh owned-child CPU profile](performance-profile-26.2-2026-10-24.md) collected
+**4,002 leaf samples** on the same final-release source snapshot, with matching
+kernel fingerprints. Interpolation, Perlin noise and density evaluation lead the
+resolved sample counts. The diagnostic build and sampled durations are separate
+from this throughput baseline; attribution limitations and sampler failures are
+preserved in the profile report.
+
+## Historical 26.1 results — 2026-10-21, contract `noise-fill-wg-v2`
+
+![Historical 26.1 NOISE throughput](../site/assets/performance.svg)
+
+The historical chart uses the final retained October 21 implementation. Selective density
+outlining, chunk-owned indexed interpolation and borrowed-point evaluation passed
+their checks. Subsequent cell-miss, constant-operand and Perlin-rounding variants
+were removed after negative or mixed frozen-binary measurements.
+
+Eight fresh chunks per batch; three independent processes per configuration,
+each with ten warmup and ten measured batches. Bars show the median of process
+medians; whiskers retain their range.
+
+| Worker budget | Vanilla 26.1 batch | BCore release batch | Vanilla chunks/s | BCore chunks/s |
+|---|---:|---:|---:|---:|
+| 1 | 181.16 ms | 202.02 ms | 44.16 | 39.60 |
+| 2 | 90.46 ms | 112.46 ms | 88.43 | 71.13 |
+| 4 | 40.32 ms | 57.14 ms | 198.41 | 140.00 |
+
+Java remains **1.12× / 1.24× / 1.42× faster** in this final bounded run.
+Exceeding Java across all worker budgets has not been established.
+
+Two additional **direct frozen comparisons** against the October 18 chest
+checkpoint measured the cumulative retained changes in the same sessions:
+
+| Worker budget | Gain, run 1 | Gain, run 2 |
+|---|---:|---:|
+| 1 | 2.075546× | 2.027788× |
+| 2 | 2.453408× | 2.249699× |
+| 4 | 2.138244× | 2.017397× |
+
+All 18 individual pairs improved and all 54 full/cumulative process records
+matched blocks, ordered marks and both WG maps. This is a directly measured
+**2.02–2.45× BCore-relative gain**, rather than a product of historical stage ratios.
+
+The same 419-input implementation passed a fresh **791-test workspace release
+checkpoint**, format/build/diagnostics checks and server `--help`. Four new
+schema-3 histories retain **27/27 requested** and **52/54 watch** scored matches
+with the same four LIGHT/SPAWN status differences and Partial coverage.
+
+[Final timings and provenance](metrics/noise-fill-wg-v2-final-2026-10-21.json) ·
+[All experiments and cumulative comparisons](metrics/noise-fill-wg-v2-series-2026-10-21.json) ·
+[Workspace/replay evidence](metrics/noise-final-validation-2026-10-21.json) ·
+[Implementation and rejected candidates](performance-experiments-2026-10-21.md)
+
+## Historical results — 2026-10-08, contract `noise-fill-wg-v2`
 
 Eight fresh chunks per batch; median of three independent process medians. Each
 process runs ten warmup batches and ten timed batches. Higher throughput is better.
@@ -24,8 +103,8 @@ process runs ten warmup batches and ten timed batches. Higher throughput is bett
 | 2 | 104.93 ms | 493.39 ms | 76.24 | 16.21 |
 | 4 | 39.45 ms | 181.25 ms | 202.77 | 44.14 |
 
-**BCore is still slower in this bounded kernel workload**, with a measured gap of
-about **4.6×–5.5×**. BCore's one-to-four-worker throughput now rises about
+**BCore was slower in this historical bounded workload**, with a measured gap of
+about **4.6×–5.5×**. Its one-to-four-worker throughput rose about
 **3.64×**; Vanilla's rises about **3.07×**. These are
 local observations on an unisolated machine, not a server TPS ranking.
 
@@ -97,7 +176,7 @@ including warmups, and the machine was not OS-isolated.
 |---|---|
 | CPU | AMD Ryzen 7 5700X, 8 physical cores / 16 logical processors |
 | OS | Windows 11, build 26200 |
-| Native engine | Original Minecraft Java 26.1 / protocol 775 JAR |
+| Native engine | Authenticated Minecraft Java 26.2 / protocol 776 JAR; historical rows explicitly use 26.1 / 775 |
 | Rust build | Release, `--locked`, diagnostics-enabled benchmark wrapper |
 | World seed | `846692123413862008` |
 | Chunks | `(0,0)`, `(1,0)`, `(0,1)`, `(1,1)`, `(-64,-32)`, `(-63,-32)`, `(62,0)`, `(-125,187)` |
@@ -130,20 +209,24 @@ workload once the relevant runtime features are integrated.
 ## Reproduce
 
 Requirements: the repository's Rust toolchain, Python 3.10+, `javac` 21+, Java 25
-and the pinned 26.1 server JAR with its runtime libraries. Native asset/capture
-setup is described by the [native-history harness](../scripts/native-generation-reference/README.md).
-The runner verifies the original server JAR digest before measuring and refuses a
-project-local Cargo configuration:
+and the prepared 26.2 JAR with all 39 authenticated runtime libraries. See the
+[migration guide](migration-26.2.md) for target identity and local evidence. The
+runner verifies the selected server JAR digest before measuring and refuses a
+project-local Cargo configuration. Current target JAR SHA-256:
 
 ```text
-a7fed6f7d88379349e35ae0c6e9881d4484605132f6f620376a3868eea6cce52
+183c0499c5f855570ee487dd38e141a53f0121f83a0b07a3bac2d8b6698823e8
 ```
 
 From the workspace root, choose a **new** output directory:
 
 ```powershell
-python scripts/benchmarks/run.py --output target/noise-bench-new --label local --workers 1 2 4 --processes 3 --warmup 10 --batches 10
+python -B scripts/run_generation_check.py --background noise-26_2-NEW -- python -B scripts/benchmarks/run.py --minecraft 26.2 --output target/noise-26_2-NEW --label local-26_2 --workers 1 2 4 --processes 3 --warmup 10 --batches 10
 ```
+
+The CLI default remains 26.1 for historical callers; choose `--minecraft 26.2`
+explicitly for current work. Results from different targets cannot be used with
+`--compare-to`.
 
 Every run archives the complete build input set, builds from that snapshot, and
 launches a frozen read-only copy of the executable, re-verifying artifact hashes

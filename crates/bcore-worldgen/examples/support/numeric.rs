@@ -4,6 +4,7 @@ use bcore_worldgen::{
 };
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
+use std::sync::OnceLock;
 
 pub const JAR_SHA256: &str = "a7fed6f7d88379349e35ae0c6e9881d4484605132f6f620376a3868eea6cce52";
 
@@ -172,6 +173,17 @@ impl Case {
     }
 
     pub fn prepare(&self, points: &[[f64; 3]]) -> Result<Kernel, String> {
+        self.prepare_with(points, &mut density::parse_json, &mut |field| {
+            density::parse_router("overworld", field)
+        })
+    }
+
+    fn prepare_with(
+        &self,
+        points: &[[f64; 3]],
+        parse: &mut dyn FnMut(&str) -> Result<DensityFunction, String>,
+        router: &mut dyn FnMut(&str) -> Result<DensityFunction, String>,
+    ) -> Result<Kernel, String> {
         density::clear_density_caches();
         if points.is_empty() || points.iter().flatten().any(|v| !v.is_finite()) {
             return Err(format!("{}: expected nonempty finite inputs", self.id));
@@ -258,15 +270,13 @@ impl Case {
             } => Kernel::Blended(Box::new(BlendedNoise::for_world(
                 *seed, *xz_scale, *y_scale, *xz_factor, *y_factor, *smear,
             ))),
-            Spec::Density { seed, function } => {
-                raw(*seed, density::parse_json(&function.to_string())?)
-            }
-            Spec::Router { seed, field } => raw(*seed, density::parse_router("overworld", field)?),
+            Spec::Density { seed, function } => raw(*seed, parse(&function.to_string())?),
+            Spec::Router { seed, field } => raw(*seed, router(field)?),
             Spec::NoiseChunk { seed, function } => {
                 let function = if let Some(json) = function {
-                    density::parse_json(&json.to_string())?
+                    parse(&json.to_string())?
                 } else {
-                    density::parse_router("overworld", "final_density")?
+                    router("final_density")?
                 };
                 Kernel::NoiseChunk(
                     Box::new(DensityFunction::CacheAllInCell(Box::new(
@@ -373,12 +383,17 @@ impl Fixture {
             }
         }
         if require_reference {
-            if self.minecraft.as_deref() != Some("26.1")
-                || self.jar_sha256.as_deref() != Some(JAR_SHA256)
-                || self.probe_sha256.as_ref().is_none_or(|s| s.len() != 64)
-            {
+            let identity = match self.minecraft.as_deref() {
+                Some("26.1") => self.jar_sha256.as_deref() == Some(JAR_SHA256),
+                Some("26.2") => {
+                    self.jar_sha256.as_deref() == Some(bcore_registry::SERVER_JAR_SHA256)
+                }
+                _ => false,
+            };
+            if !identity || self.probe_sha256.as_ref().is_none_or(|s| s.len() != 64) {
                 return Err(
-                    "expected a native 26.1 capture with the pinned JAR/source hashes".into(),
+                    "expected an explicitly versioned native capture with pinned JAR/source hashes"
+                        .into(),
                 );
             }
             let mut sample_ids = BTreeSet::new();
@@ -403,9 +418,30 @@ impl Fixture {
 
     pub fn check(&self, case: &Case) -> Result<Report, String> {
         let points = &self.points[&case.points];
-        let kernel = case.prepare(points)?;
+        let kernel = self.prepare(case, points)?;
         let report = compare(case, points, self.reference(case)?, |p| kernel.sample(p));
         density::clear_density_caches();
         report
+    }
+
+    pub fn prepare(&self, case: &Case, points: &[[f64; 3]]) -> Result<Kernel, String> {
+        if self.minecraft.as_deref() != Some("26.1") {
+            return case.prepare(points);
+        }
+        static HISTORICAL: OnceLock<BTreeMap<String, serde_json::Value>> = OnceLock::new();
+        let assets = HISTORICAL.get_or_init(|| {
+            serde_json::from_str(include_str!("../../data/vanilla_worldgen.json"))
+                .expect("preserved 26.1 density documents")
+        });
+        case.prepare_with(
+            points,
+            &mut |input| density::parse_historical_26_1_json(input, assets),
+            &mut |field| {
+                let input = assets["noise_settings/overworld.json"]["noise_router"]
+                    .get(field)
+                    .ok_or_else(|| format!("missing historical router {field}"))?;
+                density::parse_historical_26_1_json(&input.to_string(), assets)
+            },
+        )
     }
 }

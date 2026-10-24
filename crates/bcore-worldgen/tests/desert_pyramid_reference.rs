@@ -1,3 +1,5 @@
+#[path = "support/feature_documents_26_1.rs"]
+pub mod feature_documents_26_1;
 #[path = "support/desert_pyramid.rs"]
 mod support;
 use bcore_worldgen::feature_world::FeatureHeightmap;
@@ -17,7 +19,7 @@ use support::*;
 #[test]
 fn desert_pyramid_native_admission_corners_registry_slots_and_rng() {
     let data = fixture();
-    assert_eq!(data["jar_sha256"], StructureAssets::JAR_SHA256);
+    assert_eq!(data["jar_sha256"], StructureAssets::HISTORICAL_JAR_SHA256);
     let kind = ScatteredKind::DesertPyramid;
     let config = ScatteredCatalog::bundled().config(kind);
     assert_eq!(
@@ -61,7 +63,7 @@ fn desert_pyramid_native_admission_corners_registry_slots_and_rng() {
             max_y: 319,
             first_free: &first_free,
         };
-        let biome = n(&row["noise_biome"]) as u32;
+        let biome = feature_documents_26_1::target_biome(n(&row["noise_biome"]) as u32);
         let sea = n(&row["sea_level"]);
         let mut random = large_feature_random(seed, source);
         let built =

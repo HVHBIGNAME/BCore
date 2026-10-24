@@ -85,8 +85,18 @@ fn region(sample: &Sample) -> (FeatureRegion, Chunks) {
             chunk.noise_biomes = Some(vec![crate::biome::id(&sample.biome).unwrap(); 1536]);
             for x in 0..16 {
                 for z in 0..16 {
-                    chunk.set(x, sample.floor_y, z, sample.soil);
-                    chunk.set(x, sample.floor_y + 1, z, sample.cover);
+                    chunk.set(
+                        x,
+                        sample.floor_y,
+                        z,
+                        crate::registry_26_1::target_state(sample.soil),
+                    );
+                    chunk.set(
+                        x,
+                        sample.floor_y + 1,
+                        z,
+                        crate::registry_26_1::target_state(sample.cover),
+                    );
                 }
             }
             chunks.insert((cx, cz), Arc::new(chunk));
@@ -97,7 +107,7 @@ fn region(sample: &Sample) -> (FeatureRegion, Chunks) {
             (x & 15) as usize,
             y,
             (z & 15) as usize,
-            state as u32,
+            crate::registry_26_1::target_state(state as u32),
         );
     }
     (
@@ -125,8 +135,14 @@ impl FallenTreeWorld for World<'_> {
     fn set_block(&mut self, (x, y, z): Pos, state: u32, flags: i32) -> bool {
         let accepted =
             !self.reject && FallenTreeWorld::set_block(self.region, (x, y, z), state, flags);
-        self.writes
-            .push([x, y, z, state as i32, flags, i32::from(accepted)]);
+        self.writes.push([
+            x,
+            y,
+            z,
+            crate::registry_26_1::historical_state(state) as i32,
+            flags,
+            i32::from(accepted),
+        ]);
         accepted
     }
     fn is_face_sturdy_up(&self, state: u32, pos: Pos) -> bool {
@@ -163,17 +179,18 @@ impl TreeFeatureWorld for World<'_> {
         configured_feature: &'static str,
         origin: Pos,
     ) -> Result<bool, UnsupportedTree> {
-        standing::place(self, random, configured_feature, origin)
-            .map_err(|shape| UnsupportedTree {
-                configured_feature,
-                origin,
-                unsupported_shape: Some(shape),
-            })?
-            .ok_or(UnsupportedTree {
-                configured_feature,
-                origin,
-                unsupported_shape: None,
-            })
+        standing::place_geometry(
+            self,
+            random,
+            &standing::historical_config_for(configured_feature)
+                .expect("historical standing tree configuration"),
+            origin,
+        )
+        .map_err(|error| UnsupportedTree {
+            configured_feature,
+            origin,
+            unsupported_shape: error.shape(),
+        })
     }
 }
 
@@ -247,24 +264,24 @@ fn run<R: ReplayRandom>(sample: &Sample, region: &mut FeatureRegion) {
     }
     for (index, outcome) in sample.results.iter().enumerate() {
         let result = if sample.sources.is_empty() {
-            standing::place(
+            standing::place_geometry(
                 &mut world,
                 &mut Random {
                     raw: &mut raw,
                     draws: &mut draws,
                 },
-                &sample.kind,
+                &standing::historical_config_for(&sample.kind)
+                    .expect("historical standing tree configuration"),
                 outcome.origin.unwrap().into(),
             )
             .unwrap_or_else(|e| panic!("{label}: {e}"))
-            .unwrap()
         } else {
             let [cx, cz] = sample.sources[index];
             let [step, feature] = outcome.slot.unwrap();
             let seed = raw.seed_feature(sample.seed, [cx, cz], [step, feature]);
             assert_eq!(Some(seed), outcome.decoration_seed, "{label}");
             assert_eq!(
-                crate::feature_sorter::sorter().within_step_index(&sample.kind),
+                crate::feature_sorter::historical_sorter().within_step_index(&sample.kind),
                 Some((step as usize, feature as usize))
             );
             decoration::place_tree_feature(
@@ -362,7 +379,9 @@ fn assert_chunk_effects(sample: &Sample, chunk: &GeneratedChunk) {
             assert!(request.valid_for(chunk.pos));
             let [x, y, z] = request.block_pos;
             let (value, fluid) = match request.target {
-                TickTarget::Block(value) => (value as i32, 0),
+                TickTarget::Block(value) => {
+                    (crate::registry_26_1::historical_state(value) as i32, 0)
+                }
                 TickTarget::Fluid(value) => (value as i32, 1),
             };
             [x, y, z, value, request.delay, fluid]
@@ -384,7 +403,7 @@ fn assert_chunk_effects(sample: &Sample, chunk: &GeneratedChunk) {
         .iter()
         .map(|(&(x, y, z), data)| {
             let pos = [chunk.pos.x * 16 + x as i32, y, chunk.pos.z * 16 + z as i32];
-            assert_eq!(data.type_id(), 34);
+            assert_eq!(data.type_id(), bcore_registry::block_entity_type::BEEHIVE);
             assert_eq!(data.update_data(), serde_json::json!({}));
             (pos, data.full_data(pos.into()))
         })
@@ -413,7 +432,7 @@ fn expected_chunks(sample: &Sample, bases: &Chunks) -> Chunks {
             (x & 15) as usize,
             y,
             (z & 15) as usize,
-            state as u32,
+            crate::registry_26_1::target_state(state as u32),
         );
     }
     for &[x, y, z] in &sample.postprocessing {
@@ -660,13 +679,18 @@ fn native_matrix_covers_mixed_branches_and_retains_source_order() {
 }
 
 fn replay_sources(sample: &Sample, region: &mut FeatureRegion) {
+    let mut world = World {
+        region,
+        reject: false,
+        writes: Vec::new(),
+    };
     for (&source, outcome) in sample.sources.iter().zip(&sample.results) {
         let mut random = WorldgenRandom::new(sample.seed);
         let seed = random.seed_feature(sample.seed, source, outcome.slot.unwrap());
         assert_eq!(Some(seed), outcome.decoration_seed);
         assert_eq!(
             decoration::place_tree_feature(
-                region,
+                &mut world,
                 &mut random,
                 ChunkPos::new(source[0], source[1]),
                 &sample.kind
@@ -739,19 +763,20 @@ fn unsupported_configurations_and_edge_effects_remain_explicit() {
     let [x, y, z, _] = sample.writes.iter().min_by_key(|p| p[0]).copied().unwrap();
     let edge = (x - 1, y, z);
     FallenTreeWorld::set_block(&mut region, edge, crate::block::LAVA, 19);
-    let error = standing::place(
+    let error = standing::place_geometry(
         &mut region,
         &mut WorldgenRandom::new(sample.seed),
-        &sample.kind,
+        &standing::historical_config_for(&sample.kind)
+            .expect("historical standing tree configuration"),
         sample.origin.into(),
     )
     .unwrap_err();
     assert_eq!(
         error,
-        standing::UnsupportedShape {
+        standing::TreeError::Shape(standing::UnsupportedShape {
             pos: edge,
             state: crate::block::LAVA
-        }
+        })
     );
     assert_eq!(
         FallenTreeWorld::get_block(&region, sample.origin.into()),

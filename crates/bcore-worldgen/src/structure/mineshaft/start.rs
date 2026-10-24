@@ -12,9 +12,10 @@ struct Settings {
 fn settings() -> &'static Settings {
     static SETTINGS: OnceLock<Settings> = OnceLock::new();
     SETTINGS.get_or_init(|| {
-        let data: serde_json::Value =
-            serde_json::from_str(include_str!("../../../data/mineshaft_starts_26_1.json"))
-                .expect("native mineshaft admission data");
+        let data: serde_json::Value = crate::block_predicate::parse_catalog(include_str!(
+            "../../../data/mineshaft_starts_26_2.json"
+        ))
+        .expect("native mineshaft admission data");
         let names = ["mineshaft", "mineshaft_mesa"];
         Settings {
             biomes: names.map(|name| {

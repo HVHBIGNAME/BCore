@@ -1,0 +1,65 @@
+{
+  "checkpoint_sha256": "328b5c8d2603abbcbd5175a2d74c0907ba6edc4d205c20a3cd069b6e7179139c",
+  "histories": [
+    {
+      "all_request_facets_identical_to_previous_checkpoint": true,
+      "binary_sha256": "21e1eee166fd5362854086d8e5e3ab21098612000c29986a4867ee2d1d2517f5",
+      "comparison_sha256": "cb5ab288fd27aa34e1da0ae7d3c55361e5ae3c8a826fc097e327298188d9e656",
+      "name": "n1",
+      "previous_comparison_sha256": "cb5ab288fd27aa34e1da0ae7d3c55361e5ae3c8a826fc097e327298188d9e656",
+      "provenance_sha256": "409652928d9d0480c65b522d30f56254af50fd8d2941589bc7a8bad5ae75a78e",
+      "requested": 7,
+      "requested_scored_matches": 7,
+      "watch": 14,
+      "watch_scored_matches": 13
+    },
+    {
+      "all_request_facets_identical_to_previous_checkpoint": true,
+      "binary_sha256": "21e1eee166fd5362854086d8e5e3ab21098612000c29986a4867ee2d1d2517f5",
+      "comparison_sha256": "89f0d505cd5bf7a927c68518886a8e26f1fabcecc7a6b218a72db4ad3cad7351",
+      "name": "n2",
+      "previous_comparison_sha256": "89f0d505cd5bf7a927c68518886a8e26f1fabcecc7a6b218a72db4ad3cad7351",
+      "provenance_sha256": "eff0a39f7a29a671e7bd6171799a31ce205decf9bdd5ad6c4370131095e8d786",
+      "requested": 7,
+      "requested_scored_matches": 7,
+      "watch": 14,
+      "watch_scored_matches": 13
+    },
+    {
+      "all_request_facets_identical_to_previous_checkpoint": true,
+      "binary_sha256": "21e1eee166fd5362854086d8e5e3ab21098612000c29986a4867ee2d1d2517f5",
+      "comparison_sha256": "ab7257c144a22f3cac6df7f96f7392089377c0697aa349e3bf35066facc17a5b",
+      "name": "b1",
+      "previous_comparison_sha256": "ab7257c144a22f3cac6df7f96f7392089377c0697aa349e3bf35066facc17a5b",
+      "provenance_sha256": "728801e0dbdf6178d298c4d6b92d8b8e3d0dd7004a00b8ddcd1df10e737cab1a",
+      "requested": 6,
+      "requested_scored_matches": 6,
+      "watch": 12,
+      "watch_scored_matches": 12
+    },
+    {
+      "all_request_facets_identical_to_previous_checkpoint": true,
+      "binary_sha256": "21e1eee166fd5362854086d8e5e3ab21098612000c29986a4867ee2d1d2517f5",
+      "comparison_sha256": "49590b47f7ffb9e4e950b29e72d1772fb9126997dfb7d84d539e9863426efe98",
+      "name": "repeat",
+      "previous_comparison_sha256": "49590b47f7ffb9e4e950b29e72d1772fb9126997dfb7d84d539e9863426efe98",
+      "provenance_sha256": "5fd14bf70a7d8ae17d83ca82878a888a7220bdeafcd61ffc83ede7bfa216fbf8",
+      "requested": 7,
+      "requested_scored_matches": 7,
+      "watch": 14,
+      "watch_scored_matches": 14
+    }
+  ],
+  "limitations": [
+    "Same four LIGHT/SPAWN status-field differences remain in two watches.",
+    "All requests retain Partial implementation coverage; this is not full parity."
+  ],
+  "schema": 1,
+  "server_sha256": "a4d735bd44c2a72918d113e254c14c98f7dd7add1d44991db69a6faab7fb903e",
+  "workspace": {
+    "failed": 0,
+    "ignored": 4,
+    "passed": 782,
+    "targets": 66
+  }
+}

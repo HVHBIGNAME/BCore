@@ -17,8 +17,8 @@ fn falling_delay(state: u32) -> Option<i32> {
     static BLOCKS: OnceLock<Vec<FallingBlock>> = OnceLock::new();
     BLOCKS
         .get_or_init(|| {
-            serde_json::from_str::<Fixture>(include_str!(
-                "../../data/falling_block_shapes_26_1.json"
+            crate::block_predicate::parse_catalog::<Fixture>(include_str!(
+                "../../data/falling_block_shapes_26_2.json"
             ))
             .expect("native falling-block delays")
             .blocks
@@ -90,6 +90,123 @@ fn support(state: u32, below: u32, pos: Pos) -> Result<bool, UnsupportedShape> {
     Ok(ranges.iter().any(|&[a, b]| (a..b).contains(&below)))
 }
 
+fn tagged(state: u32, tag: &str, pos: Pos) -> Result<bool, UnsupportedShape> {
+    crate::block_predicate::catalog()
+        .in_block_tag(state, tag)
+        .map_err(|_| UnsupportedShape { pos, state })
+}
+
+fn speleothem_with_direction(state: u32, dir: usize, pos: Pos) -> Result<bool, UnsupportedShape> {
+    Ok(tagged(state, "speleothems", pos)?
+        && data::property(state, "vertical_direction")
+            == Some(if dir == 0 { "down" } else { "up" }))
+}
+
+fn speleothem_update<W: StandingTreeWorld + ?Sized>(
+    world: &mut W,
+    pos: Pos,
+    state: u32,
+    dir: usize,
+) -> Result<u32, UnsupportedShape> {
+    let definition = data::block(state);
+    if data::property(state, "waterlogged") == Some("true") {
+        world.schedule_tree_tick([pos.0, pos.1, pos.2, super::data().2[1], 5, 1]);
+    }
+    if dir >= 2 {
+        return Ok(state);
+    }
+    let tip = if data::property(state, "vertical_direction") == Some("down") {
+        0
+    } else {
+        1
+    };
+    if tip == 0
+        && world
+            .has_scheduled_tree_tick(pos, definition.default)
+            .ok_or(UnsupportedShape { pos, state })?
+    {
+        return Ok(state);
+    }
+    let support_pos = relative(pos, tip ^ 1);
+    let support = world.get_block(support_pos);
+    if dir == tip ^ 1
+        && !attaches(world, support_pos, tip)?
+        && !(speleothem_with_direction(support, tip, support_pos)? && same(state, support))
+    {
+        world.schedule_tree_tick([
+            pos.0,
+            pos.1,
+            pos.2,
+            definition.default as i32,
+            if tip == 0 { 2 } else { 1 },
+            0,
+        ]);
+        return Ok(state);
+    }
+    let ahead_pos = relative(pos, tip);
+    let ahead = world.get_block(ahead_pos);
+    let thickness = if speleothem_with_direction(ahead, tip ^ 1, ahead_pos)? && same(state, ahead) {
+        if data::property(state, "thickness") == Some("tip_merge")
+            || data::property(ahead, "thickness") == Some("tip_merge")
+        {
+            "tip_merge"
+        } else {
+            "tip"
+        }
+    } else if !speleothem_with_direction(ahead, tip, ahead_pos)? {
+        "tip"
+    } else if matches!(
+        data::property(ahead, "thickness"),
+        Some("tip" | "tip_merge")
+    ) {
+        "frustum"
+    } else if !speleothem_with_direction(support, tip, support_pos)? {
+        "base"
+    } else {
+        "middle"
+    };
+    Ok(data::with_property(state, "thickness", thickness))
+}
+
+fn potent_sulfur_update<W: StandingTreeWorld + ?Sized>(
+    world: &mut W,
+    pos: Pos,
+    state: u32,
+) -> Result<u32, UnsupportedShape> {
+    let registry = &crate::structure::template_pool::StructureAssets::bundled().blocks;
+    let above = world.get_block(relative(pos, 1));
+    let next = if registry
+        .fluid(above)
+        .map_err(|_| UnsupportedShape { pos, state })?
+        != (1, true)
+    {
+        "dry"
+    } else {
+        let below_pos = relative(pos, 0);
+        let below = world.get_block(below_pos);
+        let fluid = registry
+            .fluid(below)
+            .map_err(|_| UnsupportedShape { pos, state })?;
+        let source_if_fluid = fluid.0 == 0 || fluid.1;
+        if tagged(below, "causes_continuous_geyser_eruptions", below_pos)? && source_if_fluid {
+            "continuous"
+        } else if tagged(below, "causes_periodic_geyser_eruptions", below_pos)? && source_if_fluid {
+            let current = data::property(state, "potent_sulfur_state");
+            if !matches!(current, Some("dormant" | "erupting")) {
+                world.reset_potent_sulfur_countdown(pos)?;
+            }
+            if current == Some("erupting") {
+                "erupting"
+            } else {
+                "dormant"
+            }
+        } else {
+            "wet"
+        }
+    };
+    Ok(data::with_property(state, "potent_sulfur_state", next))
+}
+
 pub(super) fn survives<W: StandingTreeWorld + ?Sized>(
     world: &W,
     pos: Pos,
@@ -150,6 +267,8 @@ pub(super) fn update<W: StandingTreeWorld + ?Sized>(
 ) -> Result<u32, UnsupportedShape> {
     let definition = data::block(state);
     match definition.update_shape.as_str() {
+        "SpeleothemBlock" => speleothem_update(world, pos, state, dir),
+        "PotentSulfurBlock" => potent_sulfur_update(world, pos, state),
         "BambooStalkBlock" => {
             if !survives(world, pos, state)? {
                 world.schedule_tree_tick([pos.0, pos.1, pos.2, definition.default as i32, 1, 0]);

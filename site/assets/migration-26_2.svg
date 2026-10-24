@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="364" viewBox="0 0 1000 364" role="img" aria-labelledby="title desc">
+<title id="title">BCore Minecraft 26.2 migration checkpoint</title>
+<desc id="desc">886 passing release tests; 1179 native-decoded frames and 127 terrain packets. Saved edit survives restart. Full generation and gameplay remain incomplete.</desc>
+<defs><linearGradient id="background" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#13243a"/><stop offset="1" stop-color="#0b1220"/></linearGradient><pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32,0 H0 V32" fill="none" stroke="#547294" stroke-opacity=".12"/></pattern></defs>
+<g font-family="Segoe UI, Ubuntu, Arial, sans-serif">
+<rect x="1" y="1" width="998" height="362" rx="20" fill="url(#background)" stroke="#26374e" />
+<text x="38" y="45" font-size="12" fill="#50e3c2" font-weight="600" text-anchor="start" letter-spacing="2">INDEPENDENT IMPLEMENTATION / RUST</text>
+<text x="36" y="112" font-size="66" fill="#e8f0fc" font-weight="700" text-anchor="start" >BCore</text>
+<text x="39" y="146" font-size="18" fill="#a7bad2" font-weight="400" text-anchor="start" >Minecraft 26.2 migration · protocol 776 · data version 4903</text>
+<path d="M914,77.0 l-38,19.0 v58 l38,-19.0 Z" fill="#1b354a" stroke="#50e3c2" stroke-opacity=".5"/>
+<path d="M838,77.0 l38,19.0 v58 l-38,-19.0 Z" fill="#183047" stroke="#50e3c2" stroke-opacity=".4"/>
+<path d="M876,58 l38,19.0 l-38,19.0 l-38,-19.0 Z" fill="#50e3c2" fill-opacity=".18" stroke="#50e3c2"/>
+<path d="M961,108.5 l-23,11.5 v29 l23,-11.5 Z" fill="#1b354a" stroke="#73aaff" stroke-opacity=".5"/>
+<path d="M915,108.5 l23,11.5 v29 l-23,-11.5 Z" fill="#183047" stroke="#73aaff" stroke-opacity=".4"/>
+<path d="M938,97 l23,11.5 l-23,11.5 l-23,-11.5 Z" fill="#73aaff" fill-opacity=".18" stroke="#73aaff"/>
+<rect x="36" y="178" width="222" height="112" rx="12" fill="#111e31" stroke="#26374e" />
+<text x="53" y="224" font-size="36" fill="#50e3c2" font-weight="700" text-anchor="start" >886</text>
+<text x="53" y="251" font-size="16" fill="#e8f0fc" font-weight="600" text-anchor="start" >release tests passed</text>
+<text x="53" y="274" font-size="11" fill="#a7bad2" font-weight="400" text-anchor="start" >0 failed · 4 ignored</text>
+<rect x="272" y="178" width="222" height="112" rx="12" fill="#111e31" stroke="#26374e" />
+<text x="289" y="224" font-size="36" fill="#73aaff" font-weight="700" text-anchor="start" >1,179</text>
+<text x="289" y="251" font-size="16" fill="#e8f0fc" font-weight="600" text-anchor="start" >native-decoded frames</text>
+<text x="289" y="274" font-size="11" fill="#a7bad2" font-weight="400" text-anchor="start" >3 reconnect/restart sessions</text>
+<rect x="508" y="178" width="222" height="112" rx="12" fill="#111e31" stroke="#26374e" />
+<text x="525" y="224" font-size="36" fill="#b89bff" font-weight="700" text-anchor="start" >127</text>
+<text x="525" y="251" font-size="16" fill="#e8f0fc" font-weight="600" text-anchor="start" >terrain packets</text>
+<text x="525" y="274" font-size="11" fill="#a7bad2" font-weight="400" text-anchor="start" >native registry-aware codecs</text>
+<rect x="744" y="178" width="222" height="112" rx="12" fill="#111e31" stroke="#26374e" />
+<text x="761" y="224" font-size="36" fill="#50e3c2" font-weight="700" text-anchor="start" >66</text>
+<text x="761" y="251" font-size="16" fill="#e8f0fc" font-weight="600" text-anchor="start" >shared biome IDs</text>
+<text x="761" y="274" font-size="11" fill="#a7bad2" font-weight="400" text-anchor="start" >versioned registry bootstrap</text>
+<text x="39" y="322" font-size="12" fill="#f5c36c" font-weight="400" text-anchor="start" >ALPHA / Persisted edit survives restart. FULL, gameplay, menus and online authentication remain incomplete.</text>
+<text x="960" y="346" font-size="11" fill="#a7bad2" font-weight="400" text-anchor="end" >Published checkpoint · 2026-10-24</text>
+</g></svg>

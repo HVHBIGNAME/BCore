@@ -446,6 +446,8 @@ fn block_and_fluid_counts_follow_the_rules_measured_from_vanilla() {
 #[test]
 fn our_water_and_lava_sections_report_a_matching_fluid_count() {
     let world = World::in_memory(SEED);
+    let catalog = bcore_worldgen::block_predicate::catalog();
+    let empty = catalog.fluids["minecraft:empty"];
     // Find a chunk with ocean in it, the same way the generator's own tests do.
     let mut checked = 0;
     for i in 0..64i32 {
@@ -458,11 +460,11 @@ fn our_water_and_lava_sections_report_a_matching_fluid_count() {
                 .blocks
                 .values
                 .iter()
-                .filter(|&&state| (86..=117).contains(&state))
+                .filter(|&&state| catalog.info(state).unwrap().fluid != empty)
                 .count();
             assert_eq!(
                 section.fluid_count as usize, fluids,
-                "fluidCount must include water AND lava in section {s} of ({cx},{cz})"
+                "fluidCount must include aquatic and waterlogged states in section {s} of ({cx},{cz})"
             );
             if fluids > 0 {
                 checked += 1;

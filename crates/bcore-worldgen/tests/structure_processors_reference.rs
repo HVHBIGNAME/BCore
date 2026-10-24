@@ -43,8 +43,14 @@ impl FeatureWorld for NoWorldReads {
 fn native_structure_processors_match_every_state_and_rng_continuation() {
     let fixture: Value =
         serde_json::from_str(include_str!("../data/structure_processors_extra_26_1.json")).unwrap();
-    let assets = StructureAssets::bundled();
-    assert_eq!(fixture["jar_sha256"], StructureAssets::JAR_SHA256);
+    let assets = StructureAssets::from_historical_json(include_str!(
+        "../data/pool_alias_trial_combined_assets_26_1_v2.json"
+    ))
+    .unwrap();
+    assert_eq!(
+        fixture["jar_sha256"],
+        StructureAssets::HISTORICAL_JAR_SHA256
+    );
     let mut calls = 0;
     for row in fixture["cases"].as_array().unwrap() {
         let operation = json!({"processor_type":format!("minecraft:{}",row["processor"].as_str().unwrap()),"mossiness":row["mossiness"]});

@@ -12,9 +12,13 @@ struct World {
 impl FallenTreeWorld for World {
     fn get_block(&self, pos: Pos) -> u32 {
         let state = self.blocks.get(&pos).copied().unwrap_or(crate::block::AIR);
-        self.events
-            .borrow_mut()
-            .push(json!(["get", pos.0, pos.1, pos.2, state]));
+        self.events.borrow_mut().push(json!([
+            "get",
+            pos.0,
+            pos.1,
+            pos.2,
+            crate::registry_26_1::historical_state(state)
+        ]));
         state
     }
     fn set_block(&mut self, _: Pos, _: u32, _: i32) -> bool {
@@ -49,7 +53,7 @@ fn native_stair_corners_keep_ordered_world_reads_and_water_ticks() {
         serde_json::from_str(include_str!("../../data/stair_block_shapes_26_1.json")).unwrap();
     assert_eq!(
         fixture["jar_sha256"],
-        crate::structure::template_pool::StructureAssets::JAR_SHA256
+        crate::structure::template_pool::StructureAssets::HISTORICAL_JAR_SHA256
     );
     assert_eq!(fixture["state_count"], 29873);
     assert_eq!(fixture["random_untouched"], true);
@@ -59,7 +63,8 @@ fn native_stair_corners_keep_ordered_world_reads_and_water_ticks() {
         let last = first + block["count"].as_u64().unwrap() as u32 - 1;
         for state in [first, last] {
             assert_eq!(
-                crate::tree::extra_data::block(state).update_shape,
+                crate::tree::extra_data::block(crate::registry_26_1::target_state(state))
+                    .update_shape,
                 block["owner"].as_str().unwrap()
             );
         }
@@ -69,7 +74,7 @@ fn native_stair_corners_keep_ordered_world_reads_and_water_ticks() {
     let mut shapes = BTreeSet::new();
     for row in cases {
         let [x, y, z]: [i32; 3] = serde_json::from_value(row["pos"].clone()).unwrap();
-        let state = row["state"].as_u64().unwrap() as u32;
+        let state = crate::registry_26_1::target_state(row["state"].as_u64().unwrap() as u32);
         let direction = row["direction"].as_u64().unwrap() as usize;
         let mut world = World {
             blocks: row["blocks"]
@@ -83,7 +88,7 @@ fn native_stair_corners_keep_ordered_world_reads_and_water_ticks() {
                             p[1].as_i64().unwrap() as i32,
                             p[2].as_i64().unwrap() as i32,
                         ),
-                        p[3].as_u64().unwrap() as u32,
+                        crate::registry_26_1::target_state(p[3].as_u64().unwrap() as u32),
                     )
                 })
                 .collect(),
@@ -94,11 +99,11 @@ fn native_stair_corners_keep_ordered_world_reads_and_water_ticks() {
             (x, y, z),
             state,
             direction,
-            row["neighbor"].as_u64().unwrap() as u32,
+            crate::registry_26_1::target_state(row["neighbor"].as_u64().unwrap() as u32),
         )
         .unwrap();
         assert_eq!(
-            result,
+            crate::registry_26_1::historical_state(result),
             row["result"].as_u64().unwrap() as u32,
             "state {state}, direction {direction}, {}",
             row["profile"]

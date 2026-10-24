@@ -5,16 +5,18 @@ use std::collections::BTreeMap;
 use super::{
     extra_data,
     fallen::{self, FallenTreeWorld, Pos},
-    grow_shape, ShapeSink, TreeConfig, TreeRandom, TrunkPlacer,
+    grow_shape, ShapeSink, TreeConfig, TreeRandom,
 };
+use crate::block_predicate::FeatureResult;
+use crate::feature_world::FeatureError;
 use crate::{block, heightmap::is_air, MAX_Y, MIN_Y};
 
 #[path = "standing_blocks.rs"]
 mod blocks;
 #[path = "extra_decorators.rs"]
-mod extra_decorators;
+pub(super) mod extra_decorators;
 #[path = "extra_roots.rs"]
-mod extra_roots;
+pub(super) mod extra_roots;
 #[path = "positions.rs"]
 mod positions;
 use positions::Positions;
@@ -35,6 +37,50 @@ impl std::fmt::Display for UnsupportedShape {
     }
 }
 impl std::error::Error for UnsupportedShape {}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum TreeError {
+    Configuration(FeatureError),
+    Shape(UnsupportedShape),
+}
+
+impl TreeError {
+    pub fn shape(&self) -> Option<UnsupportedShape> {
+        match self {
+            Self::Shape(shape) => Some(*shape),
+            Self::Configuration(_) => None,
+        }
+    }
+
+    pub(crate) fn into_feature_error(self) -> FeatureError {
+        match self {
+            Self::Configuration(error) => error,
+            Self::Shape(shape) => FeatureError::Unsupported(shape.to_string()),
+        }
+    }
+}
+
+impl From<FeatureError> for TreeError {
+    fn from(error: FeatureError) -> Self {
+        Self::Configuration(error)
+    }
+}
+
+impl From<UnsupportedShape> for TreeError {
+    fn from(error: UnsupportedShape) -> Self {
+        Self::Shape(error)
+    }
+}
+
+impl std::fmt::Display for TreeError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Configuration(error) => error.fmt(f),
+            Self::Shape(error) => error.fmt(f),
+        }
+    }
+}
+impl std::error::Error for TreeError {}
 
 /// Staged effects, transferred by FeatureRegion into their owning chunks.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -61,6 +107,32 @@ pub trait StandingTreeWorld: FallenTreeWorld {
     fn has_beehive(&mut self, pos: Pos) -> bool;
     fn store_bee(&mut self, pos: Pos, ticks_in_hive: i32);
     fn schedule_tree_tick(&mut self, request: [i32; 6]);
+
+    fn has_scheduled_tree_tick(&self, _pos: Pos, _block: u32) -> Option<bool> {
+        None
+    }
+
+    fn reset_potent_sulfur_countdown(&mut self, pos: Pos) -> Result<(), UnsupportedShape> {
+        Err(UnsupportedShape {
+            pos,
+            state: self.get_block(pos),
+        })
+    }
+
+    /// LevelAccessor's default notification is empty in native WorldGenRegion.
+    fn update_template_neighbours(
+        &mut self,
+        _pos: Pos,
+        _state: u32,
+    ) -> Result<(), UnsupportedShape> {
+        Ok(())
+    }
+
+    fn standing_biome(&self, _pos: Pos) -> FeatureResult<u32> {
+        Err(FeatureError::MissingData(
+            "standing-tree biome lookup".into(),
+        ))
+    }
 
     /// Native getRawBrightness(pos, 0), needed by mushroom survival checks.
     fn tree_raw_brightness(&self, _pos: Pos) -> Option<i32> {
@@ -93,15 +165,25 @@ pub trait StandingTreeWorld: FallenTreeWorld {
     }
 }
 
-/// Resolve pinned tree geometry. Placement can require additional world callbacks
+/// Resolve target catalog geometry. Placement can require additional world callbacks
 /// for contextual survival, nested features or block entities.
-pub fn config_for(name: &str) -> Option<TreeConfig> {
-    legacy_config_for(name).or_else(|| {
-        extra_data::tree(name.strip_prefix("minecraft:").unwrap_or(name)).map(|d| d.shape)
-    })
+pub fn config_for(name: &str) -> FeatureResult<Option<TreeConfig>> {
+    Ok(extra_data::tree(name)?.map(|d| d.shape))
 }
 
-fn legacy_config_for(name: &str) -> Option<TreeConfig> {
+pub(crate) fn check_configured(name: &str) -> crate::block_predicate::FeatureResult<()> {
+    if extra_data::check_tree(name)? {
+        Ok(())
+    } else {
+        Err(crate::feature_world::FeatureError::Unsupported(format!(
+            "configured tree {name}"
+        )))
+    }
+}
+
+#[cfg(test)]
+pub(crate) fn historical_config_for(name: &str) -> Option<TreeConfig> {
+    use super::TrunkPlacer;
     Some(match name.strip_prefix("minecraft:").unwrap_or(name) {
         "oak" => super::OAK,
         "birch" => super::BIRCH,
@@ -143,10 +225,14 @@ struct Placement<'a, W: ?Sized> {
     leaves: Positions,
     decorations: Positions,
     roots: Positions,
-    definition: Option<&'static extra_data::TreeDefinition>,
+    definition: Option<&'a extra_data::TreeDefinition>,
+    failure: Option<FeatureError>,
 }
 
 impl<W: StandingTreeWorld + ?Sized> ShapeSink for Placement<'_, W> {
+    fn failed(&self) -> bool {
+        self.failure.is_some()
+    }
     fn state(&self, pos: Pos) -> Option<u32> {
         Some(self.world.get_block(pos))
     }
@@ -170,26 +256,39 @@ impl<W: StandingTreeWorld + ?Sized> ShapeSink for Placement<'_, W> {
         self.definition.is_none_or(|d| d.ignore_vines)
     }
     fn log(&mut self, pos: Pos, state: u32) -> bool {
+        if self.failed() {
+            return false;
+        }
         self.logs.insert(pos);
         self.world.set_block(pos, state, 19);
         true // Native setters record positions even when the world rejects a write.
     }
     fn leaf(&mut self, pos: Pos, mut state: u32) -> bool {
+        if self.failed() {
+            return false;
+        }
         let previous = blocks::get(self.world.get_block(pos));
         if previous.flags & 32 != 0 {
             return false;
         }
-        if previous.flags & 4 != 0 {
-            state -= 1;
-        } // WATERLOGGED true precedes false.
+        if previous.flags & 4 != 0 && extra_data::property(state, "waterlogged").is_some() {
+            state = extra_data::with_property(state, "waterlogged", "true");
+        }
         self.leaves.insert(pos);
         self.world.set_block(pos, state, 19);
         true
     }
     fn below_trunk<R: TreeRandom + ?Sized>(&mut self, random: &mut R, pos: Pos) {
+        if self.failed() {
+            return;
+        }
         if let Some(definition) = self.definition {
-            if let Some(state) = definition.below.sample(self.world, random, pos) {
-                self.log(pos, state);
+            match definition.below.sample(self.world, random, pos) {
+                Ok(Some(state)) => {
+                    self.log(pos, state);
+                }
+                Ok(None) => {}
+                Err(error) => self.failure = Some(error),
             }
         } else if !crate::heightmap::protected_below_trunk(self.world.get_block(pos)) {
             self.log(pos, block::DIRT);
@@ -205,26 +304,43 @@ impl<W: StandingTreeWorld + ?Sized> ShapeSink for Placement<'_, W> {
         pos: Pos,
         default: u32,
     ) -> bool {
+        if self.failed() {
+            return false;
+        }
         if blocks::get(self.world.get_block(pos)).flags & 32 != 0 {
             return false;
         }
-        let state = self.definition.map_or(default, |d| {
-            d.foliage
-                .sample(self.world, random, pos)
-                .expect("foliage provider state")
-        });
+        let state = if let Some(d) = self.definition {
+            match d.foliage.sample_required(self.world, random, pos) {
+                Ok(state) => state,
+                Err(error) => {
+                    self.failure = Some(error);
+                    return false;
+                }
+            }
+        } else {
+            default
+        };
         self.leaf(pos, state)
     }
     fn trunk_origin<R: TreeRandom + ?Sized>(&self, random: &mut R, origin: Pos) -> Pos {
-        let offset = self.definition.and_then(|d| d.roots).map_or(0, |root| {
-            extra_data::int_provider(&root["trunk_offset_y"]).sample(random)
-        });
+        let offset = self
+            .definition
+            .and_then(|d| d.roots.as_ref())
+            .map_or(0, |root| root.offset.sample(random));
         (origin.0, origin.1 + offset, origin.2)
     }
     fn roots<R: TreeRandom + ?Sized>(&mut self, random: &mut R, origin: Pos, trunk: Pos) -> bool {
-        self.definition
-            .and_then(|d| d.roots)
-            .is_none_or(|root| extra_roots::place(self, random, origin, trunk, root))
+        let Some(root) = self.definition.and_then(|d| d.roots.as_ref()) else {
+            return true;
+        };
+        match extra_roots::place(self, random, origin, trunk, root) {
+            Ok(placed) => placed,
+            Err(error) => {
+                self.failure = Some(error);
+                false
+            }
+        }
     }
 }
 
@@ -284,12 +400,17 @@ impl<W: StandingTreeWorld + ?Sized> Placement<'_, W> {
             zmin = zmin.min(z);
             zmax = zmax.max(z);
         }
+        let catalog = crate::block_predicate::catalog();
+        let vine = catalog.definition("vine").expect("native vine definition");
+        let litter = catalog
+            .definition("leaf_litter")
+            .expect("native leaf litter definition");
         for _ in 0..tries {
             let x = xmin - radius + random.next_i32_bounded(xmax - xmin + 2 * radius + 1);
             let y = y - 2 + random.next_i32_bounded(5);
             let z = zmin - radius + random.next_i32_bounded(zmax - zmin + 2 * radius + 1);
             let above = self.world.get_block((x, y + 1, z));
-            if !is_air(above) && !(8358..=8389).contains(&above) {
+            if !is_air(above) && !(vine.first..vine.first + vine.count).contains(&above) {
                 continue;
             }
             if blocks::get(self.world.get_block((x, y, z))).flags & 1 == 0 {
@@ -299,11 +420,14 @@ impl<W: StandingTreeWorld + ?Sized> Placement<'_, W> {
                 continue;
             }
             let index = random.next_i32_bounded(segments * 4);
-            let facing = [0, 3, 1, 2][(index % 4) as usize];
-            self.decorate(
-                (x, y + 1, z),
-                block::LEAF_LITTER + (facing * 4 + index / 4) as u32,
-            );
+            let facing = ["north", "east", "south", "west"][(index % 4) as usize];
+            let state = litter
+                .with_property(litter.default_state, "facing", facing)
+                .expect("native leaf litter facing");
+            let state = litter
+                .with_property(state, "segment_amount", &(index / 4 + 1).to_string())
+                .expect("native leaf litter segments");
+            self.decorate((x, y + 1, z), state);
         }
     }
 
@@ -502,29 +626,49 @@ pub(crate) fn update_template_shapes<W: StandingTreeWorld + ?Sized>(
         if updated != old {
             world.set_block(pos, updated, (flags & !1) | 16);
         }
-        // WorldGenRegion inherits LevelAccessor's empty updateNeighborsAt.
+        world.update_template_neighbours(pos, updated)?;
     }
     Ok(())
 }
 
-/// Unknown configurations return `Ok(None)` before drawing. Unsupported world
-/// shape callbacks return an explicit error after any already-performed writes.
+/// Resolve the target definition before drawing. Unsupported schemas are errors;
+/// unknown names return `Ok(None)`. Shape errors retain preceding writes.
 pub fn place<W: StandingTreeWorld + ?Sized, R: TreeRandom + ?Sized>(
     world: &mut W,
     random: &mut R,
     name: &str,
     origin: Pos,
-) -> Result<Option<bool>, UnsupportedShape> {
-    let name = name.strip_prefix("minecraft:").unwrap_or(name);
-    let legacy = legacy_config_for(name);
-    let definition = if legacy.is_none() {
-        extra_data::tree(name)
-    } else {
-        None
-    };
-    let Some(config) = legacy.or_else(|| definition.map(|d| d.shape)) else {
+) -> Result<Option<bool>, TreeError> {
+    let Some(definition) = extra_data::tree(name)? else {
         return Ok(None);
     };
+    Ok(Some(place_definition(
+        world,
+        random,
+        &definition.shape,
+        Some(definition),
+        origin,
+    )?))
+}
+
+/// Caller-supplied geometry/configuration, including explicit historical replay.
+/// This boundary does not resolve a target configured-feature name.
+pub fn place_geometry<W: StandingTreeWorld + ?Sized, R: TreeRandom + ?Sized>(
+    world: &mut W,
+    random: &mut R,
+    config: &TreeConfig,
+    origin: Pos,
+) -> Result<bool, TreeError> {
+    place_definition(world, random, config, None, origin)
+}
+
+pub(super) fn place_definition<W: StandingTreeWorld + ?Sized, R: TreeRandom + ?Sized>(
+    world: &mut W,
+    random: &mut R,
+    config: &TreeConfig,
+    definition: Option<&extra_data::TreeDefinition>,
+    origin: Pos,
+) -> Result<bool, TreeError> {
     let mut placement = Placement {
         world,
         logs: Positions::new(),
@@ -532,14 +676,18 @@ pub fn place<W: StandingTreeWorld + ?Sized, R: TreeRandom + ?Sized>(
         decorations: Positions::new(),
         roots: Positions::new(),
         definition,
+        failure: None,
     };
-    if !grow_shape(&mut placement, random, &config, origin)
+    if !grow_shape(&mut placement, random, config, origin)
         || (placement.logs.len == 0 && placement.leaves.len == 0)
     {
-        return Ok(Some(false));
+        if let Some(error) = placement.failure {
+            return Err(error.into());
+        }
+        return Ok(false);
     }
     if let Some(definition) = definition {
-        extra_decorators::place(&mut placement, random, definition.decorators)?;
+        extra_decorators::place(&mut placement, random, &definition.decorators)?;
     } else {
         if let Some(chance) = config.beehive_probability {
             placement.beehive(random, chance);
@@ -551,5 +699,5 @@ pub fn place<W: StandingTreeWorld + ?Sized, R: TreeRandom + ?Sized>(
     }
     let voxel = placement.update_leaves();
     voxel.update_edges(placement.world, 3)?;
-    Ok(Some(true))
+    Ok(true)
 }

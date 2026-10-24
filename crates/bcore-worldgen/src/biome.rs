@@ -1,6 +1,5 @@
 //! Quantized vanilla multi-noise biome parameters.
 use serde_json::Value;
-use std::sync::OnceLock;
 
 mod canonical;
 mod parameter_list;
@@ -79,7 +78,7 @@ impl BiomeParameters {
     }
 }
 
-/// Native 26.1 multi-noise lookup, with f64 -> f32 -> quantized-long inputs.
+/// Multi-noise lookup, with f64 -> f32 -> quantized-long inputs.
 ///
 /// Retain a [`ParameterList`] for native per-list, per-thread last-result semantics.
 /// Existing slice/Vec/array callers remain supported, but have no owning cache
@@ -105,37 +104,17 @@ pub fn biome_at<P: BiomeLookup + ?Sized>(
     parameters.find_biome(target)
 }
 
-pub const DEFAULT_BIOME: BiomeId = 40;
+pub const DEFAULT_BIOME: BiomeId = bcore_registry::biome::PLAINS;
 
-pub mod ids {
-    pub const BADLANDS: u32 = 2;
-    pub const BEACH: u32 = 3;
-    pub const BIRCH_FOREST: u32 = 5;
-    pub const DARK_FOREST: u32 = 13;
-    pub const DESERT: u32 = 14;
-    pub const FOREST: u32 = 21;
-    pub const FROZEN_OCEAN: u32 = 22;
-    pub const MUSHROOM_FIELDS: u32 = 34;
-    pub const OCEAN: u32 = 35;
-    pub const PLAINS: u32 = 40;
-    pub const RIVER: u32 = 41;
-    pub const SNOWY_PLAINS: u32 = 46;
-    pub const SNOWY_SLOPES: u32 = 47;
-    pub const WINDSWEPT_SAVANNA: u32 = 62;
-}
+pub use bcore_registry::biome as ids;
 
-fn registry() -> &'static Vec<String> {
-    static REGISTRY: OnceLock<Vec<String>> = OnceLock::new();
-    REGISTRY.get_or_init(|| {
-        serde_json::from_value(
-            crate::assets::load("biome_registry.json").expect("bundled biome registry"),
-        )
-        .expect("biome name array")
-    })
+fn registry() -> &'static [bcore_registry::RegistryEntry] {
+    &bcore_registry::vanilla().registries["BIOME"]
 }
 
 pub fn name(id: BiomeId) -> &'static str {
     registry()[id as usize]
+        .key
         .strip_prefix("minecraft:")
         .expect("vanilla biome namespace")
 }
@@ -144,7 +123,7 @@ pub fn id(name: &str) -> Option<BiomeId> {
     let name = name.strip_prefix("minecraft:").unwrap_or(name);
     registry()
         .iter()
-        .position(|entry| entry.strip_prefix("minecraft:") == Some(name))
+        .position(|entry| entry.key.strip_prefix("minecraft:") == Some(name))
         .map(|i| i as u32)
 }
 

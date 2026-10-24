@@ -18,7 +18,10 @@ ROOT = Path(__file__).resolve().parents[1]
 METRICS = ROOT / "docs/metrics"
 ASSETS = ROOT / "site/assets"
 CHECKPOINT = METRICS / "checkpoint-2026-10-10.json"
-BENCHMARK = METRICS / "noise-fill-wg-v2-2026-10-08.json"
+BENCHMARK = METRICS / "noise-fill-wg-v2-final-2026-10-21.json"
+BENCHMARK_26_2 = METRICS / "noise-fill-wg-v2-baseline-26_2-2026-10-24.json"
+MIGRATION_TESTS = METRICS / "migration-workspace-validation-2026-10-24.json"
+BOOTSTRAP = METRICS / "protocol-26_2-validation-2026-10-24.json"
 BG, CARD, LINE = "#0b1220", "#111e31", "#26374e"
 FG, MUTED = "#e8f0fc", "#a7bad2"
 TEAL, BLUE, VIOLET, AMBER = "#50e3c2", "#73aaff", "#b89bff", "#f5c36c"
@@ -94,13 +97,52 @@ def overview(checkpoint):
                      f'{light_matches} matching scored light snapshots. Full parity remains incomplete.', e)
 
 
+def migration(workspace, bootstrap):
+    totals = workspace["totals"]
+    if totals["failed"] or totals["filtered_out"] or not workspace["suite_count"]:
+        raise ValueError("migration chart requires a passing complete workspace run")
+    if (bootstrap["schema"], bootstrap["minecraft"], bootstrap["protocol"], bootstrap["data_version"]) != (
+            "bcore.protocol-bootstrap.v1", "26.2", 776, 4903):
+        raise ValueError("migration chart requires the native-validated 26.2 bootstrap")
+    proof = bootstrap["bcore_validation"]
+    sessions = proof["coverage"]
+    if len(sessions) != 3 or any(row["decoded"] != row["expected"] or row["decoded"] <= 0
+                                 or row["coverage"]["network_registry_load"] is not True for row in sessions):
+        raise ValueError("migration chart requires three completely decoded sessions")
+    persistence = proof["persistence"]
+    if persistence["status"] != "pass" or persistence["mutation"]["sha256"] != persistence["file_after_restart"]["sha256"]:
+        raise ValueError("migration chart requires the persisted edit after restart")
+    frames = sum(row["decoded"] for row in sessions)
+    terrain = sum(row["coverage"]["native_terrain_packets"] for row in sessions)
+    biomes = bootstrap["registry_bindings"]["biome_count"]
+    if bootstrap["registry_bindings"]["biome_ids_match"] is not True:
+        raise ValueError("migration chart requires shared network biome IDs")
+    e = [text(38, 45, "INDEPENDENT IMPLEMENTATION / RUST", 12, TEAL, 600, extra='letter-spacing="2"'),
+         text(36, 112, "BCore", 66, FG, 700),
+         text(39, 146, "Minecraft 26.2 migration · protocol 776 · data version 4903", 18, MUTED)]
+    e += cube(876, 58, 38, 58, TEAL) + cube(938, 97, 23, 29, BLUE)
+    cards = [(str(totals["passed"]), "release tests passed", f'{totals["failed"]} failed · {totals["ignored"]} ignored', TEAL),
+             (f"{frames:,}", "native-decoded frames", "3 reconnect/restart sessions", BLUE),
+             (str(terrain), "terrain packets", "native registry-aware codecs", VIOLET),
+             (str(biomes), "shared biome IDs", "versioned registry bootstrap", TEAL)]
+    for i, (value, label, detail, color) in enumerate(cards):
+        x = 36 + i * 236
+        e += [rect(x, 178, 222, 112), text(x + 17, 224, value, 36, color, 700),
+              text(x + 17, 251, label, 16, FG, 600), text(x + 17, 274, detail, 11, MUTED)]
+    e += [text(39, 322, "ALPHA / Persisted edit survives restart. FULL, gameplay, menus and online authentication remain incomplete.", 12, AMBER),
+          text(960, 346, "Published checkpoint · 2026-10-24", 11, MUTED, anchor="end")]
+    return document(364, "BCore Minecraft 26.2 migration checkpoint",
+                    f'{totals["passed"]} passing release tests; {frames} native-decoded frames and {terrain} terrain packets. '
+                    "Saved edit survives restart. Full generation and gameplay remain incomplete.", e)
+
+
 def accuracy(checkpoint, historical):
     t = checkpoint["totals"]
     n = t["requests"]
     e = [text(36, 46, "Generation accuracy", 28, FG, 650),
          text(36, 73, "Measured outputs, with the sample boundaries kept visible.", 14, MUTED),
          rect(30, 96, 455, 351), rect(503, 96, 467, 351),
-         text(50, 125, "LATEST / MATCHED NATIVE HISTORIES", 12, TEAL, 600, extra='letter-spacing="1"'),
+         text(50, 125, "HISTORICAL / 26.1 MATCHED HISTORIES", 12, TEAL, 600, extra='letter-spacing="1"'),
           text(50, 160, str(t["state_differences"]), 40, TEAL, 700), text(87, 157, "block-state differences", 19, FG, 600),
          text(50, 184, f'{t["state_observations"]:,} observations · repeated snapshots included', 12, MUTED)]
     rows = [r for history in checkpoint["histories"] for r in history["requests"]]
@@ -172,13 +214,17 @@ def nice_max(value):
 
 
 def performance(data):
+    native_engines = {row["engine"] for row in data["summary"] if row["engine"] != "BCore"}
+    if len(native_engines) != 1 or not native_engines.issubset({"Vanilla 26.1", "Vanilla 26.2"}):
+        raise ValueError("performance chart requires one explicit native engine version")
+    native_engine = next(iter(native_engines))
     groups = sorted({row["workers"] for row in data["summary"]})
     max_value = nice_max(max(len(data["chunks"]) / row["min_process_median_seconds"] for row in data["summary"]) * 1.05)
     chart_x, chart_w = 224, 650
     contract = data.get("contract", {})
     e = [text(36, 45, "BCore vs Vanilla / NOISE material fill", 27, FG, 650),
          text(36, 74, "Original production kernels · identical block, ordered effect and WG-map hashes · higher is faster", 13, MUTED),
-         rect(36, 91, 11, 11, BLUE, 3, "none"), text(55, 101, "Vanilla 26.1", 12),
+         rect(36, 91, 11, 11, BLUE, 3, "none"), text(55, 101, native_engine, 12),
          rect(175, 91, 11, 11, TEAL, 3, "none"), text(194, 101, "BCore (release)", 12),
          text(958, 101, "CHUNKS / SECOND", 11, MUTED, 600, "end")]
     for tick in range(5):
@@ -190,7 +236,7 @@ def performance(data):
         y = 139 + i * 94
         e += [text(38, y + 21, f"{workers} worker" + ("s" if workers != 1 else ""), 18, FG, 600),
               text(38, y + 43, "parallelism budget", 11, MUTED)]
-        for j, (engine, color) in enumerate([("Vanilla 26.1", BLUE), ("BCore", TEAL)]):
+        for j, (engine, color) in enumerate([(native_engine, BLUE), ("BCore", TEAL)]):
             row = next(r for r in data["summary"] if r["engine"] == engine and r["workers"] == workers)
             value = row["chunks_per_second"]
             low = len(data["chunks"]) / row["max_process_median_seconds"]
@@ -235,24 +281,77 @@ def pipeline():
               text(round(x, 2), 153, label, 10, color, 600, "middle")]
     e += [text(36, 191, "● Implemented", 12, TEAL), text(202, 191, "● Partial families / callbacks", 12, AMBER),
           text(474, 191, "● Pending runtime integration", 12, MUTED),
-           text(36, 221, "SPAWN runs with explicit inputs; 456 native mob saves verify LOAD, storage and pairing. Live clock hookup remains.", 12, MUTED)]
-    return document(246, "BCore runtime generation-stage coverage", "Through SPAWN is integrated with partial coverage. Live clock hookup, FULL conversion and ticket-driven lifecycle remain incomplete.", e)
+          text(36, 221, "World-local clocks are connected; historical 456-mob fixtures verify LOAD/pairing. FULL coverage remains partial.", 12, MUTED)]
+    return document(246, "BCore runtime generation-stage coverage", "Through SPAWN is integrated with partial coverage and world-local clocks. FULL conversion and ticket-driven lifecycle remain incomplete.", e)
 
 
-def import_benchmark(path):
+def import_benchmark(path, destination=BENCHMARK):
     data = load(path)
-    if data.get("verified_matching_outputs") is not True or data["scope"] != "noise-fill-wg-v2":
+    if data.get("verified_matching_outputs") is not True or (data["schema"], data["scope"]) != (2, "noise-fill-wg-v2"):
         raise ValueError("benchmark must have completed under noise-fill-wg-v2 with matching outputs")
+    workers = data["workers"]
+    processes = data["processes_per_configuration"]
+    measured = data["measured_batches_per_process"]
+    warmup = data["warmup_batches_per_process"]
+    if (not workers or any(type(w) is not int for w in workers) or len(set(workers)) != len(workers) or not set(workers).issubset({1, 2, 4})
+            or any(type(n) is not int or n <= 0 for n in (processes, measured, warmup))):
+        raise ValueError("invalid benchmark worker/sample counts")
+    if (len(data["chunks"]) != 8 or data["chunks"] != data["contract"]["chunks"]
+            or (data["min_y"], data["height"]) != (-64, 384)
+            or len(data["fingerprints"]) != len(data["chunks"])):
+        raise ValueError("benchmark workload or fingerprint count differs")
+    fields = ("blocks_sha256", "marks_sha256", "world_surface_wg_sha256", "ocean_floor_wg_sha256")
+    for position, fingerprint in zip(data["chunks"], data["fingerprints"]):
+        if (fingerprint["chunk"] != position or type(fingerprint["marks"]) is not int or fingerprint["marks"] < 0
+                or any(not re.fullmatch("[0-9a-f]{64}", fingerprint[field]) for field in fields)):
+            raise ValueError("benchmark chunk fingerprint differs")
+    engines = {row["engine"] for row in data["summary"]}
+    native_engines = engines - {"BCore"}
+    if "BCore" not in engines or len(native_engines) != 1 or not native_engines.issubset({"Vanilla 26.1", "Vanilla 26.2"}):
+        raise ValueError("benchmark requires BCore and one explicit native target")
+    native_engine = next(iter(native_engines))
+    if native_engine == "Vanilla 26.2" and (data.get("minecraft"), data.get("protocol"), workers, processes, measured, warmup) != (
+            "26.2", 776, [1, 2, 4], 3, 10, 10):
+        raise ValueError("26.2 publication requires the complete 1/2/4-worker baseline contract")
+    provenance = data["provenance"]
+    if native_engine == "Vanilla 26.2":
+        version = provenance.get("native_version", {})
+        if ((version.get("name"), version.get("protocol_version"), version.get("world_version")) != ("26.2", 776, 4903)
+                or provenance["native_jar_sha256"] != "183c0499c5f855570ee487dd38e141a53f0121f83a0b07a3bac2d8b6698823e8"):
+            raise ValueError("native benchmark JAR/provenance target differs")
+    expected = {(engine, worker, process) for engine in engines for worker in workers for process in range(1, processes + 1)}
+    observed = []
     for sample in data["samples"]:
-        if sample["fingerprints"] != data["fingerprints"] or not all(t > 0 and math.isfinite(t) for t in sample["seconds"]):
+        observed.append((sample["engine"], sample["workers"], sample["process"]))
+        if ((sample["schema"], sample["scope"], sample["seed"], sample["chunks_per_batch"], sample["warmup_batches"]) != (
+                2, data["scope"], data["seed"], len(data["chunks"]), warmup)
+                or sample["fingerprints"] != data["fingerprints"]):
             raise ValueError("invalid benchmark sample")
+        for field, count in (("seconds", measured), ("warmup_seconds", warmup)):
+            if len(sample[field]) != count or any(type(t) not in (int, float) or t <= 0 or not math.isfinite(t) for t in sample[field]):
+                raise ValueError("invalid benchmark durations")
+        if sample["engine"] != "BCore" and (sample.get("native_executor"), sample.get("available_processors")) != (
+                "ForkJoinPool", sample["workers"] + 1):
+            raise ValueError("native benchmark executor proof differs")
+        if sample["engine"] == "Vanilla 26.2" and (sample.get("minecraft"), sample.get("protocol"), sample.get("data_version")) != (
+                "26.2", 776, 4903):
+            raise ValueError("native benchmark runtime target proof differs")
+        digest = provenance["bcore_executable_sha256"] if sample["engine"] == "BCore" else provenance["native_jar_sha256"]
+        if sample.get("artifacts_verified_before_after") is not True or sample.get("launched_artifact_sha256") != digest:
+            raise ValueError("benchmark launched-artifact proof differs")
+    if len(observed) != len(expected) or set(observed) != expected:
+        raise ValueError("benchmark process grid is missing, duplicated or mixed-target")
+    summary_keys = [(row["engine"], row["workers"]) for row in data["summary"]]
+    if len(summary_keys) != len(engines) * len(workers) or set(summary_keys) != {(e, w) for e in engines for w in workers}:
+        raise ValueError("benchmark summary grid differs")
     for row in data["summary"]:
         samples = [s for s in data["samples"] if (s["engine"], s["workers"]) == (row["engine"], row["workers"])]
         medians = [statistics.median(s["seconds"]) for s in samples]
-        if len(samples) != data["processes_per_configuration"] or statistics.median(medians) != row["median_batch_seconds"]:
+        if (statistics.median(medians), min(medians), max(medians), len(data["chunks"]) / statistics.median(medians)) != (
+                row["median_batch_seconds"], row["min_process_median_seconds"], row["max_process_median_seconds"], row["chunks_per_second"]):
             raise ValueError("invalid benchmark summary")
     published = {**data, "capture_results_sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
-    with BENCHMARK.open("x", encoding="utf-8") as stream:
+    with destination.open("x", encoding="utf-8", newline="\n") as stream:
         json.dump(published, stream, indent=2)
         stream.write("\n")
 
@@ -261,17 +360,27 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--benchmark", type=Path, help="import completed results.json into a NEW measurement")
+    parser.add_argument("--benchmark-output", type=Path, help="explicit NEW JSON file directly under docs/metrics/")
     args = parser.parse_args()
     if args.benchmark:
         if args.check:
             parser.error("--check cannot publish measurements")
-        import_benchmark(args.benchmark)
+        destination = args.benchmark_output.resolve() if args.benchmark_output else BENCHMARK
+        if destination.parent.resolve() != METRICS.resolve() or destination.suffix != ".json" or destination.exists():
+            parser.error("benchmark output must be a new JSON file directly under docs/metrics/")
+        import_benchmark(args.benchmark, destination)
+    elif args.benchmark_output:
+        parser.error("--benchmark-output requires --benchmark")
     checkpoint = load(CHECKPOINT)
     historical = load(ROOT / "docs/parity-live-generation.json")
     benchmark = load(BENCHMARK)
     files = {"overview.svg": overview(checkpoint), "generation-accuracy.svg": accuracy(checkpoint, historical),
              "regression-fixes.svg": fixes(checkpoint), "performance.svg": performance(benchmark),
              "generation-pipeline.svg": pipeline()}
+    if BENCHMARK_26_2.is_file():
+        files["performance-26_2.svg"] = performance(load(BENCHMARK_26_2))
+    if MIGRATION_TESTS.is_file():
+        files["migration-26_2.svg"] = migration(load(MIGRATION_TESTS), load(BOOTSTRAP))
     for name, contents in files.items():
         ET.fromstring(contents)
         path = ASSETS / name

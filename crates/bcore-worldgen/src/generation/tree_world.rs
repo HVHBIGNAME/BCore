@@ -102,6 +102,28 @@ impl FeatureWorld for EffectWorld<'_> {
     fn schedule_feature_tick(&mut self, request: TickRequest) -> bool {
         self.region.schedule_feature_tick(request)
     }
+    fn apply_feature_template_effect(
+        &mut self,
+        effect: crate::structure::template::TemplateEffect,
+    ) -> Result<(), FeatureError> {
+        self.region.apply_feature_template_effect(effect)
+    }
+    fn update_feature_neighbours(&mut self, pos: Pos, state: u32) -> Result<(), FeatureError> {
+        self.region.update_feature_neighbours(pos, state)
+    }
+    fn has_feature_tick(
+        &self,
+        pos: Pos,
+        target: crate::tick_request::TickTarget,
+    ) -> Result<bool, FeatureError> {
+        self.region.has_feature_tick(pos, target)
+    }
+    fn reset_feature_potent_sulfur(&mut self, pos: Pos) -> Result<bool, FeatureError> {
+        self.region.reset_feature_potent_sulfur(pos)
+    }
+    fn lookup_feature_beehive(&mut self, pos: Pos) -> Result<Option<Vec<i32>>, FeatureError> {
+        self.region.lookup_feature_beehive(pos)
+    }
     fn set_feature_brushable_loot(
         &mut self,
         pos: Pos,
@@ -128,8 +150,16 @@ pub(super) fn configured_name(
         .ok_or_else(|| {
             FeatureError::Unsupported("unregistered inline tree configuration".into())
         })?;
+    if crate::block_predicate::catalog().configured(&name)? != document {
+        return Err(FeatureError::InvalidConfig(format!(
+            "configured tree document differs from registered {name}"
+        )));
+    }
     let supported = match document["type"].as_str() {
-        Some("minecraft:tree") => crate::tree::standing::config_for(&name).is_some(),
+        Some("minecraft:tree") => {
+            crate::tree::standing::check_configured(&name)?;
+            true
+        }
         Some("minecraft:fallen_tree") => crate::tree::fallen::config_for(&name).is_some(),
         _ => false,
     };
@@ -156,7 +186,7 @@ pub(super) fn place(
         ));
     }
     crate::tree::standing::place(&mut tree, random, &name, origin)
-        .map_err(|error| FeatureError::Unsupported(error.to_string()))?
+        .map_err(crate::tree::standing::TreeError::into_feature_error)?
         .ok_or_else(|| FeatureError::Unsupported(format!("configured tree {name}")))
 }
 
@@ -179,6 +209,11 @@ pub(super) fn update_template_shapes(
     .map_err(|error| FeatureError::Unsupported(error.to_string()))
 }
 
+#[cfg(test)]
+pub(super) fn captured_ticks(effects: &SharedTreeEffects) -> Vec<[i32; 6]> {
+    effects.borrow().ticks.clone()
+}
+
 impl FallenTreeWorld for TreeWorld<'_> {
     fn get_block(&self, pos: Pos) -> u32 {
         self.world.get_block(pos).expect("guarded tree block read")
@@ -195,6 +230,13 @@ impl FallenTreeWorld for TreeWorld<'_> {
 }
 
 impl StandingTreeWorld for TreeWorld<'_> {
+    fn standing_biome(&self, pos: Pos) -> Result<u32, FeatureError> {
+        let biome = self.world.feature_biome(pos);
+        if biome as usize >= bcore_registry::BIOME_COUNT {
+            return Err(FeatureError::MissingData(format!("tree biome {biome}")));
+        }
+        Ok(biome)
+    }
     fn has_beehive(&mut self, pos: Pos) -> bool {
         let hive = BlockEntity::Beehive {
             ticks_in_hive: Vec::new(),
@@ -206,8 +248,17 @@ impl StandingTreeWorld for TreeWorld<'_> {
         {
             return false;
         }
+        if !self.effects.borrow().hives.contains_key(&pos) {
+            let Some(ticks) = self
+                .world
+                .lookup_feature_beehive(pos)
+                .expect("native hive lookup")
+            else {
+                return false;
+            };
+            self.effects.borrow_mut().hives.insert(pos, ticks);
+        }
         let mut effects = self.effects.borrow_mut();
-        effects.hives.entry(pos).or_default();
         effects.changed.insert(pos);
         true
     }
@@ -223,6 +274,41 @@ impl StandingTreeWorld for TreeWorld<'_> {
     fn schedule_tree_tick(&mut self, request: [i32; 6]) {
         self.effects.borrow_mut().ticks.push(request);
     }
+    fn has_scheduled_tree_tick(&self, pos: Pos, block: u32) -> Option<bool> {
+        if self
+            .effects
+            .borrow()
+            .ticks
+            .iter()
+            .any(|tick| tick[..4] == [pos.0, pos.1, pos.2, block as i32] && tick[5] == 0)
+        {
+            return Some(true);
+        }
+        self.world
+            .has_feature_tick(pos, crate::tick_request::TickTarget::Block(block))
+            .ok()
+    }
+    fn reset_potent_sulfur_countdown(
+        &mut self,
+        pos: Pos,
+    ) -> Result<(), crate::tree::standing::UnsupportedShape> {
+        self.world
+            .reset_feature_potent_sulfur(pos)
+            .map(|_| ())
+            .map_err(|_| crate::tree::standing::UnsupportedShape {
+                pos,
+                state: self.get_block(pos),
+            })
+    }
+    fn update_template_neighbours(
+        &mut self,
+        pos: Pos,
+        state: u32,
+    ) -> Result<(), crate::tree::standing::UnsupportedShape> {
+        self.world
+            .update_feature_neighbours(pos, state)
+            .map_err(|_| crate::tree::standing::UnsupportedShape { pos, state })
+    }
 }
 
 #[cfg(test)]
@@ -231,6 +317,100 @@ mod tests {
     use crate::{block, ChunkPos, GeneratedChunk, WorldGenerator};
     use std::panic::{catch_unwind, AssertUnwindSafe};
     use std::sync::Arc;
+
+    #[test]
+    fn named_tree_cannot_override_a_different_supplied_configuration() {
+        let mut document = crate::block_predicate::catalog()
+            .configured("oak")
+            .unwrap()
+            .clone();
+        document["config"]["trunk_placer"]["base_height"] = serde_json::json!(31);
+        assert!(matches!(
+            configured_name(&document, Some("minecraft:oak")),
+            Err(FeatureError::InvalidConfig(_))
+        ));
+        assert_eq!(
+            configured_name(
+                crate::block_predicate::catalog().configured("oak").unwrap(),
+                Some("minecraft:oak")
+            )
+            .unwrap(),
+            "minecraft:oak"
+        );
+    }
+
+    #[test]
+    fn full_review_erased_tree_lookup_preserves_saved_pending_bees() {
+        use crate::block_entity::PendingBlockEntity;
+        use crate::generation::ChunkStatus;
+        use crate::structure::template::Nbt;
+
+        let fixture: serde_json::Value = serde_json::from_str(include_str!(
+            "../../data/deferred_block_entities_26_1_v1.json"
+        ))
+        .unwrap();
+        let case = fixture["cases"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|case| case["kind"] == "saved" && case["block"] == "BEE_NEST")
+            .unwrap();
+        let first = &case["observations"][0];
+        let [x, y, z]: [i32; 3] = serde_json::from_value(first["pos"].clone()).unwrap();
+        let pos = (x, y, z);
+        let local = ((x & 15) as usize, y, (z & 15) as usize);
+        let owner = ChunkPos::new(x >> 4, z >> 4);
+        let source = ChunkPos::new(owner.x - 1, owner.z);
+        let tag: Nbt = serde_json::from_value(first["pending"]["nbt"].clone()).unwrap();
+        for converted in [false, true] {
+            let mut region = FeatureRegion::shared(WorldGenerator::new(0));
+            let chunk = region.owned_chunk_mut(owner);
+            chunk.set(local.0, y, local.2, first["state"].as_u64().unwrap() as u32);
+            assert!(chunk.set_pending_block_entity(
+                local.0,
+                y,
+                local.2,
+                PendingBlockEntity::from_nbt(&tag)
+            ));
+            region.begin_source_with_levels(
+                source,
+                ChunkStatus::Features,
+                [
+                    ((source.x, source.z), ChunkStatus::Carvers),
+                    ((owner.x, owner.z), ChunkStatus::Full),
+                ]
+                .into(),
+                if converted {
+                    [(owner.x, owner.z)].into()
+                } else {
+                    BTreeSet::new()
+                },
+            );
+            {
+                let mut world = EffectWorld::new(&mut region);
+                let effects = world.effects.clone();
+                let mut tree = TreeWorld {
+                    world: &mut world,
+                    effects,
+                };
+                assert!(tree.has_beehive(pos));
+                tree.store_bee(pos, -7);
+            }
+            region.transfer_tree_effects().unwrap();
+            let chunk = region.owned_chunk_ref(owner).unwrap();
+            assert!(
+                !chunk.pending_block_entities().contains_key(&local),
+                "lookup must promote pending data, converted={converted}"
+            );
+            assert_eq!(
+                chunk.feature_block_entities()[&local].bee_ticks().unwrap(),
+                vec![17, -7],
+                "converted={converted}"
+            );
+            assert!(chunk.tick_requests().is_empty());
+            assert!(region.tree_effects.beehives.is_empty());
+        }
+    }
 
     #[test]
     fn erased_tree_world_preserves_hive_transitions_and_ticks_through_unwinding() {

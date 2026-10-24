@@ -148,7 +148,10 @@ fn topology(tree: &tree::Tree, index: usize, hash: &mut Sha256) {
 fn native_tree_topologies_and_source_provenance_match() {
     let fixture = fixture();
     assert_eq!(fixture.minecraft, "26.1");
-    assert_eq!(fixture.jar_sha256, canonical::JAR_SHA256);
+    assert_eq!(
+        fixture.jar_sha256,
+        crate::structure::template_pool::StructureAssets::HISTORICAL_JAR_SHA256
+    );
     assert_eq!(
         fixture.source_hash_order,
         ["scripts/BiomeTreeReference.java"]
@@ -212,7 +215,7 @@ fn canonical_rows_and_wire_ids_match_native_resource_keys() {
         .iter()
         .find(|tree| tree.id == "overworld")
         .unwrap();
-    let list = ParameterList::overworld();
+    let list = crate::reference_26_1::parameters();
     assert_eq!(native.rows.len(), 7593);
     assert_eq!(list.values().len(), native.rows.len());
     assert_eq!(fixture.registry.len(), 65);
@@ -235,8 +238,8 @@ fn canonical_rows_and_wire_ids_match_native_resource_keys() {
         );
         assert_eq!(*parameters, row.parameters(), "row {index}");
     }
-    let old =
-        parse_parameters(&crate::assets::bundled()["biome_parameters/overworld.json"]).unwrap();
+    let old = parse_parameters(&crate::reference_26_1::assets()["biome_parameters/overworld.json"])
+        .unwrap();
     let differences = old
         .iter()
         .zip(list.values())
@@ -428,7 +431,7 @@ fn six_seeds_three_router_configs_match_native_climates_and_resource_keys() {
         .iter()
         .find(|tree| tree.id == "overworld")
         .unwrap();
-    let list = ParameterList::overworld();
+    let list = crate::reference_26_1::parameters();
     let fields = [
         "temperature",
         "vegetation",
@@ -440,11 +443,17 @@ fn six_seeds_three_router_configs_match_native_climates_and_resource_keys() {
     let mut values = 0;
     let mut biomes = 0;
     for group in fixture.groups.iter().filter(|group| group.seed.is_some()) {
-        let settings = &crate::assets::bundled()
+        let settings = &crate::reference_26_1::assets()
             [&format!("noise_settings/{}.json", group.settings.as_ref().unwrap())];
         let router: Vec<_> = fields
             .iter()
-            .map(|field| density::parse_json(&settings["noise_router"][field].to_string()).unwrap())
+            .map(|field| {
+                density::parse_historical_26_1_json(
+                    &settings["noise_router"][field].to_string(),
+                    crate::reference_26_1::assets(),
+                )
+                .unwrap()
+            })
             .collect();
         density::clear_density_caches();
         let context = EvalContext {
@@ -493,7 +502,7 @@ fn six_seeds_three_router_configs_match_native_climates_and_resource_keys() {
 fn captured_4608_pipeline_biomes_keep_native_resource_key_names() {
     let capture: serde_json::Value =
         serde_json::from_str(include_str!("../../data/parity_26_1.json")).unwrap();
-    let graph = crate::VanillaGraph::load().unwrap().fork();
+    let graph = crate::reference_26_1::graph();
     let context = EvalContext {
         seed: capture["seed"].as_i64().unwrap(),
         ..Default::default()

@@ -1,13 +1,13 @@
-//! Development protocol 26.1; migration to 26.2 follows worldgen parity work.
+//! Minecraft Java Edition version identity for this server.
 
-/// Protocol version for Minecraft Java Edition 26.1.
-pub const PROTOCOL_VERSION: i32 = 775;
+/// Protocol version for Minecraft Java Edition 26.2.
+pub const PROTOCOL_VERSION: i32 = 776;
 
 /// Human-readable Minecraft version string reported to clients.
-pub const MC_VERSION: &str = "26.1";
+pub const MC_VERSION: &str = "26.2";
 
 /// Data version (`version.json` `world_version`).
-/// Approximate: verify against the 26.1 server jar before registry-sync/login-gameplay.
+/// Verified against the official 26.2 server's `version.json`.
 pub const DATA_VERSION: i32 = 4903;
 
 /// Server implementation name reported in status.

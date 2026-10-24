@@ -7,10 +7,21 @@ name = "bcore-core"
 version = "0.1.0"
 
 [[package]]
+name = "bcore-registry"
+version = "0.1.0"
+dependencies = [
+ "bcore-core",
+ "serde",
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
 name = "bcore-worldgen"
 version = "0.1.0"
 dependencies = [
  "bcore-core",
+ "bcore-registry",
  "md5",
  "rayon",
  "serde",

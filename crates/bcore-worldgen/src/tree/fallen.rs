@@ -1,9 +1,9 @@
-//! Isolated 26.1 `FallenTreeFeature`, using world-space reads and writes.
+//! Fallen-tree kernel with Java 26.1 algorithm provenance and shared target IDs.
 //!
 //! The native feature places its stump unconditionally, decorates it, then checks
 //! the entire horizontal log before writing that log. Its return value is always
-//! true, including unsupported terrain and rejected writes. Configurations and
-//! state IDs are pinned in `data/fallen_tree_configs_26_1.json`.
+//! true, including unsupported terrain and rejected writes. Compiled configurations
+//! retain the historical `data/fallen_tree_configs_26_1.json` provenance.
 
 use super::{IntProvider, TreeRandom};
 use crate::{block, heightmap::is_air};
@@ -84,7 +84,7 @@ pub struct FallenTreeConfig {
 
 const MUSHROOM_DECORATORS: &[FallenTreeDecorator] = &[FallenTreeDecorator::AttachedToLogs {
     probability: 0.1,
-    entries: &[(2337, 2), (2336, 1)],
+    entries: &[(block::RED_MUSHROOM, 2), (block::BROWN_MUSHROOM, 1)],
     directions: &[Direction::Up],
 }];
 
@@ -139,27 +139,9 @@ pub fn config_for(name: &str) -> Option<FallenTreeConfig> {
     })
 }
 
-/// Native `TreeFeature.validTreePos`, with every state in the pinned
-/// `minecraft:replaceable_by_trees` tag, rather than the chunk tree subset.
+/// `TreeFeature.validTreePos` using the captured target replacement tag.
 pub fn valid_tree_state(state: u32) -> bool {
-    is_air(state)
-        || matches!(
-            state,
-            86..=101
-                | 252..=559
-                | 2248..=2256
-                | 2321..=2335
-                | 8358..=8517
-                | 12915..=12926
-                | 14809..=14810
-                | 20960..=20961
-                | 21031
-                | 27846..=27861
-                | 27919..=27920
-                | 29704..=29865
-                | 29868..=29869
-                | 29872
-        )
+    is_air(state) || super::extra_data::tagged(state, "minecraft:replaceable_by_trees")
 }
 
 /// Place one configured fallen tree using the caller's feature RNG stream.
@@ -297,15 +279,17 @@ fn decorate_logs<W: FallenTreeWorld + ?Sized, R: TreeRandom + ?Sized>(
         match *decorator {
             FallenTreeDecorator::TrunkVine => {
                 for &pos in logs {
-                    for (direction, state) in [
-                        (Direction::West, 8373),  // east=true
-                        (Direction::East, 8388),  // west=true
-                        (Direction::North, 8385), // south=true
-                        (Direction::South, 8381), // north=true
+                    for (direction, property) in [
+                        (Direction::West, "east"),
+                        (Direction::East, "west"),
+                        (Direction::North, "south"),
+                        (Direction::South, "north"),
                     ] {
                         if random.next_i32_bounded(3) > 0 {
                             let adjacent = direction.relative(pos, 1);
                             if is_air(world.get_block(adjacent)) {
+                                let state =
+                                    super::extra_data::with_property(block::VINE, property, "true");
                                 world.set_block(adjacent, state, 19);
                             }
                         }

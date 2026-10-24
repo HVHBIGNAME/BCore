@@ -3,7 +3,7 @@ use std::sync::OnceLock;
 
 use crate::feature_world::{FeatureError, Pos};
 use crate::structure::template::{
-    nbt_codec_int, Mirror, Nbt, Rotation, TemplateBlockEntity, TemplateEntity,
+    nbt_codec_int, BlockRegistry, Mirror, Nbt, Rotation, TemplateBlockEntity, TemplateEntity,
 };
 use crate::structure::template_pool::StructureAssets;
 
@@ -94,42 +94,67 @@ impl FeatureBlockEntity {
         Self::from_template(&entity)
     }
 
+    pub(crate) fn reset_potent_sulfur(&self, state: u32, pos: Pos) -> Result<Self, FeatureError> {
+        if self.type_id != bcore_registry::block_entity_type::POTENT_SULFUR {
+            return Err(FeatureError::InvalidConfig(
+                "countdown reset on another block entity".into(),
+            ));
+        }
+        let load = self
+            .template_load_data
+            .as_ref()
+            .ok_or_else(|| FeatureError::MissingData("potent sulfur load state".into()))?;
+        let mut load = Nbt::from_typed_json(load)?;
+        load.compound_mut()?
+            .insert("countdown".into(), Nbt::Int(-1));
+        Self::from_template(&TemplateBlockEntity::from_load(
+            &StructureAssets::bundled().blocks,
+            state,
+            pos,
+            load,
+        )?)
+    }
+
     /// Validate the generated sculk defaults, including NBT widths and ownership.
     /// Live block-entity mutations need their own codec when they are implemented.
     pub fn valid_for(&self, state: u32, pos: Pos) -> bool {
+        self.valid_for_registry(&StructureAssets::bundled().blocks, state, pos)
+    }
+
+    /// Validate against the explicit registry which supplied the template input.
+    /// Normal world storage always uses `valid_for` and the current registry.
+    pub fn valid_for_registry(&self, registry: &BlockRegistry, state: u32, pos: Pos) -> bool {
         if !self.matches_state(state) {
             return false;
         }
         if let Some(load) = &self.template_load_data {
             return Nbt::from_typed_json(load)
-                .and_then(|load| {
-                    TemplateBlockEntity::from_load(
-                        &StructureAssets::bundled().blocks,
-                        state,
-                        pos,
-                        load,
-                    )
-                })
-                .and_then(|entity| Self::from_template(&entity))
+                .and_then(|load| TemplateBlockEntity::from_load(registry, state, pos, load))
+                .and_then(|entity| Self::from_template_in_registry(&entity, registry))
                 .is_ok_and(|expected| expected == *self);
         }
-        sculk_block_entity(state, pos).is_ok_and(|expected| expected.as_ref() == Some(self))
+        registry.is_current()
+            && sculk_block_entity(state, pos).is_ok_and(|expected| expected.as_ref() == Some(self))
     }
 
     pub fn from_template(entity: &TemplateBlockEntity) -> Result<Self, FeatureError> {
-        let blocks = &StructureAssets::bundled().blocks;
-        let definition =
-            crate::block_predicate::catalog().definition(&blocks.state(entity.state)?.name)?;
+        Self::from_template_in_registry(entity, &StructureAssets::bundled().blocks)
+    }
+
+    pub fn from_template_in_registry(
+        entity: &TemplateBlockEntity,
+        blocks: &BlockRegistry,
+    ) -> Result<Self, FeatureError> {
         let valid_states = if entity.id == "minecraft:beehive" {
             // One native BE type serves both adjacent nest and hive state ranges.
-            let nest = crate::block_predicate::catalog().definition("bee_nest")?;
-            let hive = crate::block_predicate::catalog().definition("beehive")?;
-            [nest.first, hive.first + hive.count]
+            let nest = blocks.state_range("bee_nest")?;
+            let hive = blocks.state_range("beehive")?;
+            [nest[0], hive[1]]
         } else {
-            [definition.first, definition.first + definition.count]
+            blocks.state_range(&blocks.state(entity.state)?.name)?
         };
         let full = entity.full_data();
-        let update = template_update(entity, &full)?;
+        let update = template_update(entity, &full, blocks)?;
         Ok(Self {
             type_id: entity.type_id,
             full_data: full.to_json(),
@@ -169,7 +194,11 @@ impl FeatureBlockEntity {
     }
 }
 
-fn template_update(entity: &TemplateBlockEntity, full: &Nbt) -> Result<Nbt, FeatureError> {
+fn template_update(
+    entity: &TemplateBlockEntity,
+    full: &Nbt,
+    blocks: &BlockRegistry,
+) -> Result<Nbt, FeatureError> {
     let id = entity.id.as_str();
     let fields: &[&str] = match id {
         // These classes inherit BlockEntity.getUpdateTag's empty compound, as
@@ -196,6 +225,7 @@ fn template_update(entity: &TemplateBlockEntity, full: &Nbt) -> Result<Nbt, Feat
         | "minecraft:sculk_catalyst"
         | "minecraft:sculk_shrieker"
         | "minecraft:calibrated_sculk_sensor" => &[],
+        "minecraft:potent_sulfur" => &[],
         "minecraft:sign" | "minecraft:hanging_sign" => &["front_text", "back_text", "is_waxed"],
         "minecraft:campfire" => &["Items"],
         // DecoratedPotBlockEntity uses saveCustomOnly: loot/item and ordered
@@ -204,7 +234,7 @@ fn template_update(entity: &TemplateBlockEntity, full: &Nbt) -> Result<Nbt, Feat
         "minecraft:vault" => &["shared_data"],
         "minecraft:trial_spawner" => {
             let mut data = std::collections::BTreeMap::new();
-            let state = StructureAssets::bundled().blocks.state(entity.state)?;
+            let state = blocks.state(entity.state)?;
             if state
                 .properties
                 .get("trial_spawner_state")

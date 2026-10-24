@@ -1,4 +1,4 @@
-//! Native 26.1 generation lighting and climate observations.
+//! Generation lighting and authenticated target climate observations.
 //!
 //! FEATURES reads the world's light storage, not a heightmap approximation. An
 //! untouched sky storage returns 15 (even underground); an allocated, unlit
@@ -46,9 +46,10 @@ fn light_catalog() -> &'static LightCatalog {
             occludes: Vec<Vec<usize>>,
             climates: BTreeMap<String, Climate>,
         }
-        let capture: Capture =
-            serde_json::from_str(include_str!("../data/lighting_catalog_26_1.json"))
-                .expect("native 26.1 light catalog");
+        let capture: Capture = crate::block_predicate::parse_catalog(include_str!(
+            "../data/lighting_catalog_26_2.json"
+        ))
+        .expect("authenticated light catalog");
         let mut states = Vec::with_capacity(capture.state_count);
         for row in capture.state_ranges {
             assert_eq!(row[0], states.len());
@@ -97,7 +98,7 @@ pub fn state_light(state: u32) -> FeatureResult<StateLight> {
         .get(state as usize)
         .copied()
         .ok_or_else(|| {
-            FeatureError::MissingData(format!("26.1 light properties for block state {state}"))
+            FeatureError::MissingData(format!("target light properties for block state {state}"))
         })
 }
 
@@ -109,13 +110,12 @@ pub fn face_occludes(from: u32, to: u32, direction: Direction) -> FeatureResult<
     Ok(light_catalog().occludes[from.faces[direction as usize]][to.faces[direction as usize ^ 1]])
 }
 
-/// Reuses the bit-exact, native-verified biome temperature calculation. The
-/// identity check prevents a 26.2-only wire biome or an invalid ID from aliasing
-/// a native 26.1 climate (or indexing the wire registry out of bounds).
+/// Reuses the biome temperature calculation with target climate metadata.
+/// The identity check rejects unavailable or invalid shared-registry biomes.
 pub fn biome_temperature(biome: u32, pos: Pos, sea_level: i32) -> FeatureResult<f32> {
     if !light_catalog().climates.contains_key(&biome) {
         return Err(FeatureError::MissingData(format!(
-            "26.1 climate for wire biome {biome}"
+            "target climate for biome {biome}"
         )));
     }
     Ok(crate::surface_rules::SurfaceContext {

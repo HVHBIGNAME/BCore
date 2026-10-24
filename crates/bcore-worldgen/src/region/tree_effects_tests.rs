@@ -143,6 +143,51 @@ fn empty_transfer_preserves_existing_chunk_data_and_cow_sharing() {
 }
 
 #[test]
+fn hive_snapshots_use_shared_type_identity_and_exclude_sculk_entities() {
+    use crate::block_entity::PendingBlockEntity;
+    use crate::feature_world::FeatureWorld;
+    use crate::structure::template::Nbt;
+
+    let (mut region, _) = region();
+    let hive = (1, 65, 1);
+    let sensor = (2, 65, 1);
+    let hive_state = block::BEE_NEST;
+    let sensor_state = block::SCULK_SENSOR;
+    for (pos, state) in [(hive, hive_state), (sensor, sensor_state)] {
+        assert!(region.set_feature_block(pos, state, 19));
+        let data = if pos == hive {
+            PendingBlockEntity::from_nbt(&Nbt::Compound(BTreeMap::from([
+                ("id".into(), Nbt::String("minecraft:beehive".into())),
+                ("x".into(), Nbt::Int(pos.0)),
+                ("y".into(), Nbt::Int(pos.1)),
+                ("z".into(), Nbt::Int(pos.2)),
+            ])))
+        } else {
+            PendingBlockEntity::dummy(pos)
+        };
+        assert!(region
+            .owned_chunk_mut(ChunkPos::new(0, 0))
+            .set_pending_block_entity(pos.0 as usize, pos.1, pos.2 as usize, data));
+        assert!(region.materialize_block_entity_at(pos).unwrap());
+    }
+    region.store_bee(hive, 17);
+    region.transfer_tree_effects().unwrap();
+    let chunk = region.owned_chunk_ref(ChunkPos::new(0, 0)).unwrap();
+    assert_eq!(
+        chunk.feature_block_entities()[&(1, 65, 1)].type_id,
+        bcore_registry::block_entity_type::BEEHIVE
+    );
+    assert_eq!(
+        chunk.feature_block_entities()[&(2, 65, 1)].type_id,
+        bcore_registry::block_entity_type::SCULK_SENSOR
+    );
+    assert_eq!(
+        region.beehive_snapshots(),
+        BTreeMap::from([(hive, vec![17])])
+    );
+}
+
+#[test]
 fn restaging_after_transfer_keeps_occupants_and_new_requests_exactly_once() {
     let (mut region, _) = region();
     let pos = (-1, 65, 16);
@@ -235,10 +280,24 @@ fn invalid_tick_batches_preserve_all_pending_and_stored_data_for_retry() {
         [-1, MIN_Y - 1, 16, 0, 0, 0],
         [-1, MAX_Y + 1, 16, 0, 0, 0],
         [-1, 65, 16, -1, 0, 0],
-        [-1, 65, 16, 29873, 0, 0],
+        [
+            -1,
+            65,
+            16,
+            i32::try_from(bcore_registry::BLOCK_STATE_COUNT).unwrap(),
+            0,
+            0,
+        ],
         [-1, 65, 16, i32::MAX, 0, 0],
         [-1, 65, 16, -1, 0, 1],
-        [-1, 65, 16, 5, 0, 1],
+        [
+            -1,
+            65,
+            16,
+            i32::try_from(bcore_registry::vanilla().registries["FLUID"].len()).unwrap(),
+            0,
+            1,
+        ],
         [-1, 65, 16, i32::MAX, 0, 1],
         [-1, 65, 16, 0, 0, -1],
         [-1, 65, 16, 0, 0, 2],
@@ -361,7 +420,12 @@ fn native_hive_metadata_transfers_all_supported_states_and_unbounded_age_lists()
         let owner = ChunkPos::new(x >> 4, z >> 4);
         let mut chunk = GeneratedChunk::new(owner);
         assert!(sample.inside_build_height);
-        assert!(chunk.set((x & 15) as usize, y, (z & 15) as usize, sample.state));
+        assert!(chunk.set(
+            (x & 15) as usize,
+            y,
+            (z & 15) as usize,
+            crate::registry_26_1::target_state(sample.state)
+        ));
         assert!(chunk.set_pending_block_entity(
             (x & 15) as usize,
             y,
@@ -382,7 +446,8 @@ fn native_hive_metadata_transfers_all_supported_states_and_unbounded_age_lists()
         region.transfer_tree_effects().unwrap();
         let actual = region.chunk(owner.x, owner.z);
         let entity = &actual.block_entities()[&((x & 15) as usize, y, (z & 15) as usize)];
-        assert_eq!(entity.type_id(), data.type_id);
+        assert_eq!(data.type_id, 34);
+        assert_eq!(entity.type_id(), bcore_registry::block_entity_type::BEEHIVE);
         assert_eq!(entity.full_data((x, y, z)), sample.nbt);
         assert_eq!(entity.update_data(), sample.update);
         assert_eq!(actual.states(), base.states());

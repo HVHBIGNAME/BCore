@@ -26,8 +26,10 @@ impl TickRequest {
             && z >> 4 == owner.z
             && (crate::MIN_Y..=crate::MAX_Y).contains(&y)
             && match self.target {
-                TickTarget::Block(state) => state < 29_873,
-                TickTarget::Fluid(id) => id < 5,
+                TickTarget::Block(state) => (state as usize) < bcore_registry::BLOCK_STATE_COUNT,
+                TickTarget::Fluid(id) => {
+                    (id as usize) < bcore_registry::vanilla().registries["FLUID"].len()
+                }
             }
     }
 }

@@ -1,0 +1,67 @@
+{
+  "schema": 1,
+  "scope": "noise-fill-wg-v2",
+  "kind": "compact-frozen-comparison",
+  "recorded_utc": "2026-10-15T15:21:44.089028+00:00",
+  "decision_date": "2026-10-16",
+  "decision": "rejected",
+  "reason": "The four-entry interpolated-cell front cache regressed median throughput at all three worker budgets. Production density.rs was restored to the accepted FULL-base/shared-corner source.",
+  "seed": "846692123413862008",
+  "chunks": [[0, 0], [1, 0], [0, 1], [1, 1], [-64, -32], [-63, -32], [62, 0], [-125, 187]],
+  "workers": [1, 2, 4],
+  "processes_per_variant_per_worker": 3,
+  "warmup_batches_per_process": 10,
+  "measured_batches_per_process": 10,
+  "method": "BCore-only fresh processes, alternating before/after order for each pair; same recorded workload",
+  "aggregation": "median of process-median measured batch times",
+  "verified_matching_outputs": true,
+  "fingerprinted_outputs": ["block state IDs", "ordered fluid postprocessing marks", "WORLD_SURFACE_WG", "OCEAN_FLOOR_WG"],
+  "raw_result": {
+    "path": "target/noise-fill-wg-v2-cell-hit-paired-20261015-01/results.json",
+    "sha256": "571e69d5b19ee9e56fa85b476fff594e7a13c49dc06fd66a74114dc817a83189",
+    "queue_job": "noise-cell-hit-paired-20261015-01-1792077576987401500",
+    "exit_code": 0
+  },
+  "inputs": {
+    "before": {
+      "label": "FULL-integrated shared corners",
+      "results_path": "target/noise-fill-wg-v2-full-base-20261015-01/results.json",
+      "results_sha256": "0455fe5db14a57b245c27c31e2cbc9db2133376fd19837ec8eeafdb06a011c1f",
+      "bcore_executable_sha256": "5e90b0b9d669842b9eccec74127de27f04ffdca6fcd45f557a1d0205f755ee00",
+      "source_archive_sha256": "325190fe4fdd8d5ff298860d29a2f6ae5395c1e07fc2636ba1b8f41b34f54ac9"
+    },
+    "after": {
+      "label": "four-entry interpolated-cell front cache",
+      "results_path": "target/noise-fill-wg-v2-cell-hit-20261015-01/results.json",
+      "results_sha256": "51095679f6a9ba10aac923c76ecb5bd5d303c311d0f9dd3126cc56ca3ab8d3e0",
+      "bcore_executable_sha256": "39af082ab006696cc5a11b299fbf94197efaba7057c45ed8b913794b91feadc7",
+      "source_archive_sha256": "ae471c2f18109fd907159140a13281438793800abc4ff7e776e10d60796c57ad"
+    }
+  },
+  "summary": [
+    {
+      "workers": 1,
+      "before": {"chunks_per_second": 20.831543122596234, "process_median_seconds": [0.41209125, 0.384033, 0.37745530000000005]},
+      "after": {"chunks_per_second": 16.17112609051505, "process_median_seconds": [0.40856824999999997, 0.5013797, 0.4947089]},
+      "speedup": 0.7762807582398458
+    },
+    {
+      "workers": 2,
+      "before": {"chunks_per_second": 29.89042357532433, "process_median_seconds": [0.26764425000000003, 0.26613719999999996, 0.26971069999999997]},
+      "after": {"chunks_per_second": 27.869073184360367, "process_median_seconds": [0.285135, 0.28843655, 0.28705654999999997]},
+      "speedup": 0.9323746488279054
+    },
+    {
+      "workers": 4,
+      "before": {"chunks_per_second": 57.28970292782608, "process_median_seconds": [0.13964115, 0.1377891, 0.17126605]},
+      "after": {"chunks_per_second": 49.130195940433325, "process_median_seconds": [0.16283265, 0.15798210000000001, 0.1719565]},
+      "speedup": 0.85757463260593
+    }
+  ],
+  "limitations": [
+    "This compact record retains every process median. Raw warmup/measured batches, fingerprints, executable copies and invocation logs remain in the referenced local result directory.",
+    "The host was not CPU-isolated; variation is preserved rather than filtering out slow samples.",
+    "This supplementary comparison measures BCore variants only, not Java throughput or whole-server performance.",
+    "Rejection applies to this implementation; operation counts alone do not identify its CPU-time overhead."
+  ]
+}

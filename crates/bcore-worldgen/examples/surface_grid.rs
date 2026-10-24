@@ -1,5 +1,5 @@
 use bcore_core::ChunkPos;
-use bcore_worldgen::WorldGenerator;
+use bcore_worldgen::GenerationWorld;
 use std::collections::HashMap;
 
 /// Surface-height grid probe, output format matching `scripts/bot/dump_terrain.js`
@@ -21,7 +21,7 @@ fn main() {
         .map(|s| s.parse().expect("region"))
         .unwrap_or(32);
     let ground = args.iter().any(|a| a == "--ground");
-    let generator = WorldGenerator::new(seed);
+    let world = GenerationWorld::new(seed);
     let half = region / 2;
 
     // Generate each unique chunk once: the 256 columns in a 16-wide grid live
@@ -37,9 +37,16 @@ fn main() {
             let ccz = wz.div_euclid(16);
             let lx = wx.rem_euclid(16) as usize;
             let lz = wz.rem_euclid(16) as usize;
-            let chunk = cache
-                .entry((ccx, ccz))
-                .or_insert_with(|| generator.generate_chunk_vanilla(ChunkPos::new(ccx, ccz)));
+            let chunk = cache.entry((ccx, ccz)).or_insert_with(|| {
+                let result = world
+                    .generate_chunk(ChunkPos::new(ccx, ccz))
+                    .expect("chunk generation failed");
+                eprintln!(
+                    "chunk ({ccx},{ccz}) coverage complete: {}",
+                    result.coverage.is_complete()
+                );
+                result.chunk
+            });
             let top = if ground {
                 chunk.height_at(lx, lz)
             } else {

@@ -1,4 +1,4 @@
-//! Minecraft 26.1 overworld `SurfaceSystem.buildSurface`, after noise filling.
+//! Overworld surface builder with Java 26.1 algorithm provenance and target predicates.
 //!
 //! Inputs are the rule tree, seeded noise registry, preliminary-height sampler and
 //! quart-biome lookup. The builder does not own a density graph or neighboring chunks.
@@ -14,7 +14,7 @@ use crate::surface::BlockState;
 use crate::surface_rules::{self, SurfaceContext, SurfaceRule};
 use crate::{block, is_air, GeneratedChunk, MAX_Y, MIN_Y, SEA_LEVEL};
 
-const PACKED_ICE: BlockState = 12914;
+const PACKED_ICE: BlockState = block::PACKED_ICE;
 
 /// Apply the complete overworld surface pass in native X-then-Z visitation order.
 ///
@@ -54,6 +54,8 @@ pub(crate) fn build_surface_observed(
     mut noise_biome: impl FnMut(&GeneratedChunk, i32, i32, i32) -> BiomeId,
     mut observe: impl FnMut(&SurfaceContext<'_>, Option<BlockState>),
 ) -> Vec<(usize, i32, usize)> {
+    rule.check_supported()
+        .expect("supported overworld surface rule tree");
     let base_x = chunk.pos.x * 16;
     let base_z = chunk.pos.z * 16;
     let corners = std::array::from_fn(|i| {
@@ -114,13 +116,15 @@ pub fn interpolate_preliminary(corners: [i32; 4], x: i32, z: i32) -> i32 {
 pub fn has_fluid(state: BlockState) -> bool {
     static FLUIDS: OnceLock<Vec<bool>> = OnceLock::new();
     let fluids = FLUIDS.get_or_init(|| {
-        let data: serde_json::Value =
-            serde_json::from_str(include_str!("../data/surface_builder_blocks_26_1.json"))
-                .expect("native surface block predicates");
+        let data: serde_json::Value = crate::block_predicate::parse_catalog(include_str!(
+            "../data/surface_builder_blocks_26_2.json"
+        ))
+        .expect("native surface block predicates");
         let mut flags = vec![false; data["state_count"].as_u64().unwrap() as usize];
         for range in data["fluid_ranges"].as_array().unwrap() {
             let start = range[0].as_u64().unwrap() as usize;
             let end = range[1].as_u64().unwrap() as usize;
+            assert!(start < end && end <= flags.len());
             flags[start..end].fill(true);
         }
         flags

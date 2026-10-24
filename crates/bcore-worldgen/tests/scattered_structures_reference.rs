@@ -17,18 +17,57 @@ use std::cell::RefCell;
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::OnceLock;
 
+#[path = "support/feature_documents_26_1.rs"]
+pub mod feature_documents_26_1;
+#[path = "support/registry_26_1.rs"]
+mod registry_26_1;
+
 fn fixture() -> &'static Value {
     static DATA: OnceLock<Value> = OnceLock::new();
     DATA.get_or_init(|| {
-        serde_json::from_str(include_str!("../data/scattered_structures_26_1.json")).unwrap()
+        let data: Value =
+            serde_json::from_str(include_str!("../data/scattered_structures_26_1.json")).unwrap();
+        assert_eq!(data["minecraft"], "26.1");
+        assert_eq!(data["jar_sha256"], StructureAssets::HISTORICAL_JAR_SHA256);
+        data
     })
 }
 
 fn jungle_fixture() -> &'static Value {
     static DATA: OnceLock<Value> = OnceLock::new();
     DATA.get_or_init(|| {
-        serde_json::from_str(include_str!("../data/scattered_jungle_temple_26_1.json")).unwrap()
+        let data: Value =
+            serde_json::from_str(include_str!("../data/scattered_jungle_temple_26_1.json"))
+                .unwrap();
+        assert_eq!(data["minecraft"], "26.1");
+        assert_eq!(data["jar_sha256"], StructureAssets::HISTORICAL_JAR_SHA256);
+        data
     })
+}
+
+fn historical_containers() -> &'static Value {
+    static DATA: OnceLock<Value> = OnceLock::new();
+    DATA.get_or_init(|| {
+        let data: Value =
+            serde_json::from_str(include_str!("../data/scattered_containers_26_1.json")).unwrap();
+        assert_eq!(data["minecraft"], "26.1");
+        assert_eq!(data["jar_sha256"], StructureAssets::HISTORICAL_JAR_SHA256);
+        data
+    })
+}
+
+fn historical_container_type(container: &ScatteredContainer) -> u32 {
+    assert_eq!(
+        bcore_registry::registry_id("BLOCK_ENTITY_TYPE", &container.id),
+        Some(container.type_id)
+    );
+    historical_containers()["containers"]["defaults"]
+        .get(container.id.as_str())
+        .expect("historical container factory resource")["type_id"]
+        .as_u64()
+        .unwrap()
+        .try_into()
+        .unwrap()
 }
 
 fn native_nbt(value: &Value) -> Nbt {
@@ -81,7 +120,7 @@ impl World {
                 .as_array()
                 .unwrap()
                 .iter()
-                .map(|a| (pos(a), n(&a[3]) as u32))
+                .map(|a| (pos(a), registry_26_1::target_state(n(&a[3]) as u32)))
                 .collect(),
             denied: row["denied"]
                 .as_array()
@@ -226,15 +265,16 @@ impl FeatureWorld for World {
     }
     fn set_feature_block(&mut self, p: Pos, state: u32, flags: i32) -> bool {
         let accepted = self.can_write_feature(p);
+        let observed = registry_26_1::historical_state(state);
         self.effects
-            .push(json!(["block", p.0, p.1, p.2, state, flags, accepted]));
+            .push(json!(["block", p.0, p.1, p.2, observed, flags, accepted]));
         if !accepted {
             return false;
         }
         let registry = &StructureAssets::bundled().blocks;
         let previous = self.at(p);
         self.states.insert(p, state);
-        self.writes.push(json!([p.0, p.1, p.2, state, flags]));
+        self.writes.push(json!([p.0, p.1, p.2, observed, flags]));
         if registry.flags(state).unwrap() & 8 == 0 {
             self.entities.remove(&p);
         } else if !self.suppress_entities
@@ -252,7 +292,7 @@ impl FeatureWorld for World {
     }
     fn schedule_feature_tick(&mut self, tick: TickRequest) -> bool {
         let (kind, id) = match tick.target {
-            TickTarget::Block(id) => ("block", id),
+            TickTarget::Block(id) => ("block", registry_26_1::historical_state(id)),
             TickTarget::Fluid(id) => ("fluid", id),
         };
         let [x, y, z] = tick.block_pos;
@@ -312,7 +352,10 @@ impl ScatteredWorld for World {
 #[test]
 fn scattered_native_admission_configuration_and_legacy_rng() {
     let fixture = fixture();
-    assert_eq!(fixture["jar_sha256"], StructureAssets::JAR_SHA256);
+    assert_eq!(
+        fixture["jar_sha256"],
+        StructureAssets::HISTORICAL_JAR_SHA256
+    );
     let catalog = ScatteredCatalog::bundled();
     let mut actual_overworld_starts = BTreeMap::<_, usize>::new();
     for row in fixture["admission"].as_array().unwrap() {
@@ -337,7 +380,7 @@ fn scattered_native_admission_configuration_and_legacy_rng() {
             max_y: 319,
             first_free: &first_free,
         };
-        let noise_biome = n(&row["noise_biome"]) as u32;
+        let noise_biome = feature_documents_26_1::target_biome(n(&row["noise_biome"]) as u32);
         let mut random = large_feature_random(seed, chunk);
         let built = assemble(kind, chunk, &heights, &mut random, |p| {
             assert_eq!(
@@ -506,7 +549,7 @@ fn verify_placements(rows: &[Value]) -> (usize, usize, usize, usize) {
             );
             for (((x, y, z), state), expected) in world.states.iter().zip(states) {
                 assert_eq!(
-                    json!([x, y, z, state]),
+                    json!([x, y, z, registry_26_1::historical_state(*state)]),
                     *expected,
                     "{name} pass {index} final blocks"
                 );
@@ -619,7 +662,8 @@ fn scattered_jungle_native_admission_corners_sea_level_and_rng() {
             first_free: &first_free,
         };
         let mut random = large_feature_random(seed, chunk);
-        let valid = |_: Pos| config.biomes.contains(&(n(&row["noise_biome"]) as u32));
+        let noise_biome = feature_documents_26_1::target_biome(n(&row["noise_biome"]) as u32);
+        let valid = |_: Pos| config.biomes.contains(&noise_biome);
         let assembled =
             assemble_with_sea_level(kind, chunk, &heights, sea_level, &mut random, valid).unwrap();
         assert_eq!(
@@ -651,10 +695,9 @@ fn scattered_jungle_native_admission_corners_sea_level_and_rng() {
                 row["generation_point"]
             );
         }
-        let admitted = for_chunk_with_sea_level(kind, seed, chunk, &heights, sea_level, |_| {
-            n(&row["noise_biome"]) as u32
-        })
-        .unwrap();
+        let admitted =
+            for_chunk_with_sea_level(kind, seed, chunk, &heights, sea_level, |_| noise_biome)
+                .unwrap();
         let native_starts = row["starts"].as_array().unwrap();
         assert_eq!(usize::from(admitted.is_some()), native_starts.len());
         if let Some(mut start) = admitted {
@@ -716,7 +759,9 @@ fn scattered_native_chest_reorientation_including_early_exit() {
     for row in rows {
         let world = World::new(row);
         assert_eq!(
-            json!(reorient_chest(&world, pos(&row["position"])).unwrap()),
+            json!(registry_26_1::historical_state(
+                reorient_chest(&world, pos(&row["position"])).unwrap()
+            )),
             row["state"],
             "{row}"
         );
@@ -763,22 +808,41 @@ fn scattered_requires_available_world_reads_and_an_effect_consumer() {
 
 #[test]
 fn scattered_container_defaults_and_zero_seed_match_native_serialization() {
-    let data: Value =
-        serde_json::from_str(include_str!("../data/scattered_containers_26_1.json")).unwrap();
-    assert_eq!(data["jar_sha256"], StructureAssets::JAR_SHA256);
+    check_containers(
+        historical_containers(),
+        registry_26_1::target_state,
+        historical_container_type,
+    );
+}
+
+#[test]
+fn target_scattered_container_defaults_and_zero_seed_match_native_serialization() {
+    let data: Value = bcore_worldgen::block_predicate::parse_catalog(include_str!(
+        "../data/scattered_containers_26_2.json"
+    ))
+    .unwrap();
+    assert_eq!(data["protocol"], 776);
+    check_containers(&data, |state| state, |container| container.type_id);
+}
+
+fn check_containers(
+    data: &Value,
+    input_state: fn(u32) -> u32,
+    observed_type: fn(&ScatteredContainer) -> u32,
+) {
     for (name, native) in data["containers"]["defaults"].as_object().unwrap() {
         let container = ScatteredContainer::for_state(block(name), (0, 0, 0))
             .unwrap()
             .unwrap();
         assert_eq!(container.full_data(), native_nbt(&native["full"]));
         assert_eq!(container.update_data(), native_nbt(&native["update"]));
-        assert_eq!(json!(container.type_id), native["type_id"]);
+        assert_eq!(json!(observed_type(&container)), native["type_id"]);
     }
     let cases = data["containers"]["cases"].as_array().unwrap();
     assert_eq!(cases.len(), 10);
     for row in cases {
         let mut container =
-            ScatteredContainer::for_state(n(&row["state"]) as u32, pos(&row["pos"]))
+            ScatteredContainer::for_state(input_state(n(&row["state"]) as u32), pos(&row["pos"]))
                 .unwrap()
                 .unwrap();
         container.set_loot_table(

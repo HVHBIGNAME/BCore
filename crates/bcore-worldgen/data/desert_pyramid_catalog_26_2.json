@@ -1,0 +1,47 @@
+{
+  "catalog": [
+    {
+      "biomes": [
+        [
+          14,
+          "minecraft:desert"
+        ]
+      ],
+      "config": {
+        "sha256": "c73ebb380b41088b31254df5f75d83d3c0fac6aa2d2abde7fa77155cfb5925aa",
+        "value": {
+          "biomes": "#minecraft:has_structure/desert_pyramid",
+          "spawn_overrides": {},
+          "step": "surface_structures",
+          "type": "minecraft:desert_pyramid"
+        }
+      },
+      "index": 1,
+      "kind": "desert_pyramid",
+      "placement": {
+        "sha256": "dc5a5de020a5bdd0bda897b82813e5803e072672926784c1d17e5474353afa45",
+        "value": {
+          "placement": {
+            "salt": 14357617.0,
+            "separation": 8.0,
+            "spacing": 32.0,
+            "type": "minecraft:random_spread"
+          },
+          "structures": [
+            {
+              "structure": "minecraft:desert_pyramid",
+              "weight": 1.0
+            }
+          ]
+        }
+      },
+      "set": "desert_pyramids",
+      "step": 4,
+      "structure_id": 3
+    }
+  ],
+  "jar_sha256": "183c0499c5f855570ee487dd38e141a53f0121f83a0b07a3bac2d8b6698823e8",
+  "minecraft": "26.2",
+  "probe_sha256": "4713a8096ee3d7071209b59c8b48f8166fffb6d678f5ba431db45552d33d18c5",
+  "protocol": 776
+}

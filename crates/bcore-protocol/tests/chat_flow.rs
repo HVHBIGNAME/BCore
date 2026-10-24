@@ -1,6 +1,6 @@
 //! End-to-end chat and command test with two real clients over TCP.
 //!
-//! Starts `server::run` on an ephemeral port (never `bcore.exe`, which may be
+//! Starts an isolated server on an ephemeral port (never `bcore.exe`, which may be
 //! serving live players), joins two clients through the full
 //! login → configuration → play handshake and then exercises:
 //!
@@ -17,6 +17,9 @@
 
 use std::io::{self, Cursor, Read, Write};
 use std::net::{Shutdown, SocketAddr, TcpListener, TcpStream};
+use std::path::PathBuf;
+use std::sync::Arc;
+use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 
 use bcore_core::varint::{decode_varint, encode_varint};
@@ -24,6 +27,8 @@ use bcore_core::PROTOCOL_VERSION;
 use bcore_protocol::chat::{
     CB_PLAYER_CHAT, CB_PROFILELESS_CHAT, CB_SYSTEM_CHAT, SB_CHAT_COMMAND, SB_CHAT_MESSAGE,
 };
+use bcore_protocol::chunk::{block_state, ChunkColumn};
+use bcore_protocol::chunk_store::ChunkStore;
 use bcore_protocol::commands::CB_DECLARE_COMMANDS;
 use bcore_protocol::gameplay::{
     CB_ABILITIES, CB_GAME_STATE_CHANGE, CB_UPDATE_HEALTH, CB_UPDATE_TIME,
@@ -32,12 +37,14 @@ use bcore_protocol::packet::{
     read_frame, read_string, read_varint, write_packet, write_string, PacketError,
 };
 use bcore_protocol::server;
-use bcore_protocol::shared::new_shared_server;
-use bcore_protocol::world::{set_view_distance_for_tests, CB_POSITION};
+use bcore_protocol::shared::{ServerState, SharedServer};
+use bcore_protocol::world::{chunks_in_view, CB_POSITION};
+use bcore_protocol::world_state::World;
 
 const CB_KICK_DISCONNECT: i32 = 0x20;
 const CB_CHUNK_BATCH_FINISHED: i32 = 0x0b;
 const SB_TELEPORT_CONFIRM: i32 = 0x00;
+const TEST_SEED: i64 = 846692123413862008;
 
 /// One captured clientbound packet.
 #[derive(Debug, Clone)]
@@ -48,6 +55,7 @@ struct Packet {
 
 struct Client {
     stream: TcpStream,
+    session_id: [u8; 16],
     pending: Vec<u8>,
     seen: Vec<Packet>,
 }
@@ -78,12 +86,20 @@ impl Client {
 
         let (pid, data) = read_frame(&mut stream).expect("login success");
         assert_eq!(pid, 0x02, "expected login success");
-        let mut cur = Cursor::new(data);
+        let mut cur = Cursor::new(data.as_slice());
         let mut uuid = [0u8; 16];
         cur.read_exact(&mut uuid).expect("uuid");
         assert_eq!(read_string(&mut cur, 16).expect("name"), name);
         assert_eq!(read_varint(&mut cur).expect("props"), 0);
         assert_eq!(uuid, [uuid_byte; 16], "offline uuid is echoed back");
+        let mut session_id = [0; 16];
+        cur.read_exact(&mut session_id)
+            .expect("server-session UUID");
+        assert_eq!(
+            cur.position() as usize,
+            data.len(),
+            "complete 26.2 login success"
+        );
 
         send(&mut stream, 0x03, &[]); // login acknowledged
 
@@ -100,6 +116,7 @@ impl Client {
 
         let mut client = Client {
             stream,
+            session_id,
             pending: Vec::new(),
             seen: Vec::new(),
         };
@@ -175,6 +192,11 @@ impl Client {
             if packet.id == CB_POSITION {
                 let (_, n) = decode_varint(&packet.data).expect("teleport id");
                 send(&mut self.stream, SB_TELEPORT_CONFIRM, &packet.data[..n]);
+            } else if packet.id == 0x2c {
+                assert_eq!(packet.data.len(), 8, "keep-alive payload");
+                send(&mut self.stream, 0x1c, &packet.data);
+            } else if packet.id == CB_CHUNK_BATCH_FINISHED {
+                send(&mut self.stream, 0x0b, &4.0f32.to_be_bytes());
             }
             self.seen.push(packet);
             if done(&self.seen) {
@@ -187,6 +209,16 @@ impl Client {
     /// Collect packets for the budget, retaining any incomplete frame for the next pump.
     fn drain(&mut self, budget: Duration) {
         self.pump_until(budget, |_| false);
+    }
+
+    /// Welcome/join notices delimit startup chat before command assertions begin.
+    fn wait_for_join_notice(&mut self, prefix: &str, budget: Duration) {
+        assert!(
+            self.pump_until(budget, |seen| seen.iter().any(|p| {
+                p.id == CB_SYSTEM_CHAT && nbt_strings(&p.data).iter().any(|s| s.starts_with(prefix))
+            })),
+            "missing join notice: {prefix}"
+        );
     }
 
     fn send_chat(&mut self, message: &str) {
@@ -300,26 +332,75 @@ fn player_chat_message(data: &[u8]) -> Option<String> {
     read_string(&mut cur, 256).ok()
 }
 
-fn start_server() -> SocketAddr {
-    set_view_distance_for_tests(4);
-    let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
-    let addr = listener.local_addr().expect("addr");
-    std::thread::spawn(move || server::run(listener));
-    addr
+struct TestServer {
+    addr: SocketAddr,
+    state: SharedServer,
+    worker: Option<JoinHandle<()>>,
+    root: PathBuf,
 }
 
-/// Like [`start_server`] but pre-promotes the named players to operators, so
-/// operator-gated commands (`/kick`, `/op`, `/stop`) can be exercised.
-fn start_server_with_ops(ops: &[&str]) -> SocketAddr {
-    set_view_distance_for_tests(4);
+impl Drop for TestServer {
+    fn drop(&mut self) {
+        self.state.request_shutdown();
+        if let Some(worker) = self.worker.take() {
+            worker.join().expect("test server stopped");
+        }
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while self.state.world().pending_payloads() != 0 && Instant::now() < deadline {
+            std::thread::sleep(Duration::from_millis(5));
+        }
+        if self.state.world().pending_payloads() == 0 {
+            std::fs::remove_dir_all(&self.root).expect("remove isolated chat world");
+        }
+    }
+}
+
+fn start_server() -> TestServer {
+    start_server_with_ops(&[])
+}
+
+fn start_server_with_ops(ops: &[&str]) -> TestServer {
+    let identity = ServerState::default();
+    let suffix: String = identity
+        .session_id()
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect();
+    let parent = std::env::temp_dir().join("opencode");
+    std::fs::create_dir_all(&parent).unwrap();
+    let root = parent.join(format!("bcore-chat-{}-{suffix}", std::process::id()));
+    std::fs::create_dir(&root).expect("new isolated chat world");
+    let store = ChunkStore::at(&root);
+    store.prepare_world(TEST_SEED).unwrap();
+    let mut column = ChunkColumn::flat();
+    for z in 0..16 {
+        for x in 0..16 {
+            assert!(column.set(x, 64, z, block_state::STONE));
+        }
+    }
+    for center in [(0, -1), (18, -13)] {
+        for (x, z) in chunks_in_view(center.0, center.1, 1) {
+            store.save(x, z, &column).unwrap();
+        }
+    }
     let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
-    let server = new_shared_server();
+    let state = Arc::new(
+        ServerState::with_world(World::open(TEST_SEED, store).unwrap()).with_view_distance(1),
+    );
     for op in ops {
-        server.add_op(op);
+        state.add_op(op);
     }
-    std::thread::spawn(move || server::run_with_state(listener, server));
-    addr
+    let owned = Arc::clone(&state);
+    let worker = Some(std::thread::spawn(move || {
+        server::run_with_state(listener, owned)
+    }));
+    TestServer {
+        addr,
+        state,
+        worker,
+        root,
+    }
 }
 
 fn connected_client() -> (Client, TcpStream) {
@@ -331,6 +412,7 @@ fn connected_client() -> (Client, TcpStream) {
     (
         Client {
             stream,
+            session_id: [0; 16],
             pending: Vec::new(),
             seen: Vec::new(),
         },
@@ -401,7 +483,8 @@ fn client_pump_reports_a_truncated_frame_when_the_peer_closes() {
 
 #[test]
 fn debug_gamemode_switch_advertises_and_enforces_operator_permissions() {
-    let addr = start_server_with_ops(&["SwitcherOp"]);
+    let server = start_server_with_ops(&["SwitcherOp"]);
+    let addr = server.addr;
     let mut op = Client::join(addr, "SwitcherOp", 0x51);
     let event = op.all(0x22).into_iter().last().expect("permission event");
     assert_eq!(event.data[4], 28, "operator permission level 4");
@@ -431,7 +514,8 @@ fn debug_gamemode_switch_advertises_and_enforces_operator_permissions() {
 
 #[test]
 fn join_sends_the_command_tree_health_time_and_abilities() {
-    let addr = start_server();
+    let server = start_server();
+    let addr = server.addr;
     let mut alpha = Client::join(addr, "AlphaProbe", 0xA1);
     // The extras are sent right after the join chunk batch.
     alpha.pump_until(Duration::from_secs(30), |seen| {
@@ -463,14 +547,14 @@ fn join_sends_the_command_tree_health_time_and_abilities() {
         "survival abilities"
     );
 
-    // update_time: two clock updates (world age + day time), both at rate 1.0.
+    // Game time is separate from the End and overworld clocks.
     let time = alpha.first(CB_UPDATE_TIME).expect("update_time");
     let age = i64::from_be_bytes(time.data[..8].try_into().expect("8 bytes"));
-    assert!(age > 0, "world age should be running");
+    assert!(age >= 0, "game time starts at zero");
     let mut at = 8usize;
     let (clocks, n) = decode_varint(&time.data[at..]).expect("clock count");
     at += n;
-    assert_eq!(clocks, 2, "world age + day time clocks");
+    assert_eq!(clocks, 2, "End and overworld clocks");
     let mut seen_clocks = Vec::new();
     for _ in 0..clocks {
         let (id, n) = decode_varint(&time.data[at..]).expect("clock id");
@@ -487,9 +571,17 @@ fn join_sends_the_command_tree_health_time_and_abilities() {
     }
     assert_eq!(at, time.data.len(), "update_time fully consumed");
     let ids: Vec<i32> = seen_clocks.iter().map(|(id, _)| *id).collect();
-    assert_eq!(ids, vec![1, 0], "world age clock first, like vanilla");
-    // The day-time clock starts at vanilla's morning.
-    assert_eq!(seen_clocks[1].1, 1000, "day time starts at 1000");
+    assert_eq!(ids, vec![1, 0], "End then overworld");
+    assert_eq!(
+        seen_clocks[0].1, age,
+        "fresh End clock advances with game ticks"
+    );
+    assert_eq!(
+        seen_clocks[1].1,
+        1000 + age,
+        "morning advances from the shared clock"
+    );
+    assert_eq!(alpha.session_id, *server.state.session_id());
 
     // The command tree declares the root plus BCore's commands.
     let tree = alpha.first(CB_DECLARE_COMMANDS).expect("declare_commands");
@@ -507,9 +599,10 @@ fn join_sends_the_command_tree_health_time_and_abilities() {
 
 #[test]
 fn help_and_list_reply_on_system_chat() {
-    let addr = start_server();
+    let server = start_server();
+    let addr = server.addr;
     let mut alpha = Client::join(addr, "AlphaProbe", 0xA1);
-    alpha.drain(Duration::from_millis(600));
+    alpha.wait_for_join_notice("Welcome to BCore, AlphaProbe!", Duration::from_millis(600));
     alpha.clear();
 
     alpha.send_command("help");
@@ -547,12 +640,13 @@ fn help_and_list_reply_on_system_chat() {
 
 #[test]
 fn a_chat_message_reaches_the_other_player_as_player_chat() {
-    let addr = start_server();
+    let server = start_server();
+    let addr = server.addr;
     let mut alpha = Client::join(addr, "AlphaProbe", 0xA1);
     let mut beta = Client::join(addr, "BetaProbe", 0xB2);
-    // Alpha is told Beta joined; drain both clients' backlog first.
-    alpha.drain(Duration::from_millis(800));
-    beta.drain(Duration::from_millis(800));
+    // Observe Beta's announcement and welcome before testing their own messages.
+    alpha.wait_for_join_notice("BetaProbe joined the game", Duration::from_millis(800));
+    beta.wait_for_join_notice("Welcome to BCore, BetaProbe!", Duration::from_millis(800));
     alpha.clear();
     beta.clear();
 
@@ -594,11 +688,12 @@ fn a_chat_message_reaches_the_other_player_as_player_chat() {
 
 #[test]
 fn me_and_say_broadcast_as_profileless_chat() {
-    let addr = start_server();
+    let server = start_server();
+    let addr = server.addr;
     let mut alpha = Client::join(addr, "AlphaProbe", 0xA1);
     let mut beta = Client::join(addr, "BetaProbe", 0xB2);
-    alpha.drain(Duration::from_millis(800));
-    beta.drain(Duration::from_millis(800));
+    alpha.wait_for_join_notice("BetaProbe joined the game", Duration::from_millis(800));
+    beta.wait_for_join_notice("Welcome to BCore, BetaProbe!", Duration::from_millis(800));
     alpha.clear();
     beta.clear();
 
@@ -629,9 +724,10 @@ fn me_and_say_broadcast_as_profileless_chat() {
 
 #[test]
 fn gamemode_teleport_spawn_and_time_change_state() {
-    let addr = start_server();
+    let server = start_server();
+    let addr = server.addr;
     let mut alpha = Client::join(addr, "AlphaProbe", 0xA1);
-    alpha.drain(Duration::from_millis(800));
+    alpha.wait_for_join_notice("Welcome to BCore, AlphaProbe!", Duration::from_millis(800));
     let position = alpha
         .all(CB_POSITION)
         .into_iter()
@@ -718,9 +814,10 @@ fn gamemode_teleport_spawn_and_time_change_state() {
 
 #[test]
 fn seed_and_unknown_commands_answer_the_sender() {
-    let addr = start_server();
+    let server = start_server();
+    let addr = server.addr;
     let mut alpha = Client::join(addr, "AlphaProbe", 0xA1);
-    alpha.drain(Duration::from_millis(600));
+    alpha.wait_for_join_notice("Welcome to BCore, AlphaProbe!", Duration::from_millis(600));
     alpha.clear();
 
     alpha.send_command("seed");
@@ -739,13 +836,86 @@ fn seed_and_unknown_commands_answer_the_sender() {
     );
 }
 
+fn clock_values(packet: &Packet) -> (i64, Vec<(i32, i64)>) {
+    assert_eq!(packet.id, CB_UPDATE_TIME);
+    let mut cur = Cursor::new(packet.data.as_slice());
+    let mut game_time = [0; 8];
+    cur.read_exact(&mut game_time).unwrap();
+    let count = read_varint(&mut cur).unwrap();
+    assert!((1..=2).contains(&count));
+    let mut clocks = Vec::new();
+    for _ in 0..count {
+        let id = read_varint(&mut cur).unwrap();
+        let at = cur.position() as usize;
+        let (ticks, consumed) = bcore_core::varint::decode_varlong(&packet.data[at..]).unwrap();
+        cur.set_position((at + consumed) as u64);
+        let mut partial = [0; 4];
+        let mut rate = [0; 4];
+        cur.read_exact(&mut partial).unwrap();
+        cur.read_exact(&mut rate).unwrap();
+        assert_eq!(f32::from_be_bytes(partial), 0.0);
+        assert_eq!(f32::from_be_bytes(rate), 1.0);
+        clocks.push((id, ticks));
+    }
+    assert_eq!(cur.position() as usize, packet.data.len());
+    (i64::from_be_bytes(game_time), clocks)
+}
+
+#[test]
+fn time_changes_survive_periodic_updates_and_future_joins() {
+    let server = start_server();
+    let mut alpha = Client::join(server.addr, "ClockSetter", 0x61);
+    alpha.clear();
+    alpha.send_command("time set night");
+    assert!(alpha.pump_until(Duration::from_secs(5), |seen| {
+        seen.iter()
+            .any(|packet| packet.id == CB_UPDATE_TIME && packet.data.get(8) == Some(&1))
+    }));
+    let changed = alpha
+        .all(CB_UPDATE_TIME)
+        .into_iter()
+        .find(|packet| packet.data.get(8) == Some(&1))
+        .unwrap();
+    let (changed_at, clocks) = clock_values(changed);
+    assert_eq!(clocks, [(0, 13_000)]);
+
+    alpha.clear();
+    assert!(alpha.pump_until(Duration::from_secs(5), |seen| {
+        seen.iter().any(|packet| {
+            packet.id == CB_UPDATE_TIME
+                && packet.data.get(8) == Some(&2)
+                && clock_values(packet).0 > changed_at
+        })
+    }));
+    let periodic = alpha
+        .all(CB_UPDATE_TIME)
+        .into_iter()
+        .find(|packet| packet.data.get(8) == Some(&2) && clock_values(packet).0 > changed_at)
+        .unwrap();
+    let (game_time, clocks) = clock_values(periodic);
+    assert_eq!(
+        clocks,
+        [(1, game_time), (0, 13_000 + game_time - changed_at)]
+    );
+
+    let beta = Client::join(server.addr, "LaterJoin", 0x62);
+    assert_eq!(alpha.session_id, beta.session_id);
+    let (game_time, clocks) = clock_values(beta.first(CB_UPDATE_TIME).unwrap());
+    assert!(game_time >= changed_at);
+    assert_eq!(
+        clocks,
+        [(1, game_time), (0, 13_000 + game_time - changed_at)]
+    );
+}
+
 #[test]
 fn kick_disconnects_the_target_and_tells_everyone() {
-    let addr = start_server_with_ops(&["AlphaProbe"]);
+    let server = start_server_with_ops(&["AlphaProbe"]);
+    let addr = server.addr;
     let mut alpha = Client::join(addr, "AlphaProbe", 0xA1);
     let mut beta = Client::join(addr, "BetaProbe", 0xB2);
-    alpha.drain(Duration::from_millis(800));
-    beta.drain(Duration::from_millis(800));
+    alpha.wait_for_join_notice("BetaProbe joined the game", Duration::from_millis(800));
+    beta.wait_for_join_notice("Welcome to BCore, BetaProbe!", Duration::from_millis(800));
     alpha.clear();
     beta.clear();
 

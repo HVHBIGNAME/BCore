@@ -19,8 +19,8 @@ pub struct ParameterList {
 }
 
 impl ParameterList {
-    /// A fresh list/cache identity using the pinned 26.1 JAR's exact integer rows
-    /// and resource keys mapped to BCore's wire registry. No float round trip.
+    /// A fresh list/cache identity using the target JAR's exact integer rows
+    /// and resource keys in the shared registry. No float round trip.
     pub fn overworld() -> Self {
         Self::new(super::canonical::rows().to_vec())
     }

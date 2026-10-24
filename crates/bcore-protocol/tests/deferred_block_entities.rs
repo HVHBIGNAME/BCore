@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use bcore_core::{varint::decode_varint, ChunkPos};
 use bcore_protocol::chunk::{ChunkColumn, LIGHT_SECTION_COUNT, MIN_Y};
-use bcore_protocol::chunk_store::{decode_chunk, encode_chunk, ChunkStoreError};
+use bcore_protocol::chunk_store::{decode_chunk, encode_chunk, ChunkStoreError, FORMAT_VERSION};
 use bcore_worldgen::block_entity::PendingBlockEntity;
 use bcore_worldgen::generation::{FeatureBlockEntity, StructureEntityRequest};
 use bcore_worldgen::lighting::{ChunkLight, LightSection};
@@ -10,6 +10,9 @@ use bcore_worldgen::structure::template::{Mirror, Nbt, Rotation, TemplateBlockEn
 use bcore_worldgen::structure::template_pool::StructureAssets;
 use bcore_worldgen::tick_request::{TickRequest, TickTarget};
 use serde_json::Value;
+
+#[path = "../../bcore-worldgen/tests/support/registry_26_1.rs"]
+mod registry_26_1;
 
 fn fixture() -> Value {
     let data: Value = serde_json::from_str(include_str!(
@@ -42,7 +45,7 @@ fn pending_column(row: &Value) -> (ChunkPos, (usize, i32, usize), ChunkColumn) {
         local.0,
         local.1,
         local.2,
-        row["state"].as_u64().unwrap() as u32
+        registry_26_1::target_state(row["state"].as_u64().unwrap() as u32)
     ));
     assert!(column.set_pending_block_entity(
         owner,
@@ -100,7 +103,8 @@ fn deferred_proto_storage_is_inert_and_native_packet_entries_appear_only_after_m
         let initial = observation(row, "after conversion/no lookup");
         let (owner, local, column) = pending_column(initial);
         let bytes = encode_chunk(owner.x, owner.z, &column);
-        assert_eq!(&bytes[4..8], [5, 0, 0, 0]);
+        assert_eq!(&bytes[4..6], &FORMAT_VERSION.to_le_bytes());
+        assert_eq!(&bytes[6..8], [0, 0]);
         let mut loaded = decode_chunk(&bytes).unwrap();
         assert_eq!(loaded, column);
         assert_eq!(encode_chunk(owner.x, owner.z, &loaded), bytes);
@@ -139,7 +143,41 @@ fn deferred_proto_storage_is_inert_and_native_packet_entries_appear_only_after_m
         }
         let expected_packet = &observation(row, "packet after level save")["packet"];
         assert_eq!(expected_packet["count"], 1);
-        let wire = unhex(expected_packet["entries"][0]["wire_hex"].as_str().unwrap());
+        let historical_wire = unhex(expected_packet["entries"][0]["wire_hex"].as_str().unwrap());
+        let mut native_fields = &historical_wire[3..];
+        let historical_type = varint(&mut native_fields) as u32;
+        let current_type = if let Some(data) = loaded.feature_block_entities().get(&local) {
+            data.type_id
+        } else {
+            bcore_registry::block_entity_type::BEEHIVE
+        };
+        let id = loaded
+            .feature_block_entities()
+            .get(&local)
+            .and_then(|data| data.full_data["id"].as_str())
+            .unwrap_or("minecraft:beehive");
+        assert_eq!(
+            bcore_registry::registry_id("BLOCK_ENTITY_TYPE", id),
+            Some(current_type)
+        );
+        let historical = &registry_26_1::historical_assets().blocks;
+        let historical_state = initial["state"].as_u64().unwrap() as u32;
+        let historical_entity = historical
+            .default_block_entity(
+                historical_state,
+                (
+                    owner.x * 16 + local.0 as i32,
+                    local.1,
+                    owner.z * 16 + local.2 as i32,
+                ),
+            )
+            .unwrap()
+            .unwrap();
+        assert_eq!(historical_entity.type_id, historical_type);
+        assert_eq!(historical_entity.id, id);
+        let mut wire = historical_wire[..3].to_vec();
+        bcore_core::varint::encode_varint(current_type as i32, &mut wire);
+        wire.extend_from_slice(native_fields);
         let packet = loaded.encode_payload(owner.x, owner.z);
         let (count, encoded) = block_entity_prefix(&packet);
         assert_eq!(count, 1);
@@ -266,8 +304,8 @@ fn deferred_bcc_preserves_raw_ticks_marks_structure_requests_and_native_light() 
     let bytes = encode_chunk(owner.x, owner.z, &column);
     assert_eq!(
         &bytes[4..8],
-        [5, 0, 7, 0],
-        "existing extension flags are unchanged"
+        [FORMAT_VERSION as u8, 0, 7, 0],
+        "registry-bound format retains the existing extension flags"
     );
     let mut loaded = decode_chunk(&bytes).unwrap();
     assert_eq!(loaded, column);
@@ -289,7 +327,7 @@ fn deferred_bcc_preserves_raw_ticks_marks_structure_requests_and_native_light() 
 }
 
 #[test]
-fn deferred_typed_hive_all_native_states_preserve_payload_across_bcc_versions() {
+fn deferred_typed_hive_all_native_states_preserve_payload_in_registry_bound_bcc() {
     let data = fixture();
     let row = data["cases"]
         .as_array()
@@ -302,7 +340,7 @@ fn deferred_typed_hive_all_native_states_preserve_payload_across_bcc_versions() 
     let pos = (x, y, z);
     let owner = ChunkPos::new(x >> 4, z >> 4);
     let local = ((x & 15) as usize, y, (z & 15) as usize);
-    let initial_state = after["state"].as_u64().unwrap() as u32;
+    let initial_state = registry_26_1::target_state(after["state"].as_u64().unwrap() as u32);
     let full = nbt(&after["full"]);
     let entity = TemplateBlockEntity::from_load(
         &StructureAssets::bundled().blocks,
@@ -325,24 +363,34 @@ fn deferred_typed_hive_all_native_states_preserve_payload_across_bcc_versions() 
     let states = hive_reference["states"].as_array().unwrap();
     assert_eq!(states.len(), 48);
     for state in states {
-        let state = state["state"].as_u64().unwrap() as u32;
+        let historical = state["state"].as_u64().unwrap() as u32;
+        let state = registry_26_1::target_state(historical);
+        assert_eq!(registry_26_1::historical_state(state), historical);
         assert!(column.set(local.0, y, local.2, state));
         let hive = &column.feature_block_entities()[&local];
         assert!(hive.valid_for(state, pos), "native hive state {state}");
         assert_eq!(hive.full_nbt().unwrap(), full);
+        let bytes = encode_chunk(owner.x, owner.z, &column);
+        let restored = decode_chunk(&bytes).unwrap();
+        assert_eq!(restored, column);
+        assert!(restored.pending_block_entities().is_empty());
+        let payload = restored.encode_payload(owner.x, owner.z);
+        let (count, mut entries) = block_entity_prefix(&payload);
+        assert_eq!(count, 1);
+        take(&mut entries, 3);
+        assert_eq!(
+            varint(&mut entries) as u32,
+            bcore_registry::block_entity_type::BEEHIVE
+        );
+        assert_eq!(take(&mut entries, 1), [0]);
         for version in [4u16, 5] {
-            let mut bytes = encode_chunk(owner.x, owner.z, &column);
-            bytes[4..6].copy_from_slice(&version.to_le_bytes());
-            checksum(&mut bytes);
-            let restored = decode_chunk(&bytes).unwrap();
-            assert_eq!(restored, column);
-            assert!(restored.pending_block_entities().is_empty());
-            let payload = restored.encode_payload(owner.x, owner.z);
-            let (count, mut entries) = block_entity_prefix(&payload);
-            assert_eq!(count, 1);
-            take(&mut entries, 3);
-            assert_eq!(varint(&mut entries), 34);
-            assert_eq!(take(&mut entries, 1), [0]);
+            let mut legacy = bytes.clone();
+            legacy[4..6].copy_from_slice(&version.to_le_bytes());
+            checksum(&mut legacy);
+            assert!(matches!(
+                decode_chunk(&legacy),
+                Err(ChunkStoreError::MissingRegistryIdentity(actual)) if actual == version
+            ));
         }
     }
 }
@@ -367,10 +415,16 @@ fn deferred_decoder_rejects_wrong_owner_duplicates_bad_widths_and_legacy_pending
         .position(|w| w == json)
         .unwrap();
     assert_eq!(original[at - 5], 5, "new pending entry kind");
-    for change in 0..4 {
+    let mut legacy = original.clone();
+    legacy[4..6].copy_from_slice(&4u16.to_le_bytes());
+    checksum(&mut legacy);
+    assert!(matches!(
+        decode_chunk(&legacy),
+        Err(ChunkStoreError::MissingRegistryIdentity(4))
+    ));
+    for change in 1..4 {
         let mut malformed = original.clone();
         match change {
-            0 => malformed[4..6].copy_from_slice(&4u16.to_le_bytes()),
             1 => malformed[at - 4..at].copy_from_slice(&u32::MAX.to_le_bytes()),
             2 => {
                 let entry = original[at - 10..at + json.len()].to_vec();
@@ -404,7 +458,7 @@ fn deferred_decoder_rejects_wrong_owner_duplicates_bad_widths_and_legacy_pending
 }
 
 #[test]
-fn deferred_v5_reader_preserves_materialized_v4_and_leaves_unsupported_pending_data_intact() {
+fn deferred_registry_bound_reader_rejects_legacy_and_preserves_unsupported_pending_data() {
     let data = fixture();
     let (owner, local, mut column) =
         pending_column(observation(&data["cases"][0], "write/no lookup"));
@@ -448,13 +502,19 @@ fn deferred_v5_reader_preserves_materialized_v4_and_leaves_unsupported_pending_d
         FeatureBlockEntity::from_template(&entity).unwrap()
     ));
     assert!(column.pending_block_entities().is_empty());
-    let mut legacy = encode_chunk(owner.x, owner.z, &column);
-    legacy[4..6].copy_from_slice(&4u16.to_le_bytes());
-    checksum(&mut legacy);
-    let restored = decode_chunk(&legacy).unwrap();
+    let bytes = encode_chunk(owner.x, owner.z, &column);
+    let restored = decode_chunk(&bytes).unwrap();
     assert_eq!(
         restored, column,
-        "v4 materialized entries must not be reinterpreted as DUMMY"
+        "materialized entries must not be reinterpreted as DUMMY"
     );
     assert!(restored.pending_block_entities().is_empty());
+    for version in [4u16, 5] {
+        let mut legacy = bytes.clone();
+        legacy[4..6].copy_from_slice(&version.to_le_bytes());
+        checksum(&mut legacy);
+        assert!(
+            matches!(decode_chunk(&legacy), Err(ChunkStoreError::MissingRegistryIdentity(actual)) if actual == version)
+        );
+    }
 }

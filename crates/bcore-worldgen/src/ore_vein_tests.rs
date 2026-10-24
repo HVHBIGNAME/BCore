@@ -57,7 +57,9 @@ fn native_material_decisions_rng_continuations_and_lazy_reads() {
         );
         let expected = case["state"].as_i64().unwrap();
         assert_eq!(
-            result.map_or(-1, i64::from),
+            result.map_or(-1, |state| i64::from(
+                crate::registry_26_1::historical_state(state)
+            )),
             expected,
             "{id}: inputs {inputs:?} at {p:?}"
         );
@@ -93,12 +95,18 @@ fn native_material_decisions_rng_continuations_and_lazy_reads() {
         results,
         BTreeSet::from([
             -1,
-            i64::from(block::GRANITE),
-            i64::from(block::TUFF),
-            i64::from(block::COPPER_ORE),
-            i64::from(block::RAW_COPPER_BLOCK),
-            i64::from(block::DEEPSLATE_IRON_ORE),
-            i64::from(block::RAW_IRON_BLOCK)
+            i64::from(crate::registry_26_1::historical_state(block::GRANITE)),
+            i64::from(crate::registry_26_1::historical_state(block::TUFF)),
+            i64::from(crate::registry_26_1::historical_state(block::COPPER_ORE)),
+            i64::from(crate::registry_26_1::historical_state(
+                block::RAW_COPPER_BLOCK
+            )),
+            i64::from(crate::registry_26_1::historical_state(
+                block::DEEPSLATE_IRON_ORE
+            )),
+            i64::from(crate::registry_26_1::historical_state(
+                block::RAW_IRON_BLOCK
+            ))
         ])
     );
     for (name, state) in [
@@ -109,6 +117,9 @@ fn native_material_decisions_rng_continuations_and_lazy_reads() {
         ("RAW_IRON_BLOCK", block::RAW_IRON_BLOCK),
         ("TUFF", block::TUFF),
     ] {
-        assert_eq!(fixture["states"][name].as_u64().unwrap(), state as u64);
+        assert_eq!(
+            fixture["states"][name].as_u64().unwrap(),
+            u64::from(crate::registry_26_1::historical_state(state))
+        );
     }
 }

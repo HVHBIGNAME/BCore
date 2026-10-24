@@ -10,8 +10,8 @@ use super::placement::{
 use super::pool_alias::PoolAliasBindings;
 use super::processors::{heightmap, integer, text};
 use super::template::{
-    add, id, invalid, missing, shuffle, sub, BoundingBox, Nbt, PlacementResult, Result, Rotation,
-    TemplateEffect, TemplateRandom,
+    add, id, invalid, missing, shuffle, sub, BlockRegistry, BoundingBox, Nbt, PlacementResult,
+    Result, Rotation, TemplateEffect, TemplateRandom,
 };
 use super::template_pool::{
     place_element_with_effects, JigsawConnector, PoolElement, PoolPlacement, Projection,
@@ -1008,7 +1008,7 @@ where
     Ok(result)
 }
 
-/// Complete ancient-city block path: templates, degradation, containers, and
+/// Current-registry ancient-city block path: templates, degradation, containers, and
 /// actual sculk patch elements. Entity spawn/finalization requests are returned
 /// to the owning world, as FeatureWorld has no entity-spawn method.
 pub fn place_ancient_city_in_chunk<W: FeatureWorld + ?Sized>(
@@ -1019,6 +1019,11 @@ pub fn place_ancient_city_in_chunk<W: FeatureWorld + ?Sized>(
     clip: BoundingBox,
     world_seed: i64,
 ) -> Result<PlacementResult> {
+    if !assets.blocks.is_current() {
+        return Err(FeatureError::Unsupported(
+            "historical ancient-city feature inputs; use place_in_chunk_with_features".into(),
+        ));
+    }
     let feature = assets
         .placed_features
         .get("minecraft:sculk_patch_ancient_city")
@@ -1040,25 +1045,37 @@ pub fn place_ancient_city_in_chunk<W: FeatureWorld + ?Sized>(
                     "ancient-city pool feature {name}"
                 )));
             }
-            let mut effects = FeatureEffects {
-                world,
-                registry: &assets.blocks,
-                result: PlacementResult::default(),
-                error: None,
-            };
-            let placed = crate::sculk::place_named(&mut effects, random, origin, configured)?;
-            if let Some(error) = effects.error {
-                return Err(error);
-            }
-            effects.result.placed = placed;
-            Ok(effects.result)
+            place_feature_with_effects(&assets.blocks, world, |effects| {
+                crate::sculk::place_named(effects, random, origin, configured)
+            })
         },
     )
 }
 
+/// Collect block-entity effects around a caller-owned configured-feature invocation.
+/// The callback reads and writes state IDs in the explicitly supplied registry.
+pub fn place_feature_with_effects<W: FeatureWorld + ?Sized>(
+    registry: &BlockRegistry,
+    world: &mut W,
+    place: impl FnOnce(&mut dyn FeatureWorld) -> Result<bool>,
+) -> Result<PlacementResult> {
+    let mut effects = FeatureEffects {
+        world,
+        registry,
+        result: PlacementResult::default(),
+        error: None,
+    };
+    let placed = place(&mut effects)?;
+    if let Some(error) = effects.error {
+        return Err(error);
+    }
+    effects.result.placed = placed;
+    Ok(effects.result)
+}
+
 struct FeatureEffects<'a, W: ?Sized> {
     world: &'a mut W,
-    registry: &'a super::template::BlockRegistry,
+    registry: &'a BlockRegistry,
     result: PlacementResult,
     error: Option<FeatureError>,
 }

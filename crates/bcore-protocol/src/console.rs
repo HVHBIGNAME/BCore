@@ -33,8 +33,8 @@ fn execute_line(server: &SharedServer, line: &str) {
         sender_name: "Server",
         online: &online,
         max_players: crate::join::MAX_PLAYERS,
-        seed: crate::world_state::DEFAULT_SEED,
-        spawn: crate::world_state::shared().spawn_position(0.5, 0.5),
+        seed: server.world().seed(),
+        spawn: (0.5, crate::chunk::SEA_LEVEL as f64 + 1.0, 0.5),
         is_op: true,
     };
     let outcome = command::execute(command_text, &ctx);
@@ -60,7 +60,8 @@ fn execute_line(server: &SharedServer, line: &str) {
                 }
                 server.save_ops();
             }
-            Effect::SetDayTime(_) | Effect::SetGameMode(_) | Effect::Teleport { .. } => {
+            Effect::SetDayTime(ticks) => server.set_day_time(*ticks),
+            Effect::SetGameMode(_) | Effect::Teleport { .. } => {
                 println!("[bcore] console effect requires a player target: {effect:?}");
             }
         }

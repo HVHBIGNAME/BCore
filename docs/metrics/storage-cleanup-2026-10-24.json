@@ -1,0 +1,31 @@
+{
+  "schema": "bcore.storage-cleanup.summary.v1",
+  "date": "2026-10-24",
+  "inventory": {
+    "workspace_bytes": 48396067190,
+    "target_bytes": 46603199243,
+    "sha256": "e95dbb6a19d01bde320512bfc99426070689caec0273d21a0dc25cbf2e326bdf"
+  },
+  "cleanup": {
+    "removed_bytes": 20139506184,
+    "removed_directories": 61,
+    "cargo_debug_incremental_directories": 1,
+    "verified_expanded_source_directories": 33,
+    "finished_runner_test_directories": 27,
+    "free_bytes_before": 124166848512,
+    "free_bytes_after": 142644908032,
+    "free_bytes_delta": 18478059520,
+    "source_archives_retained": true,
+    "frozen_binaries_and_raw_measurements_retained": true,
+    "protected_world_and_operator_files": 2958,
+    "protected_bytes_unchanged": true
+  },
+  "evidence": {
+    "inventory": "target/storage-inventory-20261024-01.json",
+    "report": "target/storage-cleanup-20261024-02.json",
+    "plan_sha256": "9bdf7d3a830b15b81d2fb4485087de76a00b0b7911b9392791f6cecbb7dc4711",
+    "successful_queue_receipt": "target/generation-checks/storage-cleanup-20261024-02-1792865295619900500.json",
+    "first_attempt_receipt": "target/generation-checks/storage-cleanup-20261024-01-1792864598400056300.json"
+  },
+  "scope": "Logical removed-file bytes and observed volume free-space delta differ; this is storage maintenance, not a performance measurement. Expanded snapshots were removed only after archive membership, sizes and SHA-256 bytes matched. Original source.zip archives, executables, raw captures, logs, native dependencies and user world data remain local."
+}

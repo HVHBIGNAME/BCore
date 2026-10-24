@@ -5,7 +5,8 @@ use super::processors::{text, BlockTags, Processor};
 use super::template::{
     add, id, invalid, missing, shuffle, transform_block, BlockEntityType, BlockInfo, BlockRegistry,
     BlockState, BoundingBox, EntityInfo, Mirror, Nbt, PlacementResult, PlacementSettings,
-    ProcessorRandom, Result, Rotation, StateRow, StructureTemplate, TemplateEffect, TemplateRandom,
+    ProcessorRandom, RegistryVersion, Result, Rotation, StateRow, StructureTemplate,
+    TemplateEffect, TemplateRandom,
 };
 use crate::feature_world::{FeatureError, FeatureHeightmap, FeatureWorld, Pos};
 use serde::{Deserialize, Serialize};
@@ -566,6 +567,43 @@ struct AssetData {
     jar_assets: BTreeMap<String, JarAsset>,
 }
 
+#[derive(Deserialize)]
+struct FeatureTemplateData {
+    registry_fingerprint: String,
+    templates: BTreeMap<String, RawTemplate>,
+    block_entities: BTreeMap<String, BlockEntityType>,
+}
+
+fn load_template(
+    name: &str,
+    raw: RawTemplate,
+    blocks: &BlockRegistry,
+) -> Result<StructureTemplate> {
+    let mut palettes = Vec::new();
+    for palette in raw.palettes {
+        let states = palette
+            .iter()
+            .map(|state| blocks.resolve(state))
+            .collect::<Result<Vec<_>>>()?;
+        let mut infos = Vec::with_capacity(raw.blocks.len());
+        for block in &raw.blocks {
+            let (pos, index, nbt) = match block {
+                RawBlock::Plain(x, y, z, index) => ((*x, *y, *z), *index, None),
+                RawBlock::WithNbt(x, y, z, index, nbt) => ((*x, *y, *z), *index, Some(nbt.clone())),
+            };
+            infos.push(BlockInfo {
+                pos,
+                state: *states
+                    .get(index)
+                    .ok_or_else(|| invalid(format!("{name}: invalid palette index {index}")))?,
+                nbt,
+            });
+        }
+        palettes.push(infos);
+    }
+    StructureTemplate::new(raw.size, palettes, raw.entities, blocks)
+}
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct StructureMetadata {
     pub step: i32,
@@ -587,22 +625,27 @@ pub struct StructureAssets {
 }
 
 impl StructureAssets {
-    pub const JAR_SHA256: &'static str =
+    pub const JAR_SHA256: &'static str = bcore_registry::SERVER_JAR_SHA256;
+    pub const HISTORICAL_JAR_SHA256: &'static str =
         "a7fed6f7d88379349e35ae0c6e9881d4484605132f6f620376a3868eea6cce52";
 
     pub fn bundled() -> &'static Self {
         static ASSETS: OnceLock<StructureAssets> = OnceLock::new();
         ASSETS.get_or_init(|| {
             let mut assets = Self::from_json(include_str!(
-                "../../data/pool_alias_trial_combined_assets_26_1_v2.json"
+                "../../data/pool_alias_trial_combined_assets_26_2.json"
             ))
-            .expect("validated pinned jigsaw assets");
+            .expect("validated target jigsaw assets");
+            assets
+                .add_feature_templates(include_str!("../../data/feature_template_assets_26_2.json"))
+                .expect("native manager/data-fixed feature templates");
             // The independent scattered capture supplies the dispenser defaults
             // absent from the jigsaw bundle. Existing immutable captures remain
             // authoritative; join by resource identity only for missing entries.
-            let containers: Value =
-                serde_json::from_str(include_str!("../../data/scattered_containers_26_1.json"))
-                    .expect("native container defaults");
+            let containers: Value = crate::block_predicate::parse_catalog(include_str!(
+                "../../data/scattered_containers_26_2.json"
+            ))
+            .expect("native container defaults");
             assert_eq!(containers["jar_sha256"], Self::JAR_SHA256);
             for (name, data) in containers["containers"]["defaults"].as_object().unwrap() {
                 assets
@@ -620,48 +663,93 @@ impl StructureAssets {
         })
     }
 
+    fn add_feature_templates(&mut self, source: &str) -> Result<()> {
+        let data: FeatureTemplateData = crate::block_predicate::parse_catalog(source)?;
+        let fingerprint: String = bcore_registry::REGISTRY_FINGERPRINT
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect();
+        if data.registry_fingerprint != fingerprint || data.templates.len() != 10 {
+            return Err(invalid("feature template registry/inventory differs"));
+        }
+        for (name, entity) in data.block_entities {
+            if bcore_registry::registry_id("BLOCK_ENTITY_TYPE", &entity.id) != Some(entity.type_id)
+            {
+                return Err(invalid(format!(
+                    "feature template block-entity identity differs: {name}"
+                )));
+            }
+            self.blocks.default_state(&name)?;
+            entity.nbt.compound()?;
+            if let Some(existing) = self.blocks.block_entities.get(&name) {
+                if existing.type_id != entity.type_id
+                    || existing.id != entity.id
+                    || existing.randomizable != entity.randomizable
+                    || existing.nbt != entity.nbt
+                {
+                    return Err(invalid(format!("feature template defaults differ: {name}")));
+                }
+            } else {
+                self.blocks.block_entities.insert(name, entity);
+            }
+        }
+        for (name, raw) in data.templates {
+            if self.templates.contains_key(&name) {
+                return Err(invalid(format!("duplicate feature template {name}")));
+            }
+            self.templates
+                .insert(name.clone(), load_template(&name, raw, &self.blocks)?);
+        }
+        Ok(())
+    }
+
     pub fn from_json(source: &str) -> Result<Self> {
-        let data: AssetData =
-            serde_json::from_str(source).map_err(|e| invalid(format!("jigsaw assets: {e}")))?;
+        let data: AssetData = crate::block_predicate::parse_catalog(source)?;
         if data.jar_sha256 != Self::JAR_SHA256 {
             return Err(invalid("jigsaw asset JAR version/hash mismatch"));
         }
+        if data.states.len() != bcore_registry::BLOCK_STATE_COUNT {
+            return Err(invalid(
+                "jigsaw block-state count differs from the shared registry",
+            ));
+        }
+        Self::from_data(data, RegistryVersion::Current)
+    }
+
+    /// Explicit 26.1 replay inputs, retaining their captured state/default and
+    /// block-entity identities. Item decoding uses the historical item catalog.
+    pub fn from_historical_json(source: &str) -> Result<Self> {
+        let value: Value = serde_json::from_str(source)
+            .map_err(|error| invalid(format!("historical jigsaw assets: {error}")))?;
+        if value["minecraft"] != "26.1"
+            || value["jar_sha256"] != Self::HISTORICAL_JAR_SHA256
+            || value
+                .get("protocol")
+                .is_some_and(|protocol| protocol.as_i64() != Some(775))
+        {
+            return Err(invalid("historical jigsaw asset version/hash mismatch"));
+        }
+        let data: AssetData = serde_json::from_value(value)
+            .map_err(|error| invalid(format!("historical jigsaw assets: {error}")))?;
+        if data.states.len() != 29873 {
+            return Err(invalid("historical jigsaw block-state count differs"));
+        }
+        Self::from_data(data, RegistryVersion::V26_1)
+    }
+
+    fn from_data(data: AssetData, version: RegistryVersion) -> Result<Self> {
         let blocks = BlockRegistry::new(
             data.states,
             data.defaults,
             data.block_entities,
             data.water_fluid_id,
+            version,
         )?;
+        validate_registry(&blocks, version)?;
         let mut templates = BTreeMap::new();
         for (name, raw) in data.templates {
-            let mut palettes = Vec::new();
-            for palette in raw.palettes {
-                let states = palette
-                    .iter()
-                    .map(|v| blocks.resolve(v))
-                    .collect::<Result<Vec<_>>>()?;
-                let mut infos = Vec::with_capacity(raw.blocks.len());
-                for block in &raw.blocks {
-                    let (pos, index, nbt) = match block {
-                        RawBlock::Plain(x, y, z, index) => ((*x, *y, *z), *index, None),
-                        RawBlock::WithNbt(x, y, z, index, nbt) => {
-                            ((*x, *y, *z), *index, Some(nbt.clone()))
-                        }
-                    };
-                    infos.push(BlockInfo {
-                        pos,
-                        state: *states.get(index).ok_or_else(|| {
-                            invalid(format!("{name}: invalid palette index {index}"))
-                        })?,
-                        nbt,
-                    });
-                }
-                palettes.push(infos);
-            }
-            templates.insert(
-                name,
-                StructureTemplate::new(raw.size, palettes, raw.entities, &blocks)?,
-            );
+            let template = load_template(&name, raw, &blocks)?;
+            templates.insert(name, template);
         }
         let mut tags_raw = BTreeMap::new();
         let mut pool_configs = BTreeMap::new();
@@ -748,6 +836,77 @@ impl StructureAssets {
             .map(|v| Processor::from_json(v, &self.blocks, &self.tags))
             .collect()
     }
+}
+
+fn validate_registry(blocks: &BlockRegistry, version: RegistryVersion) -> Result<()> {
+    match version {
+        RegistryVersion::Current => {
+            for state in &bcore_registry::vanilla().states {
+                let observed = blocks.state(state.id)?;
+                if observed.name != state.name
+                    || observed.properties != state.properties
+                    || (blocks.default_state(&state.name)? == state.id) != state.default
+                {
+                    return Err(invalid(format!(
+                        "jigsaw block-state identity differs: {}",
+                        state.id
+                    )));
+                }
+            }
+            for ty in blocks.block_entities.values() {
+                if bcore_registry::registry_id("BLOCK_ENTITY_TYPE", &ty.id) != Some(ty.type_id) {
+                    return Err(invalid(format!(
+                        "jigsaw block-entity identity differs: {}",
+                        ty.id
+                    )));
+                }
+            }
+            if bcore_registry::registry_id("FLUID", "minecraft:water")
+                != Some(blocks.water_fluid_id)
+            {
+                return Err(invalid("jigsaw water fluid identity differs"));
+            }
+        }
+        RegistryVersion::V26_1 => {
+            static CATALOG: OnceLock<Result<crate::block_predicate::FeatureCatalog>> =
+                OnceLock::new();
+            let catalog = CATALOG
+                .get_or_init(|| {
+                    let value: Value = serde_json::from_str(include_str!(
+                        "../../data/base_feature_catalog_26_1.json"
+                    ))
+                    .map_err(|error| invalid(format!("historical feature catalog: {error}")))?;
+                    if value["minecraft"] != "26.1"
+                        || value["jar_sha256"] != StructureAssets::HISTORICAL_JAR_SHA256
+                    {
+                        return Err(invalid("historical feature catalog version/hash mismatch"));
+                    }
+                    crate::block_predicate::FeatureCatalog::from_value(value)
+                })
+                .as_ref()
+                .map_err(Clone::clone)?;
+            for id in 0..blocks.len() as u32 {
+                let observed = blocks.state(id)?;
+                let (name, definition) = catalog.block(id)?;
+                if observed.name != name
+                    || observed.properties.len() != definition.properties.len()
+                    || observed
+                        .properties
+                        .iter()
+                        .any(|(name, value)| definition.property(id, name) != Some(value.as_str()))
+                    || blocks.default_state(name)? != definition.default_state
+                {
+                    return Err(invalid(format!(
+                        "historical jigsaw block-state identity differs: {id}"
+                    )));
+                }
+            }
+            if catalog.fluids.get("minecraft:water") != Some(&blocks.water_fluid_id) {
+                return Err(invalid("historical jigsaw water fluid identity differs"));
+            }
+        }
+    }
+    Ok(())
 }
 
 fn resolve_tag(
@@ -890,3 +1049,7 @@ where
         }
     }
 }
+
+#[cfg(test)]
+#[path = "asset_identity_tests.rs"]
+mod asset_identity_tests;

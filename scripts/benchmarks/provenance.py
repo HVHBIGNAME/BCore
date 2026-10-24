@@ -16,7 +16,8 @@ JAVA_SOURCES = (
     "scripts/benchmarks/NoiseFillBenchmark.java",
 )
 HARNESS_SOURCES = (*JAVA_SOURCES, "scripts/benchmarks/run.py",
-                   "scripts/benchmarks/provenance.py",
+                    "scripts/benchmarks/provenance.py",
+                    "scripts/benchmarks/targets.py",
                    "crates/bcore-worldgen/src/generation/benchmark.rs",
                    "crates/bcore-worldgen/examples/noise_bench.rs")
 
@@ -39,7 +40,8 @@ def source_hashes(root):
     """All workspace crate files, including assets/build scripts and new sources.
 
     Do not use git's index: an uncommitted optimization must be represented.
-    Build/cache directories and private local environment files are not inputs.
+    Build/cache directories, generated crate-root worlds and private local
+    environment files are not inputs.
     """
     root = Path(root).resolve()
     files = {root / p for p in JAVA_SOURCES}
@@ -47,6 +49,9 @@ def source_hashes(root):
     for directory in (root / "crates", root / "scripts/benchmarks"):
         for parent, dirs, names in os.walk(directory, followlinks=False):
             dirs[:] = sorted(d for d in dirs if d not in ("target", ".git", "__pycache__"))
+            # Match /crates/*/world/ in .gitignore, not production src/world/.
+            if Path(parent).parent == root / "crates" and "world" in dirs:
+                dirs.remove("world")
             for directory_name in dirs:
                 path = Path(parent) / directory_name
                 if path.is_symlink() or not path.resolve().is_relative_to(root):

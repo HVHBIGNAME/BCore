@@ -1,4 +1,4 @@
-//! Minecraft 26.1 sculk patches, multiface veins, and worldgen charge cursors.
+//! Sculk patches, multiface veins, and worldgen charge cursors with target metadata.
 //!
 //! The world owns normal `WorldGenRegion` write effects, including implicit
 //! postprocessing and block-entity creation/removal. Adapters can use
@@ -124,7 +124,7 @@ pub enum Config {
 }
 
 impl Config {
-    /// Registered 26.1 `sculk_patch_deep_dark`, `sculk_patch_ancient_city`, or `sculk_vein`.
+    /// Registered `sculk_patch_deep_dark`, `sculk_patch_ancient_city`, or `sculk_vein`.
     pub fn named(name: &str) -> Result<Self, FeatureError> {
         let definition = native()?
             .configurations
@@ -463,8 +463,8 @@ struct NativeData {
 
 impl NativeData {
     fn load() -> Result<Self, FeatureError> {
-        let raw: Capture = serde_json::from_str(include_str!("../data/sculk_states_26_1.json"))
-            .map_err(|e| FeatureError::MissingData(format!("sculk 26.1 capture: {e}")))?;
+        let raw: Capture =
+            crate::block_predicate::parse_catalog(include_str!("../data/sculk_states_26_2.json"))?;
         let mut states = Vec::with_capacity(raw.state_count);
         for [start, end, flags, sturdy, attach] in raw.ranges {
             if start as usize != states.len() || end < start || end as usize > raw.state_count {

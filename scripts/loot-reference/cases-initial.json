@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "world_seed": "846692123413862008",
+  "context": {"origin_block": [8, 80, 8], "luck": 0, "player": null},
+  "cases": [
+    {"id": "dungeon-positive", "table": "minecraft:chests/simple_dungeon", "seed": "1", "size": 27, "preexisting": []},
+    {"id": "mineshaft-negative", "table": "minecraft:chests/abandoned_mineshaft", "seed": "-1", "size": 27, "preexisting": []},
+    {"id": "desert-positive", "table": "minecraft:chests/desert_pyramid", "seed": "123456789", "size": 27, "preexisting": []},
+    {"id": "buried-negative", "table": "minecraft:chests/buried_treasure", "seed": "-123456789", "size": 27, "preexisting": []},
+    {"id": "jungle-positive", "table": "minecraft:chests/jungle_temple", "seed": "9223372036854775807", "size": 27, "preexisting": []},
+    {"id": "ancient-negative", "table": "minecraft:chests/ancient_city", "seed": "-9223372036854775808", "size": 27, "preexisting": []},
+    {"id": "village-positive", "table": "minecraft:chests/village/village_weaponsmith", "seed": "987654321", "size": 27, "preexisting": []},
+    {"id": "trial-negative", "table": "minecraft:chests/trial_chambers/reward", "seed": "-987654321", "size": 27, "preexisting": []},
+    {"id": "dungeon-preexisting", "table": "minecraft:chests/simple_dungeon", "seed": "1", "size": 27, "preexisting": [{"slot": 0, "stack": {"id": "minecraft:diamond", "count": 7}}, {"slot": 13, "stack": {"id": "minecraft:bread", "count": 1}}, {"slot": 26, "stack": {"id": "minecraft:iron_ingot", "count": 63}}]},
+    {"id": "dungeon-full", "table": "minecraft:chests/simple_dungeon", "seed": "1", "size": 27, "fill_existing": {"id": "minecraft:stone", "count": 64}, "preexisting": []},
+    {"id": "dungeon-zero-capacity", "table": "minecraft:chests/simple_dungeon", "seed": "1", "size": 0, "preexisting": []},
+    {"id": "dungeon-one-slot", "table": "minecraft:chests/simple_dungeon", "seed": "1", "size": 1, "preexisting": []}
+  ]
+}

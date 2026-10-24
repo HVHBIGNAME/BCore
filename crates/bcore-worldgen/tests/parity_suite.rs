@@ -5,7 +5,7 @@
 //! The test is intentionally a no-op otherwise, so normal CI does not need a
 //! vanilla server or a generated fixture.
 use bcore_core::ChunkPos;
-use bcore_worldgen::WorldGenerator;
+use bcore_worldgen::GenerationWorld;
 use std::env;
 use std::fs;
 use std::io::Write;
@@ -27,7 +27,10 @@ fn dump_requested_chunks() {
         let seed: i64 = fields[0].parse().expect("seed");
         let cx: i32 = fields[1].parse().expect("chunk x");
         let cz: i32 = fields[2].parse().expect("chunk z");
-        let chunk = WorldGenerator::new(seed).generate_chunk_vanilla(ChunkPos::new(cx, cz));
+        let chunk = GenerationWorld::new(seed)
+            .generate_chunk(ChunkPos::new(cx, cz))
+            .expect("chunk generation failed")
+            .chunk;
         write!(file, "{} {}", cx, cz).expect("write parity header");
         for state in chunk.states() {
             write!(file, " {}", state).expect("write parity state");
@@ -57,7 +60,10 @@ fn parity_fixture_matches_bcore() {
         let cx: i32 = it.next().expect("cx").parse().expect("cx");
         let cz: i32 = it.next().expect("cz").parse().expect("cz");
         let expected: Vec<u32> = it.map(|v| v.parse().expect("state id")).collect();
-        let actual = WorldGenerator::new(seed).generate_chunk_vanilla(ChunkPos::new(cx, cz));
+        let actual = GenerationWorld::new(seed)
+            .generate_chunk(ChunkPos::new(cx, cz))
+            .expect("chunk generation failed")
+            .chunk;
         assert_eq!(
             expected.len(),
             actual.states().len(),

@@ -235,6 +235,9 @@ impl std::ops::Deref for TreePlacement<'_> {
 
 /// Shape algorithms use world positions; the legacy sink alone clips to a chunk.
 trait ShapeSink {
+    fn failed(&self) -> bool {
+        false
+    }
     fn state(&self, pos: fallen::Pos) -> Option<u32>;
     fn valid_state(&self, state: u32) -> bool;
     fn free_state(&self, state: u32) -> bool;
@@ -249,6 +252,11 @@ trait ShapeSink {
     }
     fn ignore_vines(&self) -> bool {
         true
+    }
+    fn vine_state(&self, state: u32) -> bool {
+        crate::block_predicate::catalog()
+            .is_block(state, "vine")
+            .expect("native vine identity")
     }
     fn leaf_is_set(&self, pos: fallen::Pos) -> bool;
     fn provided_leaf<R: TreeRandom + ?Sized>(
@@ -1145,7 +1153,7 @@ fn grow_shape<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
     let free_height = free_tree_height(config.minimum_size, trunk_origin, tree_height, |pos| {
         placement.state(pos).is_none_or(|state| {
             placement.free_state(state)
-                && (placement.ignore_vines() || !(8358..=8389).contains(&state))
+                && (placement.ignore_vines() || !placement.vine_state(state))
         })
     });
     if free_height < tree_height
@@ -1169,6 +1177,9 @@ fn grow_shape<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
         free_height,
         &mut attachments,
     );
+    if placement.failed() {
+        return false;
+    }
     for attachment in &attachments {
         create_foliage(
             placement,
@@ -1178,6 +1189,9 @@ fn grow_shape<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
             foliage_height,
             leaf_radius,
         );
+        if placement.failed() {
+            return false;
+        }
     }
     true
 }
@@ -1325,6 +1339,9 @@ fn place_trunk<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
     match config.trunk {
         TrunkPlacer::Straight { .. } => {
             place_below_trunk_block(chunk, random, config, (ox, oy - 1, oz));
+            if chunk.failed() {
+                return;
+            }
             for y in 0..height {
                 place_log(chunk, config, (ox, oy + y, oz));
             }
@@ -1365,6 +1382,9 @@ fn place_forking_trunk<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
 ) {
     let (ox, oy, oz) = origin;
     place_below_trunk_block(chunk, random, config, (ox, oy - 1, oz));
+    if chunk.failed() {
+        return;
+    }
     let mut x = ox;
     let mut z = oz;
     let direction = random.next_i32_bounded(4);
@@ -1430,6 +1450,9 @@ fn create_foliage<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
     foliage_height: i32,
     leaf_radius: i32,
 ) {
+    if chunk.failed() {
+        return;
+    }
     match config.foliage {
         FoliagePlacer::Extended { placer, .. } => {
             let offset = sample_foliage_offset(random, config.foliage);
@@ -1530,9 +1553,15 @@ fn create_foliage<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
                 ..*attachment
             };
             place_leaves_row(chunk, random, config, &base, leaf_radius + 2, -1);
+            if chunk.failed() {
+                return;
+            }
             if attachment.double_trunk {
                 place_leaves_row(chunk, random, config, &base, leaf_radius + 3, 0);
                 place_leaves_row(chunk, random, config, &base, leaf_radius + 2, 1);
+                if chunk.failed() {
+                    return;
+                }
                 if random.next_bool() {
                     place_leaves_row(chunk, random, config, &base, leaf_radius, 2);
                 }
@@ -1555,6 +1584,9 @@ fn place_leaves_row<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
     let offset = i32::from(attachment.double_trunk);
     for dx in -current_radius..=current_radius + offset {
         for dz in -current_radius..=current_radius + offset {
+            if chunk.failed() {
+                return;
+            }
             if should_skip_location(
                 random,
                 config.foliage,
@@ -1659,6 +1691,9 @@ fn try_place_leaf<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
     config: &TreeConfig,
     pos: (i32, i32, i32),
 ) -> bool {
+    if chunk.failed() {
+        return false;
+    }
     let Some(state) = chunk.state(pos) else {
         return false;
     };
@@ -1670,6 +1705,9 @@ fn try_place_leaf<P: ShapeSink + ?Sized, R: TreeRandom + ?Sized>(
 
 /// Vanilla `TreeFeature.placeLog`.
 fn place_log<P: ShapeSink + ?Sized>(chunk: &mut P, config: &TreeConfig, pos: fallen::Pos) -> bool {
+    if chunk.failed() {
+        return false;
+    }
     let Some(state) = chunk.state(pos) else {
         return false;
     };
@@ -1748,7 +1786,9 @@ mod tests {
             };
             let seed = sample["seed"].as_u64().unwrap();
             let mut chunk = flat_chunk();
-            let soil = sample["soil"].as_u64().unwrap_or(block::GRASS_BLOCK as u64) as u32;
+            let soil = sample["soil"].as_u64().map_or(block::GRASS_BLOCK, |state| {
+                crate::registry_26_1::target_state(state as u32)
+            });
             for z in 0..16 {
                 for x in 0..16 {
                     chunk.set(x, 64, z, soil);
@@ -1762,7 +1802,7 @@ mod tests {
             let bytes: Vec<_> = chunk
                 .states()
                 .iter()
-                .flat_map(|s| s.to_le_bytes())
+                .flat_map(|s| crate::registry_26_1::historical_state(*s).to_le_bytes())
                 .collect();
             let hash = format!("{:x}", md5::compute(bytes));
             let next = random.next_i64();
@@ -1990,8 +2030,10 @@ mod tests {
     }
 
     fn chunk_at(seed: i64) -> GeneratedChunk {
-        let generator = crate::WorldGenerator::new(seed);
-        generator.generate_chunk_vanilla(ChunkPos::new(0, 0))
+        crate::GenerationWorld::new(seed)
+            .generate_chunk(ChunkPos::new(0, 0))
+            .expect("chunk generation failed")
+            .chunk
     }
 
     /// The oak draws exactly two bounded values and nothing else; this pins the

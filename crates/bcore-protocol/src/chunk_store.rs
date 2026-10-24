@@ -15,12 +15,15 @@
 //!
 //! ```text
 //! magic:          4 bytes  "BCC1"
-//! version:        u16      = 5 (versions 1 through 4 are still readable)
+//! version:        u16      = 6 (older files lack registry identity and are rejected)
 //! flags:          u16      v4: bit 0 marks; bit 1 structure entities; bit 2 light
 //! chunk_x:        i32
 //! chunk_z:        i32
 //! min_y:          i32      = MIN_Y  (guards against a world-height change)
 //! world_height:   i32      = WORLD_HEIGHT
+//! data_version:   i32      Minecraft data version
+//! protocol:       i32      Minecraft protocol version
+//! registry:       32 bytes registry fingerprint
 //! palette_len:    u32      n distinct block states
 //! palette:        n * u32  the block-state ids, in first-seen order
 //! index_bits:     u8       8, 16 or 32 — width of one index
@@ -64,18 +67,27 @@
 //! silently wrong world.
 
 use std::fs;
-use std::io;
+use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
+
+use bcore_registry::{
+    BIOME_COUNT, BLOCK_STATE_COUNT, DATA_VERSION, MC_VERSION, PROTOCOL_VERSION,
+    REGISTRY_FINGERPRINT,
+};
+use serde::{Deserialize, Serialize};
 
 use crate::chunk::{ChunkColumn, MIN_Y, SECTION_BIOMES, SECTION_COUNT, WORLD_HEIGHT};
 
 /// File magic: BCore Chunk v1.
 pub const MAGIC: &[u8; 4] = b"BCC1";
 /// Format version written into every file.
-pub const FORMAT_VERSION: u16 = 5;
+pub const FORMAT_VERSION: u16 = 6;
+/// Bytes before the block palette, including the versioned registry identity.
+pub const HEADER_LEN: usize = 64;
 /// Default directory chunks are stored under, relative to the server's cwd.
 pub const DEFAULT_WORLD_DIR: &str = "world";
+const WORLD_METADATA_FILE: &str = "bcore-world.json";
 
 /// Total block entries in one column.
 const COLUMN_ENTRIES: usize = 256 * WORLD_HEIGHT as usize;
@@ -100,7 +112,27 @@ pub enum ChunkStoreError {
     BadMagic([u8; 4]),
     /// The file was written by an incompatible version.
     UnsupportedVersion(u16),
-    /// Unknown extension flags, or extension flags in a legacy version.
+    /// Pre-v6 files cannot identify the meaning of their numeric palettes.
+    MissingRegistryIdentity(u16),
+    /// The file targets another Minecraft data/protocol version.
+    MinecraftVersionMismatch {
+        data_version: i32,
+        protocol_version: i32,
+    },
+    /// Numeric IDs were saved against another registry ordering.
+    RegistryMismatch { stored: [u8; 32] },
+    /// An existing world has no authenticated seed/version metadata.
+    MissingWorldMetadata,
+    /// Malformed or unsupported world metadata.
+    InvalidWorldMetadata(String),
+    /// An existing world belongs to another seed.
+    SeedMismatch { stored: i64, requested: i64 },
+    /// The chunk header does not agree with its filename/requested coordinates.
+    CoordinateMismatch {
+        expected: (i32, i32),
+        stored: (i32, i32),
+    },
+    /// Unknown extension flags.
     UnsupportedFlags(u16),
     /// The file's world geometry does not match this build.
     GeometryMismatch { min_y: i32, world_height: i32 },
@@ -110,6 +142,10 @@ pub enum ChunkStoreError {
     ChecksumMismatch { stored: u32, computed: u32 },
     /// A palette index pointed outside the palette.
     BadPaletteIndex { index: u32, palette_len: usize },
+    /// A block-state/biome ID is outside the authenticated registry.
+    InvalidRegistryId { registry: &'static str, id: u32 },
+    /// A palette has an invalid number of entries.
+    InvalidPaletteLength { registry: &'static str, len: usize },
     /// The index width byte was not 8, 16 or 32.
     BadIndexBits(u8),
     /// Invalid generated block-entity kind, position, duplicate or state pairing.
@@ -136,6 +172,32 @@ impl std::fmt::Display for ChunkStoreError {
             Self::Io(e) => write!(f, "chunk io error: {e}"),
             Self::BadMagic(m) => write!(f, "not a BCore chunk file (magic {m:?})"),
             Self::UnsupportedVersion(v) => write!(f, "unsupported chunk format version {v}"),
+            Self::MissingRegistryIdentity(v) => write!(
+                f,
+                "BCC v{v} has no registry identity; explicit migration is required"
+            ),
+            Self::MinecraftVersionMismatch {
+                data_version,
+                protocol_version,
+            } => write!(
+                f,
+                "chunk Minecraft identity is data {data_version}/protocol {protocol_version}; expected {DATA_VERSION}/{PROTOCOL_VERSION}"
+            ),
+            Self::RegistryMismatch { stored } => write!(
+                f,
+                "chunk registry fingerprint {stored:02x?} differs from {REGISTRY_FINGERPRINT:02x?}"
+            ),
+            Self::MissingWorldMetadata => write!(
+                f,
+                "existing world has no {WORLD_METADATA_FILE}; use a fresh world directory or an explicit migration"
+            ),
+            Self::InvalidWorldMetadata(detail) => write!(f, "invalid world metadata: {detail}"),
+            Self::SeedMismatch { stored, requested } => {
+                write!(f, "world seed is {stored}, requested {requested}")
+            }
+            Self::CoordinateMismatch { expected, stored } => {
+                write!(f, "chunk coordinates {stored:?} differ from requested {expected:?}")
+            }
             Self::UnsupportedFlags(flags) => write!(f, "unsupported chunk flags {flags:#06x}"),
             Self::GeometryMismatch {
                 min_y,
@@ -157,6 +219,12 @@ impl std::fmt::Display for ChunkStoreError {
             ),
             Self::BadPaletteIndex { index, palette_len } => {
                 write!(f, "palette index {index} out of range (len {palette_len})")
+            }
+            Self::InvalidRegistryId { registry, id } => {
+                write!(f, "invalid {registry} registry ID {id}")
+            }
+            Self::InvalidPaletteLength { registry, len } => {
+                write!(f, "invalid {registry} palette length {len}")
             }
             Self::BadIndexBits(bits) => write!(f, "invalid index width {bits} (want 8/16/32)"),
             Self::InvalidBlockEntity => write!(f, "invalid generated block entity"),
@@ -208,6 +276,36 @@ pub struct ChunkStore {
     root: PathBuf,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct WorldMetadata {
+    schema: u32,
+    minecraft: String,
+    data_version: i32,
+    protocol_version: i32,
+    registry_fingerprint: [u8; 32],
+    seed: i64,
+}
+
+fn validate_identity(
+    data_version: i32,
+    protocol_version: i32,
+    fingerprint: [u8; 32],
+) -> Result<(), ChunkStoreError> {
+    if data_version != DATA_VERSION || protocol_version != PROTOCOL_VERSION {
+        return Err(ChunkStoreError::MinecraftVersionMismatch {
+            data_version,
+            protocol_version,
+        });
+    }
+    if fingerprint != REGISTRY_FINGERPRINT {
+        return Err(ChunkStoreError::RegistryMismatch {
+            stored: fingerprint,
+        });
+    }
+    Ok(())
+}
+
 impl ChunkStore {
     /// A store rooted at `world/` in the current directory.
     pub fn new() -> Self {
@@ -241,12 +339,89 @@ impl ChunkStore {
         self.chunk_path(x, z).is_file()
     }
 
+    /// Validate all existing data before admitting a world. Only an absent or
+    /// empty root may acquire new metadata; existing inputs are never relabeled.
+    pub fn prepare_world(&self, seed: i64) -> Result<(), ChunkStoreError> {
+        let metadata_path = self.root.join(WORLD_METADATA_FILE);
+        match fs::read(&metadata_path) {
+            Ok(bytes) => {
+                let metadata: WorldMetadata = serde_json::from_slice(&bytes)
+                    .map_err(|error| ChunkStoreError::InvalidWorldMetadata(error.to_string()))?;
+                if metadata.schema != 1 || metadata.minecraft != MC_VERSION {
+                    return Err(ChunkStoreError::InvalidWorldMetadata(
+                        "unsupported schema or Minecraft version".into(),
+                    ));
+                }
+                validate_identity(
+                    metadata.data_version,
+                    metadata.protocol_version,
+                    metadata.registry_fingerprint,
+                )?;
+                if metadata.seed != seed {
+                    return Err(ChunkStoreError::SeedMismatch {
+                        stored: metadata.seed,
+                        requested: seed,
+                    });
+                }
+                self.validate_existing_chunks()
+            }
+            Err(error) if error.kind() == io::ErrorKind::NotFound => {
+                match fs::read_dir(&self.root) {
+                    Ok(mut entries) => {
+                        if let Some(entry) = entries.next() {
+                            entry?;
+                            return Err(ChunkStoreError::MissingWorldMetadata);
+                        }
+                    }
+                    Err(error) if error.kind() == io::ErrorKind::NotFound => {}
+                    Err(error) => return Err(error.into()),
+                }
+                let metadata = WorldMetadata {
+                    schema: 1,
+                    minecraft: MC_VERSION.into(),
+                    data_version: DATA_VERSION,
+                    protocol_version: PROTOCOL_VERSION,
+                    registry_fingerprint: REGISTRY_FINGERPRINT,
+                    seed,
+                };
+                let bytes = serde_json::to_vec_pretty(&metadata)
+                    .map_err(|error| ChunkStoreError::InvalidWorldMetadata(error.to_string()))?;
+                fs::create_dir_all(&self.root)?;
+                let mut file = fs::OpenOptions::new()
+                    .write(true)
+                    .create_new(true)
+                    .open(metadata_path)?;
+                file.write_all(&bytes)?;
+                file.sync_all()?;
+                Ok(())
+            }
+            Err(error) => Err(error.into()),
+        }
+    }
+
+    fn validate_existing_chunks(&self) -> Result<(), ChunkStoreError> {
+        for (x, z) in self.saved_chunks()? {
+            self.load(x, z)?;
+        }
+        Ok(())
+    }
+
     /// Write a chunk, creating the directory if needed.
     ///
     /// The write is atomic: the bytes go to a `.tmp` sibling which is then
     /// renamed, so a crash mid-write cannot leave a half-written chunk that
     /// would later fail its checksum.
     pub fn save(&self, x: i32, z: i32, column: &ChunkColumn) -> Result<(), ChunkStoreError> {
+        // A direct save must not replace an unreadable or foreign existing file.
+        self.load(x, z)?;
+        for (registry, ids, count) in [
+            ("block_state", column.states(), BLOCK_STATE_COUNT as usize),
+            ("biome", column.biomes(), BIOME_COUNT as usize),
+        ] {
+            if let Some(&id) = ids.iter().find(|&&id| id as usize >= count) {
+                return Err(ChunkStoreError::InvalidRegistryId { registry, id });
+            }
+        }
         let dir = self.chunks_dir();
         fs::create_dir_all(&dir)?;
         let encoded = encode_chunk(x, z, column);
@@ -258,11 +433,15 @@ impl ChunkStore {
             std::process::id(),
             TMP_COUNTER.fetch_add(1, Ordering::Relaxed)
         ));
-        fs::write(&tmp_path, &encoded)?;
-        // Windows rename fails if the destination exists, so clear it first.
-        if final_path.exists() {
-            fs::remove_file(&final_path)?;
-        }
+        let mut file = fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&tmp_path)?;
+        file.write_all(&encoded)?;
+        file.sync_all()?;
+        drop(file);
+        // std::fs::rename replaces a file on Windows as well as Unix. Never
+        // delete the original first: a failed replacement must leave it intact.
         fs::rename(&tmp_path, &final_path)?;
         Ok(())
     }
@@ -275,10 +454,33 @@ impl ChunkStore {
         let path = self.chunk_path(x, z);
         let bytes = match fs::read(&path) {
             Ok(b) => b,
-            Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok(None),
+            Err(e) if e.kind() == io::ErrorKind::NotFound => {
+                for directory in [self.root.clone(), self.chunks_dir()] {
+                    match fs::metadata(directory) {
+                        Ok(metadata) if !metadata.is_dir() => {
+                            return Err(io::Error::new(
+                                io::ErrorKind::NotADirectory,
+                                "chunk store path is not a directory",
+                            )
+                            .into());
+                        }
+                        Ok(_) => {}
+                        Err(error) if error.kind() == io::ErrorKind::NotFound => {}
+                        Err(error) => return Err(error.into()),
+                    }
+                }
+                return Ok(None);
+            }
             Err(e) => return Err(e.into()),
         };
-        decode_chunk(&bytes).map(Some)
+        let (stored_x, stored_z, column) = decode_chunk_at(&bytes)?;
+        if (stored_x, stored_z) != (x, z) {
+            return Err(ChunkStoreError::CoordinateMismatch {
+                expected: (x, z),
+                stored: (stored_x, stored_z),
+            });
+        }
+        Ok(Some(column))
     }
 
     /// Saved chunk coordinates, sorted. Deterministic: no directory-order leak.
@@ -386,6 +588,9 @@ pub fn encode_chunk(x: i32, z: i32, column: &ChunkColumn) -> Vec<u8> {
     out.extend_from_slice(&z.to_le_bytes());
     out.extend_from_slice(&MIN_Y.to_le_bytes());
     out.extend_from_slice(&WORLD_HEIGHT.to_le_bytes());
+    out.extend_from_slice(&DATA_VERSION.to_le_bytes());
+    out.extend_from_slice(&PROTOCOL_VERSION.to_le_bytes());
+    out.extend_from_slice(&REGISTRY_FINGERPRINT);
 
     out.extend_from_slice(&(palette.len() as u32).to_le_bytes());
     for &state in &palette {
@@ -682,13 +887,14 @@ pub fn decode_chunk_at(bytes: &[u8]) -> Result<(i32, i32, ChunkColumn), ChunkSto
         at: 4,
     };
     let version = cur.u16()?;
-    if !(1..=FORMAT_VERSION).contains(&version) {
+    if (1..FORMAT_VERSION).contains(&version) {
+        return Err(ChunkStoreError::MissingRegistryIdentity(version));
+    }
+    if version != FORMAT_VERSION {
         return Err(ChunkStoreError::UnsupportedVersion(version));
     }
     let flags = cur.u16()?;
-    if flags & !(POSTPROCESSING_FLAG | STRUCTURE_ENTITIES_FLAG | LIGHT_FLAG) != 0
-        || (version < 4 && flags != 0)
-    {
+    if flags & !(POSTPROCESSING_FLAG | STRUCTURE_ENTITIES_FLAG | LIGHT_FLAG) != 0 {
         return Err(ChunkStoreError::UnsupportedFlags(flags));
     }
     let x = cur.i32()?;
@@ -702,10 +908,28 @@ pub fn decode_chunk_at(bytes: &[u8]) -> Result<(i32, i32, ChunkColumn), ChunkSto
         });
     }
 
+    let data_version = cur.i32()?;
+    let protocol_version = cur.i32()?;
+    let fingerprint = cur.take(32)?.try_into().expect("32-byte fingerprint");
+    validate_identity(data_version, protocol_version, fingerprint)?;
+
     let palette_len = cur.u32()? as usize;
-    let mut palette = Vec::with_capacity(palette_len.min(1 << 16));
+    if palette_len == 0 || palette_len > BLOCK_STATE_COUNT as usize {
+        return Err(ChunkStoreError::InvalidPaletteLength {
+            registry: "block_state",
+            len: palette_len,
+        });
+    }
+    let mut palette = Vec::with_capacity(palette_len);
     for _ in 0..palette_len {
-        palette.push(cur.u32()?);
+        let id = cur.u32()?;
+        if id as usize >= BLOCK_STATE_COUNT as usize {
+            return Err(ChunkStoreError::InvalidRegistryId {
+                registry: "block_state",
+                id,
+            });
+        }
+        palette.push(id);
     }
 
     let index_bits = cur.u8()?;
@@ -727,9 +951,22 @@ pub fn decode_chunk_at(bytes: &[u8]) -> Result<(i32, i32, ChunkColumn), ChunkSto
     }
 
     let biome_len = cur.u32()? as usize;
-    let mut biome_palette = Vec::with_capacity(biome_len.min(1 << 16));
+    if biome_len == 0 || biome_len > BIOME_COUNT as usize {
+        return Err(ChunkStoreError::InvalidPaletteLength {
+            registry: "biome",
+            len: biome_len,
+        });
+    }
+    let mut biome_palette = Vec::with_capacity(biome_len);
     for _ in 0..biome_len {
-        biome_palette.push(cur.u32()?);
+        let id = cur.u32()?;
+        if id as usize >= BIOME_COUNT as usize {
+            return Err(ChunkStoreError::InvalidRegistryId {
+                registry: "biome",
+                id,
+            });
+        }
+        biome_palette.push(id);
     }
     let mut biomes = Vec::with_capacity(BIOME_ENTRIES);
     for _ in 0..BIOME_ENTRIES {
@@ -744,7 +981,7 @@ pub fn decode_chunk_at(bytes: &[u8]) -> Result<(i32, i32, ChunkColumn), ChunkSto
     }
 
     let mut column = ChunkColumn::from_parts(states, biomes);
-    if version >= 2 {
+    {
         use bcore_worldgen::block_entity::{BlockEntity, SpawnerMob};
         let count = cur.u32()? as usize;
         if count > COLUMN_ENTRIES {
@@ -761,7 +998,7 @@ pub fn decode_chunk_at(bytes: &[u8]) -> Result<(i32, i32, ChunkColumn), ChunkSto
                 return Err(ChunkStoreError::InvalidBlockEntity);
             }
             let kind = cur.u8()?;
-            if kind == 5 && version >= 5 {
+            if kind == 5 {
                 let length = cur.u32()? as usize;
                 if length > MAX_BLOCK_ENTITY_BYTES {
                     return Err(ChunkStoreError::InvalidBlockEntity);
@@ -779,7 +1016,7 @@ pub fn decode_chunk_at(bytes: &[u8]) -> Result<(i32, i32, ChunkColumn), ChunkSto
                 }
                 continue;
             }
-            if kind == 4 && version >= 4 {
+            if kind == 4 {
                 let length = cur.u32()? as usize;
                 if length > MAX_BLOCK_ENTITY_BYTES {
                     return Err(ChunkStoreError::InvalidBlockEntity);
@@ -810,7 +1047,7 @@ pub fn decode_chunk_at(bytes: &[u8]) -> Result<(i32, i32, ChunkColumn), ChunkSto
                         _ => return Err(ChunkStoreError::InvalidBlockEntity),
                     },
                 },
-                3 if version >= 4 => {
+                3 => {
                     let count = cur.u32()? as usize;
                     let length = count
                         .checked_mul(4)
@@ -832,7 +1069,7 @@ pub fn decode_chunk_at(bytes: &[u8]) -> Result<(i32, i32, ChunkColumn), ChunkSto
             }
         }
     }
-    if version >= 3 {
+    {
         use bcore_worldgen::generated_entity::GeneratedEntity;
         let owner = bcore_core::ChunkPos::new(x, z);
         let count = cur.u32()? as usize;
@@ -841,7 +1078,7 @@ pub fn decode_chunk_at(bytes: &[u8]) -> Result<(i32, i32, ChunkColumn), ChunkSto
         }
         for _ in 0..count {
             let kind = cur.u8()?;
-            if kind == 2 && version >= 4 {
+            if kind == 2 {
                 let length = cur.u32()? as usize;
                 if length > MAX_GENERATED_MOB_BYTES {
                     return Err(ChunkStoreError::InvalidEntity);
@@ -891,7 +1128,7 @@ pub fn decode_chunk_at(bytes: &[u8]) -> Result<(i32, i32, ChunkColumn), ChunkSto
             }
         }
     }
-    if version >= 4 {
+    {
         use bcore_worldgen::tick_request::{TickRequest, TickTarget};
         let owner = bcore_core::ChunkPos::new(x, z);
         let count = cur.u32()? as usize;
@@ -1034,65 +1271,19 @@ mod tests {
     }
 
     #[test]
-    fn legacy_version_one_loads_without_losing_blocks() {
-        let column = ChunkColumn::flat();
-        let mut old = encode_chunk(3, -7, &column);
-        old[4..6].copy_from_slice(&1u16.to_le_bytes());
-        // Remove v2 block entities, v3 entities/structures, v4 requests and checksum.
-        old.truncate(old.len() - 20);
-        let checksum = fnv1a(&old);
-        old.extend_from_slice(&checksum.to_le_bytes());
-        assert_eq!(decode_chunk_at(&old).unwrap(), (3, -7, column));
-    }
-
-    #[test]
-    fn legacy_version_two_preserves_dungeon_metadata() {
-        use bcore_worldgen::{block_entity::BlockEntity, dungeon};
-        let mut column = ChunkColumn::flat();
-        column.set(3, 20, 4, dungeon::CHEST);
-        column.set_block_entity(
-            3,
-            20,
-            4,
-            BlockEntity::DungeonChest {
-                loot_seed: i64::MIN,
-            },
-        );
-        let mut old = encode_chunk(-2, 3, &column);
-        old[4..6].copy_from_slice(&2u16.to_le_bytes());
-        old.truncate(old.len() - 16);
-        old.extend_from_slice(&fnv1a(&old).to_le_bytes());
-        assert_eq!(decode_chunk_at(&old).unwrap(), (-2, 3, column));
-    }
-
-    #[test]
-    fn legacy_version_three_preserves_entities_and_structures() {
-        use bcore_worldgen::{
-            generated_entity::GeneratedEntity,
-            structure::mineshaft::{region::StructureData, MineType},
-        };
-        let owner = bcore_core::ChunkPos::new(-2, 3);
-        let mut column = ChunkColumn::flat();
-        assert!(column.add_entity(
-            owner,
-            GeneratedEntity::ChestMinecart {
-                block_pos: [-31, 20, 50],
-                loot_seed: i64::MIN,
-            },
-        ));
-        assert!(column.set_structures(
-            owner,
-            StructureData {
-                mineshaft_start: None,
-                references: vec![([-3, 3], MineType::Mesa)],
-                ..Default::default()
-            },
-        ));
-        let mut old = encode_chunk(owner.x, owner.z, &column);
-        old[4..6].copy_from_slice(&3u16.to_le_bytes());
-        old.truncate(old.len() - 8); // v4 tick count and checksum
-        old.extend_from_slice(&fnv1a(&old).to_le_bytes());
-        assert_eq!(decode_chunk_at(&old).unwrap(), (owner.x, owner.z, column));
+    fn every_legacy_version_without_registry_identity_is_rejected() {
+        for version in 1u16..FORMAT_VERSION {
+            let mut old = encode_chunk(3, -7, &ChunkColumn::flat());
+            old.drain(24..HEADER_LEN);
+            old[4..6].copy_from_slice(&version.to_le_bytes());
+            let end = old.len() - 4;
+            let checksum = fnv1a(&old[..end]);
+            old[end..].copy_from_slice(&checksum.to_le_bytes());
+            assert!(matches!(
+                decode_chunk_at(&old),
+                Err(ChunkStoreError::MissingRegistryIdentity(actual)) if actual == version
+            ));
+        }
     }
 
     #[test]
@@ -1325,7 +1516,7 @@ mod tests {
         // Flat terrain has 4 distinct states (air/bedrock/dirt/grass) and 1
         // biome, so indices are 8-bit: one byte per block, not four.
         let encoded = encode_chunk(0, 0, &ChunkColumn::flat());
-        let header = 4 + 2 + 2 + 4 + 4 + 4 + 4; // magic, version, flags, x, z, min_y, height
+        let header = HEADER_LEN;
         let blocks = 4 + 4 * 4 + 1 + COLUMN_ENTRIES; // len, palette, index_bits, indices
         let biomes = 4 + 4 + BIOME_ENTRIES * 2; // len, 1-entry palette, indices
         let metadata = 4 + 4 + 4 + 4; // block entities, entities, structures and tick requests

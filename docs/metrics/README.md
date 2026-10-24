@@ -4,13 +4,99 @@ The README and project site use versioned JSON evidence from this directory.
 Charts are rendered locally with `python scripts/render_readme.py`; `--check`
 verifies that the committed SVGs still match the data.
 
+- `storage-cleanup-2026-10-24.json`: **18.76 GiB** of expendable files removed,
+  including **33 verified expanded-source copies** and debug incremental cache.
+  Original source archives, binaries, captures and logs remain; **2,958 protected
+  world/operator files** have identical before/after bytes. The observed volume
+  free-space delta is reported separately from logical deleted bytes.
+- `noise-fill-wg-v2-baseline-26_2-2026-10-24.json`: current authenticated **26.2 /
+  776 / 4903** baseline, BCore **47.79 / 83.98 / 156.81** chunks/s versus Java
+  **49.77 / 74.03 / 215.35** at 1/2/4 workers. All **18 process records**, **180
+  warmup / 180 measured batches**, blocks, ordered marks and both WG maps match.
+  Preserves the raw-result hash, all durations and **489-input** frozen provenance;
+  supplies `performance-26_2.svg`. Host variation remains visible; no cross-version
+  optimization gain is claimed.
+- `migration-workspace-validation-2026-10-24.json`: complete **886 passed / 0
+  failed / 4 ignored**, 69-suite workspace release run, including the published
+  bootstrap regression. Keeps every suite and exact log hash. Supplies the test
+  count in `migration-26_2.svg`; its protocol counts come from the final versioned
+  native validation below.
+- `protocol-26_2-validation-2026-10-24.json`: native bootstrap/schema proof on the
+  final rebuilt frozen server, **1179 / 1179 frames / 127 terrain packets** across
+  three sessions. Binds both original byte blobs and authenticated official captures,
+  session UUID ownership, clean shutdowns and the saved edit observed after restart.
+  Server SHA-256 `4e6cb4e410d241d8e40c36362a5faa65a21f1418380a6f61717f28bd5bf38400`.
+  Preserves the earlier `crates/bcore-protocol/data/protocol_26_2.json` unchanged.
+- `noise-cpu-profile-26_2-2026-10-24.json`: fresh owned-child diagnostic, **4,002
+  leaf samples**, exit 0, matching native baseline fingerprints. Retains the complete
+  symbol/source summaries, artifact hashes, debug-line override, request and sampler
+  limitations/errors. These sampled timings are excluded from throughput. See the
+  [current profile report](../performance-profile-26.2-2026-10-24.md).
+- `noise-fill-wg-v2-final-2026-10-21.json`: historical **26.1** outline/indexed/borrowed
+  implementation, **39.60 / 71.13 / 140.00** chunks/s versus Java **44.16 / 88.43 /
+  198.41** at 1/2/4 workers. All 18 full-run process records match; this file supplies
+  the historical `performance.svg` chart. Java remains faster in this bounded run.
+- `noise-fill-wg-v2-series-2026-10-21.json`: all seven retained/rejected experiments,
+  378 process records with warmup/measured batches and per-process medians. Two
+  **direct cumulative frozen comparisons** against the October 18 chest checkpoint
+  show **2.02–2.45× gain** across 1/2/4 workers; all 18 individual pairs improve.
+  Includes the small mixed-pair borrowed-point gain and rejected cell-miss,
+  constant-operand and Perlin-rounding variants. See the
+  [final experiment report](../performance-experiments-2026-10-21.md).
+- `noise-final-validation-2026-10-21.json`: fresh **791 passing tests**, zero
+  failures, four ignored tests and 66 targets; format/release/build/diagnostics/
+  server-help checks and four histories on one newly built schema-3 replay.
+  **27/27 requested, 52/54 watch** scored matches; all comparison facets match the
+  preceding checkpoint, including the four known LIGHT/SPAWN fields. All 419
+  source inputs match the retained frozen implementation; coverage stays Partial.
+- `noise-fill-wg-v2-outline-2026-10-20.json`: accepted selective density outlining,
+  **24–39% repeatable BCore gain** across two alternating confirmations at 1/2/4
+  workers; all 18 before/after pairs improved. Same-run BCore **24.22 / 41.25 /
+  85.23** chunks/s versus Java **42.28 / 92.28 / 175.28**. All 54 process records
+  matched. See the [profile and experiment report](../performance-experiments-2026-10-20.md).
+- `noise-outline-validation-2026-10-20.json`: fresh **782 passing tests**, zero
+  failures, 66 targets; release/build/diagnostics checks and four new schema-3
+  histories. **27/27 requested, 52/54 watch** scored matches, with the same known
+  status-field differences and Partial coverage.
+- `loot-chest-2026-10-18.json`: fresh **782 passing Rust tests**, 66 targets,
+  zero failures and four existing ignored tests. Includes the 137-case loot
+  interpreter, native chest load/unpack/reopen comparisons, retained owner
+  integration and BCC persistence checks. All 417 source inputs match the frozen
+  snapshot. See the [loot/chest report](../loot-chest-validation-2026-10-18.md).
+- `native-request-2026-10-18.json`: four histories replayed with a new shared
+  schema-3 build after loot integration; **27/27 requested** and **52/54 watch**
+  scored matches. The four known LIGHT/SPAWN status-field differences and Partial
+  generation coverage remain. Final replays/export completed on October 19.
+- `noise-fill-wg-v2-chest-2026-10-18.json`: pre-series matching-output measurement,
+  preserving all 18 process records and medians. BCore **20.18 / 27.34 / 58.67**
+  chunks/s versus Java **45.13 / 73.69 / 172.91** at 1/2/4 workers. Java is faster;
+  no new NOISE optimization or whole-server performance claim follows.
+- `native-request-2026-10-16.json`: **732 passing Rust tests**, four schema-3
+  histories using one frozen replay build, **27/27 requested** and **52/54 watch**
+  snapshots matching their scored fields. Four LIGHT/SPAWN status-field
+  differences across two watches remain; FULL stays Partial. See the
+  [request/runtime validation report](../native-request-validation-2026-10-16.md).
+- `native-request-initial-2026-10-16.json`: initial 731-test/N1 evidence before
+  correcting the proto `keepPacked` envelope. Its recorded differences remain
+  historical; it is not the final request/runtime checkpoint.
+- `noise-fill-wg-v2-cell-hit-paired-2026-10-15.json`: rejected four-entry
+  interpolated-cell front cache. Preserves every process median and frozen
+  artifact identities from the alternating comparison; throughput ratios were
+  **0.776× / 0.932× / 0.858×** at 1/2/4 workers, with matching outputs. The
+  prototype was removed; accepted shared-corner reuse remains. See the
+  [experiment notes](../performance-experiments-2026-10-15.md).
+- `workspace-validation-2026-10-14.json`: fresh **677-test** validation of the
+  uncommitted aquifer/density work, successful release/diagnostic builds and
+  eleven reverified archived native FULL relationships. See the
+  [validation notes](../validation-2026-10-14.md); this is not a new native replay
+  checkpoint or throughput measurement.
 - `checkpoint-2026-10-10.json`: **91 requests / 15 histories** on the published
   phase-3 executable, adding three desert-well requests. 8,945,664 state and
   139,776 biome observations match; 40 scored light snapshots match. The known
   **36 BE fields / 70 WG-presence differences** and incomplete coverage remain.
   Reuses the October 8 **665-test** workspace run on unchanged Rust sources;
   the date identifies the expanded replay export, not a new full test run.
-- `noise-fill-wg-v2-2026-10-08.json`: latest measurement of the accepted NOISE implementation
+- `noise-fill-wg-v2-2026-10-08.json`: October 8 measurement of the phase-3 NOISE implementation
   under the revised `noise-fill-wg-v2` contract, which also fingerprints both
   worldgen heightmaps. Contains **final phase 3 only**, with its samples and
   provenance.

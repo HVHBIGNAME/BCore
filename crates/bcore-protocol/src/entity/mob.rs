@@ -1,13 +1,13 @@
-//! LOAD and initial pairing for freshly generated 26.1 creatures.
+//! LOAD and initial pairing for freshly generated 26.2 creatures.
 //!
 //! Registry IDs, serializer definitions and defaults are original native data.
 //! Per-entity values are derived from the saved proto NBT, never recorded packets.
 use std::collections::BTreeMap;
-use std::sync::OnceLock;
+use std::sync::{Arc, OnceLock};
 
 use bcore_core::varint::{encode_varint, encode_varlong};
 use bcore_worldgen::generated_entity::GeneratedMob;
-use bcore_worldgen::spawn::{spawn_type, MobKind};
+use bcore_worldgen::spawn::MobKind;
 use bcore_worldgen::structure::template::Nbt;
 use serde::Deserialize;
 
@@ -19,7 +19,7 @@ use crate::packet::{write_packet, write_string, PacketError};
 
 type Result<T> = std::result::Result<T, PacketError>;
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct Definition {
     name: String,
     index: u8,
@@ -28,25 +28,142 @@ struct Definition {
     default_hex: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct AttributeDefault {
     base: f64,
     syncable: bool,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct Catalog {
+    minecraft: String,
+    protocol: i32,
+    #[serde(default)]
+    jar_sha256: Option<String>,
     metadata: BTreeMap<String, Vec<Definition>>,
     default_attributes: BTreeMap<String, BTreeMap<String, AttributeDefault>>,
     registries: BTreeMap<String, BTreeMap<String, i32>>,
 }
 
-fn catalog() -> &'static Catalog {
-    static DATA: OnceLock<Catalog> = OnceLock::new();
+#[derive(Debug)]
+enum RegistrySource {
+    Shared,
+    Captured(BTreeMap<String, i32>),
+}
+
+/// Native metadata/defaults with an explicit owner for static registry ids.
+#[derive(Debug)]
+pub struct GenerationMobCatalog {
+    data: Catalog,
+    source: RegistrySource,
+}
+
+impl GenerationMobCatalog {
+    /// Use a captured catalog and entity-type table for historical codec checks.
+    /// Registry ids in this context belong to the supplied capture.
+    pub fn from_sources(json: &str, entity_types: BTreeMap<String, i32>) -> Result<Self> {
+        let data = Self::parse(json)?;
+        if entity_types.values().any(|&id| id < 0) {
+            return Err(invalid("captured entity type id"));
+        }
+        Ok(Self {
+            data,
+            source: RegistrySource::Captured(entity_types),
+        })
+    }
+
+    fn parse(json: &str) -> Result<Catalog> {
+        let data: Catalog =
+            serde_json::from_str(json).map_err(|_| invalid("generation-mob catalog"))?;
+        for fields in data.metadata.values() {
+            let mut indices = std::collections::BTreeSet::new();
+            for field in fields {
+                if field.index == 0xff
+                    || field.serializer < 0
+                    || !indices.insert(field.index)
+                    || [&field.hex, &field.default_hex].iter().any(|value| {
+                        value.len() % 2 != 0 || !value.bytes().all(|b| b.is_ascii_hexdigit())
+                    })
+                {
+                    return Err(invalid("generation-mob metadata definition"));
+                }
+            }
+        }
+        if data
+            .registries
+            .values()
+            .any(|registry| registry.values().any(|&id| id < 0))
+        {
+            return Err(invalid("generation-mob registry id"));
+        }
+        Ok(data)
+    }
+
+    fn registry_id(&self, registry: &str, name: &str) -> Result<i32> {
+        if matches!(&self.source, RegistrySource::Shared) {
+            let shared = match registry {
+                "attribute" => Some("ATTRIBUTE"),
+                "item" => Some("ITEM"),
+                _ => None,
+            };
+            if let Some(shared) = shared {
+                return bcore_registry::registry_id(shared, name)
+                    .and_then(|id| i32::try_from(id).ok())
+                    .ok_or_else(|| invalid("unregistered generation-mob value"));
+            }
+        }
+        self.data
+            .registries
+            .get(registry)
+            .and_then(|r| r.get(name))
+            .copied()
+            .ok_or_else(|| invalid("unregistered generation-mob value"))
+    }
+
+    fn entity_type(&self, kind: MobKind) -> Result<i32> {
+        match &self.source {
+            RegistrySource::Shared => Ok(entity_type(kind) as i32),
+            RegistrySource::Captured(types) => types
+                .get(kind.name())
+                .copied()
+                .ok_or_else(|| invalid("unregistered generation-mob entity type")),
+        }
+    }
+}
+
+fn catalog() -> &'static Arc<GenerationMobCatalog> {
+    static DATA: OnceLock<Arc<GenerationMobCatalog>> = OnceLock::new();
     DATA.get_or_init(|| {
-        serde_json::from_str(include_str!("../../data/generation_mob_catalog_26_1.json"))
-            .expect("native generation-mob registry catalog")
+        let mut data = GenerationMobCatalog::parse(include_str!(
+            "../../data/generation_mob_catalog_26_2.json"
+        ))
+        .expect("native 26.2 generation-mob catalog");
+        assert_eq!(data.minecraft, bcore_registry::MC_VERSION);
+        assert_eq!(data.protocol, bcore_registry::PROTOCOL_VERSION);
+        assert_eq!(
+            data.jar_sha256.as_deref(),
+            Some(bcore_registry::SERVER_JAR_SHA256)
+        );
+        for (name, shared) in [("attribute", "ATTRIBUTE"), ("item", "ITEM")] {
+            let ids = data
+                .registries
+                .remove(name)
+                .expect("native static registry");
+            let entries = &bcore_registry::vanilla().registries[shared];
+            assert_eq!(ids.len(), entries.len());
+            for entry in entries {
+                assert_eq!(ids[&entry.key], entry.id as i32);
+            }
+        }
+        Arc::new(GenerationMobCatalog {
+            data,
+            source: RegistrySource::Shared,
+        })
     })
+}
+
+pub(super) fn entity_type(kind: MobKind) -> u32 {
+    bcore_registry::registry_id("ENTITY_TYPE", kind.name()).expect("shared generation-mob identity")
 }
 
 fn hex(value: &str) -> Vec<u8> {
@@ -84,14 +201,6 @@ fn varint(value: i32) -> Vec<u8> {
     let mut out = Vec::new();
     encode_varint(value, &mut out);
     out
-}
-fn registry_id(registry: &str, name: &str) -> Result<i32> {
-    catalog()
-        .registries
-        .get(registry)
-        .and_then(|r| r.get(name))
-        .copied()
-        .ok_or_else(|| invalid("unregistered generation-mob value"))
 }
 
 pub(super) fn loaded_head_yaw(kind: MobKind, yaw: f32) -> f32 {
@@ -168,14 +277,14 @@ impl Attribute {
             .fold(value, |value, m| value * (1.0 + m.amount))
     }
 
-    fn encode(&self, name: &str, out: &mut Vec<u8>) -> Result<()> {
-        encode_varint(registry_id("attribute", name)?, out);
+    fn encode(&self, name: &str, catalog: &GenerationMobCatalog, out: &mut Vec<u8>) -> Result<()> {
+        encode_varint(catalog.registry_id("attribute", name)?, out);
         out.extend_from_slice(&self.base.to_be_bytes());
         encode_varint(self.modifiers.len() as i32, out);
         for m in &self.modifiers {
             write_string(&m.name, out);
             out.extend_from_slice(&m.amount.to_be_bytes());
-            out.push(m.operation);
+            encode_varint(i32::from(m.operation), out);
         }
         Ok(())
     }
@@ -185,6 +294,7 @@ impl Attribute {
 /// loading may clamp health and initialize an attribute absent from that save.
 #[derive(Debug, Clone)]
 pub struct LoadedGeneratedMob {
+    catalog: Arc<GenerationMobCatalog>,
     source: GeneratedMob,
     nbt: Nbt,
     attributes: BTreeMap<String, Attribute>,
@@ -192,8 +302,19 @@ pub struct LoadedGeneratedMob {
 
 impl LoadedGeneratedMob {
     pub fn load(source: &GeneratedMob) -> Result<Self> {
+        Self::load_with_catalog(source, Arc::clone(catalog()))
+    }
+
+    pub fn load_with_catalog(
+        source: &GeneratedMob,
+        catalog: Arc<GenerationMobCatalog>,
+    ) -> Result<Self> {
         let mut nbt = source.nbt();
-        let defaults = &catalog().default_attributes[source.kind().name()];
+        let defaults = catalog
+            .data
+            .default_attributes
+            .get(source.kind().name())
+            .ok_or_else(|| invalid("missing generation-mob attribute defaults"))?;
         let mut attributes = BTreeMap::new();
         if let Some(list) = nbt.get("attributes") {
             for row in list.list().ok_or_else(|| invalid("mob attributes"))? {
@@ -206,7 +327,13 @@ impl LoadedGeneratedMob {
         }
         let max_health = attributes
             .get("minecraft:max_health")
-            .map_or(defaults["minecraft:max_health"].base, Attribute::value)
+            .map_or(
+                defaults
+                    .get("minecraft:max_health")
+                    .ok_or_else(|| invalid("missing generation-mob max health"))?
+                    .base,
+                Attribute::value,
+            )
             .clamp(1.0, 1024.0) as f32;
         let health = (number(&nbt, "Health", f64::from(max_health))? as f32).clamp(0.0, max_health);
         nbt.compound_mut()
@@ -252,6 +379,7 @@ impl LoadedGeneratedMob {
             }
         }
         Ok(Self {
+            catalog,
             source: source.clone(),
             nbt,
             attributes,
@@ -270,7 +398,7 @@ impl LoadedGeneratedMob {
         let mut out = encode_spawn_entity_rotated(
             id,
             self.source.uuid(),
-            spawn_type(self.source.kind()).registry_id as i32,
+            self.catalog.entity_type(self.source.kind())?,
             Position { x, y, z },
             rotation,
             loaded_head_yaw(self.source.kind(), rotation[0]),
@@ -279,7 +407,7 @@ impl LoadedGeneratedMob {
         if !metadata.is_empty() {
             out.extend_from_slice(&encode_entity_metadata(id, &metadata));
         }
-        let defaults = &catalog().default_attributes[self.source.kind().name()];
+        let defaults = &self.catalog.data.default_attributes[self.source.kind().name()];
         let sync: Vec<_> = self
             .attributes
             .iter()
@@ -288,10 +416,9 @@ impl LoadedGeneratedMob {
         if !sync.is_empty() {
             let mut bytes = varint(id);
             encode_varint(sync.len() as i32, &mut bytes);
-            // Java's AttributeMap uses identity-keyed iteration; record order is
-            // not stable across JVMs. Each attribute's native codec is unchanged.
+            // Java's identity-keyed AttributeMap has no stable JVM record order.
             for (name, value) in sync {
-                value.encode(name, &mut bytes)?;
+                value.encode(name, &self.catalog, &mut bytes)?;
             }
             write_packet(&mut out, CB_ENTITY_ATTRIBUTES, &bytes);
         }
@@ -303,7 +430,13 @@ impl LoadedGeneratedMob {
 
     fn metadata(&self) -> Result<Vec<MetadataEntry>> {
         let mut entries = Vec::new();
-        for field in &catalog().metadata[self.source.kind().name()] {
+        let fields = self
+            .catalog
+            .data
+            .metadata
+            .get(self.source.kind().name())
+            .ok_or_else(|| invalid("missing generation-mob metadata"))?;
+        for field in fields {
             let value = self.metadata_value(field)?;
             if value != hex(&field.default_hex) {
                 entries.push(MetadataEntry {
@@ -327,7 +460,7 @@ impl LoadedGeneratedMob {
                 suffix
             );
             match n.get(key) {
-                Some(v) => Ok(varint(registry_id(
+                Some(v) => Ok(varint(self.catalog.registry_id(
                     &reg,
                     v.string().ok_or_else(|| invalid("mob variant"))?,
                 )?)),
@@ -449,7 +582,7 @@ impl LoadedGeneratedMob {
             }
             let mut bytes = Vec::new();
             encode_varint(count, &mut bytes);
-            encode_varint(registry_id("item", name)?, &mut bytes);
+            encode_varint(self.catalog.registry_id("item", name)?, &mut bytes);
             encode_varint(0, &mut bytes); // added data components
             encode_varint(0, &mut bytes); // removed data components
             items.push((slot as u8, bytes));

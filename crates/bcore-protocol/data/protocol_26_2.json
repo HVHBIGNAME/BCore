@@ -1,0 +1,215 @@
+{
+  "bcore_validation": {
+    "capture_manifest": {
+      "bytes": 71398,
+      "path": "C:\\coding\\MINECRAFT\\BCore\\target\\migration-26_2-bcore-protocol-20261023-03\\manifest.json",
+      "sha256": "cfbc0558602e57277591af9441dc6b227ee786413fe7832e1aee999c3f275cd5"
+    },
+    "capture_results": {
+      "bytes": 8013,
+      "path": "C:\\coding\\MINECRAFT\\BCore\\target\\migration-26_2-bcore-protocol-20261023-03\\results.json",
+      "sha256": "1b91fb4a68c811d02f3634429cd77cadea273d3c5a2047c35425a35698ba6101"
+    },
+    "coverage": [
+      {
+        "coverage": {
+          "configuration_acknowledged": true,
+          "login_acknowledged": true,
+          "login_finished": true,
+          "native_terrain_packets": 73,
+          "network_registry_load": true,
+          "play_login": true,
+          "states": {
+            "configuration:clientbound": 34,
+            "configuration:serverbound": 3,
+            "handshake:serverbound": 2,
+            "login:clientbound": 1,
+            "login:serverbound": 2,
+            "play:clientbound": 802,
+            "play:serverbound": 84,
+            "status:clientbound": 2,
+            "status:serverbound": 2
+          },
+          "status_pong": true,
+          "status_response": true
+        },
+        "decoded": 932,
+        "expected": 932,
+        "path": "C:\\coding\\MINECRAFT\\BCore\\target\\migration-26_2-bcore-protocol-20261023-03\\session-1",
+        "scope": "recorded_frames_only"
+      },
+      {
+        "coverage": {
+          "configuration_acknowledged": true,
+          "login_acknowledged": true,
+          "login_finished": true,
+          "native_terrain_packets": 32,
+          "network_registry_load": true,
+          "play_login": true,
+          "states": {
+            "configuration:clientbound": 34,
+            "configuration:serverbound": 3,
+            "handshake:serverbound": 2,
+            "login:clientbound": 1,
+            "login:serverbound": 2,
+            "play:clientbound": 81,
+            "play:serverbound": 8,
+            "status:clientbound": 2,
+            "status:serverbound": 2
+          },
+          "status_pong": true,
+          "status_response": true
+        },
+        "decoded": 135,
+        "expected": 135,
+        "path": "C:\\coding\\MINECRAFT\\BCore\\target\\migration-26_2-bcore-protocol-20261023-03\\session-2",
+        "scope": "recorded_frames_only"
+      },
+      {
+        "coverage": {
+          "configuration_acknowledged": true,
+          "login_acknowledged": true,
+          "login_finished": true,
+          "native_terrain_packets": 42,
+          "network_registry_load": true,
+          "play_login": true,
+          "states": {
+            "configuration:clientbound": 34,
+            "configuration:serverbound": 3,
+            "handshake:serverbound": 2,
+            "login:clientbound": 1,
+            "login:serverbound": 2,
+            "play:clientbound": 123,
+            "play:serverbound": 13,
+            "status:clientbound": 2,
+            "status:serverbound": 2
+          },
+          "status_pong": true,
+          "status_response": true
+        },
+        "decoded": 182,
+        "expected": 182,
+        "path": "C:\\coding\\MINECRAFT\\BCore\\target\\migration-26_2-bcore-protocol-20261023-03\\session-3",
+        "scope": "recorded_frames_only"
+      }
+    ],
+    "executable_sha256": "5528224281c01df3683912f49d28a4e55827c03ee153110f06f0fd3fa667f384",
+    "persistence": {
+      "file_after_restart": {
+        "bytes": 125493,
+        "path": "C:\\coding\\MINECRAFT\\BCore\\target\\migration-26_2-bcore-protocol-20261023-03\\world\\chunks\\c.0.-1.bcc",
+        "sha256": "9473257ee061279c34303848e66c4a290358fa85d16bad525a417b028caef20a"
+      },
+      "mutation": {
+        "before_sha256": "10d674bcf96fcc808762f488748fdb97f3c555ffed34fd53657094e057185ae0",
+        "before_state": 2,
+        "block": [
+          7,
+          0,
+          -9
+        ],
+        "block_name": "minecraft:diamond_block",
+        "chunk": [
+          0,
+          -1
+        ],
+        "data_version": 4903,
+        "format_version": 6,
+        "local": [
+          7,
+          0,
+          7
+        ],
+        "minecraft": "26.2",
+        "path": "C:\\coding\\MINECRAFT\\BCore\\target\\migration-26_2-bcore-protocol-20261023-03\\world\\chunks\\c.0.-1.bcc",
+        "protocol": 776,
+        "reported_path": "\\\\?\\C:\\coding\\MINECRAFT\\BCore\\target\\migration-26_2-bcore-protocol-20261023-03\\world\\chunks\\c.0.-1.bcc",
+        "schema": "bcore.persistence-mutation.v1",
+        "seed": "846692123413862008",
+        "sha256": "9473257ee061279c34303848e66c4a290358fa85d16bad525a417b028caef20a",
+        "state": 5309
+      },
+      "status": "pass",
+      "wire_observation": "C:\\coding\\MINECRAFT\\BCore\\target\\migration-26_2-bcore-protocol-20261023-03\\session-3\\play.json"
+    },
+    "release": {
+      "bytes": 66054,
+      "path": "C:\\coding\\MINECRAFT\\BCore\\target\\migration-26_2-release-freeze-20261023-02\\release.json",
+      "sha256": "0ca8cd41652de3c9d9e192ce8e44a98cee66ce3808d85d8008ca30afe2189eb5"
+    },
+    "schema_report": {
+      "bytes": 585116,
+      "path": "C:\\coding\\MINECRAFT\\BCore\\target\\migration-26_2-bcore-protocol-20261023-03\\schema-validation.json",
+      "sha256": "cd521f2900d61867a40b38b233411a0c7ca4c646419ad1f1b2556db1f3c3a0fa"
+    },
+    "session_uuids": [
+      "d986b6bb-74c6-429e-b092-f97b2b236eb9",
+      "d986b6bb-74c6-429e-b092-f97b2b236eb9",
+      "484c1357-282e-43ba-97b6-84bcb2a6ea4c"
+    ]
+  },
+  "configuration_comparison": {
+    "changed_records": [],
+    "contract": "ordered packet IDs, registry entries, tags and typed NBT; compound member order is not semantic",
+    "equal": true
+  },
+  "data_version": 4903,
+  "files": {
+    "config_packets.bin": {
+      "bytes": 157262,
+      "packet_count": 34,
+      "path": "C:\\coding\\MINECRAFT\\BCore\\crates\\bcore-protocol\\data\\config_packets.bin",
+      "sha256": "c6ff8723b0bc69426b5a628d1b591773918867097e78b80758f26cb715b69771"
+    },
+    "play_packets.bin": {
+      "bytes": 74651,
+      "packet_count": 38,
+      "path": "C:\\coding\\MINECRAFT\\BCore\\crates\\bcore-protocol\\data\\play_packets.bin",
+      "sha256": "afb51bf55fa3772b1b071336e437145475b61ab20093a2a89d83701e957056fe"
+    }
+  },
+  "jar_sha256": "183c0499c5f855570ee487dd38e141a53f0121f83a0b07a3bac2d8b6698823e8",
+  "minecraft": "26.2",
+  "official_captures": [
+    {
+      "bytes": 20004,
+      "path": "C:\\coding\\MINECRAFT\\BCore\\target\\migration-26_2-official-protocol-20261023-03\\manifest.json",
+      "sha256": "d2766e4e596ba4477dfca7d129481b7415020d1898cf4ed14cddb5767199814c"
+    },
+    {
+      "bytes": 20560,
+      "path": "C:\\coding\\MINECRAFT\\BCore\\target\\migration-26_2-official-protocol-20261022-02\\manifest.json",
+      "sha256": "9ae27937c2e8ef48e81282ca8d620e11d915e0451567942770e0cd57119c7d1b"
+    }
+  ],
+  "play_authority": "emitted replay and owner-generated packets decoded through native 26.2 registry-aware codecs",
+  "protocol": 776,
+  "registry_bindings": {
+    "biome_count": 66,
+    "biome_ids_match": true,
+    "dimension_types": [
+      {
+        "id": 0,
+        "key": "minecraft:overworld"
+      },
+      {
+        "id": 1,
+        "key": "minecraft:overworld_caves"
+      },
+      {
+        "id": 2,
+        "key": "minecraft:the_end"
+      },
+      {
+        "id": 3,
+        "key": "minecraft:the_nether"
+      }
+    ],
+    "shared_registry": {
+      "bytes": 5103915,
+      "path": "C:\\coding\\MINECRAFT\\BCore\\crates\\bcore-registry\\data\\registries_26_2.json",
+      "sha256": "b08bbcaad46927dbe0eaca58fc9618b167feca59f4c050d39f37bcd7f6bad653"
+    }
+  },
+  "schema": "bcore.protocol-bootstrap.v1"
+}

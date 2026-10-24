@@ -67,7 +67,9 @@ fn check(region: &FeatureRegion, expected: &Value, label: &str) {
     let local = ((x & 15) as usize, y, (z & 15) as usize);
     assert_eq!(
         chunk.get(local.0, y, local.2),
-        Some(expected["state"].as_u64().unwrap() as u32),
+        Some(crate::registry_26_1::target_state(
+            expected["state"].as_u64().unwrap() as u32
+        )),
         "{label}"
     );
     assert_eq!(
@@ -142,7 +144,7 @@ fn deferred_native_proto_writes_save_without_lookup_and_materialize_only_on_look
         let mut region = fresh(source(row));
         let initial = observation(row, "write/no lookup");
         let p = point(&initial["pos"]);
-        let state = initial["state"].as_u64().unwrap() as u32;
+        let state = crate::registry_26_1::target_state(initial["state"].as_u64().unwrap() as u32);
         assert!(row["written"].as_bool().unwrap() && row["proto_lookup_null"].as_bool().unwrap());
         assert!(region.set_feature_block(p, state, row["flags"].as_i64().unwrap() as i32));
         check(&region, initial, label);
@@ -187,7 +189,8 @@ fn deferred_native_saved_tags_remain_typed_and_pending_until_region_lookup() {
             let before = &saved["restored"];
             let p @ (x, y, z) = point(&before["pos"]);
             let mut region = fresh(ChunkPos::new(x >> 4, z >> 4));
-            let state = before["state"].as_u64().unwrap() as u32;
+            let state =
+                crate::registry_26_1::target_state(before["state"].as_u64().unwrap() as u32);
             let local = ((x & 15) as usize, y, (z & 15) as usize);
             // Native SerializableChunkData.read restored these tags as pending,
             // including those saved from an already materialized proto entity.
@@ -219,7 +222,7 @@ fn deferred_native_saved_tags_remain_typed_and_pending_until_region_lookup() {
         let before = observation(row, "installed saved pending NBT");
         let p @ (x, y, z) = point(&before["pos"]);
         let mut region = fresh(source(row));
-        let state = before["state"].as_u64().unwrap() as u32;
+        let state = crate::registry_26_1::target_state(before["state"].as_u64().unwrap() as u32);
         let pending = nbt(&before["pending"]);
         assert_eq!(pending.get("keepPacked"), Some(&Nbt::Byte(1)));
         assert!(region.set_feature_block(p, state, 18));
@@ -256,7 +259,7 @@ fn deferred_native_template_absent_nbt_differs_from_empty_or_saved_nbt() {
     {
         let expected = observation(row, "after native template placement");
         let p = point(&expected["pos"]);
-        let state = expected["state"].as_u64().unwrap() as u32;
+        let state = crate::registry_26_1::target_state(expected["state"].as_u64().unwrap() as u32);
         let input = nbt(&row["template_input"]);
         let load = input.get("blocks").unwrap().list().unwrap()[0]
             .get("nbt")
@@ -310,7 +313,11 @@ fn deferred_lookup_boundary_matches_post_conversion_native_data_without_retiring
         let before = observation(row, "after conversion/no lookup");
         let p @ (x, y, z) = point(&before["pos"]);
         let mut region = fresh(ChunkPos::new(x >> 4, z >> 4));
-        assert!(region.set_feature_block(p, before["state"].as_u64().unwrap() as u32, 18));
+        assert!(region.set_feature_block(
+            p,
+            crate::registry_26_1::target_state(before["state"].as_u64().unwrap() as u32),
+            18
+        ));
         check(&region, before, "conversion retains pending");
         let chunk = region.chunk_mut(x >> 4, z >> 4);
         chunk.capture_worldgen_heightmaps(true);
@@ -359,7 +366,11 @@ fn deferred_hive_source_callback_reaches_the_neighbour_and_retains_occupants() {
     let initial = observation(row, "source write/no callback");
     let p = point(&initial["pos"]);
     let mut region = fresh(source(row));
-    assert!(region.set_feature_block(p, initial["state"].as_u64().unwrap() as u32, 2));
+    assert!(region.set_feature_block(
+        p,
+        crate::registry_26_1::target_state(initial["state"].as_u64().unwrap() as u32),
+        2
+    ));
     check(&region, initial, "hive pending");
     for ticks in [0, 599, -7] {
         region.store_bee(p, ticks);
@@ -370,7 +381,11 @@ fn deferred_hive_source_callback_reaches_the_neighbour_and_retains_occupants() {
         &observation(row, "source getBlockEntity/mutation")["after"],
         "stored bees",
     );
-    assert!(region.set_feature_block(p, initial["state"].as_u64().unwrap() as u32, 18));
+    assert!(region.set_feature_block(
+        p,
+        crate::registry_26_1::target_state(initial["state"].as_u64().unwrap() as u32),
+        18
+    ));
     check(
         &region,
         &observation(row, "rewrite after callback")["after"],
@@ -396,7 +411,7 @@ fn deferred_hive_callback_appends_to_an_already_loaded_saved_hive() {
     let initial = observation(row, "source write/no callback");
     let expected = &observation(row, "source getBlockEntity/mutation")["after"];
     let p = point(&initial["pos"]);
-    let state = initial["state"].as_u64().unwrap() as u32;
+    let state = crate::registry_26_1::target_state(initial["state"].as_u64().unwrap() as u32);
     let full = nbt(&expected["full"]);
     let occupants = full.get("bees").and_then(Nbt::list).unwrap();
     assert_eq!(occupants.len(), 3);

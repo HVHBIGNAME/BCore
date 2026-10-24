@@ -1,12 +1,11 @@
-//! Path inclusion keeps this independently testable before the core export is wired.
-pub use bcore_worldgen::{feature_world, simplex, MAX_Y, MIN_Y};
-#[path = "../src/sculk.rs"]
-mod sculk;
+//! Immutable native sculk streams replayed through explicit resource identities.
+use bcore_worldgen::{feature_world, sculk, simplex, MAX_Y, MIN_Y};
 
 use bcore_worldgen::block_predicate::{FeatureEnvironment, RegistryEnvironment};
 use bcore_worldgen::ore::OreWorld;
 use bcore_worldgen::placement;
 use bcore_worldgen::tick_request::TickRequest;
+use bcore_worldgen::tick_request::TickTarget;
 use feature_world::{FeatureError, FeatureHeightmap, FeatureWorld, Pos};
 use sculk::{Config, GeneratedBlockEntity, IntProvider};
 use serde_json::{json, Value};
@@ -14,6 +13,11 @@ use sha2::{Digest, Sha256};
 use simplex::WorldgenRandom;
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::OnceLock;
+
+#[path = "support/feature_documents_26_1.rs"]
+pub mod feature_documents_26_1;
+#[path = "support/registry_26_1.rs"]
+mod registry_26_1;
 
 fn fixture() -> &'static Value {
     static DATA: OnceLock<Value> = OnceLock::new();
@@ -26,9 +30,32 @@ fn states() -> &'static Value {
     })
 }
 fn id(name: &str) -> u32 {
-    states()["blocks"][format!("minecraft:{name}")][2]
+    registry_26_1::target_state(
+        states()["blocks"][format!("minecraft:{name}")][2]
+            .as_u64()
+            .unwrap() as u32,
+    )
+}
+
+fn historical_entity_type(entity: &GeneratedBlockEntity) -> u32 {
+    let name = entity.full_data["id"].as_str().unwrap();
+    assert_eq!(
+        bcore_registry::registry_id("BLOCK_ENTITY_TYPE", name),
+        Some(entity.type_id)
+    );
+    states()["block_entities"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|template| template["block"] == name)
+        .expect("historical sculk factory resource")["type_id"]
         .as_u64()
         .unwrap() as u32
+}
+
+fn historical_config(name: &str) -> Config {
+    let definition = &states()["configurations"][name.strip_prefix("minecraft:").unwrap_or(name)];
+    Config::from_json(definition["type"].as_str().unwrap(), &definition["config"]).unwrap()
 }
 fn position(value: &Value) -> Pos {
     serde_json::from_value(value.clone()).unwrap()
@@ -87,7 +114,7 @@ impl Grid {
         for name in ["flowing_water", "vein_down"] {
             ids.insert(
                 name.into(),
-                states()["test_states"][name].as_u64().unwrap() as u32,
+                registry_26_1::target_state(states()["test_states"][name].as_u64().unwrap() as u32),
             );
         }
         Self {
@@ -227,7 +254,7 @@ impl Grid {
         self.blocks
             .iter()
             .filter(|(pos, state)| **state != self.initial(**pos))
-            .map(|(&(x, y, z), &state)| [x, y, z, state as i32])
+            .map(|(&(x, y, z), &state)| [x, y, z, registry_26_1::historical_state(state) as i32])
             .collect()
     }
 
@@ -285,11 +312,18 @@ impl Grid {
             sample["section_marks_sha256"].as_str().unwrap(),
             "{name}: section-local mark order"
         );
-        assert_eq!(
-            json!(self.ticks),
-            sample["tick_requests"],
-            "{name}: raw ticks"
-        );
+        let ticks: Vec<_> = self
+            .ticks
+            .iter()
+            .copied()
+            .map(|mut request| {
+                if let TickTarget::Block(state) = &mut request.target {
+                    *state = registry_26_1::historical_state(*state);
+                }
+                request
+            })
+            .collect();
+        assert_eq!(json!(ticks), sample["tick_requests"], "{name}: raw ticks");
         assert_eq!(
             sample["native_ticks"],
             json!([]),
@@ -299,7 +333,7 @@ impl Grid {
         for (&pos, entity) in &self.entities {
             let state = self.get_block(pos).unwrap();
             entities.push(
-                json!({"pos": pos, "state": state, "type_id": entity.type_id,
+                json!({"pos": pos, "state": registry_26_1::historical_state(state), "type_id": historical_entity_type(entity),
                 "nbt": entity.full_data, "update": entity.update_data,
                 "pending_nbt": {"id": "DUMMY", "x": pos.0, "y": pos.1, "z": pos.2}}),
             );
@@ -348,7 +382,7 @@ impl FeatureWorld for Grid {
             pos.0,
             pos.1,
             pos.2,
-            state as i32,
+            registry_26_1::historical_state(state) as i32,
             flags,
             i32::from(accepted),
         ]);
@@ -362,7 +396,8 @@ impl FeatureWorld for Grid {
                 }
             }
             if flags & 16 == 0 {
-                let offset = &states()["postprocess_offsets"][state.to_string()];
+                let offset = &states()["postprocess_offsets"]
+                    [registry_26_1::historical_state(state).to_string()];
                 if offset.is_array() {
                     let delta = position(offset);
                     self.mark_feature_postprocessing((
@@ -419,11 +454,11 @@ fn registered_features_match_native_writes_rng_marks_and_entities() {
                     &Config::from_json("minecraft:sculk_patch", config).unwrap(),
                 )
             } else {
-                sculk::place_named(
+                sculk::place(
                     &mut world,
                     &mut random,
                     origin,
-                    sample["kind"].as_str().unwrap(),
+                    &historical_config(sample["kind"].as_str().unwrap()),
                 )
             };
             results.push(result.unwrap_or_else(|error| panic!("{}: {error}", sample["name"])));
@@ -495,7 +530,9 @@ fn worldgen_cursor_updates_match_native_snapshots() {
         let mut world = Grid::new(sample["terrain"].as_str().unwrap(), origin, 1);
         for block in sample["initial_blocks"].as_array().unwrap() {
             let [x, y, z, state]: [i32; 4] = serde_json::from_value(block.clone()).unwrap();
-            world.initial_blocks.insert((x, y, z), state as u32);
+            world
+                .initial_blocks
+                .insert((x, y, z), registry_26_1::target_state(state as u32));
         }
         let mut random = WorldgenRandom::new(sample["seed"].as_i64().unwrap());
         let mut spreader = sculk::WorldgenSpreader::default();
@@ -509,7 +546,7 @@ fn worldgen_cursor_updates_match_native_snapshots() {
                 if action["before_update"].as_u64().unwrap() as usize == index {
                     world.set_feature_block(
                         position(&action["pos"]),
-                        action["state"].as_u64().unwrap() as u32,
+                        registry_26_1::target_state(action["state"].as_u64().unwrap() as u32),
                         3,
                     );
                 }
@@ -565,8 +602,9 @@ fn complete_placed_streams_preserve_child_rng_interleaving() {
         for root in sample["roots"].as_array().unwrap() {
             let name = format!("minecraft:{}", root.as_str().unwrap());
             results.push(
-                placement::place_named(
-                    &name,
+                placement::place(
+                    &feature_documents_26_1::placed(&json!(name)),
+                    Some(&name),
                     &mut world,
                     &mut random,
                     position(&sample["stream_origin"]),
@@ -601,11 +639,14 @@ fn complete_placed_streams_preserve_child_rng_interleaving() {
 #[test]
 fn generated_defaults_preserve_native_nbt_types() {
     for template in states()["block_entities"].as_array().unwrap() {
-        let state = template["state"].as_u64().unwrap() as u32;
+        let state = registry_26_1::target_state(template["state"].as_u64().unwrap() as u32);
         let entity = sculk::generated_block_entity(state, (0, 0, 0))
             .unwrap()
             .unwrap();
-        assert_eq!(entity.type_id, template["type_id"].as_u64().unwrap() as u32);
+        assert_eq!(
+            historical_entity_type(&entity),
+            template["type_id"].as_u64().unwrap() as u32
+        );
         assert_eq!(entity.full_data, template["nbt"]);
         assert_eq!(entity.typed_data, template["typed_nbt"]);
         assert_eq!(entity.update_data, template["update"]);
@@ -614,7 +655,7 @@ fn generated_defaults_preserve_native_nbt_types() {
             .unwrap();
         assert_eq!(moved.full_data["x"], -17);
         assert_eq!(moved.typed_data[1]["y"], json!([3, -64]));
-        if entity.type_id != 37 {
+        if historical_entity_type(&entity) != 37 {
             assert_eq!(
                 moved.typed_data[1]["listener"][1]["selector"][1]["tick"],
                 json!([4, -1])
