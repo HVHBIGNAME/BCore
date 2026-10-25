@@ -26,6 +26,10 @@
   **83,98/74,03**, **156,81/215,35** чанка/с.
 - Свежий owned-child CPU-профиль: **4002 leaf samples**; подробные ограничения
   и исходные hashes сохранены в [отчёте](performance-profile-26.2-2026-10-24.md).
+- Проверен first-axis delta candidate: **19 bit/order/native tests**, **72 matching
+  processes** и два alternating frozen confirmations. На 4 workers ratio
+  **0,999032× / 0,992884×**: кандидат отклонён, production sources восстановлены
+  побайтно; Java goal открыт. [Отчёт](performance-experiments-26.2-2026-10-25.md).
 - Очистка: удалены **18,76 GiB** логических файлов — debug incremental cache,
   **33** побайтно проверенные распакованные копии архивов и **27** временных
   каталогов завершённых тестов. Свободное место: **115,64 → 132,85 GiB**.

@@ -4,6 +4,12 @@ The README and project site use versioned JSON evidence from this directory.
 Charts are rendered locally with `python scripts/render_readme.py`; `--check`
 verifies that the committed SVGs still match the data.
 
+- `noise-axis-delta-rejected-26_2-2026-10-25.json`: rejected first-axis delta
+  candidate, **72 matching process records / 720 warmup / 720 measured batches**,
+  10 executed bit/order and 9 native numeric/ore/RNG tests. Two alternating frozen
+  comparisons give **0.999032× / 0.992884×** at four workers; source files restored
+  byte-exactly. Preserves all process medians, raw-result and frozen artifact hashes.
+  See the [experiment report](../performance-experiments-26.2-2026-10-25.md).
 - `creative-block-gameplay-validation-2026-10-25.json`: **921 passed / 0 failed /
   4 ignored**, 71 workspace suites and 517 unchanged source inputs. Includes all
   suite results/log hashes, **37 focused tests**, **6 actual TCP gameplay scenarios**,

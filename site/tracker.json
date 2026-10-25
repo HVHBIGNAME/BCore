@@ -28,6 +28,9 @@
     "tests_data": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/metrics/migration-workspace-validation-2026-10-24.json",
     "benchmark_data": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/metrics/noise-fill-wg-v2-baseline-26_2-2026-10-24.json",
     "profile_report": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/performance-profile-26.2-2026-10-24.md",
+    "latest_experiment_report": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/performance-experiments-26.2-2026-10-25.md",
+    "latest_experiment_data": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/metrics/noise-axis-delta-rejected-26_2-2026-10-25.json",
+    "latest_experiment_note": "First-axis delta candidate rejected: four-worker frozen ratios 0.999032x / 0.992884x. All 72 processes match; original source bytes restored. Java performance goal remains open.",
     "persistence": "Production BCC v6 edit observed in native-decoded terrain after restart; saved bytes unchanged.",
     "report": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/migration-26.2.md",
     "data": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/metrics/protocol-26_2-validation-2026-10-24.json"

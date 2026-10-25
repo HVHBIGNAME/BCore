@@ -47,6 +47,16 @@ resolved sample counts. The diagnostic build and sampled durations are separate
 from this throughput baseline; attribution limitations and sampler failures are
 preserved in the profile report.
 
+### First-axis delta candidate — 2026-10-25
+
+The localized eight-f64 base/delta candidate passed 10 bit/order and 9 native
+numeric/ore/RNG tests, with identical outputs across **72 fresh processes**.
+Two alternating frozen confirmations measured **1.0123× / 1.0133×** at one worker,
+**1.0372× / 1.0139×** at two, and **0.9990× / 0.9929×** at four. It was **rejected**
+and the original source bytes restored. The complete-server/Java goal remains open.
+[Measurements and limitations](performance-experiments-26.2-2026-10-25.md) ·
+[Versioned evidence](metrics/noise-axis-delta-rejected-26_2-2026-10-25.json).
+
 ## Historical 26.1 results — 2026-10-21, contract `noise-fill-wg-v2`
 
 ![Historical 26.1 NOISE throughput](../site/assets/performance.svg)

@@ -159,6 +159,10 @@
         `<p class="caveat">Alpha: full generation, gameplay, menus and online authentication remain incomplete. Current clocks and versioned save admission are integrated.</p>` +
         `<p><a href="${escapeHtml(m.report)}">Migration and connection instructions</a> · <a href="${escapeHtml(m.tests_data)}">Workspace results</a> · <a href="${escapeHtml(m.data)}">Bootstrap evidence</a> · <a href="${escapeHtml(m.profile_report)}">Current CPU profile</a></p>`;
       section.innerHTML += `<a class="chart-link" href="${escapeHtml(m.benchmark_data)}"><img class="chart" src="assets/performance-26_2.svg" alt="Current 26.2 NOISE baseline: BCore 47.79 / 83.98 / 156.81 chunks per second; Vanilla 49.77 / 74.03 / 215.35 at one, two and four workers. Kernel scope only." width="1000" height="598" loading="lazy" /></a>`;
+      if (m.latest_experiment_report) {
+        section.innerHTML += `<p class="caveat">${escapeHtml(m.latest_experiment_note)}</p>` +
+          `<p><a href="${escapeHtml(m.latest_experiment_report)}">Latest rejected experiment</a> · <a href="${escapeHtml(m.latest_experiment_data)}">Frozen comparisons and source identities</a></p>`;
+      }
       container.appendChild(section);
     }
     if (data.admission) {
