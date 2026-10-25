@@ -98,9 +98,30 @@ pub struct PlayerHandle {
     pub outbox: Arc<Outbox>,
     /// Set when the player should be disconnected (`/kick`, `/stop`).
     pub kicked: Arc<AtomicBool>,
+    interaction: Arc<Mutex<crate::blocks::PlayerContext>>,
 }
 
 impl PlayerHandle {
+    pub(crate) fn context(&self) -> crate::blocks::PlayerContext {
+        self.interaction
+            .lock()
+            .expect("player interaction lock")
+            .clone()
+    }
+
+    pub(crate) fn update_view(
+        &self,
+        view: &crate::world::PlayerView,
+        delivered: Option<&BTreeSet<(i32, i32)>>,
+    ) {
+        let mut context = self.interaction.lock().expect("player interaction lock");
+        context.position = [view.x, view.y, view.z];
+        context.game_mode = view.game_mode;
+        context.ready = view.interaction_ready();
+        if let Some(delivered) = delivered {
+            context.loaded = Arc::new(delivered.clone());
+        }
+    }
     /// Ask the owning connection to close after flushing.
     pub fn kick(&self) {
         self.kicked.store(true, Ordering::Relaxed);
@@ -130,6 +151,7 @@ pub struct ServerState {
     ops: Mutex<BTreeSet<String>>,
     bans: Mutex<BTreeMap<String, String>>,
     pub scoreboard: Mutex<crate::scoreboard::Scoreboard>,
+    pub(crate) blocks: crate::blocks::BlockQueue,
 }
 
 /// Cheap-to-clone handle to the shared server state.
@@ -205,6 +227,7 @@ impl ServerState {
             ops: Mutex::new(BTreeSet::new()),
             bans: Mutex::new(BTreeMap::new()),
             scoreboard: Mutex::new(crate::scoreboard::Scoreboard::default()),
+            blocks: crate::blocks::BlockQueue::default(),
         }
     }
 
@@ -258,6 +281,7 @@ impl ServerState {
             uuid,
             outbox: Arc::new(Outbox::default()),
             kicked: Arc::new(AtomicBool::new(false)),
+            interaction: Arc::new(Mutex::new(crate::blocks::PlayerContext::default())),
         };
         if let Ok(mut players) = self.players.write() {
             players.insert(id, handle.clone());
@@ -294,6 +318,35 @@ impl ServerState {
             .read()
             .map(|p| p.values().cloned().collect())
             .unwrap_or_default()
+    }
+
+    pub(crate) fn player(&self, id: PlayerId) -> Option<PlayerHandle> {
+        self.players
+            .read()
+            .expect("player registry lock")
+            .get(&id)
+            .cloned()
+    }
+
+    pub(crate) fn has_player(&self, handle: &PlayerHandle) -> bool {
+        self.player(handle.id)
+            .is_some_and(|player| Arc::ptr_eq(&player.outbox, &handle.outbox))
+    }
+
+    pub(crate) fn send_to_chunk(
+        &self,
+        pos: bcore_core::ChunkPos,
+        except: Option<PlayerId>,
+        bytes: &[u8],
+    ) {
+        for player in self.players() {
+            if Some(player.id) != except
+                && !player.is_kicked()
+                && player.context().loaded.contains(&(pos.x, pos.z))
+            {
+                player.outbox.push(bytes);
+            }
+        }
     }
 
     /// Look up a player by name, case-insensitively.

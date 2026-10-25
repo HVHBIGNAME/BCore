@@ -1,0 +1,2633 @@
+{
+  "actions": [
+    {
+      "name": "START_DESTROY_BLOCK",
+      "ordinal": 0
+    },
+    {
+      "name": "ABORT_DESTROY_BLOCK",
+      "ordinal": 1
+    },
+    {
+      "name": "STOP_DESTROY_BLOCK",
+      "ordinal": 2
+    },
+    {
+      "name": "DROP_ALL_ITEMS",
+      "ordinal": 3
+    },
+    {
+      "name": "DROP_ITEM",
+      "ordinal": 4
+    },
+    {
+      "name": "RELEASE_USE_ITEM",
+      "ordinal": 5
+    },
+    {
+      "name": "SWAP_ITEM_WITH_OFFHAND",
+      "ordinal": 6
+    },
+    {
+      "name": "STAB",
+      "ordinal": 7
+    }
+  ],
+  "cases": [
+    {
+      "input": {
+        "action": 0,
+        "face": 1,
+        "pos": [
+          -17,
+          319,
+          32
+        ],
+        "sequence": 257
+      },
+      "name": "action-START_DESTROY_BLOCK",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:player_action",
+      "payload_hex": "00fffffbc00002013f018102",
+      "protocol_id": 41
+    },
+    {
+      "input": {
+        "action": 1,
+        "face": 1,
+        "pos": [
+          -17,
+          319,
+          32
+        ],
+        "sequence": 257
+      },
+      "name": "action-ABORT_DESTROY_BLOCK",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:player_action",
+      "payload_hex": "01fffffbc00002013f018102",
+      "protocol_id": 41
+    },
+    {
+      "input": {
+        "action": 2,
+        "face": 1,
+        "pos": [
+          -17,
+          319,
+          32
+        ],
+        "sequence": 257
+      },
+      "name": "action-STOP_DESTROY_BLOCK",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:player_action",
+      "payload_hex": "02fffffbc00002013f018102",
+      "protocol_id": 41
+    },
+    {
+      "input": {
+        "action": 3,
+        "face": 1,
+        "pos": [
+          -17,
+          319,
+          32
+        ],
+        "sequence": 257
+      },
+      "name": "action-DROP_ALL_ITEMS",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:player_action",
+      "payload_hex": "03fffffbc00002013f018102",
+      "protocol_id": 41
+    },
+    {
+      "input": {
+        "action": 4,
+        "face": 1,
+        "pos": [
+          -17,
+          319,
+          32
+        ],
+        "sequence": 257
+      },
+      "name": "action-DROP_ITEM",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:player_action",
+      "payload_hex": "04fffffbc00002013f018102",
+      "protocol_id": 41
+    },
+    {
+      "input": {
+        "action": 5,
+        "face": 1,
+        "pos": [
+          -17,
+          319,
+          32
+        ],
+        "sequence": 257
+      },
+      "name": "action-RELEASE_USE_ITEM",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:player_action",
+      "payload_hex": "05fffffbc00002013f018102",
+      "protocol_id": 41
+    },
+    {
+      "input": {
+        "action": 6,
+        "face": 1,
+        "pos": [
+          -17,
+          319,
+          32
+        ],
+        "sequence": 257
+      },
+      "name": "action-SWAP_ITEM_WITH_OFFHAND",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:player_action",
+      "payload_hex": "06fffffbc00002013f018102",
+      "protocol_id": 41
+    },
+    {
+      "input": {
+        "action": 7,
+        "face": 1,
+        "pos": [
+          -17,
+          319,
+          32
+        ],
+        "sequence": 257
+      },
+      "name": "action-STAB",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:player_action",
+      "payload_hex": "07fffffbc00002013f018102",
+      "protocol_id": 41
+    },
+    {
+      "input": {
+        "face": 0,
+        "hand": 0,
+        "inside": false,
+        "offsets": [
+          0.25,
+          0.5,
+          1.0
+        ],
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "sequence": 128,
+        "world_border": false
+      },
+      "name": "use-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:use_item_on",
+      "payload_hex": "00fffffbc000020fc0003e8000003f0000003f80000000008001",
+      "protocol_id": 66
+    },
+    {
+      "input": {
+        "face": 1,
+        "hand": 0,
+        "inside": false,
+        "offsets": [
+          0.25,
+          0.5,
+          1.0
+        ],
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "sequence": 128,
+        "world_border": false
+      },
+      "name": "use-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:use_item_on",
+      "payload_hex": "00fffffbc000020fc0013e8000003f0000003f80000000008001",
+      "protocol_id": 66
+    },
+    {
+      "input": {
+        "face": 2,
+        "hand": 0,
+        "inside": false,
+        "offsets": [
+          0.25,
+          0.5,
+          1.0
+        ],
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "sequence": 128,
+        "world_border": false
+      },
+      "name": "use-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:use_item_on",
+      "payload_hex": "00fffffbc000020fc0023e8000003f0000003f80000000008001",
+      "protocol_id": 66
+    },
+    {
+      "input": {
+        "face": 3,
+        "hand": 0,
+        "inside": false,
+        "offsets": [
+          0.25,
+          0.5,
+          1.0
+        ],
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "sequence": 128,
+        "world_border": false
+      },
+      "name": "use-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:use_item_on",
+      "payload_hex": "00fffffbc000020fc0033e8000003f0000003f80000000008001",
+      "protocol_id": 66
+    },
+    {
+      "input": {
+        "face": 4,
+        "hand": 0,
+        "inside": false,
+        "offsets": [
+          0.25,
+          0.5,
+          1.0
+        ],
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "sequence": 128,
+        "world_border": false
+      },
+      "name": "use-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:use_item_on",
+      "payload_hex": "00fffffbc000020fc0043e8000003f0000003f80000000008001",
+      "protocol_id": 66
+    },
+    {
+      "input": {
+        "face": 5,
+        "hand": 0,
+        "inside": false,
+        "offsets": [
+          0.25,
+          0.5,
+          1.0
+        ],
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "sequence": 128,
+        "world_border": false
+      },
+      "name": "use-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:use_item_on",
+      "payload_hex": "00fffffbc000020fc0053e8000003f0000003f80000000008001",
+      "protocol_id": 66
+    },
+    {
+      "input": {
+        "slot": 0
+      },
+      "name": "carried-0",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:set_carried_item",
+      "payload_hex": "0000",
+      "protocol_id": 53
+    },
+    {
+      "input": {
+        "slot": 8
+      },
+      "name": "carried-8",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:set_carried_item",
+      "payload_hex": "0008",
+      "protocol_id": 53
+    },
+    {
+      "input": {
+        "components_added": 0,
+        "components_removed": 0,
+        "count": 64,
+        "item_id": 1,
+        "slot": 36
+      },
+      "name": "creative-STONE",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:set_creative_mode_slot",
+      "payload_hex": "002440010000",
+      "protocol_id": 56
+    },
+    {
+      "input": {
+        "count": 64,
+        "item_id": 1,
+        "slot": 0
+      },
+      "name": "inventory-STONE",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:set_player_inventory",
+      "payload_hex": "0040010000",
+      "protocol_id": 108
+    },
+    {
+      "input": {
+        "components_added": 0,
+        "components_removed": 0,
+        "count": 64,
+        "item_id": 55,
+        "slot": 36
+      },
+      "name": "creative-DIRT",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:set_creative_mode_slot",
+      "payload_hex": "002440370000",
+      "protocol_id": 56
+    },
+    {
+      "input": {
+        "components_added": 0,
+        "components_removed": 0,
+        "count": 64,
+        "item_id": 127,
+        "slot": 36
+      },
+      "name": "creative-DIAMOND_BLOCK",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:set_creative_mode_slot",
+      "payload_hex": "0024407f0000",
+      "protocol_id": 56
+    },
+    {
+      "input": {
+        "count": 64,
+        "item_id": 127,
+        "slot": 0
+      },
+      "name": "inventory-DIAMOND_BLOCK",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:set_player_inventory",
+      "payload_hex": "00407f0000",
+      "protocol_id": 108
+    },
+    {
+      "input": {
+        "count": 0,
+        "slot": 44
+      },
+      "name": "creative-empty",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:set_creative_mode_slot",
+      "payload_hex": "002c00",
+      "protocol_id": 56
+    },
+    {
+      "input": {
+        "count": 0,
+        "slot": 8
+      },
+      "name": "inventory-empty",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:set_player_inventory",
+      "payload_hex": "0800",
+      "protocol_id": 108
+    },
+    {
+      "input": {
+        "sequence": 257
+      },
+      "name": "ack",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_changed_ack",
+      "payload_hex": "8102",
+      "protocol_id": 4
+    },
+    {
+      "input": {
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 5309
+      },
+      "name": "block-update",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0bd29",
+      "protocol_id": 8
+    }
+  ],
+  "jar_sha256": "183c0499c5f855570ee487dd38e141a53f0121f83a0b07a3bac2d8b6698823e8",
+  "minecraft": "26.2",
+  "probe_sha256": "4c069508322d67386dff39f192b3d665515a59f430e7bfd5bfd35830c1a00f9f",
+  "protocol": 776,
+  "schema": "bcore.native-block-actions.v1",
+  "scope": "Native codecs, standing-player bounds and stateless full-cube item bindings; no server gameplay or GUI execution.",
+  "standing_player": {
+    "block_range_default": 4.5,
+    "creative_block_range_addition": 0.5,
+    "eye_height": 1.6200000047683716,
+    "height": 1.7999999523162842,
+    "width": 0.6000000238418579
+  },
+  "stateless_full_cube_block_items": [
+    {
+      "block": "minecraft:stone",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:stone",
+      "item_id": 1,
+      "max_stack_size": 64,
+      "state_id": 1,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:granite",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:granite",
+      "item_id": 2,
+      "max_stack_size": 64,
+      "state_id": 2,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:polished_granite",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:polished_granite",
+      "item_id": 3,
+      "max_stack_size": 64,
+      "state_id": 3,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:diorite",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:diorite",
+      "item_id": 4,
+      "max_stack_size": 64,
+      "state_id": 4,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:polished_diorite",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:polished_diorite",
+      "item_id": 5,
+      "max_stack_size": 64,
+      "state_id": 5,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:andesite",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:andesite",
+      "item_id": 6,
+      "max_stack_size": 64,
+      "state_id": 6,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:polished_andesite",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:polished_andesite",
+      "item_id": 7,
+      "max_stack_size": 64,
+      "state_id": 7,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:cobbled_deepslate",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:cobbled_deepslate",
+      "item_id": 9,
+      "max_stack_size": 64,
+      "state_id": 30419,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:polished_deepslate",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:polished_deepslate",
+      "item_id": 10,
+      "max_stack_size": 64,
+      "state_id": 30830,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:calcite",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:calcite",
+      "item_id": 11,
+      "max_stack_size": 64,
+      "state_id": 27160,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:tuff",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:tuff",
+      "item_id": 12,
+      "max_stack_size": 64,
+      "state_id": 23452,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:chiseled_tuff",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:chiseled_tuff",
+      "item_id": 16,
+      "max_stack_size": 64,
+      "state_id": 24274,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:polished_tuff",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:polished_tuff",
+      "item_id": 17,
+      "max_stack_size": 64,
+      "state_id": 23863,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:tuff_bricks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:tuff_bricks",
+      "item_id": 21,
+      "max_stack_size": 64,
+      "state_id": 24275,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:chiseled_tuff_bricks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:chiseled_tuff_bricks",
+      "item_id": 25,
+      "max_stack_size": 64,
+      "state_id": 24686,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:sulfur",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:sulfur",
+      "item_id": 26,
+      "max_stack_size": 64,
+      "state_id": 24687,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:polished_sulfur",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:polished_sulfur",
+      "item_id": 31,
+      "max_stack_size": 64,
+      "state_id": 25103,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:sulfur_bricks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:sulfur_bricks",
+      "item_id": 35,
+      "max_stack_size": 64,
+      "state_id": 25514,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:chiseled_sulfur",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:chiseled_sulfur",
+      "item_id": 39,
+      "max_stack_size": 64,
+      "state_id": 25925,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:cinnabar",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:cinnabar",
+      "item_id": 40,
+      "max_stack_size": 64,
+      "state_id": 25926,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:polished_cinnabar",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:polished_cinnabar",
+      "item_id": 44,
+      "max_stack_size": 64,
+      "state_id": 26337,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:cinnabar_bricks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:cinnabar_bricks",
+      "item_id": 48,
+      "max_stack_size": 64,
+      "state_id": 26748,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:chiseled_cinnabar",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:chiseled_cinnabar",
+      "item_id": 52,
+      "max_stack_size": 64,
+      "state_id": 27159,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:dripstone_block",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:dripstone_block",
+      "item_id": 53,
+      "max_stack_size": 64,
+      "state_id": 30208,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:dirt",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:dirt",
+      "item_id": 55,
+      "max_stack_size": 64,
+      "state_id": 10,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:coarse_dirt",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:coarse_dirt",
+      "item_id": 56,
+      "max_stack_size": 64,
+      "state_id": 11,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:cobblestone",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:cobblestone",
+      "item_id": 62,
+      "max_stack_size": 64,
+      "state_id": 14,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:oak_planks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:oak_planks",
+      "item_id": 63,
+      "max_stack_size": 64,
+      "state_id": 15,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:spruce_planks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:spruce_planks",
+      "item_id": 64,
+      "max_stack_size": 64,
+      "state_id": 16,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:birch_planks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:birch_planks",
+      "item_id": 65,
+      "max_stack_size": 64,
+      "state_id": 17,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:jungle_planks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:jungle_planks",
+      "item_id": 66,
+      "max_stack_size": 64,
+      "state_id": 18,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:acacia_planks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:acacia_planks",
+      "item_id": 67,
+      "max_stack_size": 64,
+      "state_id": 19,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:cherry_planks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:cherry_planks",
+      "item_id": 68,
+      "max_stack_size": 64,
+      "state_id": 20,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:dark_oak_planks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:dark_oak_planks",
+      "item_id": 69,
+      "max_stack_size": 64,
+      "state_id": 21,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:pale_oak_planks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:pale_oak_planks",
+      "item_id": 70,
+      "max_stack_size": 64,
+      "state_id": 25,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:mangrove_planks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:mangrove_planks",
+      "item_id": 71,
+      "max_stack_size": 64,
+      "state_id": 26,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:bamboo_planks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:bamboo_planks",
+      "item_id": 72,
+      "max_stack_size": 64,
+      "state_id": 27,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:crimson_planks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:crimson_planks",
+      "item_id": 73,
+      "max_stack_size": 64,
+      "state_id": 21032,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:warped_planks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:warped_planks",
+      "item_id": 74,
+      "max_stack_size": 64,
+      "state_id": 21033,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:bamboo_mosaic",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:bamboo_mosaic",
+      "item_id": 75,
+      "max_stack_size": 64,
+      "state_id": 28,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:bedrock",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:bedrock",
+      "item_id": 85,
+      "max_stack_size": 64,
+      "state_id": 85,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:coal_ore",
+      "block_class": "net.minecraft.world.level.block.DropExperienceBlock",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:coal_ore",
+      "item_id": 91,
+      "max_stack_size": 64,
+      "state_id": 133,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:deepslate_coal_ore",
+      "block_class": "net.minecraft.world.level.block.DropExperienceBlock",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:deepslate_coal_ore",
+      "item_id": 92,
+      "max_stack_size": 64,
+      "state_id": 134,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:iron_ore",
+      "block_class": "net.minecraft.world.level.block.DropExperienceBlock",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:iron_ore",
+      "item_id": 93,
+      "max_stack_size": 64,
+      "state_id": 131,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:deepslate_iron_ore",
+      "block_class": "net.minecraft.world.level.block.DropExperienceBlock",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:deepslate_iron_ore",
+      "item_id": 94,
+      "max_stack_size": 64,
+      "state_id": 132,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:copper_ore",
+      "block_class": "net.minecraft.world.level.block.DropExperienceBlock",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:copper_ore",
+      "item_id": 95,
+      "max_stack_size": 64,
+      "state_id": 27790,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:deepslate_copper_ore",
+      "block_class": "net.minecraft.world.level.block.DropExperienceBlock",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:deepslate_copper_ore",
+      "item_id": 96,
+      "max_stack_size": 64,
+      "state_id": 27791,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:gold_ore",
+      "block_class": "net.minecraft.world.level.block.DropExperienceBlock",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:gold_ore",
+      "item_id": 97,
+      "max_stack_size": 64,
+      "state_id": 129,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:deepslate_gold_ore",
+      "block_class": "net.minecraft.world.level.block.DropExperienceBlock",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:deepslate_gold_ore",
+      "item_id": 98,
+      "max_stack_size": 64,
+      "state_id": 130,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:emerald_ore",
+      "block_class": "net.minecraft.world.level.block.DropExperienceBlock",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:emerald_ore",
+      "item_id": 101,
+      "max_stack_size": 64,
+      "state_id": 9573,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:deepslate_emerald_ore",
+      "block_class": "net.minecraft.world.level.block.DropExperienceBlock",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:deepslate_emerald_ore",
+      "item_id": 102,
+      "max_stack_size": 64,
+      "state_id": 9574,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:lapis_ore",
+      "block_class": "net.minecraft.world.level.block.DropExperienceBlock",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:lapis_ore",
+      "item_id": 103,
+      "max_stack_size": 64,
+      "state_id": 563,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:deepslate_lapis_ore",
+      "block_class": "net.minecraft.world.level.block.DropExperienceBlock",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:deepslate_lapis_ore",
+      "item_id": 104,
+      "max_stack_size": 64,
+      "state_id": 564,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:diamond_ore",
+      "block_class": "net.minecraft.world.level.block.DropExperienceBlock",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:diamond_ore",
+      "item_id": 105,
+      "max_stack_size": 64,
+      "state_id": 5307,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:deepslate_diamond_ore",
+      "block_class": "net.minecraft.world.level.block.DropExperienceBlock",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:deepslate_diamond_ore",
+      "item_id": 106,
+      "max_stack_size": 64,
+      "state_id": 5308,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:nether_gold_ore",
+      "block_class": "net.minecraft.world.level.block.DropExperienceBlock",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:nether_gold_ore",
+      "item_id": 107,
+      "max_stack_size": 64,
+      "state_id": 135,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:nether_quartz_ore",
+      "block_class": "net.minecraft.world.level.block.DropExperienceBlock",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:nether_quartz_ore",
+      "item_id": 108,
+      "max_stack_size": 64,
+      "state_id": 11312,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:ancient_debris",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:ancient_debris",
+      "item_id": 109,
+      "max_stack_size": 64,
+      "state_id": 21819,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:coal_block",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:coal_block",
+      "item_id": 110,
+      "max_stack_size": 64,
+      "state_id": 12913,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:raw_iron_block",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:raw_iron_block",
+      "item_id": 111,
+      "max_stack_size": 64,
+      "state_id": 32070,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:raw_copper_block",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:raw_copper_block",
+      "item_id": 112,
+      "max_stack_size": 64,
+      "state_id": 32071,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:raw_gold_block",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:raw_gold_block",
+      "item_id": 113,
+      "max_stack_size": 64,
+      "state_id": 32072,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:iron_block",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:iron_block",
+      "item_id": 117,
+      "max_stack_size": 64,
+      "state_id": 2339,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:waxed_copper_block",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:waxed_copper_block",
+      "item_id": 122,
+      "max_stack_size": 64,
+      "state_id": 27786,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:waxed_exposed_copper",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:waxed_exposed_copper",
+      "item_id": 123,
+      "max_stack_size": 64,
+      "state_id": 27787,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:waxed_weathered_copper",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:waxed_weathered_copper",
+      "item_id": 124,
+      "max_stack_size": 64,
+      "state_id": 27788,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:waxed_oxidized_copper",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:waxed_oxidized_copper",
+      "item_id": 125,
+      "max_stack_size": 64,
+      "state_id": 27789,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:gold_block",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:gold_block",
+      "item_id": 126,
+      "max_stack_size": 64,
+      "state_id": 2338,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:diamond_block",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:diamond_block",
+      "item_id": 127,
+      "max_stack_size": 64,
+      "state_id": 5309,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:netherite_block",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:netherite_block",
+      "item_id": 128,
+      "max_stack_size": 64,
+      "state_id": 21818,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:waxed_chiseled_copper",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:waxed_chiseled_copper",
+      "item_id": 133,
+      "max_stack_size": 64,
+      "state_id": 27804,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:waxed_exposed_chiseled_copper",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:waxed_exposed_chiseled_copper",
+      "item_id": 134,
+      "max_stack_size": 64,
+      "state_id": 27805,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:waxed_weathered_chiseled_copper",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:waxed_weathered_chiseled_copper",
+      "item_id": 135,
+      "max_stack_size": 64,
+      "state_id": 27806,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:waxed_oxidized_chiseled_copper",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:waxed_oxidized_chiseled_copper",
+      "item_id": 136,
+      "max_stack_size": 64,
+      "state_id": 27807,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:waxed_cut_copper",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:waxed_cut_copper",
+      "item_id": 141,
+      "max_stack_size": 64,
+      "state_id": 27796,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:waxed_exposed_cut_copper",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:waxed_exposed_cut_copper",
+      "item_id": 142,
+      "max_stack_size": 64,
+      "state_id": 27797,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:waxed_weathered_cut_copper",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:waxed_weathered_cut_copper",
+      "item_id": 143,
+      "max_stack_size": 64,
+      "state_id": 27798,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:waxed_oxidized_cut_copper",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:waxed_oxidized_cut_copper",
+      "item_id": 144,
+      "max_stack_size": 64,
+      "state_id": 27799,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:lapis_block",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:lapis_block",
+      "item_id": 224,
+      "max_stack_size": 64,
+      "state_id": 565,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:sandstone",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:sandstone",
+      "item_id": 225,
+      "max_stack_size": 64,
+      "state_id": 578,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:chiseled_sandstone",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:chiseled_sandstone",
+      "item_id": 226,
+      "max_stack_size": 64,
+      "state_id": 579,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:cut_sandstone",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:cut_sandstone",
+      "item_id": 227,
+      "max_stack_size": 64,
+      "state_id": 580,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:white_wool",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:white_wool",
+      "item_id": 240,
+      "max_stack_size": 64,
+      "state_id": 2293,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:orange_wool",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:orange_wool",
+      "item_id": 241,
+      "max_stack_size": 64,
+      "state_id": 2294,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:magenta_wool",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:magenta_wool",
+      "item_id": 242,
+      "max_stack_size": 64,
+      "state_id": 2295,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:light_blue_wool",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:light_blue_wool",
+      "item_id": 243,
+      "max_stack_size": 64,
+      "state_id": 2296,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:yellow_wool",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:yellow_wool",
+      "item_id": 244,
+      "max_stack_size": 64,
+      "state_id": 2297,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:lime_wool",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:lime_wool",
+      "item_id": 245,
+      "max_stack_size": 64,
+      "state_id": 2298,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:pink_wool",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:pink_wool",
+      "item_id": 246,
+      "max_stack_size": 64,
+      "state_id": 2299,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:gray_wool",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:gray_wool",
+      "item_id": 247,
+      "max_stack_size": 64,
+      "state_id": 2300,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:light_gray_wool",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:light_gray_wool",
+      "item_id": 248,
+      "max_stack_size": 64,
+      "state_id": 2301,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:cyan_wool",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:cyan_wool",
+      "item_id": 249,
+      "max_stack_size": 64,
+      "state_id": 2302,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:purple_wool",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:purple_wool",
+      "item_id": 250,
+      "max_stack_size": 64,
+      "state_id": 2303,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:blue_wool",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:blue_wool",
+      "item_id": 251,
+      "max_stack_size": 64,
+      "state_id": 2304,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:brown_wool",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:brown_wool",
+      "item_id": 252,
+      "max_stack_size": 64,
+      "state_id": 2305,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:green_wool",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:green_wool",
+      "item_id": 253,
+      "max_stack_size": 64,
+      "state_id": 2306,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:red_wool",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:red_wool",
+      "item_id": 254,
+      "max_stack_size": 64,
+      "state_id": 2307,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:black_wool",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:black_wool",
+      "item_id": 255,
+      "max_stack_size": 64,
+      "state_id": 2308,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:smooth_quartz",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:smooth_quartz",
+      "item_id": 328,
+      "max_stack_size": 64,
+      "state_id": 13482,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:smooth_red_sandstone",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:smooth_red_sandstone",
+      "item_id": 329,
+      "max_stack_size": 64,
+      "state_id": 13483,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:smooth_sandstone",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:smooth_sandstone",
+      "item_id": 330,
+      "max_stack_size": 64,
+      "state_id": 13481,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:smooth_stone",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:smooth_stone",
+      "item_id": 331,
+      "max_stack_size": 64,
+      "state_id": 13480,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:bricks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:bricks",
+      "item_id": 332,
+      "max_stack_size": 64,
+      "state_id": 2340,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:bookshelf",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:bookshelf",
+      "item_id": 345,
+      "max_stack_size": 64,
+      "state_id": 2343,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:mossy_cobblestone",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:mossy_cobblestone",
+      "item_id": 348,
+      "max_stack_size": 64,
+      "state_id": 3368,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:obsidian",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:obsidian",
+      "item_id": 349,
+      "max_stack_size": 64,
+      "state_id": 3369,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:purpur_block",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:purpur_block",
+      "item_id": 354,
+      "max_stack_size": 64,
+      "state_id": 14712,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:snow_block",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:snow_block",
+      "item_id": 367,
+      "max_stack_size": 64,
+      "state_id": 6928,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:clay",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:clay",
+      "item_id": 370,
+      "max_stack_size": 64,
+      "state_id": 6946,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:soul_soil",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:soul_soil",
+      "item_id": 389,
+      "max_stack_size": 64,
+      "state_id": 6999,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:smooth_basalt",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:smooth_basalt",
+      "item_id": 392,
+      "max_stack_size": 64,
+      "state_id": 32069,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:glowstone",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:glowstone",
+      "item_id": 395,
+      "max_stack_size": 64,
+      "state_id": 7016,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:stone_bricks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:stone_bricks",
+      "item_id": 403,
+      "max_stack_size": 64,
+      "state_id": 7754,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:mossy_stone_bricks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:mossy_stone_bricks",
+      "item_id": 404,
+      "max_stack_size": 64,
+      "state_id": 7755,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:cracked_stone_bricks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:cracked_stone_bricks",
+      "item_id": 405,
+      "max_stack_size": 64,
+      "state_id": 7756,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:chiseled_stone_bricks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:chiseled_stone_bricks",
+      "item_id": 406,
+      "max_stack_size": 64,
+      "state_id": 7757,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:packed_mud",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:packed_mud",
+      "item_id": 407,
+      "max_stack_size": 64,
+      "state_id": 7758,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:mud_bricks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:mud_bricks",
+      "item_id": 408,
+      "max_stack_size": 64,
+      "state_id": 7759,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:deepslate_bricks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:deepslate_bricks",
+      "item_id": 409,
+      "max_stack_size": 64,
+      "state_id": 31652,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:cracked_deepslate_bricks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:cracked_deepslate_bricks",
+      "item_id": 410,
+      "max_stack_size": 64,
+      "state_id": 32064,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:deepslate_tiles",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:deepslate_tiles",
+      "item_id": 411,
+      "max_stack_size": 64,
+      "state_id": 31241,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:cracked_deepslate_tiles",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:cracked_deepslate_tiles",
+      "item_id": 412,
+      "max_stack_size": 64,
+      "state_id": 32065,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:chiseled_deepslate",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:chiseled_deepslate",
+      "item_id": 413,
+      "max_stack_size": 64,
+      "state_id": 32063,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:reinforced_deepslate",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:reinforced_deepslate",
+      "item_id": 414,
+      "max_stack_size": 64,
+      "state_id": 32085,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:melon",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:melon",
+      "item_id": 437,
+      "max_stack_size": 64,
+      "state_id": 8333,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:resin_block",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:resin_block",
+      "item_id": 441,
+      "max_stack_size": 64,
+      "state_id": 8921,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:resin_bricks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:resin_bricks",
+      "item_id": 442,
+      "max_stack_size": 64,
+      "state_id": 8922,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:chiseled_resin_bricks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:chiseled_resin_bricks",
+      "item_id": 446,
+      "max_stack_size": 64,
+      "state_id": 9333,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:nether_bricks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:nether_bricks",
+      "item_id": 452,
+      "max_stack_size": 64,
+      "state_id": 9334,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:cracked_nether_bricks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:cracked_nether_bricks",
+      "item_id": 453,
+      "max_stack_size": 64,
+      "state_id": 23094,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:chiseled_nether_bricks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:chiseled_nether_bricks",
+      "item_id": 454,
+      "max_stack_size": 64,
+      "state_id": 23093,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:end_stone",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:end_stone",
+      "item_id": 463,
+      "max_stack_size": 64,
+      "state_id": 9477,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:end_stone_bricks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:end_stone_bricks",
+      "item_id": 464,
+      "max_stack_size": 64,
+      "state_id": 14796,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:emerald_block",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:emerald_block",
+      "item_id": 468,
+      "max_stack_size": 64,
+      "state_id": 9727,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:chiseled_quartz_block",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:chiseled_quartz_block",
+      "item_id": 509,
+      "max_stack_size": 64,
+      "state_id": 11324,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:quartz_block",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:quartz_block",
+      "item_id": 510,
+      "max_stack_size": 64,
+      "state_id": 11323,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:quartz_bricks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:quartz_bricks",
+      "item_id": 511,
+      "max_stack_size": 64,
+      "state_id": 23095,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:white_terracotta",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:white_terracotta",
+      "item_id": 514,
+      "max_stack_size": 64,
+      "state_id": 11444,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:orange_terracotta",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:orange_terracotta",
+      "item_id": 515,
+      "max_stack_size": 64,
+      "state_id": 11445,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:magenta_terracotta",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:magenta_terracotta",
+      "item_id": 516,
+      "max_stack_size": 64,
+      "state_id": 11446,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:light_blue_terracotta",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:light_blue_terracotta",
+      "item_id": 517,
+      "max_stack_size": 64,
+      "state_id": 11447,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:yellow_terracotta",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:yellow_terracotta",
+      "item_id": 518,
+      "max_stack_size": 64,
+      "state_id": 11448,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:lime_terracotta",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:lime_terracotta",
+      "item_id": 519,
+      "max_stack_size": 64,
+      "state_id": 11449,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:pink_terracotta",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:pink_terracotta",
+      "item_id": 520,
+      "max_stack_size": 64,
+      "state_id": 11450,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:gray_terracotta",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:gray_terracotta",
+      "item_id": 521,
+      "max_stack_size": 64,
+      "state_id": 11451,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:light_gray_terracotta",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:light_gray_terracotta",
+      "item_id": 522,
+      "max_stack_size": 64,
+      "state_id": 11452,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:cyan_terracotta",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:cyan_terracotta",
+      "item_id": 523,
+      "max_stack_size": 64,
+      "state_id": 11453,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:purple_terracotta",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:purple_terracotta",
+      "item_id": 524,
+      "max_stack_size": 64,
+      "state_id": 11454,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:blue_terracotta",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:blue_terracotta",
+      "item_id": 525,
+      "max_stack_size": 64,
+      "state_id": 11455,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:brown_terracotta",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:brown_terracotta",
+      "item_id": 526,
+      "max_stack_size": 64,
+      "state_id": 11456,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:green_terracotta",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:green_terracotta",
+      "item_id": 527,
+      "max_stack_size": 64,
+      "state_id": 11457,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:red_terracotta",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:red_terracotta",
+      "item_id": 528,
+      "max_stack_size": 64,
+      "state_id": 11458,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:black_terracotta",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:black_terracotta",
+      "item_id": 529,
+      "max_stack_size": 64,
+      "state_id": 11459,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:terracotta",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:terracotta",
+      "item_id": 549,
+      "max_stack_size": 64,
+      "state_id": 12912,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:packed_ice",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:packed_ice",
+      "item_id": 550,
+      "max_stack_size": 64,
+      "state_id": 12914,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:prismarine",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:prismarine",
+      "item_id": 590,
+      "max_stack_size": 64,
+      "state_id": 12631,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:prismarine_bricks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:prismarine_bricks",
+      "item_id": 591,
+      "max_stack_size": 64,
+      "state_id": 12632,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:dark_prismarine",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:dark_prismarine",
+      "item_id": 592,
+      "max_stack_size": 64,
+      "state_id": 12633,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:sea_lantern",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:sea_lantern",
+      "item_id": 596,
+      "max_stack_size": 64,
+      "state_id": 12892,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:red_sandstone",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:red_sandstone",
+      "item_id": 597,
+      "max_stack_size": 64,
+      "state_id": 13247,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:chiseled_red_sandstone",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:chiseled_red_sandstone",
+      "item_id": 598,
+      "max_stack_size": 64,
+      "state_id": 13248,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:cut_red_sandstone",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:cut_red_sandstone",
+      "item_id": 599,
+      "max_stack_size": 64,
+      "state_id": 13249,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:nether_wart_block",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:nether_wart_block",
+      "item_id": 604,
+      "max_stack_size": 64,
+      "state_id": 14846,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:warped_wart_block",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:warped_wart_block",
+      "item_id": 605,
+      "max_stack_size": 64,
+      "state_id": 20959,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:red_nether_bricks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:red_nether_bricks",
+      "item_id": 606,
+      "max_stack_size": 64,
+      "state_id": 14847,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:white_concrete",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:white_concrete",
+      "item_id": 642,
+      "max_stack_size": 64,
+      "state_id": 15030,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:orange_concrete",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:orange_concrete",
+      "item_id": 643,
+      "max_stack_size": 64,
+      "state_id": 15031,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:magenta_concrete",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:magenta_concrete",
+      "item_id": 644,
+      "max_stack_size": 64,
+      "state_id": 15032,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:light_blue_concrete",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:light_blue_concrete",
+      "item_id": 645,
+      "max_stack_size": 64,
+      "state_id": 15033,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:yellow_concrete",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:yellow_concrete",
+      "item_id": 646,
+      "max_stack_size": 64,
+      "state_id": 15034,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:lime_concrete",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:lime_concrete",
+      "item_id": 647,
+      "max_stack_size": 64,
+      "state_id": 15035,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:pink_concrete",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:pink_concrete",
+      "item_id": 648,
+      "max_stack_size": 64,
+      "state_id": 15036,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:gray_concrete",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:gray_concrete",
+      "item_id": 649,
+      "max_stack_size": 64,
+      "state_id": 15037,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:light_gray_concrete",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:light_gray_concrete",
+      "item_id": 650,
+      "max_stack_size": 64,
+      "state_id": 15038,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:cyan_concrete",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:cyan_concrete",
+      "item_id": 651,
+      "max_stack_size": 64,
+      "state_id": 15039,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:purple_concrete",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:purple_concrete",
+      "item_id": 652,
+      "max_stack_size": 64,
+      "state_id": 15040,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:blue_concrete",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:blue_concrete",
+      "item_id": 653,
+      "max_stack_size": 64,
+      "state_id": 15041,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:brown_concrete",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:brown_concrete",
+      "item_id": 654,
+      "max_stack_size": 64,
+      "state_id": 15042,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:green_concrete",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:green_concrete",
+      "item_id": 655,
+      "max_stack_size": 64,
+      "state_id": 15043,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:red_concrete",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:red_concrete",
+      "item_id": 656,
+      "max_stack_size": 64,
+      "state_id": 15044,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:black_concrete",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:black_concrete",
+      "item_id": 657,
+      "max_stack_size": 64,
+      "state_id": 15045,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:dead_tube_coral_block",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:dead_tube_coral_block",
+      "item_id": 677,
+      "max_stack_size": 64,
+      "state_id": 15137,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:dead_brain_coral_block",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:dead_brain_coral_block",
+      "item_id": 678,
+      "max_stack_size": 64,
+      "state_id": 15138,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:dead_bubble_coral_block",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:dead_bubble_coral_block",
+      "item_id": 679,
+      "max_stack_size": 64,
+      "state_id": 15139,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:dead_fire_coral_block",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:dead_fire_coral_block",
+      "item_id": 680,
+      "max_stack_size": 64,
+      "state_id": 15140,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:dead_horn_coral_block",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:dead_horn_coral_block",
+      "item_id": 681,
+      "max_stack_size": 64,
+      "state_id": 15141,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:dried_kelp_block",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:dried_kelp_block",
+      "item_id": 1056,
+      "max_stack_size": 64,
+      "state_id": 15089,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:fletching_table",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:fletching_table",
+      "item_id": 1389,
+      "max_stack_size": 64,
+      "state_id": 20771,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:shroomlight",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:shroomlight",
+      "item_id": 1408,
+      "max_stack_size": 64,
+      "state_id": 20976,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:honeycomb_block",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:honeycomb_block",
+      "item_id": 1413,
+      "max_stack_size": 64,
+      "state_id": 21817,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:lodestone",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:lodestone",
+      "item_id": 1414,
+      "max_stack_size": 64,
+      "state_id": 21830,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:blackstone",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:blackstone",
+      "item_id": 1416,
+      "max_stack_size": 64,
+      "state_id": 21831,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:gilded_blackstone",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:gilded_blackstone",
+      "item_id": 1419,
+      "max_stack_size": 64,
+      "state_id": 22656,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:polished_blackstone",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:polished_blackstone",
+      "item_id": 1420,
+      "max_stack_size": 64,
+      "state_id": 22242,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:chiseled_polished_blackstone",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:chiseled_polished_blackstone",
+      "item_id": 1423,
+      "max_stack_size": 64,
+      "state_id": 22245,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:polished_blackstone_bricks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:polished_blackstone_bricks",
+      "item_id": 1424,
+      "max_stack_size": 64,
+      "state_id": 22243,
+      "stateless": true
+    },
+    {
+      "block": "minecraft:cracked_polished_blackstone_bricks",
+      "block_class": "net.minecraft.world.level.block.Block",
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:cracked_polished_blackstone_bricks",
+      "item_id": 1427,
+      "max_stack_size": 64,
+      "state_id": 22244,
+      "stateless": true
+    }
+  ]
+}

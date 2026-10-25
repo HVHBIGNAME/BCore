@@ -14,6 +14,7 @@ mod effects;
 mod full;
 pub mod graph;
 mod light;
+mod mutation;
 mod objects;
 mod placed;
 pub mod request;
@@ -32,6 +33,7 @@ pub(crate) use effects::sculk_block_entity;
 pub use effects::{FeatureBlockEntity, StructureEntityRequest};
 pub use full::{ChunkAccess, ChunkAccessKind, ChunkRead, LevelChunkSave, LevelChunkState};
 pub use graph::{ChunkPyramid, ChunkStatus};
+pub use mutation::LevelBlockEdit;
 pub use objects::{ReturnedChunk, ReturnedChunkSave, ReturnedChunkView};
 pub use saved::SavedChunkData;
 pub use spawn::{SpawnInputs, SpawnSettings, WorldSpawnInputs};
@@ -58,6 +60,10 @@ pub enum GenerationError {
         detail: String,
     },
     SavedChunkConflict(ChunkPos),
+    BlockEditFailed {
+        pos: bcore_core::BlockPos,
+        detail: String,
+    },
     BlockEntityFailed {
         pos: ChunkPos,
         boundary: &'static str,
@@ -87,6 +93,9 @@ impl std::fmt::Display for GenerationError {
                     f,
                     "saved chunk conflicts with an existing generation claim at {pos:?}"
                 )
+            }
+            Self::BlockEditFailed { pos, detail } => {
+                write!(f, "level block edit at {pos:?}: {detail}")
             }
             Self::BlockEntityFailed {
                 pos,

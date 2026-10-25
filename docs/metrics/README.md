@@ -4,6 +4,16 @@ The README and project site use versioned JSON evidence from this directory.
 Charts are rendered locally with `python scripts/render_readme.py`; `--check`
 verifies that the committed SVGs still match the data.
 
+- `creative-block-gameplay-validation-2026-10-25.json`: **921 passed / 0 failed /
+  4 ignored**, 71 workspace suites and 517 unchanged source inputs. Includes all
+  suite results/log hashes, **37 focused tests**, **6 actual TCP gameplay scenarios**,
+  **25 repeat-matching native codec cases** and **197 stateless block-item bindings**.
+  Tick-owned creative edits, viewer updates, dirty saves and restart are exercised;
+  full physics, menus, survival and light/ticket lifecycle remain open. See the
+  [gameplay report](../creative-block-gameplay-2026-10-25.md).
+- `saved-chunk-admission-validation-2026-10-25.json`: the earlier **903 / 0 / 4**,
+  70-suite canonical saved-data checkpoint, including 13 admission regressions.
+  Imported generation history stays Partial with zero attempts.
 - `storage-cleanup-2026-10-24.json`: **18.76 GiB** of expendable files removed,
   including **33 verified expanded-source copies** and debug incremental cache.
   Original source archives, binaries, captures and logs remain; **2,958 protected

@@ -22,7 +22,12 @@ workspace release tests**, native decoding of **1,179 BCore frames / 127 terrain
 packets**, reconnect/process-session checks and a saved-block edit observed after
 restart. Shared registries and BCC v6 bind numeric IDs to the authenticated target.
 
-[Development status, cleanup and open requirements — 2026-10-24](docs/development-status-2026-10-24.md).
+[Authoritative creative block gameplay](docs/creative-block-gameplay-2026-10-25.md)
+adds tick-owned full-cube break/place, hotbar selection, viewer updates and dirty
+save/restart checks: **921 passing workspace tests**, **6 actual TCP scenarios**,
+**25 native codec cases**. Full physics, menus and survival remain in development.
+
+[Development status, cleanup and open requirements — updated 2026-10-25](docs/development-status-2026-10-24.md).
 
 <p align="center">
   <a href="#generation-accuracy">Accuracy</a> ·

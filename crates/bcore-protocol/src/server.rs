@@ -33,7 +33,7 @@ pub fn run_with_state(listener: TcpListener, server: SharedServer) {
         server.request_shutdown();
         return;
     }
-    let _tick_state = crate::tick::start(SharedServer::clone(&server));
+    let _tick_state = crate::tick::start_owned(SharedServer::clone(&server));
     listener
         .set_nonblocking(true)
         .expect("configure listener as nonblocking");

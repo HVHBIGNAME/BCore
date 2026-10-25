@@ -1,6 +1,7 @@
 #![forbid(unsafe_code)]
 //! BCore protocol implementation for Minecraft Java Edition 26.2 (protocol 776).
 
+pub mod blocks;
 pub mod chat;
 pub mod chunk;
 pub mod chunk_store;

@@ -115,6 +115,8 @@ pub struct ChunkDeliveryState {
     tracked_entities: BTreeMap<(i32, i32), TrackedEntities>,
     retired_chunks: BTreeSet<(i32, i32)>,
     next_teleport_id: i32,
+    pending_teleport: Option<i32>,
+    player_loaded: bool,
 }
 
 /// Tracks a player's position and which chunks the client currently holds.
@@ -142,6 +144,8 @@ pub struct PlayerView {
     chunk_batch_size: usize,
     /// Next teleport id handed to a clientbound `position` packet.
     next_teleport_id: i32,
+    pending_teleport: Option<i32>,
+    player_loaded: bool,
 }
 
 impl PlayerView {
@@ -163,6 +167,8 @@ impl PlayerView {
             view_distance: default_view_distance(),
             chunk_batch_size: usize::MAX,
             next_teleport_id: FIRST_TELEPORT_ID,
+            pending_teleport: None,
+            player_loaded: false,
         }
     }
 
@@ -200,6 +206,32 @@ impl PlayerView {
         self.loaded.iter()
     }
 
+    pub(crate) fn delivery_chunks(&self) -> &BTreeSet<(i32, i32)> {
+        &self.loaded
+    }
+
+    pub(crate) fn interaction_ready(&self) -> bool {
+        self.player_loaded && self.pending_teleport.is_none()
+    }
+
+    pub(crate) fn expect_teleport(&mut self, id: i32) {
+        self.pending_teleport = Some(id);
+    }
+
+    pub(crate) fn confirm_teleport(&mut self, id: i32) {
+        if self.pending_teleport == Some(id) {
+            self.pending_teleport = None;
+        }
+    }
+
+    pub(crate) fn teleport_pending(&self) -> bool {
+        self.pending_teleport.is_some()
+    }
+
+    pub(crate) fn mark_player_loaded(&mut self) {
+        self.player_loaded = true;
+    }
+
     /// Consume this view to hand off its delivery state on the same connection.
     pub fn into_delivery_state(self) -> ChunkDeliveryState {
         ChunkDeliveryState {
@@ -207,6 +239,8 @@ impl PlayerView {
             tracked_entities: self.tracked_entities,
             retired_chunks: self.retired_chunks,
             next_teleport_id: self.next_teleport_id,
+            pending_teleport: self.pending_teleport,
+            player_loaded: self.player_loaded,
         }
     }
 
@@ -227,6 +261,8 @@ impl PlayerView {
             || !self.tracked_entities.is_empty()
             || !self.retired_chunks.is_empty()
             || self.next_teleport_id != FIRST_TELEPORT_ID
+            || self.pending_teleport.is_some()
+            || self.player_loaded
         {
             return Err(state);
         }
@@ -234,6 +270,8 @@ impl PlayerView {
         self.tracked_entities = state.tracked_entities;
         self.retired_chunks = state.retired_chunks;
         self.next_teleport_id = state.next_teleport_id;
+        self.pending_teleport = state.pending_teleport;
+        self.player_loaded = state.player_loaded;
         Ok(())
     }
 
@@ -242,22 +280,38 @@ impl PlayerView {
     /// Malformed/short payloads are ignored rather than dropping the connection:
     /// a bad movement packet should not disconnect a player.
     pub fn apply_movement(&mut self, packet_id: i32, data: &[u8]) -> bool {
+        if self.pending_teleport.is_some()
+            && matches!(packet_id, SB_POSITION | SB_POSITION_LOOK | SB_LOOK)
+        {
+            return true;
+        }
         match packet_id {
             SB_POSITION if data.len() >= 24 => {
-                self.read_xyz(data);
+                if !self.read_xyz(data) {
+                    return true;
+                }
                 self.on_ground = data.get(24).is_some_and(|f| f & 0x01 != 0);
                 true
             }
             SB_POSITION_LOOK if data.len() >= 32 => {
-                self.read_xyz(data);
-                self.yaw = read_f32(data, 24);
-                self.pitch = read_f32(data, 28);
+                let yaw = read_f32(data, 24);
+                let pitch = read_f32(data, 28);
+                if !yaw.is_finite() || !pitch.is_finite() || !self.read_xyz(data) {
+                    return true;
+                }
+                self.yaw = yaw;
+                self.pitch = pitch;
                 self.on_ground = data.get(32).is_some_and(|f| f & 0x01 != 0);
                 true
             }
             SB_LOOK if data.len() >= 8 => {
-                self.yaw = read_f32(data, 0);
-                self.pitch = read_f32(data, 4);
+                let yaw = read_f32(data, 0);
+                let pitch = read_f32(data, 4);
+                if !yaw.is_finite() || !pitch.is_finite() {
+                    return true;
+                }
+                self.yaw = yaw;
+                self.pitch = pitch;
                 self.on_ground = data.get(8).is_some_and(|f| f & 0x01 != 0);
                 true
             }
@@ -266,10 +320,21 @@ impl PlayerView {
         }
     }
 
-    fn read_xyz(&mut self, data: &[u8]) {
-        self.x = read_f64(data, 0);
-        self.y = read_f64(data, 8);
-        self.z = read_f64(data, 16);
+    fn read_xyz(&mut self, data: &[u8]) -> bool {
+        let x = read_f64(data, 0);
+        let y = read_f64(data, 8);
+        let z = read_f64(data, 16);
+        if ![x, y, z].into_iter().all(f64::is_finite)
+            || x.abs() > 30_000_000.0
+            || z.abs() > 30_000_000.0
+            || y.abs() > 20_000_000.0
+        {
+            return false;
+        }
+        self.x = x;
+        self.y = y;
+        self.z = z;
+        true
     }
 
     /// Chunks inside the view distance that the client does not have yet.
@@ -312,6 +377,7 @@ impl PlayerView {
         self.retired_chunks.append(&mut self.loaded);
         let teleport_id = self.next_teleport_id;
         self.next_teleport_id = self.next_teleport_id.wrapping_add(1).max(1);
+        self.expect_teleport(teleport_id);
 
         let mut data = Vec::with_capacity(61);
         encode_varint(teleport_id, &mut data);
@@ -344,6 +410,15 @@ impl PlayerView {
         &mut self,
         out: &mut W,
         world: &World,
+    ) -> Result<usize, PacketError> {
+        self.stream_chunks_from_with(out, world, |_, _| {})
+    }
+
+    pub(crate) fn stream_chunks_from_with<W: Write>(
+        &mut self,
+        out: &mut W,
+        world: &World,
+        mut publish_delivery: impl FnMut(&Self, &BTreeSet<(i32, i32)>),
     ) -> Result<usize, PacketError> {
         let missing = self.missing_chunks();
         let stale = self.stale_chunks();
@@ -379,6 +454,7 @@ impl PlayerView {
             // thousands of obsolete chunks when the player teleports again.
             world.request_payloads(missing.iter().take(8).copied());
         }
+        let publication = world.read_publication();
         let batch: Vec<((i32, i32), CachedChunk)> = missing
             .iter()
             .take(self.chunk_batch_size)
@@ -407,6 +483,17 @@ impl PlayerView {
             }
         }
 
+        let mut delivery = self.loaded.clone();
+        for pos in self.retired_chunks.iter().chain(&stale) {
+            delivery.remove(pos);
+        }
+        for (pos, _) in &batch {
+            delivery.insert(*pos);
+        }
+        // Subscribe before releasing the snapshot lock. Later edits queue behind
+        // these terrain bytes even if the socket is still sending its first batch.
+        publish_delivery(self, &delivery);
+        drop(publication);
         out.write_all(&buf)?;
         for pos in self.retired_chunks.iter().chain(&stale) {
             self.loaded.remove(pos);

@@ -35,7 +35,6 @@ use crate::world::{
     PlayerView, CB_CHUNK_BATCH_FINISHED, CB_CHUNK_BATCH_START, CB_MAP_CHUNK, CB_PING_RESPONSE,
     SB_CHUNK_BATCH_RECEIVED, SB_PING_REQUEST,
 };
-use crate::world_state::World;
 
 pub const LOGIN_SUCCESS_ID: i32 = 0x02;
 pub const LOGIN_ACKNOWLEDGED_ID: i32 = 0x03;
@@ -199,7 +198,7 @@ pub fn run_login_and_join(
     let handle = server.join(&name, uuid);
     let result = send_join_state(stream, &view, server, &handle).and_then(|_| {
         announce_join(server, &handle);
-        stream_initial_chunks(stream, &mut view, server.world())?;
+        stream_initial_chunks(stream, &mut view, server, &handle)?;
         play_loop(stream, &mut view, server, &handle)
     });
     server.leave(handle.id);
@@ -384,6 +383,8 @@ fn play_replay(
                 view = PlayerView::new(spawn.0, spawn.1, spawn.2)
                     .with_view_distance(server.view_distance());
             }
+            let mut cursor = Cursor::new(data.as_slice());
+            view.expect_teleport(read_varint(&mut cursor)?);
             // Don't block on the teleport confirm here: the chunks must reach the
             // client immediately, and the confirm is handled later in play_loop.
         }
@@ -409,8 +410,10 @@ fn parse_spawn_position(data: &[u8]) -> Option<(f64, f64, f64)> {
 fn stream_initial_chunks(
     stream: &mut TcpStream,
     view: &mut PlayerView,
-    world: &World,
+    server: &SharedServer,
+    handle: &PlayerHandle,
 ) -> Result<(), PacketError> {
+    let world = server.world();
     // Spawn on the nearest solid land near the live spawn (the captured
     // `position` packet pins a fixed spawn that may sit in the water).
     let (x, y, z) = world
@@ -418,13 +421,14 @@ fn stream_initial_chunks(
         .map_err(|error| PacketError::Io(std::io::Error::other(error)))?;
     if (y - view.y).abs() > 0.5 || (x - view.x).abs() > 0.5 || (z - view.z).abs() > 0.5 {
         let frame = view.teleport(x, y, z);
+        handle.update_view(view, Some(view.delivery_chunks()));
         stream.write_all(&frame)?;
         view.spawn = (x, y, z);
     }
 
     // Stream the remaining view through subsequent bounded batches.
     view.set_chunk_batch_size(4);
-    let sent = stream_world_chunks(stream, view, world)?;
+    let sent = stream_world_chunks(stream, view, server, handle)?;
     let (cx, cz) = view.chunk();
     println!(
         "[BCore] streamed {sent} chunks around ({cx}, {cz}); spawn y={:.1} (seed {})",
@@ -437,14 +441,18 @@ fn stream_initial_chunks(
 fn stream_world_chunks(
     stream: &mut TcpStream,
     view: &mut PlayerView,
-    world: &World,
+    server: &SharedServer,
+    handle: &PlayerHandle,
 ) -> Result<usize, PacketError> {
+    let world = server.world();
     for (x, z) in view.missing_chunks().into_iter().take(8) {
         if let Some(error) = world.payload_error(x, z) {
             return Err(std::io::Error::other(error).into());
         }
     }
-    view.stream_chunks_from(stream, world)
+    view.stream_chunks_from_with(stream, world, |view, delivered| {
+        handle.update_view(view, Some(delivered))
+    })
 }
 
 /// Play loop: track movement, stream chunks, handle chat/commands, keep alive.
@@ -465,6 +473,7 @@ fn play_loop(
     let mut keepalive_id: i64 = 0;
     let mut last_chunk = view.chunk();
     view.set_chunk_batch_size(8);
+    handle.update_view(view, None);
 
     loop {
         if handle.is_kicked() || server.is_shutting_down() {
@@ -490,11 +499,25 @@ fn play_loop(
 
         match read_frame(stream) {
             Ok((pid, data)) => {
-                if view.apply_movement(pid, &data) {
+                if pid == PLAY_TELEPORT_CONFIRM_ID {
+                    let mut cursor = Cursor::new(data.as_slice());
+                    let id = read_varint(&mut cursor)?;
+                    if cursor.position() != data.len() as u64 {
+                        return Err(PacketError::Malformed("trailing teleport confirmation"));
+                    }
+                    view.confirm_teleport(id);
+                } else if pid == crate::world::SB_PLAYER_LOADED {
+                    if !data.is_empty() {
+                        return Err(PacketError::Malformed(
+                            "player-loaded payload must be empty",
+                        ));
+                    }
+                    view.mark_player_loaded();
+                } else if view.apply_movement(pid, &data) {
                     let current = view.chunk();
                     if current != last_chunk {
                         last_chunk = current;
-                        stream_world_chunks(stream, view, server.world())?;
+                        stream_world_chunks(stream, view, server, handle)?;
                     }
                 } else if let Some(input) = parse_chat_input(pid, &data) {
                     handle_chat_input(stream, view, server, handle, input)?;
@@ -515,6 +538,8 @@ fn play_loop(
                         }
                         server.broadcast_except(handle.id, player_info);
                     }
+                } else if let Some(packet) = crate::blocks::packets::parse(pid, &data)? {
+                    server.blocks.submit(server, handle, packet)?;
                 } else if pid == SB_PING_REQUEST {
                     // ping_request expects a ping_response echo.
                     let mut out = Vec::new();
@@ -529,6 +554,7 @@ fn play_loop(
                         view.set_chunk_batch_size(desired.floor() as usize);
                     }
                 }
+                handle.update_view(view, None);
                 // Client keep-alive (0x1c), pong (0x2d), player_loaded (0x2c),
                 // message_acknowledgement (0x06) and chat_session_update (0x0a)
                 // need no reply.
@@ -544,8 +570,8 @@ fn play_loop(
         // Continue a large teleport/movement stream on each tick. Client-side
         // chunk-batch acknowledgements may lower the per-batch flow-control
         // value, but all chunks in the configured view remain pending here.
-        if view.has_pending_chunks() {
-            stream_world_chunks(stream, view, server.world())?;
+        if view.has_pending_chunks() && !view.teleport_pending() {
+            stream_world_chunks(stream, view, server, handle)?;
         }
 
         // Deliver anything other players queued for us.
@@ -650,6 +676,7 @@ fn apply_effect(
     match effect {
         Effect::SetGameMode(mode) => {
             view.game_mode = *mode;
+            handle.update_view(view, None);
             let packets = encode_gamemode_switch(&handle.uuid, *mode);
             let player_info = &packets[1];
             for packet in &packets {
@@ -660,27 +687,10 @@ fn apply_effect(
         }
         Effect::Teleport { x, y, z } => {
             let packet = view.teleport(*x, *y, *z);
+            handle.update_view(view, Some(view.delivery_chunks()));
             stream.write_all(&packet)?;
-            // Wait for the client's teleport confirmation before streaming the
-            // new view, so the chunks land after the client has actually moved.
-            // Give up after ~5s (50ms read timeout * 100) rather than hanging.
-            for _ in 0..100 {
-                match read_frame(stream) {
-                    Ok((cpid, cdata)) => {
-                        if cpid == PLAY_TELEPORT_CONFIRM_ID {
-                            break;
-                        }
-                        view.apply_movement(cpid, &cdata);
-                    }
-                    Err(PacketError::Io(e))
-                        if matches!(
-                            e.kind(),
-                            std::io::ErrorKind::WouldBlock | std::io::ErrorKind::TimedOut
-                        ) => {}
-                    Err(_) => return Ok(()), // peer closed; nothing more to do
-                }
-            }
-            stream_world_chunks(stream, view, server.world())?;
+            // The main play loop owns confirmation and defers the new terrain
+            // batch without dropping actions or other frames while it waits.
             Ok(())
         }
         Effect::SetDayTime(ticks) => {

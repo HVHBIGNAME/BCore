@@ -27,16 +27,71 @@ impl TickState {
 
 /// Start the server's 20 TPS loop. The returned counters remain valid thereafter.
 pub fn start(server: SharedServer) -> Arc<TickState> {
-    let state = Arc::new(TickState::default());
-    let counters = Arc::clone(&state);
-    thread::Builder::new()
-        .name("bcore-tick".into())
-        .spawn(move || run(server, counters))
-        .expect("spawn tick thread");
+    let (state, _worker) = spawn(server);
     state
 }
 
+/// Owned server worker: shutdown joins final dirty saves instead of detaching them.
+pub struct TickWorker {
+    server: SharedServer,
+    state: Arc<TickState>,
+    worker: Option<thread::JoinHandle<()>>,
+}
+
+impl TickWorker {
+    pub fn state(&self) -> &Arc<TickState> {
+        &self.state
+    }
+}
+
+impl Drop for TickWorker {
+    fn drop(&mut self) {
+        self.server.request_shutdown();
+        if let Some(worker) = self.worker.take() {
+            if worker.join().is_err() {
+                eprintln!("[bcore] tick worker panicked during shutdown");
+            }
+        }
+    }
+}
+
+pub(crate) fn start_owned(server: SharedServer) -> TickWorker {
+    let (state, worker) = spawn(Arc::clone(&server));
+    TickWorker {
+        server,
+        state,
+        worker: Some(worker),
+    }
+}
+
+fn spawn(server: SharedServer) -> (Arc<TickState>, thread::JoinHandle<()>) {
+    let state = Arc::new(TickState::default());
+    let counters = Arc::clone(&state);
+    let worker = thread::Builder::new()
+        .name("bcore-tick".into())
+        .spawn(move || run(server, counters))
+        .expect("spawn tick thread");
+    (state, worker)
+}
+
+struct TickExit<'a>(&'a crate::shared::ServerState);
+
+impl Drop for TickExit<'_> {
+    fn drop(&mut self) {
+        self.0.request_shutdown();
+        self.0.blocks.cancel_pending();
+    }
+}
+
 fn run(server: SharedServer, state: Arc<TickState>) {
+    let _exit = TickExit(&server);
+    let mut blocks = match crate::blocks::BlockOwner::new(&server) {
+        Ok(owner) => owner,
+        Err(error) => {
+            eprintln!("[bcore] gameplay owner admission failed: {error}");
+            return;
+        }
+    };
     let started = Instant::now();
     let mut next_tick = started + TICK_INTERVAL;
     let mut last_report = started;
@@ -56,6 +111,10 @@ fn run(server: SharedServer, state: Arc<TickState>) {
             Ordering::Relaxed,
         );
         server.tick_clock();
+        if let Err(error) = blocks.tick(&server) {
+            eprintln!("[bcore] gameplay dirty save failed: {error}");
+            break;
+        }
         next_tick += TICK_INTERVAL;
         if next_tick < Instant::now() {
             next_tick = Instant::now() + TICK_INTERVAL;
@@ -67,6 +126,9 @@ fn run(server: SharedServer, state: Arc<TickState>) {
             ticks_since_report = 0;
             last_report = Instant::now();
         }
+    }
+    if let Err(error) = blocks.finish(&server) {
+        eprintln!("[bcore] final gameplay dirty save failed: {error}");
     }
 }
 

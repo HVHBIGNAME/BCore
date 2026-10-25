@@ -25,9 +25,12 @@
 //! Persistence errors stop admission/loading. An unreadable or incompatible
 //! saved chunk is never treated as an absent chunk.
 
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap, HashSet};
 use std::sync::{mpsc, Arc, Mutex, OnceLock, RwLock};
 use std::thread;
+
+mod mutation;
+pub(crate) use mutation::WorldMutationOwner;
 
 const PAYLOAD_SHARDS: usize = 32;
 const MAX_CACHED_PAYLOADS: usize = 8192;
@@ -136,6 +139,7 @@ pub enum WorldError {
     Generation(GenerationError),
     Native(NativeRequestError),
     Store(Arc<ChunkStoreError>),
+    Mutation(&'static str),
 }
 
 impl std::fmt::Display for WorldError {
@@ -144,6 +148,7 @@ impl std::fmt::Display for WorldError {
             Self::Generation(error) => write!(f, "{error}"),
             Self::Native(error) => write!(f, "{error}"),
             Self::Store(error) => write!(f, "{error}"),
+            Self::Mutation(reason) => write!(f, "world mutation: {reason}"),
         }
     }
 }
@@ -154,6 +159,7 @@ impl std::error::Error for WorldError {
             Self::Generation(error) => Some(error),
             Self::Native(error) => Some(error),
             Self::Store(error) => Some(error.as_ref()),
+            Self::Mutation(_) => None,
         }
     }
 }
@@ -196,6 +202,10 @@ struct WorldInner {
     store: Option<ChunkStore>,
     /// Encoded `map_chunk` payloads, keyed by chunk position.
     payloads: [PayloadShard; PAYLOAD_SHARDS],
+    /// Serialize canonical block edits with payload snapshot/subscription publication.
+    publication: RwLock<()>,
+    mutation_owner: Mutex<Option<thread::ThreadId>>,
+    dirty_chunks: Mutex<BTreeSet<ChunkPos>>,
     /// Coalesce concurrent cache misses before loading/generating the same chunk.
     generation_locks: [Mutex<()>; PAYLOAD_SHARDS],
     in_flight: Mutex<HashSet<(i32, i32)>>,
@@ -244,6 +254,9 @@ impl World {
                 native_requests: OnceLock::new(),
                 store,
                 payloads: std::array::from_fn(|_| RwLock::new(HashMap::new())),
+                publication: RwLock::new(()),
+                mutation_owner: Mutex::new(None),
+                dirty_chunks: Mutex::new(BTreeSet::new()),
                 generation_locks: std::array::from_fn(|_| Mutex::new(())),
                 in_flight: Mutex::new(HashSet::new()),
                 payload_errors: Mutex::new(HashMap::new()),
@@ -344,6 +357,7 @@ impl World {
             .lock()
             .expect("chunk generation lock");
         if let Some(store) = &self.inner.store {
+            let _publication = self.read_publication();
             if let Some(column) = store.load(x, z)? {
                 if self
                     .inner
@@ -366,6 +380,7 @@ impl World {
 
         self.hydrate_saved_neighbors(pos)?;
         let result = self.generate_retained(x, z)?;
+        let _publication = self.read_publication();
         let column = if self.inner.store.is_some() {
             // Generation queues are still pending; no world clock has unpacked them.
             self.prepare_generated_chunk_save(x, z, 0)?
@@ -553,7 +568,20 @@ impl World {
             return Ok(hit.payload.as_ref().clone());
         }
         match self.try_chunk(x, z) {
-            Ok((column, _origin)) => Ok(self.cache_column(x, z, &column).payload.as_ref().clone()),
+            Ok(_) => {
+                let _publication = self.read_publication();
+                if let Some(hit) = self.cached_chunk(x, z) {
+                    return Ok(hit.payload.as_ref().clone());
+                }
+                // An edit may have completed after load/generation but before encoding.
+                let latest = self
+                    .inner
+                    .generation
+                    .chunk_snapshot(ChunkPos::new(x, z))?
+                    .expect("loaded canonical column");
+                let column = ChunkColumn::from_generated(&latest);
+                Ok(self.cache_column(x, z, &column).payload.as_ref().clone())
+            }
             Err(error) => {
                 self.inner
                     .payload_errors
