@@ -27,7 +27,14 @@ adds tick-owned full-cube break/place, hotbar selection, viewer updates and dirt
 save/restart checks: **921 passing workspace tests**, **6 actual TCP scenarios**,
 **25 native codec cases**. Full physics, menus and survival remain in development.
 
-[Development status, cleanup and open requirements — updated 2026-10-25](docs/development-status-2026-10-24.md).
+[Axis-only creative gameplay](docs/creative-pillar-gameplay-2026-10-26.md) extends
+that slice with **56 pillar items / 168 states**, selected X/Y/Z placement and
+instant creative break. **336 repeat-matching native placement/codec cases** and
+**43 focused tests**, including three new TCP scenarios, verify current viewers,
+negative/chunk-border coordinates, canonical reads, dirty saving and restart.
+The fresh workspace checkpoint is **927 passed / 0 failed / 4 ignored**, 72 suites.
+
+[Development status, cleanup and open requirements — updated 2026-10-26](docs/development-status-2026-10-24.md).
 
 <p align="center">
   <a href="#generation-accuracy">Accuracy</a> ·
@@ -105,6 +112,12 @@ The [fresh CPU profile](docs/performance-profile-26.2-2026-10-24.md) collected
 and noise/density evaluation as current optimization targets; sampled diagnostic
 timings are excluded from these throughput numbers.
 
+The [October 26 cache experiments](docs/performance-experiments-26.2-2026-10-26.md)
+retain **126 matching process records** and two alternating frozen confirmations
+per candidate. Both lookup/storage variants were rejected after mixed or
+regressing results; production source bytes were restored. The Java performance
+goal remains open.
+
 ### Historical 26.1 optimization series
 
 The separate [October 21 run](docs/metrics/noise-fill-wg-v2-final-2026-10-21.json)
@@ -136,6 +149,7 @@ and timings; they contribute no production speedup.
 | Shared cross-chunk generation; native light storage and updates | Ticket-driven FULL conversion, remaining terrain families and broader seed samples | Worldgen-heightmap retirement, saved-holder hydration, Nether/End |
 | Fossils; villages, ancient cities, trail/trial jigsaws; treasure, huts, jungle, desert pyramids and **desert wells** | Preserve real native behavior across combined request histories | Remaining structure families, persistent generation graph |
 | Shared 26.2 registries; BCC v6 admission; world-local clocks; native-decoded reconnect/restart; matched 26.2 NOISE baseline and fresh CPU profile | FULL boundaries and source-owned runtime effects | Isolated interpolation/noise optimization with exact-output and paired-run gates |
+| Tick-owned creative stateless and axis-only full-cube gameplay; native codecs; viewer/canonical/save/restart tests | Remaining stateful blocks, neighbour callbacks and player/inventory boundaries | Physics, survival, menus and incremental runtime saving |
 
 Project updates and evidence are published together in the
 [tracker](https://HVHBIGNAME.github.io/BCore/), [parity report](docs/parity-report.md)

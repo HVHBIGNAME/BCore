@@ -1,4 +1,4 @@
-# Статус разработки — обновлено 25 октября 2026
+# Статус разработки — обновлено 26 октября 2026
 
 Цель проекта: все механики **Minecraft Java 26.2 / protocol 776 / data version
 4903**, с проверкой поведения против закреплённого оригинального сервера.
@@ -19,6 +19,12 @@
   включая **6 TCP gameplay scenarios**: selected hotbar, second viewer, canonical
   edit, dirty save, restart, rejection и first-delivery race. Native wire authority:
   **25 cases / 197 stateless bindings**. [Отчёт gameplay](creative-block-gameplay-2026-10-25.md).
+- Axis-only creative placement/break: **927 passed / 0 failed / 4 ignored**,
+  **72 suites / 526 unchanged source inputs**. **43 focused tests**, включая
+  **3 новых TCP scenarios**; native authority — **336 repeat-matching cases / 56
+  items / 168 states**. Вместе поддержаны **253 full-cube items / 365 states**.
+  Все шесть faces, pillar supports, X/Y/Z break, viewers, chunk border и restart
+  проверены. [Отчёт pillar](creative-pillar-gameplay-2026-10-26.md).
 - Нативные codecs декодировали **1179 пакетов**, включая **127 terrain packets**,
   в трёх сессиях BCore; сохранённое изменение блока наблюдалось после restart.
 - Новый NOISE baseline: совпали blocks, ordered marks и обе WG maps во всех
@@ -30,6 +36,11 @@
   processes** и два alternating frozen confirmations. На 4 workers ratio
   **0,999032× / 0,992884×**: кандидат отклонён, production sources восстановлены
   побайтно; Java goal открыт. [Отчёт](performance-experiments-26.2-2026-10-25.md).
+- Два seeded-cache experiments прошли по **21 bit/order/native tests** и
+  **126 matching processes / 1260 warmup / 1260 measured batches**. Hit-return
+  регрессирует на 4 workers в обеих frozen confirmations; dense index даёт смешанные
+  1/2-worker results. Оба отклонены, все **510 baseline inputs** восстановлены
+  побайтно. [Отчёт](performance-experiments-26.2-2026-10-26.md).
 - Очистка: удалены **18,76 GiB** логических файлов — debug incremental cache,
   **33** побайтно проверенные распакованные копии архивов и **27** временных
   каталогов завершённых тестов. Свободное место: **115,64 → 132,85 GiB**.
@@ -48,10 +59,10 @@
 |---|---|
 | Полный Overworld и ticket-driven FULL | Partial; нужны сохранение/восстановление canonical holders и полные межчанковые истории |
 | Saved-column admission | Выполнен data-admission slice: canonical Level/Imposter data, futures/cache, saved neighbours, stored light и restart проверены; generation history/registration остаются Partial |
-| Ломка/установка блоков | Creative stateless full-cube slice выполнен: tick-owner mutation, ack/correction/viewers, dirty save и restart; stateful blocks/neighbour callbacks/survival остаются открытыми |
-| Физика и инвентарь | Standing overlap и creative unpatched hotbar 0..8 проверены; полные poses/collision/gravity, menus/click transactions и persisted playerdata открыты |
+| Ломка/установка блоков | Creative stateless + axis-only full-cube slices выполнены: 253 items, tick-owner mutation, ack/correction/viewers, dirty save и restart; прочие stateful blocks/neighbour callbacks/survival открыты |
+| Физика и инвентарь | Standing overlap и creative unpatched hotbar 0..8 для 253 full-cube items проверены; полные poses/collision/gravity, menus/click transactions и persisted playerdata открыты |
 | Игрок, mobs, redstone и жидкости | Открыты соответствующие фазы дорожной карты |
-| Скорость относительно Java | Цель открыта: Java быстрее на 1 и 4 workers; кандидат принимается только после exact-output gate и повторных парных замеров |
+| Скорость относительно Java | Цель открыта: два seeded-cache candidates отклонены; нужны repeatable all-budget gains и matched Java checks, а для скорости сервера в целом — отдельный общий runtime workload |
 | GUI-клиент и online auth | Не проверены/не реализованы полностью |
 
 ## Проверки публикации

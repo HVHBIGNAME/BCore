@@ -69,7 +69,7 @@ impl BlockOwner {
         else {
             return Ok(());
         };
-        let Some(after) = bindings::block_item(stack.item, stack.count) else {
+        let Some(after) = bindings::placement_state(stack.item, stack.count, hit.face) else {
             return Ok(());
         };
         let Some(before) = server.world().loaded_block(pos)? else {

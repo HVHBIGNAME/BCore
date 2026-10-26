@@ -81,3 +81,6 @@ fn in_world(pos: BlockPos) -> bool {
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod pillar_tests;

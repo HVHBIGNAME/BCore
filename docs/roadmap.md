@@ -1,16 +1,20 @@
 # BCore — дорожная карта переноса ванильных механик на натив
 
-> Обновление 2026-10-24: текущая цель — **26.2 / протокол 776 / data version 4903**.
+> Обновление 2026-10-26: текущая цель — **26.2 / протокол 776 / data version 4903**.
 > Закреплены общие registry IDs и BCC v6 с проверкой версии, сида и fingerprint.
-> Workspace checkpoint: **886 passed / 0 failed / 4 ignored**; нативные codecs 26.2
-> декодировали **1179 пакетов / 127 terrain packets** в трёх сессиях финального BCore.
-> Проверены reconnect UUID, чистые `/stop` и сохранённое изменение блока после restart.
-> World-local часы подключены. FULL, игровая физика, инвентари и online auth остаются
-> неполными. Новый NOISE baseline проверен на настоящем JAR 26.2: **47,79 / 83,98 /
-> 156,81 чанка/с BCore** против **49,77 / 74,03 / 215,35 Java** при 1/2/4 workers.
-> Все 18 процессов совпали по blocks/marks/WG maps. Свежий профиль собрал **4002 leaf
-> samples**; дальше — изолированная проверка interpolation/noise оптимизаций;
-> показатели 26.1 ниже остаются историческими. [Проверки и запуск](migration-26.2.md).
+> Workspace checkpoint: **927 passed / 0 failed / 4 ignored**, 72 suites.
+> Creative stateless + axis-only full-cube gameplay: **253 items / 365 states**,
+> tick-owner edits, current viewers, dirty save/restart. Новый pillar oracle:
+> **336 cases / 56 items / 168 states**; **43 focused tests / 3 новых TCP scenarios**.
+> Native migration codecs ранее декодировали **1179 пакетов / 127 terrain packets**;
+> historical checkpoints 886/903/921 сохраняют свои identities.
+> FULL, физика, menus/playerdata, survival и online auth остаются неполными.
+> NOISE baseline — **47,79 / 83,98 / 156,81 BCore** против **49,77 / 74,03 / 215,35 Java**
+> при 1/2/4 workers; profile — **4002 leaf samples**. Два seeded-cache experiments
+> отклонены после **126 matching processes** и повторных frozen confirmations;
+> production inputs восстановлены, общего Java superiority не установлено.
+> [Последний статус](development-status-2026-10-24.md) · [Gameplay](creative-pillar-gameplay-2026-10-26.md)
+> · [Performance](performance-experiments-26.2-2026-10-26.md) · [Запуск](migration-26.2.md).
 
 > Обновление 2026-10-10: разработка и эталоны остаются на **26.1 / протоколе 775**.
 > Три параллельных направления исправили фоссилии, пустынные пирамиды и ленивую
@@ -58,11 +62,13 @@
 
 Готово: net+login+join, чат, команды (ванильный набор, селекторы, scoreboard, RU),
 общий стадийный worldgen до SPAWN с явным неполным покрытием, сохранение чанков и
-генерируемых эффектов, view distance 20, TPS 20, stdin-консоль, спектатор, F3+F4,
+генерируемых эффектов, creative stateless/axis-only full-cube break/place и hotbar,
+view distance 20, TPS 20, stdin-консоль, спектатор, F3+F4,
 бан-система, стриминг вагонеток, native plugin API + JVM-мост (M1).
 
 Не готово (по приоритету): полный мир 1в1, FULL/ticket lifecycle, полный набор настроек SPAWN и сохранение графа,
-физика/коллизии, блоки, инвентарь, голод/эффекты/зелья, mob AI, игровая логика
+физика/коллизии/poses, прочие stateful blocks/neighbour callbacks/survival,
+menus/inventory transactions/playerdata, голод/эффекты/зелья, mob AI, игровая логика
 блок-энтити, редстоун и жидкости. Нативные RNG уже реализованы и проверяются.
 
 ## Архитектурные принципы (заимствованы у SteelMC, адаптированы)

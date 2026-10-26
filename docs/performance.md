@@ -57,6 +57,18 @@ and the original source bytes restored. The complete-server/Java goal remains op
 [Measurements and limitations](performance-experiments-26.2-2026-10-25.md) ·
 [Versioned evidence](metrics/noise-axis-delta-rejected-26_2-2026-10-25.json).
 
+### Seeded-cache candidates — 2026-10-26
+
+An isolated hit-return lookup and a compact name-index/dense-resource cache each
+passed **21 bit/order/native tests**. Across **126 matching processes**, two
+alternating confirmations per candidate found no repeated all-budget gain:
+hit-return regressed at four workers (**0.953915× / 0.987303×**); dense index had
+mixed one/two-worker results despite small four-worker gains. Both prototypes
+were rejected; all **510 baseline source inputs** were restored byte-exactly.
+
+[Complete measurements and controls](performance-experiments-26.2-2026-10-26.md) ·
+[126 process medians, frozen identities and restoration proofs](metrics/noise-cache-experiments-26_2-2026-10-26.json).
+
 ## Historical 26.1 results — 2026-10-21, contract `noise-fill-wg-v2`
 
 ![Historical 26.1 NOISE throughput](../site/assets/performance.svg)

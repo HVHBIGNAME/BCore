@@ -161,7 +161,7 @@
       section.innerHTML += `<a class="chart-link" href="${escapeHtml(m.benchmark_data)}"><img class="chart" src="assets/performance-26_2.svg" alt="Current 26.2 NOISE baseline: BCore 47.79 / 83.98 / 156.81 chunks per second; Vanilla 49.77 / 74.03 / 215.35 at one, two and four workers. Kernel scope only." width="1000" height="598" loading="lazy" /></a>`;
       if (m.latest_experiment_report) {
         section.innerHTML += `<p class="caveat">${escapeHtml(m.latest_experiment_note)}</p>` +
-          `<p><a href="${escapeHtml(m.latest_experiment_report)}">Latest rejected experiment</a> · <a href="${escapeHtml(m.latest_experiment_data)}">Frozen comparisons and source identities</a></p>`;
+          `<p><a href="${escapeHtml(m.latest_experiment_report)}">Latest NOISE experiments</a> · <a href="${escapeHtml(m.latest_experiment_data)}">Frozen comparisons and source identities</a></p>`;
       }
       container.appendChild(section);
     }
@@ -191,6 +191,20 @@
         `<p><a href="${escapeHtml(g.report)}">Gameplay and remaining boundaries</a> · <a href="${escapeHtml(g.data)}">Source-bound tests and native identities</a></p>`;
       container.appendChild(section);
     }
+    if (data.pillars) {
+      const p = data.pillars;
+      const section = document.createElement('section');
+      section.className = 'category parity';
+      section.innerHTML = `<h2>Axis-only creative block gameplay</h2>` +
+        `<div class="checkpoint-grid">` +
+        `<div class="checkpoint-stat"><strong>${p.tests_passed}</strong><span>release tests · ${p.tests_failed} failed · ${p.tests_ignored} ignored</span></div>` +
+        `<div class="checkpoint-stat"><strong>${p.socket_tests}</strong><span>new TCP scenarios · ${p.focused_tests} focused tests</span></div>` +
+        `<div class="checkpoint-stat"><strong>${p.native_codec_cases}</strong><span>native cases · ${p.item_bindings} items · ${p.states} axis states</span></div></div>` +
+        `<p>${p.total_full_cube_items} full-cube items supported with the earlier stateless slice. ${p.suite_count} workspace suites / ${p.source_files} source inputs unchanged.</p>` +
+        `<p class="caveat">${escapeHtml(p.scope)}</p>` +
+        `<p><a href="${escapeHtml(p.report)}">Pillar gameplay and boundaries</a> · <a href="${escapeHtml(p.data)}">Native and runtime evidence</a> · <a href="${escapeHtml(p.issue)}">Pillar acceptance</a></p>`;
+      container.appendChild(section);
+    }
     if (data.maintenance) {
       const m = data.maintenance;
       const section = document.createElement('section');
@@ -203,6 +217,9 @@
         `<p>Native fixture bytes survive Git checkout unchanged. Frozen binaries, raw measurements and user world data are retained.</p>` +
         `<p><a href="${escapeHtml(m.status_report)}">Latest work log</a> · <a href="${escapeHtml(m.cleanup_data)}">Cleanup evidence</a> · <a href="${escapeHtml(m.roadmap)}">Complete roadmap and requirements</a></p>` +
         `<p><a href="${escapeHtml(m.requirements_issue)}">Requirements progress</a> · <a href="${escapeHtml(m.saved_admission_issue)}">Saved chunk admission</a> · <a href="${escapeHtml(m.gameplay_issue)}">Creative break/place</a> · <a href="${escapeHtml(m.performance_issue)}">26.2 performance</a></p>`;
+      if (m.pillar_issue) {
+        section.innerHTML += `<p><a href="${escapeHtml(m.pillar_issue)}">Axis-only placement/break acceptance</a></p>`;
+      }
       container.appendChild(section);
     }
     if (data.checkpoint) {

@@ -1,0 +1,2207 @@
+{
+  "schema": "bcore.noise-cache-experiments.v1",
+  "date": "2026-10-26",
+  "minecraft": "26.2",
+  "protocol": 776,
+  "data_version": 4903,
+  "scope": "noise-fill-wg-v2; kernel only, not full generation or server TPS",
+  "retained_candidate": null,
+  "decisions": {
+    "hit-return": "rejected",
+    "dense-index": "rejected"
+  },
+  "contract": {
+    "chunks": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        -64,
+        -32
+      ],
+      [
+        -63,
+        -32
+      ],
+      [
+        62,
+        0
+      ],
+      [
+        -125,
+        187
+      ]
+    ],
+    "excluded": [
+      "build and process/world startup",
+      "initial chunk allocation",
+      "fingerprinting/JSON",
+      "BIOMES stage (Rust surface-biome bookkeeping remains timed)",
+      "structure generation",
+      "SURFACE/CARVERS/FEATURES/LIGHT/SPAWN/FULL",
+      "packets/disk I/O/gameplay"
+    ],
+    "fingerprints": "SHA-256: block IDs u32 LE Y/Z/X; marks i32 LE X/Y/Z grouped by ascending section, insertion order/duplicates retained; each WG map 256 first-free i32 LE Y heights in Z/X order",
+    "height": 384,
+    "historical_comparability": "new boundary, not an optimization of schema 1 noise-fill-kernel",
+    "implementation_costs": {
+      "BCore": [
+        "production surface-biome bookkeeping (256 column lookups/chunk)",
+        "column scratch, per-column material resources, density cache cleanup, mark ordering",
+        "normal post-NOISE capture_worldgen_heightmaps(false)"
+      ],
+      "Vanilla 26.2": [
+        "reflection lookup/invocation per chunk, async submission/join",
+        "NoiseChunk/aquifer setup, scratch/palette growth, section acquire/release",
+        "in-task WG heightmap creation/updates"
+      ]
+    },
+    "initial_state": "fresh empty chunks, empty structure references, empty Blender",
+    "method": "serial fresh processes in alternating engine order; median of process-median measured batch times; warmups excluded",
+    "min_y": -64,
+    "schema": 2,
+    "scope": "noise-fill-wg-v2",
+    "timed": [
+      "entry-point dispatch and completion",
+      "fresh per-chunk density/cache/aquifer setup",
+      "complete material fill including noise ore veins",
+      "fluid postprocessing requests",
+      "both WORLD_SURFACE_WG and OCEAN_FLOOR_WG heightmaps"
+    ],
+    "warmup": "positive fixed count; all durations retained; lazy Rust seeded resources warm on workers; convergence requires review",
+    "worker_budgets": [
+      1,
+      2,
+      4
+    ],
+    "worker_contract": "Rayon N; actual native ForkJoinPool parallelism N, ActiveProcessorCount=N+1; not an OS CPU-affinity limit"
+  },
+  "seed": "846692123413862008",
+  "workers": [
+    1,
+    2,
+    4
+  ],
+  "processes_per_configuration": 3,
+  "warmup_batches_per_process": 10,
+  "measured_batches_per_process": 10,
+  "process_count": 126,
+  "warmup_batch_count": 1260,
+  "measured_batch_count": 1260,
+  "default_release_profile": true,
+  "timer_and_ieee_operations_unchanged": true,
+  "hash_algorithm_and_seed_name_identity_unchanged": true,
+  "matching_outputs": true,
+  "hit_return_restoration": {
+    "path": "target/noise-cache-restoration-20261026-01.json",
+    "sha256": "2df408714caa614ebb80d714e1a59b86268e99daafafad60653eb3930a063575",
+    "all_before_source_bytes_restored": true,
+    "before_results_sha256": "8e4c8e44b19bb3683ba0cad13551fe0593200dc158089d74f1c28f826d1c43b2",
+    "decision": "rejected",
+    "evidence": [
+      {
+        "path": "target/noise-cache-paired-20261025-01/results.json",
+        "sha256": "09a47266ba8f4f0fd1996b2d43340cf48e05ffc35c88639295a4eee0cff3f639",
+        "summary": [
+          {
+            "after": {
+              "chunks_per_second": 48.533146318942855,
+              "process_median_seconds": [
+                0.16883875,
+                0.1571769,
+                0.16483579999999998
+              ]
+            },
+            "before": {
+              "chunks_per_second": 49.55393713773362,
+              "process_median_seconds": [
+                0.19736189999999998,
+                0.16144025,
+                0.15884145
+              ]
+            },
+            "speedup": 0.9794004093770893,
+            "workers": 1
+          },
+          {
+            "after": {
+              "chunks_per_second": 84.51223499472063,
+              "process_median_seconds": [
+                0.09574945,
+                0.0943698,
+                0.09466085
+              ]
+            },
+            "before": {
+              "chunks_per_second": 82.55746515558987,
+              "process_median_seconds": [
+                0.1061272,
+                0.09605955,
+                0.0969022
+              ]
+            },
+            "speedup": 1.0236776872381772,
+            "workers": 2
+          },
+          {
+            "after": {
+              "chunks_per_second": 146.52028069622776,
+              "process_median_seconds": [
+                0.05340125,
+                0.0573988,
+                0.054599949999999994
+              ]
+            },
+            "before": {
+              "chunks_per_second": 153.5989186636126,
+              "process_median_seconds": [
+                0.0520837,
+                0.054994699999999994,
+                0.04831975
+              ]
+            },
+            "speedup": 0.9539147929622647,
+            "workers": 4
+          }
+        ]
+      },
+      {
+        "path": "target/noise-cache-paired-20261025-02/results.json",
+        "sha256": "f398be92ac2beb5c2a026da5755a4357d824444eccb7afbb126ab995c3ecee36",
+        "summary": [
+          {
+            "after": {
+              "chunks_per_second": 53.10094589378682,
+              "process_median_seconds": [
+                0.1618561,
+                0.15065645,
+                0.1504743
+              ]
+            },
+            "before": {
+              "chunks_per_second": 50.318642805566256,
+              "process_median_seconds": [
+                0.1702146,
+                0.1517151,
+                0.15898679999999998
+              ]
+            },
+            "speedup": 1.0552936830782882,
+            "workers": 1
+          },
+          {
+            "after": {
+              "chunks_per_second": 93.86828871069558,
+              "process_median_seconds": [
+                0.0845865,
+                0.0852258,
+                0.08850985
+              ]
+            },
+            "before": {
+              "chunks_per_second": 88.5896527285613,
+              "process_median_seconds": [
+                0.0865943,
+                0.100549,
+                0.090304
+              ]
+            },
+            "speedup": 1.0595852429663317,
+            "workers": 2
+          },
+          {
+            "after": {
+              "chunks_per_second": 162.49940332250344,
+              "process_median_seconds": [
+                0.0570839,
+                0.049230949999999996,
+                0.04770755
+              ]
+            },
+            "before": {
+              "chunks_per_second": 164.58924182994434,
+              "process_median_seconds": [
+                0.049756949999999994,
+                0.0477898,
+                0.04860585
+              ]
+            },
+            "speedup": 0.9873027028728879,
+            "workers": 4
+          }
+        ]
+      }
+    ],
+    "reason": "Both four-worker alternating confirmations regress; no repeated all-budget improvement.",
+    "schema": "bcore.noise-hit-return-restoration.v1",
+    "simplex_sha256": "e3e181f8047b2f7c9d12f0d64e7452828917c38ee9ffba6bb65e1c54709207b1",
+    "source_files": 510,
+    "source_manifest_sha256": "34883593c2747fcf91eb9a82bb7cfd7f35aca83dc12a009ce2939f51583f8184"
+  },
+  "dense_index_restoration": {
+    "path": "target/noise-cache-dense-restoration-20261026-01.json",
+    "sha256": "6f85f33be9f824d9acc2ee913f36f405c567b3d795f0c3c4ec91af18ab6cf424",
+    "all_before_source_bytes_restored": true,
+    "before_results_sha256": "8e4c8e44b19bb3683ba0cad13551fe0593200dc158089d74f1c28f826d1c43b2",
+    "decision": "rejected",
+    "evidence": [
+      {
+        "path": "target/noise-cache-dense-paired-20261026-01/results.json",
+        "sha256": "f119944742318ef8920e5cad9241ffcff86263e802c68c423f60c073480966b3",
+        "summary": [
+          {
+            "after": {
+              "chunks_per_second": 55.38635792464547,
+              "process_median_seconds": [
+                0.1444399,
+                0.13884855000000002,
+                0.1464308
+              ]
+            },
+            "before": {
+              "chunks_per_second": 51.01463322870019,
+              "process_median_seconds": [
+                0.15748305,
+                0.15681775,
+                0.14624130000000002
+              ]
+            },
+            "speedup": 1.0856955038046967,
+            "workers": 1
+          },
+          {
+            "after": {
+              "chunks_per_second": 85.34202684113421,
+              "process_median_seconds": [
+                0.09571550000000001,
+                0.09374045,
+                0.0829226
+              ]
+            },
+            "before": {
+              "chunks_per_second": 93.82205240430737,
+              "process_median_seconds": [
+                0.0852678,
+                0.0863672,
+                0.08490355
+              ]
+            },
+            "speedup": 0.909615859535558,
+            "workers": 2
+          },
+          {
+            "after": {
+              "chunks_per_second": 178.1495164354063,
+              "process_median_seconds": [
+                0.04551865,
+                0.044906100000000004,
+                0.04437945
+              ]
+            },
+            "before": {
+              "chunks_per_second": 172.35528888362245,
+              "process_median_seconds": [
+                0.045556,
+                0.05217835,
+                0.046415750000000006
+              ]
+            },
+            "speedup": 1.033617927185839,
+            "workers": 4
+          }
+        ]
+      },
+      {
+        "path": "target/noise-cache-dense-paired-20261026-02/results.json",
+        "sha256": "5716c28636dbbcd9ef823c64fa1465fe476b42ef8c64f24ad4a33b4c29106c84",
+        "summary": [
+          {
+            "after": {
+              "chunks_per_second": 50.45871704296781,
+              "process_median_seconds": [
+                0.15854544999999998,
+                0.1461883,
+                0.17945195000000003
+              ]
+            },
+            "before": {
+              "chunks_per_second": 52.03820645117645,
+              "process_median_seconds": [
+                0.1535633,
+                0.16210065,
+                0.15373320000000001
+              ]
+            },
+            "speedup": 0.9696475048637475,
+            "workers": 1
+          },
+          {
+            "after": {
+              "chunks_per_second": 96.972929400677,
+              "process_median_seconds": [
+                0.0828127,
+                0.08190975,
+                0.08249725
+              ]
+            },
+            "before": {
+              "chunks_per_second": 94.98559187303276,
+              "process_median_seconds": [
+                0.0852258,
+                0.0842233,
+                0.0825198
+              ]
+            },
+            "speedup": 1.020922515599005,
+            "workers": 2
+          },
+          {
+            "after": {
+              "chunks_per_second": 178.4125299119757,
+              "process_median_seconds": [
+                0.042495649999999996,
+                0.053002,
+                0.0448399
+              ]
+            },
+            "before": {
+              "chunks_per_second": 177.60983780891624,
+              "process_median_seconds": [
+                0.04504255,
+                0.0555491,
+                0.0447714
+              ]
+            },
+            "speedup": 1.0045194123983325,
+            "workers": 4
+          }
+        ]
+      }
+    ],
+    "reason": "Mixed one/two-worker frozen results; no repeated all-budget gain despite small four-worker gains.",
+    "schema": "bcore.noise-dense-index-restoration.v1",
+    "simplex_sha256": "e3e181f8047b2f7c9d12f0d64e7452828917c38ee9ffba6bb65e1c54709207b1",
+    "source_files": 510,
+    "source_manifest_sha256": "34883593c2747fcf91eb9a82bb7cfd7f35aca83dc12a009ce2939f51583f8184"
+  },
+  "raw_results": [
+    {
+      "name": "before",
+      "path": "target/noise-cache-before-20261025-01",
+      "results_sha256": "8e4c8e44b19bb3683ba0cad13551fe0593200dc158089d74f1c28f826d1c43b2"
+    },
+    {
+      "name": "hit-return",
+      "path": "target/noise-cache-single-20261025-01",
+      "results_sha256": "8c6bee74ec1381b0cadc6da1c562a32aa23ad09beae4edd10251f992cc4d2052"
+    },
+    {
+      "name": "hit-return-pair-1",
+      "path": "target/noise-cache-paired-20261025-01",
+      "results_sha256": "09a47266ba8f4f0fd1996b2d43340cf48e05ffc35c88639295a4eee0cff3f639"
+    },
+    {
+      "name": "hit-return-pair-2",
+      "path": "target/noise-cache-paired-20261025-02",
+      "results_sha256": "f398be92ac2beb5c2a026da5755a4357d824444eccb7afbb126ab995c3ecee36"
+    },
+    {
+      "name": "dense-index",
+      "path": "target/noise-cache-dense-20261026-01",
+      "results_sha256": "6c0e73a43dfa4d2fc86a75aa32aa2ec8137ef9aff1c5bda48a1345edecf88b50"
+    },
+    {
+      "name": "dense-index-pair-1",
+      "path": "target/noise-cache-dense-paired-20261026-01",
+      "results_sha256": "f119944742318ef8920e5cad9241ffcff86263e802c68c423f60c073480966b3"
+    },
+    {
+      "name": "dense-index-pair-2",
+      "path": "target/noise-cache-dense-paired-20261026-02",
+      "results_sha256": "5716c28636dbbcd9ef823c64fa1465fe476b42ef8c64f24ad4a33b4c29106c84"
+    }
+  ],
+  "frozen_artifacts": {
+    "before": {
+      "bcore_executable_sha256": "3a16920990c054178e440d88263de11a6f9f0b5fd7c0508a4c1a5ce936adcbd5",
+      "source_archive_sha256": "dcb05ecb104238dcad571da6b305bc1044f0a3ba6d8d7e63fe569ffa2f910b20",
+      "source_manifest_sha256": "ea3fc42516fd9ecee6d1da2af73628e41bd0a29ba441f15d951eb02d6dd67c05",
+      "source_file_count": 510
+    },
+    "hit-return": {
+      "bcore_executable_sha256": "4bb843d8051d07cc6564a27175904ec449691f66e3d7c3ef41e5329faa1a3069",
+      "source_archive_sha256": "95d91d62a40be258bd9e5d1e6b53ff56e79ebc1b31b0e30a3206db5a9f3ab190",
+      "source_manifest_sha256": "3df11e685824c369d5dd98136d022348741c06720e25d271098e6a8a50ac12a2",
+      "source_file_count": 510
+    },
+    "dense-index": {
+      "bcore_executable_sha256": "18bf2dcc24eaebcd7e3936c2e91cb3b640f62619ee2e96824adb8fbd644679fe",
+      "source_archive_sha256": "658c50a841fa838c5d389927052eab84d25fb7be1d16caf324e61003d59c387c",
+      "source_manifest_sha256": "839d752efaa0dfd2977480db86d1158b14114ae75f967ce143934eb205831393",
+      "source_file_count": 510
+    }
+  },
+  "changed_sources": {
+    "hit-return": {
+      "before": "e3e181f8047b2f7c9d12f0d64e7452828917c38ee9ffba6bb65e1c54709207b1",
+      "candidate": "42535315e613dc64e09b99cc83961d454a1ae72016365f2a493065d9af5eb69f"
+    },
+    "dense-index": {
+      "before": "e3e181f8047b2f7c9d12f0d64e7452828917c38ee9ffba6bb65e1c54709207b1",
+      "candidate": "1d6c4dd8e3511acdb2388190e9a6591e3a0440b649632da65bd6aa3dc20b65eb"
+    }
+  },
+  "bits_and_native_gates": {
+    "hit-return": {
+      "path": "target/noise-cache-tests-20261025-02/validation.json",
+      "sha256": "3295f07152cf94ba0b0e625e94777b6df83f094f5fa7b2984fed94e633b4632b",
+      "passed": 21,
+      "checks": [
+        {
+          "name": "format",
+          "command": [
+            "cargo",
+            "fmt",
+            "--all",
+            "--check"
+          ],
+          "exit_code": 0,
+          "log": "target/noise-cache-tests-20261025-02/format.log",
+          "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "indexed-density",
+          "command": [
+            "cargo",
+            "test",
+            "-p",
+            "bcore-worldgen",
+            "--release",
+            "--locked",
+            "-j",
+            "1",
+            "--lib",
+            "density::chunk::tests",
+            "--",
+            "--test-threads=2",
+            "-Z",
+            "unstable-options",
+            "--format=json",
+            "--report-time"
+          ],
+          "exit_code": 0,
+          "log": "target/noise-cache-tests-20261025-02/indexed-density.log",
+          "log_sha256": "d74856499c0c8ae22881ab75fc89e2f9304a58b1020c9100e532e9f3689b35c3"
+        },
+        {
+          "name": "cache-identity",
+          "command": [
+            "cargo",
+            "test",
+            "-p",
+            "bcore-worldgen",
+            "--release",
+            "--locked",
+            "-j",
+            "1",
+            "--lib",
+            "simplex::tests",
+            "--",
+            "--test-threads=2",
+            "-Z",
+            "unstable-options",
+            "--format=json",
+            "--report-time"
+          ],
+          "exit_code": 0,
+          "log": "target/noise-cache-tests-20261025-02/cache-identity.log",
+          "log_sha256": "4059dac5ba63a169a318b286159df92f8a5ab4bcc36329510fd42909d2309598"
+        },
+        {
+          "name": "native-numeric",
+          "command": [
+            "cargo",
+            "test",
+            "-p",
+            "bcore-worldgen",
+            "--release",
+            "--locked",
+            "-j",
+            "1",
+            "--test",
+            "numeric_reference",
+            "--",
+            "--test-threads=2",
+            "-Z",
+            "unstable-options",
+            "--format=json",
+            "--report-time"
+          ],
+          "exit_code": 0,
+          "log": "target/noise-cache-tests-20261025-02/native-numeric.log",
+          "log_sha256": "224b07e997af8f2ca3db56b9c1e01110c9ba0ed0dc4f8b533ce9160fe99ea35c"
+        },
+        {
+          "name": "native-ore-material",
+          "command": [
+            "cargo",
+            "test",
+            "-p",
+            "bcore-worldgen",
+            "--release",
+            "--locked",
+            "-j",
+            "1",
+            "--lib",
+            "ore_vein::tests",
+            "--",
+            "--test-threads=2",
+            "-Z",
+            "unstable-options",
+            "--format=json",
+            "--report-time"
+          ],
+          "exit_code": 0,
+          "log": "target/noise-cache-tests-20261025-02/native-ore-material.log",
+          "log_sha256": "0fe9c09abf70db419a0f92de653689ebec47e0a211852d56336c06b608ace9e8"
+        },
+        {
+          "name": "native-ore",
+          "command": [
+            "cargo",
+            "test",
+            "-p",
+            "bcore-worldgen",
+            "--release",
+            "--locked",
+            "-j",
+            "1",
+            "--test",
+            "ore_reference",
+            "--",
+            "--test-threads=2",
+            "-Z",
+            "unstable-options",
+            "--format=json",
+            "--report-time"
+          ],
+          "exit_code": 0,
+          "log": "target/noise-cache-tests-20261025-02/native-ore.log",
+          "log_sha256": "6be9c84b9bd5a20809d04b65068cf9071cdf71f46852e4dbf143eb89b543dc67"
+        },
+        {
+          "name": "native-rng",
+          "command": [
+            "cargo",
+            "test",
+            "-p",
+            "bcore-worldgen",
+            "--release",
+            "--locked",
+            "-j",
+            "1",
+            "--test",
+            "random_reference",
+            "--",
+            "--test-threads=2",
+            "-Z",
+            "unstable-options",
+            "--format=json",
+            "--report-time"
+          ],
+          "exit_code": 0,
+          "log": "target/noise-cache-tests-20261025-02/native-rng.log",
+          "log_sha256": "6ca45a8c54e09f752b01e659e59a28d3cb799eb36c4bb04905b30f8ddca460e3"
+        }
+      ]
+    },
+    "dense-index": {
+      "path": "target/noise-cache-dense-tests-20261026-01/validation.json",
+      "sha256": "eed9d2dc7b2f8c9aa910bfa86e5a9ce003ab840db1a830ae97f232eafdc0dc74",
+      "passed": 21,
+      "checks": [
+        {
+          "name": "format",
+          "command": [
+            "cargo",
+            "fmt",
+            "--all",
+            "--check"
+          ],
+          "exit_code": 0,
+          "log": "target/noise-cache-dense-tests-20261026-01/format.log",
+          "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "indexed-density",
+          "command": [
+            "cargo",
+            "test",
+            "-p",
+            "bcore-worldgen",
+            "--release",
+            "--locked",
+            "-j",
+            "1",
+            "--lib",
+            "density::chunk::tests",
+            "--",
+            "--test-threads=2",
+            "-Z",
+            "unstable-options",
+            "--format=json",
+            "--report-time"
+          ],
+          "exit_code": 0,
+          "log": "target/noise-cache-dense-tests-20261026-01/indexed-density.log",
+          "log_sha256": "05df59c52a9a2f3fbc0ea9487250b938a3800ee7f936af02f2db68fc724246c2"
+        },
+        {
+          "name": "cache-identity",
+          "command": [
+            "cargo",
+            "test",
+            "-p",
+            "bcore-worldgen",
+            "--release",
+            "--locked",
+            "-j",
+            "1",
+            "--lib",
+            "simplex::tests",
+            "--",
+            "--test-threads=2",
+            "-Z",
+            "unstable-options",
+            "--format=json",
+            "--report-time"
+          ],
+          "exit_code": 0,
+          "log": "target/noise-cache-dense-tests-20261026-01/cache-identity.log",
+          "log_sha256": "6130a7c7c0723f84fd63d245e7e276ece3e4530016da5a302e4f8222b93379e7"
+        },
+        {
+          "name": "native-numeric",
+          "command": [
+            "cargo",
+            "test",
+            "-p",
+            "bcore-worldgen",
+            "--release",
+            "--locked",
+            "-j",
+            "1",
+            "--test",
+            "numeric_reference",
+            "--",
+            "--test-threads=2",
+            "-Z",
+            "unstable-options",
+            "--format=json",
+            "--report-time"
+          ],
+          "exit_code": 0,
+          "log": "target/noise-cache-dense-tests-20261026-01/native-numeric.log",
+          "log_sha256": "eeede47e4de0c0545a7f90bfe54329d83bd8e0f4571414c2e51fe320e49e001b"
+        },
+        {
+          "name": "native-ore-material",
+          "command": [
+            "cargo",
+            "test",
+            "-p",
+            "bcore-worldgen",
+            "--release",
+            "--locked",
+            "-j",
+            "1",
+            "--lib",
+            "ore_vein::tests",
+            "--",
+            "--test-threads=2",
+            "-Z",
+            "unstable-options",
+            "--format=json",
+            "--report-time"
+          ],
+          "exit_code": 0,
+          "log": "target/noise-cache-dense-tests-20261026-01/native-ore-material.log",
+          "log_sha256": "8a7f3b46c0172677b57704312373e3cf627e1f8c53302e572a3887b7c6af77b3"
+        },
+        {
+          "name": "native-ore",
+          "command": [
+            "cargo",
+            "test",
+            "-p",
+            "bcore-worldgen",
+            "--release",
+            "--locked",
+            "-j",
+            "1",
+            "--test",
+            "ore_reference",
+            "--",
+            "--test-threads=2",
+            "-Z",
+            "unstable-options",
+            "--format=json",
+            "--report-time"
+          ],
+          "exit_code": 0,
+          "log": "target/noise-cache-dense-tests-20261026-01/native-ore.log",
+          "log_sha256": "af7ae21c9e8640ea40d9a2df8039ad2ed4bccb6604c4406931237a88742e464f"
+        },
+        {
+          "name": "native-rng",
+          "command": [
+            "cargo",
+            "test",
+            "-p",
+            "bcore-worldgen",
+            "--release",
+            "--locked",
+            "-j",
+            "1",
+            "--test",
+            "random_reference",
+            "--",
+            "--test-threads=2",
+            "-Z",
+            "unstable-options",
+            "--format=json",
+            "--report-time"
+          ],
+          "exit_code": 0,
+          "log": "target/noise-cache-dense-tests-20261026-01/native-rng.log",
+          "log_sha256": "99b4616530358b3ed5baca3165ec93063d906b51e8238b7fd5a0bf22012caa9f"
+        }
+      ]
+    }
+  },
+  "summaries": {
+    "before": [
+      {
+        "chunks_per_second": 54.326383404376394,
+        "engine": "Vanilla 26.2",
+        "max_process_median_seconds": 0.20324015,
+        "median_batch_seconds": 0.1472581,
+        "min_process_median_seconds": 0.1457366,
+        "workers": 1
+      },
+      {
+        "chunks_per_second": 53.59954440387257,
+        "engine": "BCore",
+        "max_process_median_seconds": 0.15236875,
+        "median_batch_seconds": 0.149255,
+        "min_process_median_seconds": 0.14844805,
+        "workers": 1
+      },
+      {
+        "chunks_per_second": 96.63498850949591,
+        "engine": "Vanilla 26.2",
+        "max_process_median_seconds": 0.10835765,
+        "median_batch_seconds": 0.08278574999999999,
+        "min_process_median_seconds": 0.08106105,
+        "workers": 2
+      },
+      {
+        "chunks_per_second": 94.60777096404728,
+        "engine": "BCore",
+        "max_process_median_seconds": 0.0849329,
+        "median_batch_seconds": 0.08455965,
+        "min_process_median_seconds": 0.08372405,
+        "workers": 2
+      },
+      {
+        "chunks_per_second": 201.00704529693763,
+        "engine": "Vanilla 26.2",
+        "max_process_median_seconds": 0.0416464,
+        "median_batch_seconds": 0.039799600000000004,
+        "min_process_median_seconds": 0.03436905,
+        "workers": 4
+      },
+      {
+        "chunks_per_second": 176.5530878583338,
+        "engine": "BCore",
+        "max_process_median_seconds": 0.0471531,
+        "median_batch_seconds": 0.045312149999999995,
+        "min_process_median_seconds": 0.044067300000000004,
+        "workers": 4
+      }
+    ],
+    "hit-return": [
+      {
+        "chunks_per_second": 52.750093136883194,
+        "engine": "Vanilla 26.2",
+        "max_process_median_seconds": 0.22725965,
+        "median_batch_seconds": 0.1516585,
+        "min_process_median_seconds": 0.14650635,
+        "workers": 1
+      },
+      {
+        "chunks_per_second": 51.24732793229202,
+        "engine": "BCore",
+        "max_process_median_seconds": 0.1570309,
+        "median_batch_seconds": 0.15610570000000001,
+        "min_process_median_seconds": 0.1532799,
+        "workers": 1
+      },
+      {
+        "chunks_per_second": 76.45983326021862,
+        "engine": "Vanilla 26.2",
+        "max_process_median_seconds": 0.10832535,
+        "median_batch_seconds": 0.1046301,
+        "min_process_median_seconds": 0.10266325000000001,
+        "workers": 2
+      },
+      {
+        "chunks_per_second": 90.55961312933272,
+        "engine": "BCore",
+        "max_process_median_seconds": 0.11246035,
+        "median_batch_seconds": 0.08833959999999999,
+        "min_process_median_seconds": 0.08792435000000001,
+        "workers": 2
+      },
+      {
+        "chunks_per_second": 215.51143557555022,
+        "engine": "Vanilla 26.2",
+        "max_process_median_seconds": 0.0433394,
+        "median_batch_seconds": 0.037121,
+        "min_process_median_seconds": 0.0362385,
+        "workers": 4
+      },
+      {
+        "chunks_per_second": 109.15302708632365,
+        "engine": "BCore",
+        "max_process_median_seconds": 0.07794935,
+        "median_batch_seconds": 0.07329160000000001,
+        "min_process_median_seconds": 0.062394649999999996,
+        "workers": 4
+      }
+    ],
+    "hit-return-pair-1": [
+      {
+        "after": {
+          "chunks_per_second": 48.533146318942855,
+          "process_median_seconds": [
+            0.16883875,
+            0.1571769,
+            0.16483579999999998
+          ]
+        },
+        "before": {
+          "chunks_per_second": 49.55393713773362,
+          "process_median_seconds": [
+            0.19736189999999998,
+            0.16144025,
+            0.15884145
+          ]
+        },
+        "speedup": 0.9794004093770893,
+        "workers": 1
+      },
+      {
+        "after": {
+          "chunks_per_second": 84.51223499472063,
+          "process_median_seconds": [
+            0.09574945,
+            0.0943698,
+            0.09466085
+          ]
+        },
+        "before": {
+          "chunks_per_second": 82.55746515558987,
+          "process_median_seconds": [
+            0.1061272,
+            0.09605955,
+            0.0969022
+          ]
+        },
+        "speedup": 1.0236776872381772,
+        "workers": 2
+      },
+      {
+        "after": {
+          "chunks_per_second": 146.52028069622776,
+          "process_median_seconds": [
+            0.05340125,
+            0.0573988,
+            0.054599949999999994
+          ]
+        },
+        "before": {
+          "chunks_per_second": 153.5989186636126,
+          "process_median_seconds": [
+            0.0520837,
+            0.054994699999999994,
+            0.04831975
+          ]
+        },
+        "speedup": 0.9539147929622647,
+        "workers": 4
+      }
+    ],
+    "hit-return-pair-2": [
+      {
+        "after": {
+          "chunks_per_second": 53.10094589378682,
+          "process_median_seconds": [
+            0.1618561,
+            0.15065645,
+            0.1504743
+          ]
+        },
+        "before": {
+          "chunks_per_second": 50.318642805566256,
+          "process_median_seconds": [
+            0.1702146,
+            0.1517151,
+            0.15898679999999998
+          ]
+        },
+        "speedup": 1.0552936830782882,
+        "workers": 1
+      },
+      {
+        "after": {
+          "chunks_per_second": 93.86828871069558,
+          "process_median_seconds": [
+            0.0845865,
+            0.0852258,
+            0.08850985
+          ]
+        },
+        "before": {
+          "chunks_per_second": 88.5896527285613,
+          "process_median_seconds": [
+            0.0865943,
+            0.100549,
+            0.090304
+          ]
+        },
+        "speedup": 1.0595852429663317,
+        "workers": 2
+      },
+      {
+        "after": {
+          "chunks_per_second": 162.49940332250344,
+          "process_median_seconds": [
+            0.0570839,
+            0.049230949999999996,
+            0.04770755
+          ]
+        },
+        "before": {
+          "chunks_per_second": 164.58924182994434,
+          "process_median_seconds": [
+            0.049756949999999994,
+            0.0477898,
+            0.04860585
+          ]
+        },
+        "speedup": 0.9873027028728879,
+        "workers": 4
+      }
+    ],
+    "dense-index": [
+      {
+        "chunks_per_second": 39.955349896490674,
+        "engine": "Vanilla 26.2",
+        "max_process_median_seconds": 0.21575450000000002,
+        "median_batch_seconds": 0.2002235,
+        "min_process_median_seconds": 0.16064265,
+        "workers": 1
+      },
+      {
+        "chunks_per_second": 45.79002241135409,
+        "engine": "BCore",
+        "max_process_median_seconds": 0.18092799999999998,
+        "median_batch_seconds": 0.17471055000000002,
+        "min_process_median_seconds": 0.14814470000000002,
+        "workers": 1
+      },
+      {
+        "chunks_per_second": 84.19612434715116,
+        "engine": "Vanilla 26.2",
+        "max_process_median_seconds": 0.11467695,
+        "median_batch_seconds": 0.09501625,
+        "min_process_median_seconds": 0.07092125,
+        "workers": 2
+      },
+      {
+        "chunks_per_second": 89.16167407730207,
+        "engine": "BCore",
+        "max_process_median_seconds": 0.0907426,
+        "median_batch_seconds": 0.08972464999999999,
+        "min_process_median_seconds": 0.0893245,
+        "workers": 2
+      },
+      {
+        "chunks_per_second": 193.4072310128495,
+        "engine": "Vanilla 26.2",
+        "max_process_median_seconds": 0.04362905,
+        "median_batch_seconds": 0.0413635,
+        "min_process_median_seconds": 0.0361579,
+        "workers": 4
+      },
+      {
+        "chunks_per_second": 161.95135183829967,
+        "engine": "BCore",
+        "max_process_median_seconds": 0.053809949999999995,
+        "median_batch_seconds": 0.04939755,
+        "min_process_median_seconds": 0.0485155,
+        "workers": 4
+      }
+    ],
+    "dense-index-pair-1": [
+      {
+        "after": {
+          "chunks_per_second": 55.38635792464547,
+          "process_median_seconds": [
+            0.1444399,
+            0.13884855000000002,
+            0.1464308
+          ]
+        },
+        "before": {
+          "chunks_per_second": 51.01463322870019,
+          "process_median_seconds": [
+            0.15748305,
+            0.15681775,
+            0.14624130000000002
+          ]
+        },
+        "speedup": 1.0856955038046967,
+        "workers": 1
+      },
+      {
+        "after": {
+          "chunks_per_second": 85.34202684113421,
+          "process_median_seconds": [
+            0.09571550000000001,
+            0.09374045,
+            0.0829226
+          ]
+        },
+        "before": {
+          "chunks_per_second": 93.82205240430737,
+          "process_median_seconds": [
+            0.0852678,
+            0.0863672,
+            0.08490355
+          ]
+        },
+        "speedup": 0.909615859535558,
+        "workers": 2
+      },
+      {
+        "after": {
+          "chunks_per_second": 178.1495164354063,
+          "process_median_seconds": [
+            0.04551865,
+            0.044906100000000004,
+            0.04437945
+          ]
+        },
+        "before": {
+          "chunks_per_second": 172.35528888362245,
+          "process_median_seconds": [
+            0.045556,
+            0.05217835,
+            0.046415750000000006
+          ]
+        },
+        "speedup": 1.033617927185839,
+        "workers": 4
+      }
+    ],
+    "dense-index-pair-2": [
+      {
+        "after": {
+          "chunks_per_second": 50.45871704296781,
+          "process_median_seconds": [
+            0.15854544999999998,
+            0.1461883,
+            0.17945195000000003
+          ]
+        },
+        "before": {
+          "chunks_per_second": 52.03820645117645,
+          "process_median_seconds": [
+            0.1535633,
+            0.16210065,
+            0.15373320000000001
+          ]
+        },
+        "speedup": 0.9696475048637475,
+        "workers": 1
+      },
+      {
+        "after": {
+          "chunks_per_second": 96.972929400677,
+          "process_median_seconds": [
+            0.0828127,
+            0.08190975,
+            0.08249725
+          ]
+        },
+        "before": {
+          "chunks_per_second": 94.98559187303276,
+          "process_median_seconds": [
+            0.0852258,
+            0.0842233,
+            0.0825198
+          ]
+        },
+        "speedup": 1.020922515599005,
+        "workers": 2
+      },
+      {
+        "after": {
+          "chunks_per_second": 178.4125299119757,
+          "process_median_seconds": [
+            0.042495649999999996,
+            0.053002,
+            0.0448399
+          ]
+        },
+        "before": {
+          "chunks_per_second": 177.60983780891624,
+          "process_median_seconds": [
+            0.04504255,
+            0.0555491,
+            0.0447714
+          ]
+        },
+        "speedup": 1.0045194123983325,
+        "workers": 4
+      }
+    ]
+  },
+  "process_medians": [
+    {
+      "run": "before",
+      "engine": "Vanilla 26.2",
+      "variant": null,
+      "workers": 1,
+      "process": 1,
+      "median_seconds": 0.20324015
+    },
+    {
+      "run": "before",
+      "engine": "BCore",
+      "variant": null,
+      "workers": 1,
+      "process": 1,
+      "median_seconds": 0.14844805
+    },
+    {
+      "run": "before",
+      "engine": "BCore",
+      "variant": null,
+      "workers": 1,
+      "process": 2,
+      "median_seconds": 0.149255
+    },
+    {
+      "run": "before",
+      "engine": "Vanilla 26.2",
+      "variant": null,
+      "workers": 1,
+      "process": 2,
+      "median_seconds": 0.1472581
+    },
+    {
+      "run": "before",
+      "engine": "Vanilla 26.2",
+      "variant": null,
+      "workers": 1,
+      "process": 3,
+      "median_seconds": 0.1457366
+    },
+    {
+      "run": "before",
+      "engine": "BCore",
+      "variant": null,
+      "workers": 1,
+      "process": 3,
+      "median_seconds": 0.15236875
+    },
+    {
+      "run": "before",
+      "engine": "Vanilla 26.2",
+      "variant": null,
+      "workers": 2,
+      "process": 1,
+      "median_seconds": 0.08106105
+    },
+    {
+      "run": "before",
+      "engine": "BCore",
+      "variant": null,
+      "workers": 2,
+      "process": 1,
+      "median_seconds": 0.08455965
+    },
+    {
+      "run": "before",
+      "engine": "BCore",
+      "variant": null,
+      "workers": 2,
+      "process": 2,
+      "median_seconds": 0.0849329
+    },
+    {
+      "run": "before",
+      "engine": "Vanilla 26.2",
+      "variant": null,
+      "workers": 2,
+      "process": 2,
+      "median_seconds": 0.10835765
+    },
+    {
+      "run": "before",
+      "engine": "Vanilla 26.2",
+      "variant": null,
+      "workers": 2,
+      "process": 3,
+      "median_seconds": 0.08278574999999999
+    },
+    {
+      "run": "before",
+      "engine": "BCore",
+      "variant": null,
+      "workers": 2,
+      "process": 3,
+      "median_seconds": 0.08372405
+    },
+    {
+      "run": "before",
+      "engine": "Vanilla 26.2",
+      "variant": null,
+      "workers": 4,
+      "process": 1,
+      "median_seconds": 0.039799600000000004
+    },
+    {
+      "run": "before",
+      "engine": "BCore",
+      "variant": null,
+      "workers": 4,
+      "process": 1,
+      "median_seconds": 0.0471531
+    },
+    {
+      "run": "before",
+      "engine": "BCore",
+      "variant": null,
+      "workers": 4,
+      "process": 2,
+      "median_seconds": 0.044067300000000004
+    },
+    {
+      "run": "before",
+      "engine": "Vanilla 26.2",
+      "variant": null,
+      "workers": 4,
+      "process": 2,
+      "median_seconds": 0.03436905
+    },
+    {
+      "run": "before",
+      "engine": "Vanilla 26.2",
+      "variant": null,
+      "workers": 4,
+      "process": 3,
+      "median_seconds": 0.0416464
+    },
+    {
+      "run": "before",
+      "engine": "BCore",
+      "variant": null,
+      "workers": 4,
+      "process": 3,
+      "median_seconds": 0.045312149999999995
+    },
+    {
+      "run": "hit-return",
+      "engine": "Vanilla 26.2",
+      "variant": null,
+      "workers": 1,
+      "process": 1,
+      "median_seconds": 0.14650635
+    },
+    {
+      "run": "hit-return",
+      "engine": "BCore",
+      "variant": null,
+      "workers": 1,
+      "process": 1,
+      "median_seconds": 0.15610570000000001
+    },
+    {
+      "run": "hit-return",
+      "engine": "BCore",
+      "variant": null,
+      "workers": 1,
+      "process": 2,
+      "median_seconds": 0.1532799
+    },
+    {
+      "run": "hit-return",
+      "engine": "Vanilla 26.2",
+      "variant": null,
+      "workers": 1,
+      "process": 2,
+      "median_seconds": 0.22725965
+    },
+    {
+      "run": "hit-return",
+      "engine": "Vanilla 26.2",
+      "variant": null,
+      "workers": 1,
+      "process": 3,
+      "median_seconds": 0.1516585
+    },
+    {
+      "run": "hit-return",
+      "engine": "BCore",
+      "variant": null,
+      "workers": 1,
+      "process": 3,
+      "median_seconds": 0.1570309
+    },
+    {
+      "run": "hit-return",
+      "engine": "Vanilla 26.2",
+      "variant": null,
+      "workers": 2,
+      "process": 1,
+      "median_seconds": 0.1046301
+    },
+    {
+      "run": "hit-return",
+      "engine": "BCore",
+      "variant": null,
+      "workers": 2,
+      "process": 1,
+      "median_seconds": 0.08792435000000001
+    },
+    {
+      "run": "hit-return",
+      "engine": "BCore",
+      "variant": null,
+      "workers": 2,
+      "process": 2,
+      "median_seconds": 0.08833959999999999
+    },
+    {
+      "run": "hit-return",
+      "engine": "Vanilla 26.2",
+      "variant": null,
+      "workers": 2,
+      "process": 2,
+      "median_seconds": 0.10266325000000001
+    },
+    {
+      "run": "hit-return",
+      "engine": "Vanilla 26.2",
+      "variant": null,
+      "workers": 2,
+      "process": 3,
+      "median_seconds": 0.10832535
+    },
+    {
+      "run": "hit-return",
+      "engine": "BCore",
+      "variant": null,
+      "workers": 2,
+      "process": 3,
+      "median_seconds": 0.11246035
+    },
+    {
+      "run": "hit-return",
+      "engine": "Vanilla 26.2",
+      "variant": null,
+      "workers": 4,
+      "process": 1,
+      "median_seconds": 0.0362385
+    },
+    {
+      "run": "hit-return",
+      "engine": "BCore",
+      "variant": null,
+      "workers": 4,
+      "process": 1,
+      "median_seconds": 0.062394649999999996
+    },
+    {
+      "run": "hit-return",
+      "engine": "BCore",
+      "variant": null,
+      "workers": 4,
+      "process": 2,
+      "median_seconds": 0.07794935
+    },
+    {
+      "run": "hit-return",
+      "engine": "Vanilla 26.2",
+      "variant": null,
+      "workers": 4,
+      "process": 2,
+      "median_seconds": 0.037121
+    },
+    {
+      "run": "hit-return",
+      "engine": "Vanilla 26.2",
+      "variant": null,
+      "workers": 4,
+      "process": 3,
+      "median_seconds": 0.0433394
+    },
+    {
+      "run": "hit-return",
+      "engine": "BCore",
+      "variant": null,
+      "workers": 4,
+      "process": 3,
+      "median_seconds": 0.07329160000000001
+    },
+    {
+      "run": "hit-return-pair-1",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 1,
+      "process": 1,
+      "median_seconds": 0.19736189999999998
+    },
+    {
+      "run": "hit-return-pair-1",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 1,
+      "process": 1,
+      "median_seconds": 0.16883875
+    },
+    {
+      "run": "hit-return-pair-1",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 1,
+      "process": 2,
+      "median_seconds": 0.1571769
+    },
+    {
+      "run": "hit-return-pair-1",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 1,
+      "process": 2,
+      "median_seconds": 0.16144025
+    },
+    {
+      "run": "hit-return-pair-1",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 1,
+      "process": 3,
+      "median_seconds": 0.15884145
+    },
+    {
+      "run": "hit-return-pair-1",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 1,
+      "process": 3,
+      "median_seconds": 0.16483579999999998
+    },
+    {
+      "run": "hit-return-pair-1",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 2,
+      "process": 1,
+      "median_seconds": 0.1061272
+    },
+    {
+      "run": "hit-return-pair-1",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 2,
+      "process": 1,
+      "median_seconds": 0.09574945
+    },
+    {
+      "run": "hit-return-pair-1",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 2,
+      "process": 2,
+      "median_seconds": 0.0943698
+    },
+    {
+      "run": "hit-return-pair-1",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 2,
+      "process": 2,
+      "median_seconds": 0.09605955
+    },
+    {
+      "run": "hit-return-pair-1",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 2,
+      "process": 3,
+      "median_seconds": 0.0969022
+    },
+    {
+      "run": "hit-return-pair-1",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 2,
+      "process": 3,
+      "median_seconds": 0.09466085
+    },
+    {
+      "run": "hit-return-pair-1",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 4,
+      "process": 1,
+      "median_seconds": 0.0520837
+    },
+    {
+      "run": "hit-return-pair-1",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 4,
+      "process": 1,
+      "median_seconds": 0.05340125
+    },
+    {
+      "run": "hit-return-pair-1",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 4,
+      "process": 2,
+      "median_seconds": 0.0573988
+    },
+    {
+      "run": "hit-return-pair-1",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 4,
+      "process": 2,
+      "median_seconds": 0.054994699999999994
+    },
+    {
+      "run": "hit-return-pair-1",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 4,
+      "process": 3,
+      "median_seconds": 0.04831975
+    },
+    {
+      "run": "hit-return-pair-1",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 4,
+      "process": 3,
+      "median_seconds": 0.054599949999999994
+    },
+    {
+      "run": "hit-return-pair-2",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 1,
+      "process": 1,
+      "median_seconds": 0.1702146
+    },
+    {
+      "run": "hit-return-pair-2",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 1,
+      "process": 1,
+      "median_seconds": 0.1618561
+    },
+    {
+      "run": "hit-return-pair-2",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 1,
+      "process": 2,
+      "median_seconds": 0.15065645
+    },
+    {
+      "run": "hit-return-pair-2",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 1,
+      "process": 2,
+      "median_seconds": 0.1517151
+    },
+    {
+      "run": "hit-return-pair-2",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 1,
+      "process": 3,
+      "median_seconds": 0.15898679999999998
+    },
+    {
+      "run": "hit-return-pair-2",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 1,
+      "process": 3,
+      "median_seconds": 0.1504743
+    },
+    {
+      "run": "hit-return-pair-2",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 2,
+      "process": 1,
+      "median_seconds": 0.0865943
+    },
+    {
+      "run": "hit-return-pair-2",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 2,
+      "process": 1,
+      "median_seconds": 0.0845865
+    },
+    {
+      "run": "hit-return-pair-2",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 2,
+      "process": 2,
+      "median_seconds": 0.0852258
+    },
+    {
+      "run": "hit-return-pair-2",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 2,
+      "process": 2,
+      "median_seconds": 0.100549
+    },
+    {
+      "run": "hit-return-pair-2",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 2,
+      "process": 3,
+      "median_seconds": 0.090304
+    },
+    {
+      "run": "hit-return-pair-2",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 2,
+      "process": 3,
+      "median_seconds": 0.08850985
+    },
+    {
+      "run": "hit-return-pair-2",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 4,
+      "process": 1,
+      "median_seconds": 0.049756949999999994
+    },
+    {
+      "run": "hit-return-pair-2",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 4,
+      "process": 1,
+      "median_seconds": 0.0570839
+    },
+    {
+      "run": "hit-return-pair-2",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 4,
+      "process": 2,
+      "median_seconds": 0.049230949999999996
+    },
+    {
+      "run": "hit-return-pair-2",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 4,
+      "process": 2,
+      "median_seconds": 0.0477898
+    },
+    {
+      "run": "hit-return-pair-2",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 4,
+      "process": 3,
+      "median_seconds": 0.04860585
+    },
+    {
+      "run": "hit-return-pair-2",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 4,
+      "process": 3,
+      "median_seconds": 0.04770755
+    },
+    {
+      "run": "dense-index",
+      "engine": "Vanilla 26.2",
+      "variant": null,
+      "workers": 1,
+      "process": 1,
+      "median_seconds": 0.2002235
+    },
+    {
+      "run": "dense-index",
+      "engine": "BCore",
+      "variant": null,
+      "workers": 1,
+      "process": 1,
+      "median_seconds": 0.18092799999999998
+    },
+    {
+      "run": "dense-index",
+      "engine": "BCore",
+      "variant": null,
+      "workers": 1,
+      "process": 2,
+      "median_seconds": 0.14814470000000002
+    },
+    {
+      "run": "dense-index",
+      "engine": "Vanilla 26.2",
+      "variant": null,
+      "workers": 1,
+      "process": 2,
+      "median_seconds": 0.16064265
+    },
+    {
+      "run": "dense-index",
+      "engine": "Vanilla 26.2",
+      "variant": null,
+      "workers": 1,
+      "process": 3,
+      "median_seconds": 0.21575450000000002
+    },
+    {
+      "run": "dense-index",
+      "engine": "BCore",
+      "variant": null,
+      "workers": 1,
+      "process": 3,
+      "median_seconds": 0.17471055000000002
+    },
+    {
+      "run": "dense-index",
+      "engine": "Vanilla 26.2",
+      "variant": null,
+      "workers": 2,
+      "process": 1,
+      "median_seconds": 0.07092125
+    },
+    {
+      "run": "dense-index",
+      "engine": "BCore",
+      "variant": null,
+      "workers": 2,
+      "process": 1,
+      "median_seconds": 0.08972464999999999
+    },
+    {
+      "run": "dense-index",
+      "engine": "BCore",
+      "variant": null,
+      "workers": 2,
+      "process": 2,
+      "median_seconds": 0.0907426
+    },
+    {
+      "run": "dense-index",
+      "engine": "Vanilla 26.2",
+      "variant": null,
+      "workers": 2,
+      "process": 2,
+      "median_seconds": 0.11467695
+    },
+    {
+      "run": "dense-index",
+      "engine": "Vanilla 26.2",
+      "variant": null,
+      "workers": 2,
+      "process": 3,
+      "median_seconds": 0.09501625
+    },
+    {
+      "run": "dense-index",
+      "engine": "BCore",
+      "variant": null,
+      "workers": 2,
+      "process": 3,
+      "median_seconds": 0.0893245
+    },
+    {
+      "run": "dense-index",
+      "engine": "Vanilla 26.2",
+      "variant": null,
+      "workers": 4,
+      "process": 1,
+      "median_seconds": 0.04362905
+    },
+    {
+      "run": "dense-index",
+      "engine": "BCore",
+      "variant": null,
+      "workers": 4,
+      "process": 1,
+      "median_seconds": 0.04939755
+    },
+    {
+      "run": "dense-index",
+      "engine": "BCore",
+      "variant": null,
+      "workers": 4,
+      "process": 2,
+      "median_seconds": 0.053809949999999995
+    },
+    {
+      "run": "dense-index",
+      "engine": "Vanilla 26.2",
+      "variant": null,
+      "workers": 4,
+      "process": 2,
+      "median_seconds": 0.0413635
+    },
+    {
+      "run": "dense-index",
+      "engine": "Vanilla 26.2",
+      "variant": null,
+      "workers": 4,
+      "process": 3,
+      "median_seconds": 0.0361579
+    },
+    {
+      "run": "dense-index",
+      "engine": "BCore",
+      "variant": null,
+      "workers": 4,
+      "process": 3,
+      "median_seconds": 0.0485155
+    },
+    {
+      "run": "dense-index-pair-1",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 1,
+      "process": 1,
+      "median_seconds": 0.15748305
+    },
+    {
+      "run": "dense-index-pair-1",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 1,
+      "process": 1,
+      "median_seconds": 0.1444399
+    },
+    {
+      "run": "dense-index-pair-1",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 1,
+      "process": 2,
+      "median_seconds": 0.13884855000000002
+    },
+    {
+      "run": "dense-index-pair-1",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 1,
+      "process": 2,
+      "median_seconds": 0.15681775
+    },
+    {
+      "run": "dense-index-pair-1",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 1,
+      "process": 3,
+      "median_seconds": 0.14624130000000002
+    },
+    {
+      "run": "dense-index-pair-1",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 1,
+      "process": 3,
+      "median_seconds": 0.1464308
+    },
+    {
+      "run": "dense-index-pair-1",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 2,
+      "process": 1,
+      "median_seconds": 0.0852678
+    },
+    {
+      "run": "dense-index-pair-1",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 2,
+      "process": 1,
+      "median_seconds": 0.09571550000000001
+    },
+    {
+      "run": "dense-index-pair-1",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 2,
+      "process": 2,
+      "median_seconds": 0.09374045
+    },
+    {
+      "run": "dense-index-pair-1",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 2,
+      "process": 2,
+      "median_seconds": 0.0863672
+    },
+    {
+      "run": "dense-index-pair-1",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 2,
+      "process": 3,
+      "median_seconds": 0.08490355
+    },
+    {
+      "run": "dense-index-pair-1",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 2,
+      "process": 3,
+      "median_seconds": 0.0829226
+    },
+    {
+      "run": "dense-index-pair-1",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 4,
+      "process": 1,
+      "median_seconds": 0.045556
+    },
+    {
+      "run": "dense-index-pair-1",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 4,
+      "process": 1,
+      "median_seconds": 0.04551865
+    },
+    {
+      "run": "dense-index-pair-1",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 4,
+      "process": 2,
+      "median_seconds": 0.044906100000000004
+    },
+    {
+      "run": "dense-index-pair-1",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 4,
+      "process": 2,
+      "median_seconds": 0.05217835
+    },
+    {
+      "run": "dense-index-pair-1",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 4,
+      "process": 3,
+      "median_seconds": 0.046415750000000006
+    },
+    {
+      "run": "dense-index-pair-1",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 4,
+      "process": 3,
+      "median_seconds": 0.04437945
+    },
+    {
+      "run": "dense-index-pair-2",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 1,
+      "process": 1,
+      "median_seconds": 0.1535633
+    },
+    {
+      "run": "dense-index-pair-2",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 1,
+      "process": 1,
+      "median_seconds": 0.15854544999999998
+    },
+    {
+      "run": "dense-index-pair-2",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 1,
+      "process": 2,
+      "median_seconds": 0.1461883
+    },
+    {
+      "run": "dense-index-pair-2",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 1,
+      "process": 2,
+      "median_seconds": 0.16210065
+    },
+    {
+      "run": "dense-index-pair-2",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 1,
+      "process": 3,
+      "median_seconds": 0.15373320000000001
+    },
+    {
+      "run": "dense-index-pair-2",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 1,
+      "process": 3,
+      "median_seconds": 0.17945195000000003
+    },
+    {
+      "run": "dense-index-pair-2",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 2,
+      "process": 1,
+      "median_seconds": 0.0852258
+    },
+    {
+      "run": "dense-index-pair-2",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 2,
+      "process": 1,
+      "median_seconds": 0.0828127
+    },
+    {
+      "run": "dense-index-pair-2",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 2,
+      "process": 2,
+      "median_seconds": 0.08190975
+    },
+    {
+      "run": "dense-index-pair-2",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 2,
+      "process": 2,
+      "median_seconds": 0.0842233
+    },
+    {
+      "run": "dense-index-pair-2",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 2,
+      "process": 3,
+      "median_seconds": 0.0825198
+    },
+    {
+      "run": "dense-index-pair-2",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 2,
+      "process": 3,
+      "median_seconds": 0.08249725
+    },
+    {
+      "run": "dense-index-pair-2",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 4,
+      "process": 1,
+      "median_seconds": 0.04504255
+    },
+    {
+      "run": "dense-index-pair-2",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 4,
+      "process": 1,
+      "median_seconds": 0.042495649999999996
+    },
+    {
+      "run": "dense-index-pair-2",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 4,
+      "process": 2,
+      "median_seconds": 0.053002
+    },
+    {
+      "run": "dense-index-pair-2",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 4,
+      "process": 2,
+      "median_seconds": 0.0555491
+    },
+    {
+      "run": "dense-index-pair-2",
+      "engine": "BCore",
+      "variant": "before",
+      "workers": 4,
+      "process": 3,
+      "median_seconds": 0.0447714
+    },
+    {
+      "run": "dense-index-pair-2",
+      "engine": "BCore",
+      "variant": "after",
+      "workers": 4,
+      "process": 3,
+      "median_seconds": 0.0448399
+    }
+  ],
+  "java_goal": "open until complete, repeated comparable Java superiority is demonstrated",
+  "limitations": "Unisolated host; fixed warmup convergence unknown; every raw duration/request/log remains in its hash-identified run. Frozen BCore comparisons are supplementary, not fresh Java measurements. No full-server claim."
+}

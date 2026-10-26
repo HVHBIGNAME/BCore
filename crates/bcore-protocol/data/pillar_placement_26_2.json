@@ -1,0 +1,7630 @@
+{
+  "axis_full_cube_block_items": [
+    {
+      "block": "minecraft:deepslate",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 30417,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:deepslate",
+      "item_id": 8,
+      "max_stack_size": 64,
+      "states": {
+        "x": 30416,
+        "y": 30417,
+        "z": 30418
+      }
+    },
+    {
+      "block": "minecraft:oak_log",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 137,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:oak_log",
+      "item_id": 161,
+      "max_stack_size": 64,
+      "states": {
+        "x": 136,
+        "y": 137,
+        "z": 138
+      }
+    },
+    {
+      "block": "minecraft:spruce_log",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 140,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:spruce_log",
+      "item_id": 162,
+      "max_stack_size": 64,
+      "states": {
+        "x": 139,
+        "y": 140,
+        "z": 141
+      }
+    },
+    {
+      "block": "minecraft:birch_log",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 143,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:birch_log",
+      "item_id": 163,
+      "max_stack_size": 64,
+      "states": {
+        "x": 142,
+        "y": 143,
+        "z": 144
+      }
+    },
+    {
+      "block": "minecraft:jungle_log",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 146,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:jungle_log",
+      "item_id": 164,
+      "max_stack_size": 64,
+      "states": {
+        "x": 145,
+        "y": 146,
+        "z": 147
+      }
+    },
+    {
+      "block": "minecraft:acacia_log",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 149,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:acacia_log",
+      "item_id": 165,
+      "max_stack_size": 64,
+      "states": {
+        "x": 148,
+        "y": 149,
+        "z": 150
+      }
+    },
+    {
+      "block": "minecraft:cherry_log",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 152,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:cherry_log",
+      "item_id": 166,
+      "max_stack_size": 64,
+      "states": {
+        "x": 151,
+        "y": 152,
+        "z": 153
+      }
+    },
+    {
+      "block": "minecraft:pale_oak_log",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 158,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:pale_oak_log",
+      "item_id": 167,
+      "max_stack_size": 64,
+      "states": {
+        "x": 157,
+        "y": 158,
+        "z": 159
+      }
+    },
+    {
+      "block": "minecraft:dark_oak_log",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 155,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:dark_oak_log",
+      "item_id": 168,
+      "max_stack_size": 64,
+      "states": {
+        "x": 154,
+        "y": 155,
+        "z": 156
+      }
+    },
+    {
+      "block": "minecraft:mangrove_log",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 161,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:mangrove_log",
+      "item_id": 169,
+      "max_stack_size": 64,
+      "states": {
+        "x": 160,
+        "y": 161,
+        "z": 162
+      }
+    },
+    {
+      "block": "minecraft:muddy_mangrove_roots",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 166,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:muddy_mangrove_roots",
+      "item_id": 171,
+      "max_stack_size": 64,
+      "states": {
+        "x": 165,
+        "y": 166,
+        "z": 167
+      }
+    },
+    {
+      "block": "minecraft:crimson_stem",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 20963,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:crimson_stem",
+      "item_id": 172,
+      "max_stack_size": 64,
+      "states": {
+        "x": 20962,
+        "y": 20963,
+        "z": 20964
+      }
+    },
+    {
+      "block": "minecraft:warped_stem",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 20946,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:warped_stem",
+      "item_id": 173,
+      "max_stack_size": 64,
+      "states": {
+        "x": 20945,
+        "y": 20946,
+        "z": 20947
+      }
+    },
+    {
+      "block": "minecraft:bamboo_block",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 169,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:bamboo_block",
+      "item_id": 174,
+      "max_stack_size": 64,
+      "states": {
+        "x": 168,
+        "y": 169,
+        "z": 170
+      }
+    },
+    {
+      "block": "minecraft:stripped_oak_log",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 193,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:stripped_oak_log",
+      "item_id": 175,
+      "max_stack_size": 64,
+      "states": {
+        "x": 192,
+        "y": 193,
+        "z": 194
+      }
+    },
+    {
+      "block": "minecraft:stripped_spruce_log",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 172,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:stripped_spruce_log",
+      "item_id": 176,
+      "max_stack_size": 64,
+      "states": {
+        "x": 171,
+        "y": 172,
+        "z": 173
+      }
+    },
+    {
+      "block": "minecraft:stripped_birch_log",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 175,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:stripped_birch_log",
+      "item_id": 177,
+      "max_stack_size": 64,
+      "states": {
+        "x": 174,
+        "y": 175,
+        "z": 176
+      }
+    },
+    {
+      "block": "minecraft:stripped_jungle_log",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 178,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:stripped_jungle_log",
+      "item_id": 178,
+      "max_stack_size": 64,
+      "states": {
+        "x": 177,
+        "y": 178,
+        "z": 179
+      }
+    },
+    {
+      "block": "minecraft:stripped_acacia_log",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 181,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:stripped_acacia_log",
+      "item_id": 179,
+      "max_stack_size": 64,
+      "states": {
+        "x": 180,
+        "y": 181,
+        "z": 182
+      }
+    },
+    {
+      "block": "minecraft:stripped_cherry_log",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 184,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:stripped_cherry_log",
+      "item_id": 180,
+      "max_stack_size": 64,
+      "states": {
+        "x": 183,
+        "y": 184,
+        "z": 185
+      }
+    },
+    {
+      "block": "minecraft:stripped_dark_oak_log",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 187,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:stripped_dark_oak_log",
+      "item_id": 181,
+      "max_stack_size": 64,
+      "states": {
+        "x": 186,
+        "y": 187,
+        "z": 188
+      }
+    },
+    {
+      "block": "minecraft:stripped_pale_oak_log",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 190,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:stripped_pale_oak_log",
+      "item_id": 182,
+      "max_stack_size": 64,
+      "states": {
+        "x": 189,
+        "y": 190,
+        "z": 191
+      }
+    },
+    {
+      "block": "minecraft:stripped_mangrove_log",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 196,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:stripped_mangrove_log",
+      "item_id": 183,
+      "max_stack_size": 64,
+      "states": {
+        "x": 195,
+        "y": 196,
+        "z": 197
+      }
+    },
+    {
+      "block": "minecraft:stripped_crimson_stem",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 20966,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:stripped_crimson_stem",
+      "item_id": 184,
+      "max_stack_size": 64,
+      "states": {
+        "x": 20965,
+        "y": 20966,
+        "z": 20967
+      }
+    },
+    {
+      "block": "minecraft:stripped_warped_stem",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 20949,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:stripped_warped_stem",
+      "item_id": 185,
+      "max_stack_size": 64,
+      "states": {
+        "x": 20948,
+        "y": 20949,
+        "z": 20950
+      }
+    },
+    {
+      "block": "minecraft:stripped_oak_wood",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 226,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:stripped_oak_wood",
+      "item_id": 186,
+      "max_stack_size": 64,
+      "states": {
+        "x": 225,
+        "y": 226,
+        "z": 227
+      }
+    },
+    {
+      "block": "minecraft:stripped_spruce_wood",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 229,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:stripped_spruce_wood",
+      "item_id": 187,
+      "max_stack_size": 64,
+      "states": {
+        "x": 228,
+        "y": 229,
+        "z": 230
+      }
+    },
+    {
+      "block": "minecraft:stripped_birch_wood",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 232,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:stripped_birch_wood",
+      "item_id": 188,
+      "max_stack_size": 64,
+      "states": {
+        "x": 231,
+        "y": 232,
+        "z": 233
+      }
+    },
+    {
+      "block": "minecraft:stripped_jungle_wood",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 235,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:stripped_jungle_wood",
+      "item_id": 189,
+      "max_stack_size": 64,
+      "states": {
+        "x": 234,
+        "y": 235,
+        "z": 236
+      }
+    },
+    {
+      "block": "minecraft:stripped_acacia_wood",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 238,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:stripped_acacia_wood",
+      "item_id": 190,
+      "max_stack_size": 64,
+      "states": {
+        "x": 237,
+        "y": 238,
+        "z": 239
+      }
+    },
+    {
+      "block": "minecraft:stripped_cherry_wood",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 241,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:stripped_cherry_wood",
+      "item_id": 191,
+      "max_stack_size": 64,
+      "states": {
+        "x": 240,
+        "y": 241,
+        "z": 242
+      }
+    },
+    {
+      "block": "minecraft:stripped_dark_oak_wood",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 244,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:stripped_dark_oak_wood",
+      "item_id": 192,
+      "max_stack_size": 64,
+      "states": {
+        "x": 243,
+        "y": 244,
+        "z": 245
+      }
+    },
+    {
+      "block": "minecraft:stripped_pale_oak_wood",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 247,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:stripped_pale_oak_wood",
+      "item_id": 193,
+      "max_stack_size": 64,
+      "states": {
+        "x": 246,
+        "y": 247,
+        "z": 248
+      }
+    },
+    {
+      "block": "minecraft:stripped_mangrove_wood",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 250,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:stripped_mangrove_wood",
+      "item_id": 194,
+      "max_stack_size": 64,
+      "states": {
+        "x": 249,
+        "y": 250,
+        "z": 251
+      }
+    },
+    {
+      "block": "minecraft:stripped_crimson_hyphae",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 20972,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:stripped_crimson_hyphae",
+      "item_id": 195,
+      "max_stack_size": 64,
+      "states": {
+        "x": 20971,
+        "y": 20972,
+        "z": 20973
+      }
+    },
+    {
+      "block": "minecraft:stripped_warped_hyphae",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 20955,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:stripped_warped_hyphae",
+      "item_id": 196,
+      "max_stack_size": 64,
+      "states": {
+        "x": 20954,
+        "y": 20955,
+        "z": 20956
+      }
+    },
+    {
+      "block": "minecraft:stripped_bamboo_block",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 199,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:stripped_bamboo_block",
+      "item_id": 197,
+      "max_stack_size": 64,
+      "states": {
+        "x": 198,
+        "y": 199,
+        "z": 200
+      }
+    },
+    {
+      "block": "minecraft:oak_wood",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 202,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:oak_wood",
+      "item_id": 198,
+      "max_stack_size": 64,
+      "states": {
+        "x": 201,
+        "y": 202,
+        "z": 203
+      }
+    },
+    {
+      "block": "minecraft:spruce_wood",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 205,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:spruce_wood",
+      "item_id": 199,
+      "max_stack_size": 64,
+      "states": {
+        "x": 204,
+        "y": 205,
+        "z": 206
+      }
+    },
+    {
+      "block": "minecraft:birch_wood",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 208,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:birch_wood",
+      "item_id": 200,
+      "max_stack_size": 64,
+      "states": {
+        "x": 207,
+        "y": 208,
+        "z": 209
+      }
+    },
+    {
+      "block": "minecraft:jungle_wood",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 211,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:jungle_wood",
+      "item_id": 201,
+      "max_stack_size": 64,
+      "states": {
+        "x": 210,
+        "y": 211,
+        "z": 212
+      }
+    },
+    {
+      "block": "minecraft:acacia_wood",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 214,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:acacia_wood",
+      "item_id": 202,
+      "max_stack_size": 64,
+      "states": {
+        "x": 213,
+        "y": 214,
+        "z": 215
+      }
+    },
+    {
+      "block": "minecraft:cherry_wood",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 217,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:cherry_wood",
+      "item_id": 203,
+      "max_stack_size": 64,
+      "states": {
+        "x": 216,
+        "y": 217,
+        "z": 218
+      }
+    },
+    {
+      "block": "minecraft:pale_oak_wood",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 23,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:pale_oak_wood",
+      "item_id": 204,
+      "max_stack_size": 64,
+      "states": {
+        "x": 22,
+        "y": 23,
+        "z": 24
+      }
+    },
+    {
+      "block": "minecraft:dark_oak_wood",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 220,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:dark_oak_wood",
+      "item_id": 205,
+      "max_stack_size": 64,
+      "states": {
+        "x": 219,
+        "y": 220,
+        "z": 221
+      }
+    },
+    {
+      "block": "minecraft:mangrove_wood",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 223,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:mangrove_wood",
+      "item_id": 206,
+      "max_stack_size": 64,
+      "states": {
+        "x": 222,
+        "y": 223,
+        "z": 224
+      }
+    },
+    {
+      "block": "minecraft:crimson_hyphae",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 20969,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:crimson_hyphae",
+      "item_id": 207,
+      "max_stack_size": 64,
+      "states": {
+        "x": 20968,
+        "y": 20969,
+        "z": 20970
+      }
+    },
+    {
+      "block": "minecraft:warped_hyphae",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 20952,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:warped_hyphae",
+      "item_id": 208,
+      "max_stack_size": 64,
+      "states": {
+        "x": 20951,
+        "y": 20952,
+        "z": 20953
+      }
+    },
+    {
+      "block": "minecraft:purpur_pillar",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 14714,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:purpur_pillar",
+      "item_id": 355,
+      "max_stack_size": 64,
+      "states": {
+        "x": 14713,
+        "y": 14714,
+        "z": 14715
+      }
+    },
+    {
+      "block": "minecraft:basalt",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 7001,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:basalt",
+      "item_id": 390,
+      "max_stack_size": 64,
+      "states": {
+        "x": 7000,
+        "y": 7001,
+        "z": 7002
+      }
+    },
+    {
+      "block": "minecraft:polished_basalt",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 7004,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:polished_basalt",
+      "item_id": 391,
+      "max_stack_size": 64,
+      "states": {
+        "x": 7003,
+        "y": 7004,
+        "z": 7005
+      }
+    },
+    {
+      "block": "minecraft:quartz_pillar",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 11326,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:quartz_pillar",
+      "item_id": 512,
+      "max_stack_size": 64,
+      "states": {
+        "x": 11325,
+        "y": 11326,
+        "z": 11327
+      }
+    },
+    {
+      "block": "minecraft:bone_block",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 14849,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:bone_block",
+      "item_id": 607,
+      "max_stack_size": 64,
+      "states": {
+        "x": 14848,
+        "y": 14849,
+        "z": 14850
+      }
+    },
+    {
+      "block": "minecraft:ochre_froglight",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 32076,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:ochre_froglight",
+      "item_id": 1452,
+      "max_stack_size": 64,
+      "states": {
+        "x": 32075,
+        "y": 32076,
+        "z": 32077
+      }
+    },
+    {
+      "block": "minecraft:verdant_froglight",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 32079,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:verdant_froglight",
+      "item_id": 1453,
+      "max_stack_size": 64,
+      "states": {
+        "x": 32078,
+        "y": 32079,
+        "z": 32080
+      }
+    },
+    {
+      "block": "minecraft:pearlescent_froglight",
+      "block_class": "net.minecraft.world.level.block.RotatedPillarBlock",
+      "default_state_id": 32082,
+      "empty_fluid": true,
+      "full_collision_cube": true,
+      "has_block_entity": false,
+      "item": "minecraft:pearlescent_froglight",
+      "item_id": 1454,
+      "max_stack_size": 64,
+      "states": {
+        "x": 32081,
+        "y": 32082,
+        "z": 32083
+      }
+    }
+  ],
+  "cases": [
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:deepslate",
+        "item_id": 8,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 30417
+      },
+      "name": "minecraft:deepslate-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0d1ed01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:deepslate",
+        "item_id": 8,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 30417
+      },
+      "name": "minecraft:deepslate-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0d1ed01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:deepslate",
+        "item_id": 8,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 30418
+      },
+      "name": "minecraft:deepslate-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd2ed01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:deepslate",
+        "item_id": 8,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 30418
+      },
+      "name": "minecraft:deepslate-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd2ed01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:deepslate",
+        "item_id": 8,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 30416
+      },
+      "name": "minecraft:deepslate-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd0ed01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:deepslate",
+        "item_id": 8,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 30416
+      },
+      "name": "minecraft:deepslate-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd0ed01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:oak_log",
+        "item_id": 161,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 137
+      },
+      "name": "minecraft:oak_log-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc08901",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:oak_log",
+        "item_id": 161,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 137
+      },
+      "name": "minecraft:oak_log-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc08901",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:oak_log",
+        "item_id": 161,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 138
+      },
+      "name": "minecraft:oak_log-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f8a01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:oak_log",
+        "item_id": 161,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 138
+      },
+      "name": "minecraft:oak_log-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f8a01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:oak_log",
+        "item_id": 161,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 136
+      },
+      "name": "minecraft:oak_log-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f8801",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:oak_log",
+        "item_id": 161,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 136
+      },
+      "name": "minecraft:oak_log-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f8801",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:spruce_log",
+        "item_id": 162,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 140
+      },
+      "name": "minecraft:spruce_log-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc08c01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:spruce_log",
+        "item_id": 162,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 140
+      },
+      "name": "minecraft:spruce_log-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc08c01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:spruce_log",
+        "item_id": 162,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 141
+      },
+      "name": "minecraft:spruce_log-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f8d01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:spruce_log",
+        "item_id": 162,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 141
+      },
+      "name": "minecraft:spruce_log-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f8d01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:spruce_log",
+        "item_id": 162,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 139
+      },
+      "name": "minecraft:spruce_log-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f8b01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:spruce_log",
+        "item_id": 162,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 139
+      },
+      "name": "minecraft:spruce_log-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f8b01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:birch_log",
+        "item_id": 163,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 143
+      },
+      "name": "minecraft:birch_log-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc08f01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:birch_log",
+        "item_id": 163,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 143
+      },
+      "name": "minecraft:birch_log-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc08f01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:birch_log",
+        "item_id": 163,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 144
+      },
+      "name": "minecraft:birch_log-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f9001",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:birch_log",
+        "item_id": 163,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 144
+      },
+      "name": "minecraft:birch_log-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f9001",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:birch_log",
+        "item_id": 163,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 142
+      },
+      "name": "minecraft:birch_log-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f8e01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:birch_log",
+        "item_id": 163,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 142
+      },
+      "name": "minecraft:birch_log-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f8e01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:jungle_log",
+        "item_id": 164,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 146
+      },
+      "name": "minecraft:jungle_log-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc09201",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:jungle_log",
+        "item_id": 164,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 146
+      },
+      "name": "minecraft:jungle_log-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc09201",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:jungle_log",
+        "item_id": 164,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 147
+      },
+      "name": "minecraft:jungle_log-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f9301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:jungle_log",
+        "item_id": 164,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 147
+      },
+      "name": "minecraft:jungle_log-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f9301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:jungle_log",
+        "item_id": 164,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 145
+      },
+      "name": "minecraft:jungle_log-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f9101",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:jungle_log",
+        "item_id": 164,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 145
+      },
+      "name": "minecraft:jungle_log-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f9101",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:acacia_log",
+        "item_id": 165,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 149
+      },
+      "name": "minecraft:acacia_log-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc09501",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:acacia_log",
+        "item_id": 165,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 149
+      },
+      "name": "minecraft:acacia_log-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc09501",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:acacia_log",
+        "item_id": 165,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 150
+      },
+      "name": "minecraft:acacia_log-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f9601",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:acacia_log",
+        "item_id": 165,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 150
+      },
+      "name": "minecraft:acacia_log-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f9601",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:acacia_log",
+        "item_id": 165,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 148
+      },
+      "name": "minecraft:acacia_log-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f9401",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:acacia_log",
+        "item_id": 165,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 148
+      },
+      "name": "minecraft:acacia_log-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f9401",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:cherry_log",
+        "item_id": 166,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 152
+      },
+      "name": "minecraft:cherry_log-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc09801",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:cherry_log",
+        "item_id": 166,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 152
+      },
+      "name": "minecraft:cherry_log-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc09801",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:cherry_log",
+        "item_id": 166,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 153
+      },
+      "name": "minecraft:cherry_log-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f9901",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:cherry_log",
+        "item_id": 166,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 153
+      },
+      "name": "minecraft:cherry_log-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f9901",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:cherry_log",
+        "item_id": 166,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 151
+      },
+      "name": "minecraft:cherry_log-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f9701",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:cherry_log",
+        "item_id": 166,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 151
+      },
+      "name": "minecraft:cherry_log-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f9701",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:pale_oak_log",
+        "item_id": 167,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 158
+      },
+      "name": "minecraft:pale_oak_log-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc09e01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:pale_oak_log",
+        "item_id": 167,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 158
+      },
+      "name": "minecraft:pale_oak_log-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc09e01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:pale_oak_log",
+        "item_id": 167,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 159
+      },
+      "name": "minecraft:pale_oak_log-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f9f01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:pale_oak_log",
+        "item_id": 167,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 159
+      },
+      "name": "minecraft:pale_oak_log-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f9f01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:pale_oak_log",
+        "item_id": 167,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 157
+      },
+      "name": "minecraft:pale_oak_log-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f9d01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:pale_oak_log",
+        "item_id": 167,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 157
+      },
+      "name": "minecraft:pale_oak_log-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f9d01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:dark_oak_log",
+        "item_id": 168,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 155
+      },
+      "name": "minecraft:dark_oak_log-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc09b01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:dark_oak_log",
+        "item_id": 168,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 155
+      },
+      "name": "minecraft:dark_oak_log-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc09b01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:dark_oak_log",
+        "item_id": 168,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 156
+      },
+      "name": "minecraft:dark_oak_log-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f9c01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:dark_oak_log",
+        "item_id": 168,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 156
+      },
+      "name": "minecraft:dark_oak_log-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f9c01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:dark_oak_log",
+        "item_id": 168,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 154
+      },
+      "name": "minecraft:dark_oak_log-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f9a01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:dark_oak_log",
+        "item_id": 168,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 154
+      },
+      "name": "minecraft:dark_oak_log-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f9a01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:mangrove_log",
+        "item_id": 169,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 161
+      },
+      "name": "minecraft:mangrove_log-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0a101",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:mangrove_log",
+        "item_id": 169,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 161
+      },
+      "name": "minecraft:mangrove_log-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0a101",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:mangrove_log",
+        "item_id": 169,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 162
+      },
+      "name": "minecraft:mangrove_log-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fa201",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:mangrove_log",
+        "item_id": 169,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 162
+      },
+      "name": "minecraft:mangrove_log-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fa201",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:mangrove_log",
+        "item_id": 169,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 160
+      },
+      "name": "minecraft:mangrove_log-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fa001",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:mangrove_log",
+        "item_id": 169,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 160
+      },
+      "name": "minecraft:mangrove_log-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fa001",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:muddy_mangrove_roots",
+        "item_id": 171,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 166
+      },
+      "name": "minecraft:muddy_mangrove_roots-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0a601",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:muddy_mangrove_roots",
+        "item_id": 171,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 166
+      },
+      "name": "minecraft:muddy_mangrove_roots-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0a601",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:muddy_mangrove_roots",
+        "item_id": 171,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 167
+      },
+      "name": "minecraft:muddy_mangrove_roots-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fa701",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:muddy_mangrove_roots",
+        "item_id": 171,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 167
+      },
+      "name": "minecraft:muddy_mangrove_roots-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fa701",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:muddy_mangrove_roots",
+        "item_id": 171,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 165
+      },
+      "name": "minecraft:muddy_mangrove_roots-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fa501",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:muddy_mangrove_roots",
+        "item_id": 171,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 165
+      },
+      "name": "minecraft:muddy_mangrove_roots-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fa501",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:crimson_stem",
+        "item_id": 172,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 20963
+      },
+      "name": "minecraft:crimson_stem-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0e3a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:crimson_stem",
+        "item_id": 172,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 20963
+      },
+      "name": "minecraft:crimson_stem-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0e3a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:crimson_stem",
+        "item_id": 172,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20964
+      },
+      "name": "minecraft:crimson_stem-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fe4a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:crimson_stem",
+        "item_id": 172,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20964
+      },
+      "name": "minecraft:crimson_stem-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fe4a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:crimson_stem",
+        "item_id": 172,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20962
+      },
+      "name": "minecraft:crimson_stem-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fe2a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:crimson_stem",
+        "item_id": 172,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20962
+      },
+      "name": "minecraft:crimson_stem-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fe2a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:warped_stem",
+        "item_id": 173,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 20946
+      },
+      "name": "minecraft:warped_stem-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0d2a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:warped_stem",
+        "item_id": 173,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 20946
+      },
+      "name": "minecraft:warped_stem-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0d2a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:warped_stem",
+        "item_id": 173,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20947
+      },
+      "name": "minecraft:warped_stem-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd3a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:warped_stem",
+        "item_id": 173,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20947
+      },
+      "name": "minecraft:warped_stem-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd3a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:warped_stem",
+        "item_id": 173,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20945
+      },
+      "name": "minecraft:warped_stem-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd1a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:warped_stem",
+        "item_id": 173,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20945
+      },
+      "name": "minecraft:warped_stem-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd1a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:bamboo_block",
+        "item_id": 174,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 169
+      },
+      "name": "minecraft:bamboo_block-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0a901",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:bamboo_block",
+        "item_id": 174,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 169
+      },
+      "name": "minecraft:bamboo_block-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0a901",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:bamboo_block",
+        "item_id": 174,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 170
+      },
+      "name": "minecraft:bamboo_block-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713faa01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:bamboo_block",
+        "item_id": 174,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 170
+      },
+      "name": "minecraft:bamboo_block-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713faa01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:bamboo_block",
+        "item_id": 174,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 168
+      },
+      "name": "minecraft:bamboo_block-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fa801",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:bamboo_block",
+        "item_id": 174,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 168
+      },
+      "name": "minecraft:bamboo_block-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fa801",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:stripped_oak_log",
+        "item_id": 175,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 193
+      },
+      "name": "minecraft:stripped_oak_log-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0c101",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:stripped_oak_log",
+        "item_id": 175,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 193
+      },
+      "name": "minecraft:stripped_oak_log-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0c101",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:stripped_oak_log",
+        "item_id": 175,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 194
+      },
+      "name": "minecraft:stripped_oak_log-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fc201",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:stripped_oak_log",
+        "item_id": 175,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 194
+      },
+      "name": "minecraft:stripped_oak_log-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fc201",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:stripped_oak_log",
+        "item_id": 175,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 192
+      },
+      "name": "minecraft:stripped_oak_log-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fc001",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:stripped_oak_log",
+        "item_id": 175,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 192
+      },
+      "name": "minecraft:stripped_oak_log-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fc001",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:stripped_spruce_log",
+        "item_id": 176,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 172
+      },
+      "name": "minecraft:stripped_spruce_log-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0ac01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:stripped_spruce_log",
+        "item_id": 176,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 172
+      },
+      "name": "minecraft:stripped_spruce_log-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0ac01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:stripped_spruce_log",
+        "item_id": 176,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 173
+      },
+      "name": "minecraft:stripped_spruce_log-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fad01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:stripped_spruce_log",
+        "item_id": 176,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 173
+      },
+      "name": "minecraft:stripped_spruce_log-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fad01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:stripped_spruce_log",
+        "item_id": 176,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 171
+      },
+      "name": "minecraft:stripped_spruce_log-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fab01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:stripped_spruce_log",
+        "item_id": 176,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 171
+      },
+      "name": "minecraft:stripped_spruce_log-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fab01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:stripped_birch_log",
+        "item_id": 177,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 175
+      },
+      "name": "minecraft:stripped_birch_log-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0af01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:stripped_birch_log",
+        "item_id": 177,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 175
+      },
+      "name": "minecraft:stripped_birch_log-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0af01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:stripped_birch_log",
+        "item_id": 177,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 176
+      },
+      "name": "minecraft:stripped_birch_log-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fb001",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:stripped_birch_log",
+        "item_id": 177,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 176
+      },
+      "name": "minecraft:stripped_birch_log-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fb001",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:stripped_birch_log",
+        "item_id": 177,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 174
+      },
+      "name": "minecraft:stripped_birch_log-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fae01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:stripped_birch_log",
+        "item_id": 177,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 174
+      },
+      "name": "minecraft:stripped_birch_log-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fae01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:stripped_jungle_log",
+        "item_id": 178,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 178
+      },
+      "name": "minecraft:stripped_jungle_log-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0b201",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:stripped_jungle_log",
+        "item_id": 178,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 178
+      },
+      "name": "minecraft:stripped_jungle_log-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0b201",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:stripped_jungle_log",
+        "item_id": 178,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 179
+      },
+      "name": "minecraft:stripped_jungle_log-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fb301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:stripped_jungle_log",
+        "item_id": 178,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 179
+      },
+      "name": "minecraft:stripped_jungle_log-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fb301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:stripped_jungle_log",
+        "item_id": 178,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 177
+      },
+      "name": "minecraft:stripped_jungle_log-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fb101",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:stripped_jungle_log",
+        "item_id": 178,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 177
+      },
+      "name": "minecraft:stripped_jungle_log-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fb101",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:stripped_acacia_log",
+        "item_id": 179,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 181
+      },
+      "name": "minecraft:stripped_acacia_log-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0b501",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:stripped_acacia_log",
+        "item_id": 179,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 181
+      },
+      "name": "minecraft:stripped_acacia_log-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0b501",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:stripped_acacia_log",
+        "item_id": 179,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 182
+      },
+      "name": "minecraft:stripped_acacia_log-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fb601",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:stripped_acacia_log",
+        "item_id": 179,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 182
+      },
+      "name": "minecraft:stripped_acacia_log-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fb601",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:stripped_acacia_log",
+        "item_id": 179,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 180
+      },
+      "name": "minecraft:stripped_acacia_log-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fb401",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:stripped_acacia_log",
+        "item_id": 179,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 180
+      },
+      "name": "minecraft:stripped_acacia_log-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fb401",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:stripped_cherry_log",
+        "item_id": 180,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 184
+      },
+      "name": "minecraft:stripped_cherry_log-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0b801",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:stripped_cherry_log",
+        "item_id": 180,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 184
+      },
+      "name": "minecraft:stripped_cherry_log-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0b801",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:stripped_cherry_log",
+        "item_id": 180,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 185
+      },
+      "name": "minecraft:stripped_cherry_log-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fb901",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:stripped_cherry_log",
+        "item_id": 180,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 185
+      },
+      "name": "minecraft:stripped_cherry_log-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fb901",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:stripped_cherry_log",
+        "item_id": 180,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 183
+      },
+      "name": "minecraft:stripped_cherry_log-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fb701",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:stripped_cherry_log",
+        "item_id": 180,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 183
+      },
+      "name": "minecraft:stripped_cherry_log-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fb701",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:stripped_dark_oak_log",
+        "item_id": 181,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 187
+      },
+      "name": "minecraft:stripped_dark_oak_log-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0bb01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:stripped_dark_oak_log",
+        "item_id": 181,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 187
+      },
+      "name": "minecraft:stripped_dark_oak_log-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0bb01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:stripped_dark_oak_log",
+        "item_id": 181,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 188
+      },
+      "name": "minecraft:stripped_dark_oak_log-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fbc01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:stripped_dark_oak_log",
+        "item_id": 181,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 188
+      },
+      "name": "minecraft:stripped_dark_oak_log-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fbc01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:stripped_dark_oak_log",
+        "item_id": 181,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 186
+      },
+      "name": "minecraft:stripped_dark_oak_log-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fba01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:stripped_dark_oak_log",
+        "item_id": 181,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 186
+      },
+      "name": "minecraft:stripped_dark_oak_log-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fba01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:stripped_pale_oak_log",
+        "item_id": 182,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 190
+      },
+      "name": "minecraft:stripped_pale_oak_log-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0be01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:stripped_pale_oak_log",
+        "item_id": 182,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 190
+      },
+      "name": "minecraft:stripped_pale_oak_log-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0be01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:stripped_pale_oak_log",
+        "item_id": 182,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 191
+      },
+      "name": "minecraft:stripped_pale_oak_log-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fbf01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:stripped_pale_oak_log",
+        "item_id": 182,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 191
+      },
+      "name": "minecraft:stripped_pale_oak_log-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fbf01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:stripped_pale_oak_log",
+        "item_id": 182,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 189
+      },
+      "name": "minecraft:stripped_pale_oak_log-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fbd01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:stripped_pale_oak_log",
+        "item_id": 182,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 189
+      },
+      "name": "minecraft:stripped_pale_oak_log-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fbd01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:stripped_mangrove_log",
+        "item_id": 183,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 196
+      },
+      "name": "minecraft:stripped_mangrove_log-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0c401",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:stripped_mangrove_log",
+        "item_id": 183,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 196
+      },
+      "name": "minecraft:stripped_mangrove_log-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0c401",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:stripped_mangrove_log",
+        "item_id": 183,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 197
+      },
+      "name": "minecraft:stripped_mangrove_log-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fc501",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:stripped_mangrove_log",
+        "item_id": 183,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 197
+      },
+      "name": "minecraft:stripped_mangrove_log-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fc501",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:stripped_mangrove_log",
+        "item_id": 183,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 195
+      },
+      "name": "minecraft:stripped_mangrove_log-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fc301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:stripped_mangrove_log",
+        "item_id": 183,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 195
+      },
+      "name": "minecraft:stripped_mangrove_log-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fc301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:stripped_crimson_stem",
+        "item_id": 184,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 20966
+      },
+      "name": "minecraft:stripped_crimson_stem-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0e6a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:stripped_crimson_stem",
+        "item_id": 184,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 20966
+      },
+      "name": "minecraft:stripped_crimson_stem-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0e6a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:stripped_crimson_stem",
+        "item_id": 184,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20967
+      },
+      "name": "minecraft:stripped_crimson_stem-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fe7a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:stripped_crimson_stem",
+        "item_id": 184,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20967
+      },
+      "name": "minecraft:stripped_crimson_stem-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fe7a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:stripped_crimson_stem",
+        "item_id": 184,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20965
+      },
+      "name": "minecraft:stripped_crimson_stem-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fe5a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:stripped_crimson_stem",
+        "item_id": 184,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20965
+      },
+      "name": "minecraft:stripped_crimson_stem-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fe5a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:stripped_warped_stem",
+        "item_id": 185,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 20949
+      },
+      "name": "minecraft:stripped_warped_stem-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0d5a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:stripped_warped_stem",
+        "item_id": 185,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 20949
+      },
+      "name": "minecraft:stripped_warped_stem-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0d5a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:stripped_warped_stem",
+        "item_id": 185,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20950
+      },
+      "name": "minecraft:stripped_warped_stem-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd6a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:stripped_warped_stem",
+        "item_id": 185,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20950
+      },
+      "name": "minecraft:stripped_warped_stem-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd6a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:stripped_warped_stem",
+        "item_id": 185,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20948
+      },
+      "name": "minecraft:stripped_warped_stem-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd4a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:stripped_warped_stem",
+        "item_id": 185,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20948
+      },
+      "name": "minecraft:stripped_warped_stem-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd4a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:stripped_oak_wood",
+        "item_id": 186,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 226
+      },
+      "name": "minecraft:stripped_oak_wood-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0e201",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:stripped_oak_wood",
+        "item_id": 186,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 226
+      },
+      "name": "minecraft:stripped_oak_wood-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0e201",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:stripped_oak_wood",
+        "item_id": 186,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 227
+      },
+      "name": "minecraft:stripped_oak_wood-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fe301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:stripped_oak_wood",
+        "item_id": 186,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 227
+      },
+      "name": "minecraft:stripped_oak_wood-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fe301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:stripped_oak_wood",
+        "item_id": 186,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 225
+      },
+      "name": "minecraft:stripped_oak_wood-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fe101",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:stripped_oak_wood",
+        "item_id": 186,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 225
+      },
+      "name": "minecraft:stripped_oak_wood-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fe101",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:stripped_spruce_wood",
+        "item_id": 187,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 229
+      },
+      "name": "minecraft:stripped_spruce_wood-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0e501",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:stripped_spruce_wood",
+        "item_id": 187,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 229
+      },
+      "name": "minecraft:stripped_spruce_wood-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0e501",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:stripped_spruce_wood",
+        "item_id": 187,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 230
+      },
+      "name": "minecraft:stripped_spruce_wood-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fe601",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:stripped_spruce_wood",
+        "item_id": 187,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 230
+      },
+      "name": "minecraft:stripped_spruce_wood-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fe601",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:stripped_spruce_wood",
+        "item_id": 187,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 228
+      },
+      "name": "minecraft:stripped_spruce_wood-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fe401",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:stripped_spruce_wood",
+        "item_id": 187,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 228
+      },
+      "name": "minecraft:stripped_spruce_wood-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fe401",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:stripped_birch_wood",
+        "item_id": 188,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 232
+      },
+      "name": "minecraft:stripped_birch_wood-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0e801",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:stripped_birch_wood",
+        "item_id": 188,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 232
+      },
+      "name": "minecraft:stripped_birch_wood-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0e801",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:stripped_birch_wood",
+        "item_id": 188,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 233
+      },
+      "name": "minecraft:stripped_birch_wood-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fe901",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:stripped_birch_wood",
+        "item_id": 188,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 233
+      },
+      "name": "minecraft:stripped_birch_wood-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fe901",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:stripped_birch_wood",
+        "item_id": 188,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 231
+      },
+      "name": "minecraft:stripped_birch_wood-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fe701",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:stripped_birch_wood",
+        "item_id": 188,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 231
+      },
+      "name": "minecraft:stripped_birch_wood-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fe701",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:stripped_jungle_wood",
+        "item_id": 189,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 235
+      },
+      "name": "minecraft:stripped_jungle_wood-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0eb01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:stripped_jungle_wood",
+        "item_id": 189,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 235
+      },
+      "name": "minecraft:stripped_jungle_wood-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0eb01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:stripped_jungle_wood",
+        "item_id": 189,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 236
+      },
+      "name": "minecraft:stripped_jungle_wood-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fec01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:stripped_jungle_wood",
+        "item_id": 189,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 236
+      },
+      "name": "minecraft:stripped_jungle_wood-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fec01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:stripped_jungle_wood",
+        "item_id": 189,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 234
+      },
+      "name": "minecraft:stripped_jungle_wood-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fea01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:stripped_jungle_wood",
+        "item_id": 189,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 234
+      },
+      "name": "minecraft:stripped_jungle_wood-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fea01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:stripped_acacia_wood",
+        "item_id": 190,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 238
+      },
+      "name": "minecraft:stripped_acacia_wood-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0ee01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:stripped_acacia_wood",
+        "item_id": 190,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 238
+      },
+      "name": "minecraft:stripped_acacia_wood-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0ee01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:stripped_acacia_wood",
+        "item_id": 190,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 239
+      },
+      "name": "minecraft:stripped_acacia_wood-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fef01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:stripped_acacia_wood",
+        "item_id": 190,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 239
+      },
+      "name": "minecraft:stripped_acacia_wood-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fef01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:stripped_acacia_wood",
+        "item_id": 190,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 237
+      },
+      "name": "minecraft:stripped_acacia_wood-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fed01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:stripped_acacia_wood",
+        "item_id": 190,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 237
+      },
+      "name": "minecraft:stripped_acacia_wood-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fed01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:stripped_cherry_wood",
+        "item_id": 191,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 241
+      },
+      "name": "minecraft:stripped_cherry_wood-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0f101",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:stripped_cherry_wood",
+        "item_id": 191,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 241
+      },
+      "name": "minecraft:stripped_cherry_wood-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0f101",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:stripped_cherry_wood",
+        "item_id": 191,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 242
+      },
+      "name": "minecraft:stripped_cherry_wood-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713ff201",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:stripped_cherry_wood",
+        "item_id": 191,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 242
+      },
+      "name": "minecraft:stripped_cherry_wood-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713ff201",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:stripped_cherry_wood",
+        "item_id": 191,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 240
+      },
+      "name": "minecraft:stripped_cherry_wood-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713ff001",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:stripped_cherry_wood",
+        "item_id": 191,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 240
+      },
+      "name": "minecraft:stripped_cherry_wood-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713ff001",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:stripped_dark_oak_wood",
+        "item_id": 192,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 244
+      },
+      "name": "minecraft:stripped_dark_oak_wood-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0f401",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:stripped_dark_oak_wood",
+        "item_id": 192,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 244
+      },
+      "name": "minecraft:stripped_dark_oak_wood-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0f401",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:stripped_dark_oak_wood",
+        "item_id": 192,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 245
+      },
+      "name": "minecraft:stripped_dark_oak_wood-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713ff501",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:stripped_dark_oak_wood",
+        "item_id": 192,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 245
+      },
+      "name": "minecraft:stripped_dark_oak_wood-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713ff501",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:stripped_dark_oak_wood",
+        "item_id": 192,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 243
+      },
+      "name": "minecraft:stripped_dark_oak_wood-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713ff301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:stripped_dark_oak_wood",
+        "item_id": 192,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 243
+      },
+      "name": "minecraft:stripped_dark_oak_wood-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713ff301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:stripped_pale_oak_wood",
+        "item_id": 193,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 247
+      },
+      "name": "minecraft:stripped_pale_oak_wood-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0f701",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:stripped_pale_oak_wood",
+        "item_id": 193,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 247
+      },
+      "name": "minecraft:stripped_pale_oak_wood-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0f701",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:stripped_pale_oak_wood",
+        "item_id": 193,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 248
+      },
+      "name": "minecraft:stripped_pale_oak_wood-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713ff801",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:stripped_pale_oak_wood",
+        "item_id": 193,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 248
+      },
+      "name": "minecraft:stripped_pale_oak_wood-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713ff801",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:stripped_pale_oak_wood",
+        "item_id": 193,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 246
+      },
+      "name": "minecraft:stripped_pale_oak_wood-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713ff601",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:stripped_pale_oak_wood",
+        "item_id": 193,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 246
+      },
+      "name": "minecraft:stripped_pale_oak_wood-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713ff601",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:stripped_mangrove_wood",
+        "item_id": 194,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 250
+      },
+      "name": "minecraft:stripped_mangrove_wood-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0fa01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:stripped_mangrove_wood",
+        "item_id": 194,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 250
+      },
+      "name": "minecraft:stripped_mangrove_wood-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0fa01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:stripped_mangrove_wood",
+        "item_id": 194,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 251
+      },
+      "name": "minecraft:stripped_mangrove_wood-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713ffb01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:stripped_mangrove_wood",
+        "item_id": 194,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 251
+      },
+      "name": "minecraft:stripped_mangrove_wood-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713ffb01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:stripped_mangrove_wood",
+        "item_id": 194,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 249
+      },
+      "name": "minecraft:stripped_mangrove_wood-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713ff901",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:stripped_mangrove_wood",
+        "item_id": 194,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 249
+      },
+      "name": "minecraft:stripped_mangrove_wood-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713ff901",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:stripped_crimson_hyphae",
+        "item_id": 195,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 20972
+      },
+      "name": "minecraft:stripped_crimson_hyphae-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0eca301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:stripped_crimson_hyphae",
+        "item_id": 195,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 20972
+      },
+      "name": "minecraft:stripped_crimson_hyphae-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0eca301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:stripped_crimson_hyphae",
+        "item_id": 195,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20973
+      },
+      "name": "minecraft:stripped_crimson_hyphae-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713feda301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:stripped_crimson_hyphae",
+        "item_id": 195,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20973
+      },
+      "name": "minecraft:stripped_crimson_hyphae-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713feda301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:stripped_crimson_hyphae",
+        "item_id": 195,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20971
+      },
+      "name": "minecraft:stripped_crimson_hyphae-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713feba301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:stripped_crimson_hyphae",
+        "item_id": 195,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20971
+      },
+      "name": "minecraft:stripped_crimson_hyphae-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713feba301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:stripped_warped_hyphae",
+        "item_id": 196,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 20955
+      },
+      "name": "minecraft:stripped_warped_hyphae-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0dba301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:stripped_warped_hyphae",
+        "item_id": 196,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 20955
+      },
+      "name": "minecraft:stripped_warped_hyphae-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0dba301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:stripped_warped_hyphae",
+        "item_id": 196,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20956
+      },
+      "name": "minecraft:stripped_warped_hyphae-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fdca301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:stripped_warped_hyphae",
+        "item_id": 196,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20956
+      },
+      "name": "minecraft:stripped_warped_hyphae-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fdca301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:stripped_warped_hyphae",
+        "item_id": 196,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20954
+      },
+      "name": "minecraft:stripped_warped_hyphae-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fdaa301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:stripped_warped_hyphae",
+        "item_id": 196,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20954
+      },
+      "name": "minecraft:stripped_warped_hyphae-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fdaa301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:stripped_bamboo_block",
+        "item_id": 197,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 199
+      },
+      "name": "minecraft:stripped_bamboo_block-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0c701",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:stripped_bamboo_block",
+        "item_id": 197,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 199
+      },
+      "name": "minecraft:stripped_bamboo_block-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0c701",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:stripped_bamboo_block",
+        "item_id": 197,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 200
+      },
+      "name": "minecraft:stripped_bamboo_block-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fc801",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:stripped_bamboo_block",
+        "item_id": 197,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 200
+      },
+      "name": "minecraft:stripped_bamboo_block-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fc801",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:stripped_bamboo_block",
+        "item_id": 197,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 198
+      },
+      "name": "minecraft:stripped_bamboo_block-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fc601",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:stripped_bamboo_block",
+        "item_id": 197,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 198
+      },
+      "name": "minecraft:stripped_bamboo_block-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fc601",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:oak_wood",
+        "item_id": 198,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 202
+      },
+      "name": "minecraft:oak_wood-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0ca01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:oak_wood",
+        "item_id": 198,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 202
+      },
+      "name": "minecraft:oak_wood-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0ca01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:oak_wood",
+        "item_id": 198,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 203
+      },
+      "name": "minecraft:oak_wood-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fcb01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:oak_wood",
+        "item_id": 198,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 203
+      },
+      "name": "minecraft:oak_wood-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fcb01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:oak_wood",
+        "item_id": 198,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 201
+      },
+      "name": "minecraft:oak_wood-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fc901",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:oak_wood",
+        "item_id": 198,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 201
+      },
+      "name": "minecraft:oak_wood-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fc901",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:spruce_wood",
+        "item_id": 199,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 205
+      },
+      "name": "minecraft:spruce_wood-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0cd01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:spruce_wood",
+        "item_id": 199,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 205
+      },
+      "name": "minecraft:spruce_wood-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0cd01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:spruce_wood",
+        "item_id": 199,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 206
+      },
+      "name": "minecraft:spruce_wood-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fce01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:spruce_wood",
+        "item_id": 199,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 206
+      },
+      "name": "minecraft:spruce_wood-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fce01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:spruce_wood",
+        "item_id": 199,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 204
+      },
+      "name": "minecraft:spruce_wood-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fcc01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:spruce_wood",
+        "item_id": 199,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 204
+      },
+      "name": "minecraft:spruce_wood-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fcc01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:birch_wood",
+        "item_id": 200,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 208
+      },
+      "name": "minecraft:birch_wood-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0d001",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:birch_wood",
+        "item_id": 200,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 208
+      },
+      "name": "minecraft:birch_wood-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0d001",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:birch_wood",
+        "item_id": 200,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 209
+      },
+      "name": "minecraft:birch_wood-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd101",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:birch_wood",
+        "item_id": 200,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 209
+      },
+      "name": "minecraft:birch_wood-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd101",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:birch_wood",
+        "item_id": 200,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 207
+      },
+      "name": "minecraft:birch_wood-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fcf01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:birch_wood",
+        "item_id": 200,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 207
+      },
+      "name": "minecraft:birch_wood-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fcf01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:jungle_wood",
+        "item_id": 201,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 211
+      },
+      "name": "minecraft:jungle_wood-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0d301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:jungle_wood",
+        "item_id": 201,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 211
+      },
+      "name": "minecraft:jungle_wood-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0d301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:jungle_wood",
+        "item_id": 201,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 212
+      },
+      "name": "minecraft:jungle_wood-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd401",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:jungle_wood",
+        "item_id": 201,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 212
+      },
+      "name": "minecraft:jungle_wood-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd401",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:jungle_wood",
+        "item_id": 201,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 210
+      },
+      "name": "minecraft:jungle_wood-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd201",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:jungle_wood",
+        "item_id": 201,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 210
+      },
+      "name": "minecraft:jungle_wood-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd201",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:acacia_wood",
+        "item_id": 202,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 214
+      },
+      "name": "minecraft:acacia_wood-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0d601",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:acacia_wood",
+        "item_id": 202,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 214
+      },
+      "name": "minecraft:acacia_wood-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0d601",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:acacia_wood",
+        "item_id": 202,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 215
+      },
+      "name": "minecraft:acacia_wood-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd701",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:acacia_wood",
+        "item_id": 202,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 215
+      },
+      "name": "minecraft:acacia_wood-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd701",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:acacia_wood",
+        "item_id": 202,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 213
+      },
+      "name": "minecraft:acacia_wood-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd501",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:acacia_wood",
+        "item_id": 202,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 213
+      },
+      "name": "minecraft:acacia_wood-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd501",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:cherry_wood",
+        "item_id": 203,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 217
+      },
+      "name": "minecraft:cherry_wood-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0d901",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:cherry_wood",
+        "item_id": 203,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 217
+      },
+      "name": "minecraft:cherry_wood-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0d901",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:cherry_wood",
+        "item_id": 203,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 218
+      },
+      "name": "minecraft:cherry_wood-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fda01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:cherry_wood",
+        "item_id": 203,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 218
+      },
+      "name": "minecraft:cherry_wood-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fda01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:cherry_wood",
+        "item_id": 203,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 216
+      },
+      "name": "minecraft:cherry_wood-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd801",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:cherry_wood",
+        "item_id": 203,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 216
+      },
+      "name": "minecraft:cherry_wood-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd801",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:pale_oak_wood",
+        "item_id": 204,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 23
+      },
+      "name": "minecraft:pale_oak_wood-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc017",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:pale_oak_wood",
+        "item_id": 204,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 23
+      },
+      "name": "minecraft:pale_oak_wood-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc017",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:pale_oak_wood",
+        "item_id": 204,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 24
+      },
+      "name": "minecraft:pale_oak_wood-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f18",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:pale_oak_wood",
+        "item_id": 204,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 24
+      },
+      "name": "minecraft:pale_oak_wood-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f18",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:pale_oak_wood",
+        "item_id": 204,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 22
+      },
+      "name": "minecraft:pale_oak_wood-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f16",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:pale_oak_wood",
+        "item_id": 204,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 22
+      },
+      "name": "minecraft:pale_oak_wood-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f16",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:dark_oak_wood",
+        "item_id": 205,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 220
+      },
+      "name": "minecraft:dark_oak_wood-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0dc01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:dark_oak_wood",
+        "item_id": 205,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 220
+      },
+      "name": "minecraft:dark_oak_wood-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0dc01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:dark_oak_wood",
+        "item_id": 205,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 221
+      },
+      "name": "minecraft:dark_oak_wood-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fdd01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:dark_oak_wood",
+        "item_id": 205,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 221
+      },
+      "name": "minecraft:dark_oak_wood-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fdd01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:dark_oak_wood",
+        "item_id": 205,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 219
+      },
+      "name": "minecraft:dark_oak_wood-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fdb01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:dark_oak_wood",
+        "item_id": 205,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 219
+      },
+      "name": "minecraft:dark_oak_wood-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fdb01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:mangrove_wood",
+        "item_id": 206,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 223
+      },
+      "name": "minecraft:mangrove_wood-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0df01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:mangrove_wood",
+        "item_id": 206,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 223
+      },
+      "name": "minecraft:mangrove_wood-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0df01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:mangrove_wood",
+        "item_id": 206,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 224
+      },
+      "name": "minecraft:mangrove_wood-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fe001",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:mangrove_wood",
+        "item_id": 206,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 224
+      },
+      "name": "minecraft:mangrove_wood-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fe001",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:mangrove_wood",
+        "item_id": 206,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 222
+      },
+      "name": "minecraft:mangrove_wood-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fde01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:mangrove_wood",
+        "item_id": 206,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 222
+      },
+      "name": "minecraft:mangrove_wood-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fde01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:crimson_hyphae",
+        "item_id": 207,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 20969
+      },
+      "name": "minecraft:crimson_hyphae-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0e9a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:crimson_hyphae",
+        "item_id": 207,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 20969
+      },
+      "name": "minecraft:crimson_hyphae-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0e9a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:crimson_hyphae",
+        "item_id": 207,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20970
+      },
+      "name": "minecraft:crimson_hyphae-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713feaa301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:crimson_hyphae",
+        "item_id": 207,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20970
+      },
+      "name": "minecraft:crimson_hyphae-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713feaa301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:crimson_hyphae",
+        "item_id": 207,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20968
+      },
+      "name": "minecraft:crimson_hyphae-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fe8a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:crimson_hyphae",
+        "item_id": 207,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20968
+      },
+      "name": "minecraft:crimson_hyphae-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fe8a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:warped_hyphae",
+        "item_id": 208,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 20952
+      },
+      "name": "minecraft:warped_hyphae-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0d8a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:warped_hyphae",
+        "item_id": 208,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 20952
+      },
+      "name": "minecraft:warped_hyphae-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0d8a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:warped_hyphae",
+        "item_id": 208,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20953
+      },
+      "name": "minecraft:warped_hyphae-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd9a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:warped_hyphae",
+        "item_id": 208,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20953
+      },
+      "name": "minecraft:warped_hyphae-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd9a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:warped_hyphae",
+        "item_id": 208,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20951
+      },
+      "name": "minecraft:warped_hyphae-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd7a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:warped_hyphae",
+        "item_id": 208,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 20951
+      },
+      "name": "minecraft:warped_hyphae-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd7a301",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:purpur_pillar",
+        "item_id": 355,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 14714
+      },
+      "name": "minecraft:purpur_pillar-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0fa72",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:purpur_pillar",
+        "item_id": 355,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 14714
+      },
+      "name": "minecraft:purpur_pillar-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0fa72",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:purpur_pillar",
+        "item_id": 355,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 14715
+      },
+      "name": "minecraft:purpur_pillar-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713ffb72",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:purpur_pillar",
+        "item_id": 355,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 14715
+      },
+      "name": "minecraft:purpur_pillar-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713ffb72",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:purpur_pillar",
+        "item_id": 355,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 14713
+      },
+      "name": "minecraft:purpur_pillar-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713ff972",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:purpur_pillar",
+        "item_id": 355,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 14713
+      },
+      "name": "minecraft:purpur_pillar-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713ff972",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:basalt",
+        "item_id": 390,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 7001
+      },
+      "name": "minecraft:basalt-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0d936",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:basalt",
+        "item_id": 390,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 7001
+      },
+      "name": "minecraft:basalt-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0d936",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:basalt",
+        "item_id": 390,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 7002
+      },
+      "name": "minecraft:basalt-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fda36",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:basalt",
+        "item_id": 390,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 7002
+      },
+      "name": "minecraft:basalt-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fda36",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:basalt",
+        "item_id": 390,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 7000
+      },
+      "name": "minecraft:basalt-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd836",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:basalt",
+        "item_id": 390,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 7000
+      },
+      "name": "minecraft:basalt-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd836",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:polished_basalt",
+        "item_id": 391,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 7004
+      },
+      "name": "minecraft:polished_basalt-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0dc36",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:polished_basalt",
+        "item_id": 391,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 7004
+      },
+      "name": "minecraft:polished_basalt-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0dc36",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:polished_basalt",
+        "item_id": 391,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 7005
+      },
+      "name": "minecraft:polished_basalt-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fdd36",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:polished_basalt",
+        "item_id": 391,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 7005
+      },
+      "name": "minecraft:polished_basalt-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fdd36",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:polished_basalt",
+        "item_id": 391,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 7003
+      },
+      "name": "minecraft:polished_basalt-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fdb36",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:polished_basalt",
+        "item_id": 391,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 7003
+      },
+      "name": "minecraft:polished_basalt-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fdb36",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:quartz_pillar",
+        "item_id": 512,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 11326
+      },
+      "name": "minecraft:quartz_pillar-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0be58",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:quartz_pillar",
+        "item_id": 512,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 11326
+      },
+      "name": "minecraft:quartz_pillar-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0be58",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:quartz_pillar",
+        "item_id": 512,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 11327
+      },
+      "name": "minecraft:quartz_pillar-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fbf58",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:quartz_pillar",
+        "item_id": 512,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 11327
+      },
+      "name": "minecraft:quartz_pillar-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fbf58",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:quartz_pillar",
+        "item_id": 512,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 11325
+      },
+      "name": "minecraft:quartz_pillar-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fbd58",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:quartz_pillar",
+        "item_id": 512,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 11325
+      },
+      "name": "minecraft:quartz_pillar-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fbd58",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:bone_block",
+        "item_id": 607,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 14849
+      },
+      "name": "minecraft:bone_block-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc08174",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:bone_block",
+        "item_id": 607,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 14849
+      },
+      "name": "minecraft:bone_block-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc08174",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:bone_block",
+        "item_id": 607,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 14850
+      },
+      "name": "minecraft:bone_block-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f8274",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:bone_block",
+        "item_id": 607,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 14850
+      },
+      "name": "minecraft:bone_block-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f8274",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:bone_block",
+        "item_id": 607,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 14848
+      },
+      "name": "minecraft:bone_block-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f8074",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:bone_block",
+        "item_id": 607,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 14848
+      },
+      "name": "minecraft:bone_block-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713f8074",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:ochre_froglight",
+        "item_id": 1452,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 32076
+      },
+      "name": "minecraft:ochre_froglight-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0ccfa01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:ochre_froglight",
+        "item_id": 1452,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 32076
+      },
+      "name": "minecraft:ochre_froglight-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0ccfa01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:ochre_froglight",
+        "item_id": 1452,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 32077
+      },
+      "name": "minecraft:ochre_froglight-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fcdfa01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:ochre_froglight",
+        "item_id": 1452,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 32077
+      },
+      "name": "minecraft:ochre_froglight-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fcdfa01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:ochre_froglight",
+        "item_id": 1452,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 32075
+      },
+      "name": "minecraft:ochre_froglight-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fcbfa01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:ochre_froglight",
+        "item_id": 1452,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 32075
+      },
+      "name": "minecraft:ochre_froglight-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fcbfa01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:verdant_froglight",
+        "item_id": 1453,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 32079
+      },
+      "name": "minecraft:verdant_froglight-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0cffa01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:verdant_froglight",
+        "item_id": 1453,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 32079
+      },
+      "name": "minecraft:verdant_froglight-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0cffa01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:verdant_froglight",
+        "item_id": 1453,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 32080
+      },
+      "name": "minecraft:verdant_froglight-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd0fa01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:verdant_froglight",
+        "item_id": 1453,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 32080
+      },
+      "name": "minecraft:verdant_froglight-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd0fa01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:verdant_froglight",
+        "item_id": 1453,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 32078
+      },
+      "name": "minecraft:verdant_froglight-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fcefa01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:verdant_froglight",
+        "item_id": 1453,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 32078
+      },
+      "name": "minecraft:verdant_froglight-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fcefa01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 0,
+        "face_name": "DOWN",
+        "item": "minecraft:pearlescent_froglight",
+        "item_id": 1454,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 32082
+      },
+      "name": "minecraft:pearlescent_froglight-DOWN",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0d2fa01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "y",
+        "face": 1,
+        "face_name": "UP",
+        "item": "minecraft:pearlescent_froglight",
+        "item_id": 1454,
+        "pos": [
+          -17,
+          -64,
+          32
+        ],
+        "state_id": 32082
+      },
+      "name": "minecraft:pearlescent_froglight-UP",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "fffffbc000020fc0d2fa01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 2,
+        "face_name": "NORTH",
+        "item": "minecraft:pearlescent_froglight",
+        "item_id": 1454,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 32083
+      },
+      "name": "minecraft:pearlescent_froglight-NORTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd3fa01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "z",
+        "face": 3,
+        "face_name": "SOUTH",
+        "item": "minecraft:pearlescent_froglight",
+        "item_id": 1454,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 32083
+      },
+      "name": "minecraft:pearlescent_froglight-SOUTH",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd3fa01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 4,
+        "face_name": "WEST",
+        "item": "minecraft:pearlescent_froglight",
+        "item_id": 1454,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 32081
+      },
+      "name": "minecraft:pearlescent_froglight-WEST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd1fa01",
+      "protocol_id": 8
+    },
+    {
+      "input": {
+        "axis": "x",
+        "face": 5,
+        "face_name": "EAST",
+        "item": "minecraft:pearlescent_froglight",
+        "item_id": 1454,
+        "pos": [
+          -1,
+          319,
+          -9
+        ],
+        "state_id": 32081
+      },
+      "name": "minecraft:pearlescent_froglight-EAST",
+      "native_decode_consumed_all": true,
+      "packet": "minecraft:block_update",
+      "payload_hex": "ffffffffffff713fd1fa01",
+      "protocol_id": 8
+    }
+  ],
+  "context_constructor_executed": false,
+  "jar_sha256": "183c0499c5f855570ee487dd38e141a53f0121f83a0b07a3bac2d8b6698823e8",
+  "minecraft": "26.2",
+  "native_world_callbacks_executed": false,
+  "probe_sha256": "25e218d49c8e87bea8ad555079f6028795838f02fbd8f57e6e96a7e842f4ec36",
+  "protocol": 776,
+  "schema": "bcore.native-pillar-placement.v1",
+  "scope": "Native RotatedPillarBlock.getStateForPlacement reads a real hit-result face from an allocated BlockPlaceContext; constructor, useOn, world callbacks and GUI are not executed."
+}

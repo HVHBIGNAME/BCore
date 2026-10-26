@@ -4,6 +4,18 @@ The README and project site use versioned JSON evidence from this directory.
 Charts are rendered locally with `python scripts/render_readme.py`; `--check`
 verifies that the committed SVGs still match the data.
 
+- `creative-pillar-gameplay-validation-2026-10-26.json`: **927 / 0 / 4**, 72 suites
+  and 526 unchanged source inputs; **43 focused tests / 3 new actual TCP scenarios**.
+  Native pillar authority: **336 repeat-matching cases / 56 items / 168 states**;
+  together with the prior stateless slice, 253 full-cube items / 365 states are supported.
+  Retains complete workspace suites, focused test names/log hashes and all five
+  native helper identities. [Report](../creative-pillar-gameplay-2026-10-26.md).
+- `noise-cache-experiments-26_2-2026-10-26.json`: two rejected seeded-cache candidates,
+  **126 matching processes / 1260 warmup / 1260 measured batches**, **21 bit/order/native
+  tests per candidate**, two frozen confirmations each. Hit-return regresses at four
+  workers; dense index has mixed one/two-worker outcomes. All 510 baseline inputs
+  restored byte-exactly; no new production gain. Preserves every process median,
+  raw/frozen identities and both restoration proofs. [Report](../performance-experiments-26.2-2026-10-26.md).
 - `noise-axis-delta-rejected-26_2-2026-10-25.json`: rejected first-axis delta
   candidate, **72 matching process records / 720 warmup / 720 measured batches**,
   10 executed bit/order and 9 native numeric/ore/RNG tests. Two alternating frozen
