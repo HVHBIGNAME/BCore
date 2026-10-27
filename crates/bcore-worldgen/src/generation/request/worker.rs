@@ -101,14 +101,22 @@ fn run_task(shared: &Shared, task: Task) -> Result<(), NativeRequestError> {
             }
             let result = shared
                 .world
-                .state
+                .generation_order
                 .lock()
                 .map_err(|_| GenerationError::Poisoned)
-                .and_then(|mut state| state.run_stage(shared.world.generator, pos, status));
+                .and_then(|_order| {
+                    shared
+                        .world
+                        .state
+                        .lock()
+                        .map_err(|_| GenerationError::Poisoned)
+                        .and_then(|mut state| state.run_stage(shared.world.generator, pos, status))
+                });
             if let Err(error) = result {
                 shared.fail_holder(pos, error.clone().into());
                 return Err(error.into());
             }
+            shared.world.yield_to_runtime()?;
             shared.publish(pos, status)?;
             #[cfg(test)]
             shared.control.after(pos, status);

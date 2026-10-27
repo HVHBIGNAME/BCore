@@ -389,6 +389,16 @@ impl GenerationLight {
         Ok(())
     }
 
+    pub(crate) fn registered_block(&self, (x, y, z): Pos) -> Option<u32> {
+        if !(self.min_y..self.min_y + self.height).contains(&y) {
+            return None;
+        }
+        self.columns.get(&(x >> 4, z >> 4)).map(|column| {
+            column.states
+                [(y - self.min_y) as usize * 256 + (z & 15) as usize * 16 + (x & 15) as usize]
+        })
+    }
+
     fn validate_chunk_inputs(&self, pos: ChunkPos, states: &[u32]) -> FeatureResult<()> {
         if states.len() != self.height as usize * 256 {
             return Err(FeatureError::InvalidConfig(

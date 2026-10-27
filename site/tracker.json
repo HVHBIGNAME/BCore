@@ -1,7 +1,7 @@
 {
   "project": "BCore",
   "version": "0.7.0-alpha.1",
-  "updated": "2026-10-26",
+  "updated": "2026-10-27",
   "minecraft": "26.2",
   "protocol": 776,
   "maintenance": {
@@ -16,6 +16,7 @@
     "saved_admission_issue": "https://github.com/HVHBIGNAME/BCore/issues/1",
     "gameplay_issue": "https://github.com/HVHBIGNAME/BCore/issues/3",
     "pillar_issue": "https://github.com/HVHBIGNAME/BCore/issues/5",
+    "runtime_issue": "https://github.com/HVHBIGNAME/BCore/issues/6",
     "performance_issue": "https://github.com/HVHBIGNAME/BCore/issues/2"
   },
   "migration": {
@@ -76,6 +77,27 @@
     "issue": "https://github.com/HVHBIGNAME/BCore/issues/5",
     "scope": "Tick-owned axis-only creative full-cube placement/break, all six native faces, current viewers, negative/chunk-border coordinates, retained holders and dirty BCC save/restart. Native state selection/codecs; full useOn, neighbour callbacks, physics, menus, survival and GUI remain open."
   },
+  "runtime": {
+    "tests_passed": 939,
+    "tests_failed": 0,
+    "tests_ignored": 4,
+    "suite_count": 72,
+    "source_files": 868,
+    "protected_files": 4592,
+    "burst_median_before_ms": 1881.0399,
+    "burst_median_after_ms": 243.7857,
+    "streaming_p95_before_ms": [1718, 1781],
+    "streaming_p95_after_ms": [141, 187],
+    "observed_tps": 20,
+    "paired_payloads": 483,
+    "payload_mismatches": 0,
+    "sustained_actions": 488,
+    "sustained_chunks": 171,
+    "report": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/runtime-latency-2026-10-27.md",
+    "data": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/metrics/runtime-latency-validation-2026-10-27.json",
+    "issue": "https://github.com/HVHBIGNAME/BCore/issues/6",
+    "scope": "BCore before/after: lower tail latency with deferred owner work, async durable saves and client-paced chunks. Correction median rose from 93 to 125 ms and fewer chunks were delivered. Java superiority, complete gameplay and GUI rendering remain separate open checks."
+  },
   "checkpoint": {
     "tests_passed": 665,
     "tests_failed": 0,
@@ -115,6 +137,7 @@
         { "name": "Login (online auth + encryption)", "status": "planned" },
         { "name": "Configuration state (registry sync)", "status": "done" },
         { "name": "Play state (join + spawn)", "status": "done" },
+        { "name": "Incremental play framing across socket timeout boundaries", "status": "done" },
         { "name": "Compression", "status": "planned" },
         { "name": "Gameplay packets", "status": "partial" }
       ]
@@ -162,6 +185,8 @@
         { "name": "Chunk sending", "status": "done" },
         { "name": "View distance (configurable)", "status": "done" },
         { "name": "Per-world asynchronous generation queue and bounded lookahead", "status": "done" },
+        { "name": "Client-acknowledged, clock-paced chunk delivery", "status": "done" },
+        { "name": "Revisioned asynchronous dirty saves and durability acknowledgements", "status": "done" },
         { "name": "Chunk unloading", "status": "done" },
         { "name": "World save/load (persistence)", "status": "done" },
         { "name": "Generated NBT, raw ticks, deferred marks and native light (.bcc v6)", "status": "done" },
@@ -180,6 +205,7 @@
         { "name": "Block breaking & placing", "status": "partial" },
         { "name": "Tick-owned creative full-cube edits, viewers and dirty-save restart", "status": "done" },
         { "name": "Axis-only full-cube placement/break (56 native items; all six faces)", "status": "done" },
+        { "name": "Grass/podzol/mycelium support and creative break states", "status": "done" },
         { "name": "Block physics (sand/gravel gravity)", "status": "planned" },
         { "name": "Chests & containers", "status": "planned" },
         { "name": "Furnaces & crafting", "status": "planned" },
@@ -234,6 +260,7 @@
         { "name": "Spectator (fly + invisible)", "status": "done" },
         { "name": "Day/night cycle (tick loop)", "status": "done" },
         { "name": "TPS 20 (fixed-rate tick)", "status": "done" },
+        { "name": "Deferred gameplay during generation and bounded action batches", "status": "done" },
         { "name": "Server console (stdin)", "status": "done" },
         { "name": "Generated minecart persistence and chunk spawn/unload streaming", "status": "partial" },
         { "name": "Entity physics, loot unpacking and gameplay simulation", "status": "planned" },

@@ -1,10 +1,32 @@
 # BCore / Vanilla performance measurements
 
-The current comparison measures **NOISE terrain material filling**, not a running
-Minecraft server or the complete world-generation pipeline. Both implementations
+The Java comparisons measure **NOISE terrain material filling**. The new runtime
+checkpoint measures BCore before/after under production generation and creative
+actions. In the kernel comparisons, both implementations
 produce the same complete block-state arrays, ordered per-section fluid
 postprocessing marks **and both worldgen heightmaps** for every measured and
 warmup batch.
+
+## Runtime responsiveness — 2026-10-27
+
+The [source-bound runtime report](runtime-latency-2026-10-27.md) fixes tick/generation
+lock contention, blocking action ingestion, per-edit light amplification and
+synchronous dirty writes. **939 workspace tests passed** with 0 failures; 12 new
+regressions cover ordering, framing, flow credit, busy generation and durability.
+
+- 32-break TCP regression: median **1881.04 → 243.79 ms**, three test processes per
+  revision; saved readback and all viewer updates match.
+- Two alternating frozen production comparisons: correction p95 **1718/1781 →
+  141/187 ms**, with **20 TPS** throughout the new reporting windows.
+- Sustained production edits: 488 actual mutations while 171 chunks arrive; median
+  ack 124.31 ms, p95 187.50 ms, max 614.18 ms; all updates ordered and final AIR saved.
+- 245 + 238 paired terrain payloads match exactly. Median correction latency rose
+  **93 → 125 ms**, while client-paced streaming delivered 245/238 chunks versus 320/318.
+
+These observations compare BCore revisions on an unisolated host. They establish
+lower tail latency in the declared workloads; whole-server Java superiority and
+GUI rendering performance still require their own matched measurements.
+[Raw identities, process summaries and limitations](metrics/runtime-latency-validation-2026-10-27.json).
 
 ![Measured 26.2 NOISE throughput](../site/assets/performance-26_2.svg)
 

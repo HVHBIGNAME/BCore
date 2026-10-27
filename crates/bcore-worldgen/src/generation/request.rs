@@ -341,6 +341,12 @@ impl NativeChunkRequests {
         let Some(job) = job else { return Ok(false) };
         let result = catch_unwind(AssertUnwindSafe(|| match job {
             MainTask::Full(task) => {
+                let _order = self
+                    .shared
+                    .world
+                    .generation_order
+                    .lock()
+                    .map_err(|_| GenerationError::Poisoned)?;
                 self.shared
                     .world
                     .state

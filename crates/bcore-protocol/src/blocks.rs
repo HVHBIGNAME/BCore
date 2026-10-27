@@ -4,6 +4,7 @@ mod bindings;
 pub mod packets;
 mod queue;
 mod runtime;
+mod saving;
 
 use std::collections::BTreeSet;
 use std::sync::Arc;
@@ -12,7 +13,7 @@ use bcore_core::BlockPos;
 
 use crate::gameplay::GameMode;
 
-pub(crate) use queue::BlockQueue;
+pub(crate) use queue::{BlockQueue, PendingActions};
 pub(crate) use runtime::BlockOwner;
 
 #[derive(Debug, Clone)]

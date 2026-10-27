@@ -12,6 +12,8 @@ use std::io::{Cursor, Read, Write};
 use std::net::TcpStream;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
+mod stream_flow;
+
 use sha2::Digest;
 
 use bcore_core::varint::encode_varint;
@@ -198,8 +200,8 @@ pub fn run_login_and_join(
     let handle = server.join(&name, uuid);
     let result = send_join_state(stream, &view, server, &handle).and_then(|_| {
         announce_join(server, &handle);
-        stream_initial_chunks(stream, &mut view, server, &handle)?;
-        play_loop(stream, &mut view, server, &handle)
+        let sent = stream_initial_chunks(stream, &mut view, server, &handle)?;
+        play_loop(stream, &mut view, server, &handle, sent)
     });
     server.leave(handle.id);
     announce_leave(server, &handle);
@@ -412,7 +414,7 @@ fn stream_initial_chunks(
     view: &mut PlayerView,
     server: &SharedServer,
     handle: &PlayerHandle,
-) -> Result<(), PacketError> {
+) -> Result<usize, PacketError> {
     let world = server.world();
     // Spawn on the nearest solid land near the live spawn (the captured
     // `position` packet pins a fixed spawn that may sit in the water).
@@ -435,7 +437,7 @@ fn stream_initial_chunks(
         view.y,
         world.seed()
     );
-    Ok(())
+    Ok(sent)
 }
 
 fn stream_world_chunks(
@@ -465,14 +467,16 @@ fn play_loop(
     view: &mut PlayerView,
     server: &SharedServer,
     handle: &PlayerHandle,
+    initial_chunks: usize,
 ) -> Result<(), PacketError> {
     stream
         .set_read_timeout(Some(Duration::from_millis(50)))
         .map_err(PacketError::Io)?;
     let mut last_keepalive = Instant::now();
     let mut keepalive_id: i64 = 0;
-    let mut last_chunk = view.chunk();
-    view.set_chunk_batch_size(8);
+    let mut reader = crate::packet::FrameReader::default();
+    let mut actions = crate::blocks::PendingActions::default();
+    let mut flow = stream_flow::ChunkFlow::new(Instant::now(), initial_chunks);
     handle.update_view(view, None);
 
     loop {
@@ -497,7 +501,8 @@ fn play_loop(
             break;
         }
 
-        match read_frame(stream) {
+        actions.poll()?;
+        match reader.read(stream) {
             Ok((pid, data)) => {
                 if pid == PLAY_TELEPORT_CONFIRM_ID {
                     let mut cursor = Cursor::new(data.as_slice());
@@ -514,14 +519,9 @@ fn play_loop(
                     }
                     view.mark_player_loaded();
                 } else if view.apply_movement(pid, &data) {
-                    let current = view.chunk();
-                    if current != last_chunk {
-                        last_chunk = current;
-                        stream_world_chunks(stream, view, server, handle)?;
-                    }
+                    // The clock-paced sender below handles changes of view position.
                 } else if let Some(input) = parse_chat_input(pid, &data) {
                     handle_chat_input(stream, view, server, handle, input)?;
-                    last_chunk = view.chunk();
                 } else if pid == SB_CHANGE_GAMEMODE {
                     // F3+F4 debug screen: the client asks to switch gamemode.
                     if !server.is_op(&handle.name) {
@@ -539,7 +539,7 @@ fn play_loop(
                         server.broadcast_except(handle.id, player_info);
                     }
                 } else if let Some(packet) = crate::blocks::packets::parse(pid, &data)? {
-                    server.blocks.submit(server, handle, packet)?;
+                    actions.submit(server, handle, packet)?;
                 } else if pid == SB_PING_REQUEST {
                     // ping_request expects a ping_response echo.
                     let mut out = Vec::new();
@@ -551,7 +551,7 @@ fn play_loop(
                     // Vanilla sends the desired chunks/tick as an f32.
                     let desired = f32::from_be_bytes(data[..4].try_into().expect("checked length"));
                     if desired.is_finite() && desired >= 0.0 {
-                        view.set_chunk_batch_size(desired.floor() as usize);
+                        flow.acknowledge(desired);
                     }
                 }
                 handle.update_view(view, None);
@@ -567,17 +567,18 @@ fn play_loop(
             Err(_) => break, // peer closed or sent something unreadable
         }
 
-        // Continue a large teleport/movement stream on each tick. Client-side
-        // chunk-batch acknowledgements may lower the per-batch flow-control
-        // value, but all chunks in the configured view remain pending here.
-        if view.has_pending_chunks() && !view.teleport_pending() {
-            stream_world_chunks(stream, view, server, handle)?;
-        }
-
         // Deliver anything other players queued for us.
         let pending = handle.outbox.drain();
         if !pending.is_empty() && stream.write_all(&pending).is_err() {
             break;
+        }
+
+        if !view.teleport_pending() {
+            if let Some(allowance) = flow.allowance(Instant::now()) {
+                view.set_chunk_batch_size(allowance);
+                let sent = stream_world_chunks(stream, view, server, handle)?;
+                flow.sent(sent);
+            }
         }
 
         if last_keepalive.elapsed() >= Duration::from_secs(10) {

@@ -4,6 +4,14 @@ The README and project site use versioned JSON evidence from this directory.
 Charts are rendered locally with `python scripts/render_readme.py`; `--check`
 verifies that the committed SVGs still match the data.
 
+- `runtime-latency-validation-2026-10-27.json`: **939 / 0 / 4**, 72 suites,
+  868 unchanged source inputs, 4592 protected world/operator files; 12 new regressions.
+  Three 32-action TCP bursts per revision: **1881.04 → 243.79 ms median**. Two alternating
+  production comparisons retain 20 TPS windows, correction p95 **1718/1781 → 141/187 ms**,
+  483 matching terrain payload pairs, higher 93 → 125 ms median and reduced chunk delivery.
+  Sustained 488 place/break actions with 171 chunks preserve ordered updates, durability
+  acks and final saved AIR. Includes executable/archive/driver/log hashes and the
+  interrupted earlier workspace attempt. [Report](../runtime-latency-2026-10-27.md).
 - `creative-pillar-gameplay-validation-2026-10-26.json`: **927 / 0 / 4**, 72 suites
   and 526 unchanged source inputs; **43 focused tests / 3 new actual TCP scenarios**.
   Native pillar authority: **336 repeat-matching cases / 56 items / 168 states**;

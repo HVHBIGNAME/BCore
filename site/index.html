@@ -146,6 +146,23 @@
 
     const container = document.getElementById('categories');
     container.innerHTML = '';
+    if (data.runtime) {
+      const r = data.runtime;
+      const section = document.createElement('section');
+      section.className = 'category parity';
+      section.innerHTML = `<h2>Runtime responsiveness</h2>` +
+        `<div class="checkpoint-grid">` +
+        `<div class="checkpoint-stat"><strong>${r.tests_passed}</strong><span>release tests · ${r.tests_failed} failed · ${r.tests_ignored} ignored</span></div>` +
+        `<div class="checkpoint-stat"><strong>${r.burst_median_after_ms.toFixed(1)} ms</strong><span>32-break median · previously ${r.burst_median_before_ms.toFixed(1)} ms</span></div>` +
+        `<div class="checkpoint-stat"><strong>${r.observed_tps} TPS</strong><span>reported in the new generation/edit probe windows</span></div></div>` +
+        `<p>Correction p95: ${r.streaming_p95_before_ms.join(' / ')} → ${r.streaming_p95_after_ms.join(' / ')} ms. ` +
+        `${r.sustained_actions} actual edits with ${r.sustained_chunks} chunks delivered; ordered updates and final saved state verified.</p>` +
+        `<p>${r.paired_payloads} paired terrain payloads / ${r.payload_mismatches} differences. ` +
+        `${r.suite_count} workspace suites, ${r.source_files} source inputs and ${r.protected_files} protected files unchanged during validation.</p>` +
+        `<p class="caveat">${escapeHtml(r.scope)}</p>` +
+        `<p><a href="${escapeHtml(r.report)}">Runtime workload and tradeoffs</a> · <a href="${escapeHtml(r.data)}">Timings and source identities</a> · <a href="${escapeHtml(r.issue)}">Runtime acceptance</a></p>`;
+      container.appendChild(section);
+    }
     if (data.migration) {
       const m = data.migration;
       const section = document.createElement('section');
@@ -219,6 +236,9 @@
         `<p><a href="${escapeHtml(m.requirements_issue)}">Requirements progress</a> · <a href="${escapeHtml(m.saved_admission_issue)}">Saved chunk admission</a> · <a href="${escapeHtml(m.gameplay_issue)}">Creative break/place</a> · <a href="${escapeHtml(m.performance_issue)}">26.2 performance</a></p>`;
       if (m.pillar_issue) {
         section.innerHTML += `<p><a href="${escapeHtml(m.pillar_issue)}">Axis-only placement/break acceptance</a></p>`;
+      }
+      if (m.runtime_issue) {
+        section.innerHTML += `<p><a href="${escapeHtml(m.runtime_issue)}">Runtime responsiveness acceptance</a></p>`;
       }
       container.appendChild(section);
     }

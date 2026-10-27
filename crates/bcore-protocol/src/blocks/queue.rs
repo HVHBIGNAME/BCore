@@ -1,9 +1,7 @@
 //! Bounded connection-to-tick request queue with shutdown cancellation.
-use std::sync::mpsc::{
-    self, Receiver, RecvTimeoutError, Sender, SyncSender, TryRecvError, TrySendError,
-};
+use std::collections::VecDeque;
+use std::sync::mpsc::{self, Receiver, Sender, SyncSender, TryRecvError, TrySendError};
 use std::sync::Mutex;
-use std::time::Duration;
 
 use super::{packets::BlockPacket, PlayerContext};
 use crate::packet::PacketError;
@@ -26,6 +24,45 @@ pub(crate) struct BlockQueue {
     rx: Mutex<Receiver<QueuedBlock>>,
 }
 
+/// Connection-local completions; receiving another frame never waits for a tick.
+#[derive(Default)]
+pub(crate) struct PendingActions {
+    replies: VecDeque<Receiver<Result<(), WorldError>>>,
+}
+
+impl PendingActions {
+    pub(crate) fn submit(
+        &mut self,
+        server: &ServerState,
+        player: &PlayerHandle,
+        packet: BlockPacket,
+    ) -> Result<(), PacketError> {
+        self.poll()?;
+        if self.replies.len() >= MAX_PENDING_ACTIONS {
+            return Err(PacketError::Malformed("gameplay action queue full"));
+        }
+        self.replies
+            .push_back(server.blocks.submit(server, player, packet)?);
+        Ok(())
+    }
+
+    pub(crate) fn poll(&mut self) -> Result<(), PacketError> {
+        while let Some(reply) = self.replies.front() {
+            match reply.try_recv() {
+                Ok(outcome) => {
+                    self.replies.pop_front();
+                    outcome.map_err(std::io::Error::other)?;
+                }
+                Err(TryRecvError::Empty) => break,
+                Err(TryRecvError::Disconnected) => {
+                    return Err(PacketError::Malformed("gameplay owner stopped"));
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
 impl Default for BlockQueue {
     fn default() -> Self {
         let (tx, rx) = mpsc::sync_channel(MAX_PENDING_ACTIONS);
@@ -42,7 +79,7 @@ impl BlockQueue {
         server: &ServerState,
         player: &PlayerHandle,
         packet: BlockPacket,
-    ) -> Result<(), PacketError> {
+    ) -> Result<Receiver<Result<(), WorldError>>, PacketError> {
         if server.is_shutting_down() || player.is_kicked() || !server.has_player(player) {
             return Err(PacketError::Malformed("inactive gameplay connection"));
         }
@@ -63,20 +100,7 @@ impl BlockQueue {
                 return Err(PacketError::Malformed("gameplay owner stopped"))
             }
         }
-        loop {
-            match rx.recv_timeout(Duration::from_millis(100)) {
-                Ok(outcome) => return outcome.map_err(|error| std::io::Error::other(error).into()),
-                Err(RecvTimeoutError::Disconnected) => {
-                    return Err(PacketError::Malformed("gameplay owner stopped"))
-                }
-                Err(RecvTimeoutError::Timeout)
-                    if server.is_shutting_down() || player.is_kicked() =>
-                {
-                    return Err(PacketError::Malformed("gameplay connection stopped"));
-                }
-                Err(RecvTimeoutError::Timeout) => {}
-            }
-        }
+        Ok(rx)
     }
 
     pub(super) fn pop(&self) -> Option<QueuedBlock> {
@@ -93,5 +117,43 @@ impl BlockQueue {
                 .reply
                 .send(Err(WorldError::Mutation("gameplay owner stopped")));
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn queued_actions_are_bounded_and_owner_cancellation_resolves_every_reply() {
+        let server = ServerState::default();
+        let player = server.join("Builder", [1; 16]);
+        let mut replies = Vec::new();
+        for _ in 0..MAX_PENDING_ACTIONS {
+            replies.push(
+                server
+                    .blocks
+                    .submit(&server, &player, BlockPacket::Carried { slot: 0 })
+                    .unwrap(),
+            );
+        }
+        assert!(matches!(
+            server
+                .blocks
+                .submit(&server, &player, BlockPacket::Carried { slot: 0 }),
+            Err(PacketError::Malformed("gameplay action queue full"))
+        ));
+        server.blocks.cancel_pending();
+        for reply in replies {
+            assert!(matches!(
+                reply.try_recv(),
+                Ok(Err(WorldError::Mutation("gameplay owner stopped")))
+            ));
+        }
+        server.leave(player.id);
+        assert!(server
+            .blocks
+            .submit(&server, &player, BlockPacket::Carried { slot: 0 })
+            .is_err());
     }
 }

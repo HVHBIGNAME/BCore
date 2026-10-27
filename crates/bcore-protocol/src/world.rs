@@ -51,8 +51,8 @@ pub const CB_POSITION: i32 = 0x48;
 /// View distance in chunks, matching the `viewDistance` announced at join.
 pub const VIEW_DISTANCE: i32 = 32;
 
-/// Minimum useful streaming batch even when a client initially reports 1.0.
-pub const MIN_CHUNK_BATCH_SIZE: usize = 4;
+/// A slow client's fractional flow budget can deliver one chunk at a time.
+pub const MIN_CHUNK_BATCH_SIZE: usize = 1;
 
 // The join replay already used teleport id 1.
 const FIRST_TELEPORT_ID: i32 = 2;

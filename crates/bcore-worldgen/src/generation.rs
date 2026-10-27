@@ -33,14 +33,15 @@ pub(crate) use effects::sculk_block_entity;
 pub use effects::{FeatureBlockEntity, StructureEntityRequest};
 pub use full::{ChunkAccess, ChunkAccessKind, ChunkRead, LevelChunkSave, LevelChunkState};
 pub use graph::{ChunkPyramid, ChunkStatus};
-pub use mutation::LevelBlockEdit;
+pub use mutation::{LevelAccess, LevelBlockEdit};
 pub use objects::{ReturnedChunk, ReturnedChunkSave, ReturnedChunkView};
 pub use saved::SavedChunkData;
 pub use spawn::{SpawnInputs, SpawnSettings, WorldSpawnInputs};
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::panic::{catch_unwind, AssertUnwindSafe};
-use std::sync::{Arc, Mutex};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Condvar, Mutex};
 
 use bcore_core::ChunkPos;
 
@@ -128,6 +129,9 @@ pub struct GenerationResult {
 /// this context itself performs no disk I/O.
 pub struct GenerationWorld {
     generator: WorldGenerator,
+    generation_order: Mutex<()>,
+    runtime_waiting: AtomicBool,
+    runtime_wake: Condvar,
     state: Mutex<GenerationState>,
 }
 
@@ -150,6 +154,9 @@ impl GenerationWorld {
         state.spawn_inputs = inputs;
         Self {
             generator,
+            generation_order: Mutex::new(()),
+            runtime_waiting: AtomicBool::new(false),
+            runtime_wake: Condvar::new(),
             state: Mutex::new(state),
         }
     }
@@ -171,8 +178,52 @@ impl GenerationWorld {
         target: ChunkStatus,
     ) -> Result<GenerationResult, GenerationError> {
         validate_generation_pos(pos)?;
+        let _order = self
+            .generation_order
+            .lock()
+            .map_err(|_| GenerationError::Poisoned)?;
+        {
+            let mut state = self.state.lock().map_err(|_| GenerationError::Poisoned)?;
+            if state
+                .holders
+                .get(&(pos.x, pos.z))
+                .is_some_and(|holder| holder.saved)
+            {
+                return Ok(state.result(pos, target));
+            }
+        }
+        let step = ChunkPyramid::Generation.step(target);
+        for status in ChunkStatus::ALL {
+            let Some(radius) = step.layer_radius(status) else {
+                continue;
+            };
+            for source in layer_positions(pos, radius) {
+                {
+                    let mut state = self.state.lock().map_err(|_| GenerationError::Poisoned)?;
+                    state.run_stage(self.generator, source, status)?;
+                }
+                self.yield_to_runtime()?;
+            }
+        }
         let mut state = self.state.lock().map_err(|_| GenerationError::Poisoned)?;
-        state.generate(self.generator, pos, target)
+        Ok(state.result(pos, target))
+    }
+
+    fn yield_to_runtime(&self) -> Result<(), GenerationError> {
+        if self.runtime_waiting.load(Ordering::Acquire) {
+            let state = self.state.lock().map_err(|_| GenerationError::Poisoned)?;
+            // Give the next tick a handoff without allowing a departed runtime
+            // caller to stop generation indefinitely.
+            drop(
+                self.runtime_wake
+                    .wait_timeout_while(state, std::time::Duration::from_millis(50), |_| {
+                        self.runtime_waiting.load(Ordering::Acquire)
+                    })
+                    .map_err(|_| GenerationError::Poisoned)?,
+            );
+            self.runtime_waiting.store(false, Ordering::Release);
+        }
+        Ok(())
     }
 
     pub fn progress(&self, pos: ChunkPos) -> Result<Option<ChunkProgress>, GenerationError> {
@@ -253,44 +304,15 @@ impl GenerationState {
         }
     }
 
-    fn generate(
-        &mut self,
-        generator: WorldGenerator,
-        pos: ChunkPos,
-        target: ChunkStatus,
-    ) -> Result<GenerationResult, GenerationError> {
-        if self
-            .holders
-            .get(&(pos.x, pos.z))
-            .is_some_and(|holder| holder.saved)
-        {
-            return Ok(GenerationResult {
-                chunk: self
-                    .region
-                    .owned_chunk(pos)
-                    .expect("admitted saved chunk")
-                    .as_ref()
-                    .clone(),
-                coverage: self.coverage(pos, target),
-            });
-        }
-        let step = ChunkPyramid::Generation.step(target);
-        for status in ChunkStatus::ALL {
-            let Some(radius) = step.layer_radius(status) else {
-                continue;
-            };
-            for source in layer_positions(pos, radius) {
-                self.run_stage(generator, source, status)?;
-            }
-        }
+    fn result(&mut self, pos: ChunkPos, target: ChunkStatus) -> GenerationResult {
         let coverage = self.coverage(pos, target);
         let structures = self.holders[&(pos.x, pos.z)].structures.clone();
         let chunk = self.region.owned_chunk_mut(pos);
         chunk.structures = structures;
-        Ok(GenerationResult {
+        GenerationResult {
             chunk: chunk.clone(),
             coverage,
-        })
+        }
     }
 
     fn run_stage(

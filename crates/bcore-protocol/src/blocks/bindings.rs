@@ -147,6 +147,25 @@ fn bindings() -> &'static Bindings {
                 .is_none());
         }
         add_pillars(&mut items, &mut states);
+        let catalog = bcore_worldgen::block_predicate::catalog();
+        for state in bcore_registry::vanilla().states.iter().filter(|state| {
+            matches!(
+                state.name.as_str(),
+                "minecraft:grass_block" | "minecraft:podzol" | "minecraft:mycelium"
+            )
+        }) {
+            let info = catalog
+                .info(state.id)
+                .expect("native surface block predicates");
+            assert!(info.is_solid() && info.blocks_motion());
+            assert_eq!(info.fluid, catalog.fluids["minecraft:empty"]);
+            assert_eq!(state.properties.len(), 1);
+            assert!(matches!(
+                state.properties["snowy"].as_str(),
+                "true" | "false"
+            ));
+            states.insert(state.id);
+        }
         Bindings {
             items,
             states,

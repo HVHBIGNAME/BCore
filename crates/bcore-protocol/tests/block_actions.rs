@@ -19,6 +19,101 @@ const FLOOR: BlockPos = BlockPos::new(-1, 64, -9);
 const PLACED: BlockPos = BlockPos::new(-1, 65, -9);
 
 #[test]
+fn rapid_creative_break_burst_is_ordered_published_and_durable() {
+    let fixture = Fixture::new();
+    let live = fixture.live();
+    let mut builder = Client::join(live.address, "Builder", 1, true);
+    let mut viewer = Client::join(live.address, "Viewer", 2, true);
+    builder.mode(1);
+    builder.move_to(6.5, 65.0, -7.5);
+    builder.clear();
+    viewer.clear();
+    let positions: Vec<_> = (3..11)
+        .flat_map(|x| (-12..-8).map(move |z| BlockPos::new(x, 64, z)))
+        .collect();
+    let started = std::time::Instant::now();
+    for (index, &pos) in positions.iter().enumerate() {
+        builder.action(0, pos, 100 + index as i32);
+    }
+    builder.ack(100 + positions.len() as i32 - 1);
+    let elapsed = started.elapsed();
+    assert!(viewer.wait(|packets| positions.iter().all(|&pos| changed(
+        packets,
+        pos,
+        block_state::AIR
+    ))));
+    for &pos in &positions {
+        assert!(changed(&builder.seen, pos, block_state::AIR));
+        assert_eq!(fixture.read(pos), block_state::AIR);
+    }
+    println!(
+        "RUNTIME_BURST={}",
+        serde_json::json!({
+            "actions": positions.len(), "acknowledged_and_saved_ms": elapsed.as_secs_f64() * 1000.0,
+            "actor_light_packets": builder.seen.iter().filter(|packet| packet.id == CB_LIGHT_UPDATE).count(),
+            "actor_ack_packets": builder.seen.iter().filter(|packet| packet.id == CB_BLOCK_ACK).count(),
+            "viewer_updates": positions.len(), "saved_states_match": true,
+        })
+    );
+    drop(builder);
+    drop(viewer);
+    live.stop();
+}
+
+#[test]
+fn creative_can_break_grass_surface_and_place_a_supported_block_on_it() {
+    let fixture = Fixture::new();
+    let mut column = fixture.store.load(0, -1).unwrap().unwrap();
+    column.set(4, 64, 7, block_state::GRASS_BLOCK);
+    column.set(5, 64, 7, block_state::GRASS_BLOCK);
+    fixture.store.save(0, -1, &column).unwrap();
+    let live = fixture.live();
+    let mut builder = Client::join(live.address, "Builder", 1, true);
+    builder.mode(1);
+    builder.move_to(4.5, 65.0, -6.5);
+    builder.hotbar(0, "minecraft:stone");
+    builder.clear();
+    builder.place(BlockPos::new(5, 64, -9), 1, 0, [0.5; 3], false, 1);
+    builder.ack(1);
+    assert_eq!(fixture.read(BlockPos::new(5, 65, -9)), block_state::STONE);
+    builder.clear();
+    builder.action(0, BlockPos::new(4, 64, -9), 2);
+    builder.ack(2);
+    assert_eq!(fixture.read(BlockPos::new(4, 64, -9)), block_state::AIR);
+    drop(builder);
+    live.stop();
+}
+
+#[test]
+fn fragmented_block_action_survives_socket_timeouts_and_preserves_the_next_frame() {
+    use std::io::Write;
+    let fixture = Fixture::new();
+    let live = fixture.live();
+    let mut builder = Client::join(live.address, "Builder", 1, true);
+    builder.mode(1);
+    builder.move_to(3.5, 65.0, -6.5);
+    builder.clear();
+    let mut payload = vec![0];
+    payload.extend_from_slice(&client::packed(FLOOR));
+    payload.extend_from_slice(&[1, 7]);
+    let mut frame = Vec::new();
+    bcore_protocol::packet::write_packet(&mut frame, SB_PLAYER_ACTION, &payload);
+    builder.stream.write_all(&frame[..1]).unwrap();
+    std::thread::sleep(Duration::from_millis(150));
+    builder.stream.write_all(&frame[1..5]).unwrap();
+    std::thread::sleep(Duration::from_millis(150));
+    builder.stream.write_all(&frame[5..]).unwrap();
+    builder.send(bcore_protocol::world::SB_PING_REQUEST, &42i64.to_be_bytes());
+    builder.ack(7);
+    assert_eq!(fixture.read(FLOOR), block_state::AIR);
+    assert!(builder.wait(|packets| packets.iter().any(|packet| packet.id
+        == bcore_protocol::world::CB_PING_RESPONSE
+        && packet.body == 42i64.to_be_bytes())));
+    drop(builder);
+    live.stop();
+}
+
+#[test]
 fn creative_hotbar_place_reaches_other_viewers_and_retained_reads_then_survives_restart() {
     let fixture = Fixture::new();
     let live = fixture.live();

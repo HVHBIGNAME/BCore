@@ -25,12 +25,15 @@
 //! Persistence errors stop admission/loading. An unreadable or incompatible
 //! saved chunk is never treated as an absent chunk.
 
-use std::collections::{BTreeSet, HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{mpsc, Arc, Mutex, OnceLock, RwLock};
 use std::thread;
 
 mod mutation;
-pub(crate) use mutation::WorldMutationOwner;
+mod saving;
+pub(crate) use mutation::{WorldMutationOwner, WorldUpdates};
+pub(crate) use saving::DirtyBatch;
 
 const PAYLOAD_SHARDS: usize = 32;
 const MAX_CACHED_PAYLOADS: usize = 8192;
@@ -205,7 +208,8 @@ struct WorldInner {
     /// Serialize canonical block edits with payload snapshot/subscription publication.
     publication: RwLock<()>,
     mutation_owner: Mutex<Option<thread::ThreadId>>,
-    dirty_chunks: Mutex<BTreeSet<ChunkPos>>,
+    dirty_chunks: Mutex<BTreeMap<ChunkPos, u64>>,
+    mutation_revision: AtomicU64,
     /// Coalesce concurrent cache misses before loading/generating the same chunk.
     generation_locks: [Mutex<()>; PAYLOAD_SHARDS],
     in_flight: Mutex<HashSet<(i32, i32)>>,
@@ -256,7 +260,8 @@ impl World {
                 payloads: std::array::from_fn(|_| RwLock::new(HashMap::new())),
                 publication: RwLock::new(()),
                 mutation_owner: Mutex::new(None),
-                dirty_chunks: Mutex::new(BTreeSet::new()),
+                dirty_chunks: Mutex::new(BTreeMap::new()),
+                mutation_revision: AtomicU64::new(1),
                 generation_locks: std::array::from_fn(|_| Mutex::new(())),
                 in_flight: Mutex::new(HashSet::new()),
                 payload_errors: Mutex::new(HashMap::new()),

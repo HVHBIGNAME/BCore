@@ -15,7 +15,7 @@ A native [Minecraft: Java Edition](https://www.minecraft.net) server written in 
 
 BCore is an **independent implementation** (not a fork) aiming for vanilla parity while making better use of modern multi-core hardware — plus a native plugin system and a Bukkit/Spigot/Paper plugin bridge.
 
-> **Status: alpha, vanilla parity incomplete.** Offline login, chunk streaming, chat, commands and persistence are implemented. Worldgen is the current priority. See the [implementation tracker](https://HVHBIGNAME.github.io/BCore/) and [measured parity report](docs/parity-report.md).
+> **Status: alpha, vanilla parity incomplete.** Offline login, chunk streaming, chat, commands and persistence are implemented. Current work targets generation parity and responsive gameplay. See the [implementation tracker](https://HVHBIGNAME.github.io/BCore/) and [measured parity report](docs/parity-report.md).
 
 The [26.2 migration checkpoint](docs/migration-26.2.md) includes **886 passing
 workspace release tests**, native decoding of **1,179 BCore frames / 127 terrain
@@ -32,9 +32,17 @@ that slice with **56 pillar items / 168 states**, selected X/Y/Z placement and
 instant creative break. **336 repeat-matching native placement/codec cases** and
 **43 focused tests**, including three new TCP scenarios, verify current viewers,
 negative/chunk-border coordinates, canonical reads, dirty saving and restart.
-The fresh workspace checkpoint is **927 passed / 0 failed / 4 ignored**, 72 suites.
+That workspace checkpoint is **927 passed / 0 failed / 4 ignored**, 72 suites.
 
-[Development status, cleanup and open requirements — updated 2026-10-26](docs/development-status-2026-10-24.md).
+[Runtime responsiveness](docs/runtime-latency-2026-10-27.md) adds nonblocking action
+ingestion, revisioned asynchronous saving, partial-frame recovery and client-paced
+chunk delivery. The latest checkpoint is **939 passed / 0 failed / 4 ignored**.
+The 32-break TCP regression improves from **1881 to 244 ms median**; repeated
+production probes report **20 TPS** during generation, including **488 actual
+place/break actions** with saved readback. The report retains latency tails,
+delivery-rate tradeoffs and the exact before/after BCore workload.
+
+[Development status, cleanup and open requirements — updated 2026-10-27](docs/development-status-2026-10-24.md).
 
 <p align="center">
   <a href="#generation-accuracy">Accuracy</a> ·
@@ -87,6 +95,12 @@ are tracked with FULL conversion and other omissions in the
   block-entity data.
 
 ## Performance comparison
+
+The [runtime before/after report](docs/runtime-latency-2026-10-27.md) measures
+generation-time correction p95 **1718/1781 → 141/187 ms** against the previous BCore
+build. Median correction latency rose **93 → 125 ms**, and client-paced delivery
+sent fewer chunks. These runtime results are separate from the Java kernel
+comparison below; whole-server Java superiority remains an open goal.
 
 <img src="site/assets/performance-26_2.svg" alt="Measured BCore versus Vanilla 26.2 NOISE throughput at one, two and four workers: BCore 47.79, 83.98 and 156.81 chunks/s; Vanilla 49.77, 74.03 and 215.35. All block, ordered mark and WG-heightmap fingerprints match. This is a bounded kernel workload." width="100%" />
 
@@ -149,7 +163,7 @@ and timings; they contribute no production speedup.
 | Shared cross-chunk generation; native light storage and updates | Ticket-driven FULL conversion, remaining terrain families and broader seed samples | Worldgen-heightmap retirement, saved-holder hydration, Nether/End |
 | Fossils; villages, ancient cities, trail/trial jigsaws; treasure, huts, jungle, desert pyramids and **desert wells** | Preserve real native behavior across combined request histories | Remaining structure families, persistent generation graph |
 | Shared 26.2 registries; BCC v6 admission; world-local clocks; native-decoded reconnect/restart; matched 26.2 NOISE baseline and fresh CPU profile | FULL boundaries and source-owned runtime effects | Isolated interpolation/noise optimization with exact-output and paired-run gates |
-| Tick-owned creative stateless and axis-only full-cube gameplay; native codecs; viewer/canonical/save/restart tests | Remaining stateful blocks, neighbour callbacks and player/inventory boundaries | Physics, survival, menus and incremental runtime saving |
+| Tick-owned creative stateless and axis-only full-cube gameplay; client-paced streaming; revisioned async dirty saves; viewer/restart tests | Remaining stateful blocks, neighbour callbacks and player/inventory boundaries | Physics, survival, menus and persisted playerdata |
 
 Project updates and evidence are published together in the
 [tracker](https://HVHBIGNAME.github.io/BCore/), [parity report](docs/parity-report.md)

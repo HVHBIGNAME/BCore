@@ -1,4 +1,4 @@
-# Статус разработки — обновлено 26 октября 2026
+# Статус разработки — обновлено 27 октября 2026
 
 Цель проекта: все механики **Minecraft Java 26.2 / protocol 776 / data version
 4903**, с проверкой поведения против закреплённого оригинального сервера.
@@ -7,6 +7,14 @@
 
 ## Выполнено и проверено
 
+- Runtime responsiveness: **939 passed / 0 failed / 4 ignored**, 72 suites,
+  868 unchanged inputs и 4592 unchanged world/operator files. Nonblocking action queue,
+  generation handoff, incremental framing, client-paced chunks и revisioned async
+  saves с durability ack. 32-break median **1881 → 244 ms**; production correction
+  p95 **1718/1781 → 141/187 ms**, 20 TPS во всех новых окнах. Проверены 488 реальных
+  place/break actions, 171 чанк и persisted AIR. Median correction выросла 93 → 125 ms,
+  доставлено меньше чанков; Java comparison остаётся отдельной целью.
+  [Отчёт runtime](runtime-latency-2026-10-27.md).
 - Переход общих registry IDs, protocol admission и BCC v6 на 26.2; исторические
   эталоны 26.1 остаются явно историческими.
 - Migration checkpoint: **886 passed / 0 failed / 4 ignored**.
@@ -59,10 +67,10 @@
 |---|---|
 | Полный Overworld и ticket-driven FULL | Partial; нужны сохранение/восстановление canonical holders и полные межчанковые истории |
 | Saved-column admission | Выполнен data-admission slice: canonical Level/Imposter data, futures/cache, saved neighbours, stored light и restart проверены; generation history/registration остаются Partial |
-| Ломка/установка блоков | Creative stateless + axis-only full-cube slices выполнены: 253 items, tick-owner mutation, ack/correction/viewers, dirty save и restart; прочие stateful blocks/neighbour callbacks/survival открыты |
+| Ломка/установка блоков | Creative stateless + axis-only full-cube slices: 253 items, grass/podzol/mycelium supports и break, bounded nonblocking requests, tick-owner mutation, durable ack/correction/viewers, async save/restart; прочие stateful blocks/neighbour callbacks/survival открыты |
 | Физика и инвентарь | Standing overlap и creative unpatched hotbar 0..8 для 253 full-cube items проверены; полные poses/collision/gravity, menus/click transactions и persisted playerdata открыты |
 | Игрок, mobs, redstone и жидкости | Открыты соответствующие фазы дорожной карты |
-| Скорость относительно Java | Цель открыта: два seeded-cache candidates отклонены; нужны repeatable all-budget gains и matched Java checks, а для скорости сервера в целом — отдельный общий runtime workload |
+| Скорость относительно Java | Цель открыта: два seeded-cache candidates отклонены; runtime before/after BCore уменьшил длинные паузы и прошёл 20 TPS нагрузки. Нужны repeatable all-budget gains и matched Java runtime checks |
 | GUI-клиент и online auth | Не проверены/не реализованы полностью |
 
 ## Проверки публикации

@@ -1,20 +1,23 @@
 # BCore — дорожная карта переноса ванильных механик на натив
 
-> Обновление 2026-10-26: текущая цель — **26.2 / протокол 776 / data version 4903**.
+> Обновление 2026-10-27: текущая цель — **26.2 / протокол 776 / data version 4903**.
 > Закреплены общие registry IDs и BCC v6 с проверкой версии, сида и fingerprint.
-> Workspace checkpoint: **927 passed / 0 failed / 4 ignored**, 72 suites.
+> Workspace checkpoint: **939 passed / 0 failed / 4 ignored**, 72 suites.
+> Runtime: bounded nonblocking actions, generation handoff, partial-frame recovery,
+> client-paced chunks и async dirty saves с revision-aware durability ack.
+> 32-break median **1881 → 244 ms**; 488 actual edits и 20 TPS при generation проверены.
 > Creative stateless + axis-only full-cube gameplay: **253 items / 365 states**,
 > tick-owner edits, current viewers, dirty save/restart. Новый pillar oracle:
 > **336 cases / 56 items / 168 states**; **43 focused tests / 3 новых TCP scenarios**.
 > Native migration codecs ранее декодировали **1179 пакетов / 127 terrain packets**;
-> historical checkpoints 886/903/921 сохраняют свои identities.
+> historical checkpoints 886/903/921/927 сохраняют свои identities.
 > FULL, физика, menus/playerdata, survival и online auth остаются неполными.
 > NOISE baseline — **47,79 / 83,98 / 156,81 BCore** против **49,77 / 74,03 / 215,35 Java**
 > при 1/2/4 workers; profile — **4002 leaf samples**. Два seeded-cache experiments
 > отклонены после **126 matching processes** и повторных frozen confirmations;
 > production inputs восстановлены, общего Java superiority не установлено.
 > [Последний статус](development-status-2026-10-24.md) · [Gameplay](creative-pillar-gameplay-2026-10-26.md)
-> · [Performance](performance-experiments-26.2-2026-10-26.md) · [Запуск](migration-26.2.md).
+> · [Runtime](runtime-latency-2026-10-27.md) · [Performance](performance-experiments-26.2-2026-10-26.md) · [Запуск](migration-26.2.md).
 
 > Обновление 2026-10-10: разработка и эталоны остаются на **26.1 / протоколе 775**.
 > Три параллельных направления исправили фоссилии, пустынные пирамиды и ленивую
@@ -63,7 +66,8 @@
 Готово: net+login+join, чат, команды (ванильный набор, селекторы, scoreboard, RU),
 общий стадийный worldgen до SPAWN с явным неполным покрытием, сохранение чанков и
 генерируемых эффектов, creative stateless/axis-only full-cube break/place и hotbar,
-view distance 20, TPS 20, stdin-консоль, спектатор, F3+F4,
+view distance 32, client-paced streaming, revisioned async chunk saving,
+20 TPS в проверенных runtime-нагрузках, stdin-консоль, спектатор, F3+F4,
 бан-система, стриминг вагонеток, native plugin API + JVM-мост (M1).
 
 Не готово (по приоритету): полный мир 1в1, FULL/ticket lifecycle, полный набор настроек SPAWN и сохранение графа,

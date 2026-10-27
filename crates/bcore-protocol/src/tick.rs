@@ -96,6 +96,7 @@ fn run(server: SharedServer, state: Arc<TickState>) {
     let mut next_tick = started + TICK_INTERVAL;
     let mut last_report = started;
     let mut ticks_since_report = 0u64;
+    let mut longest_work = Duration::ZERO;
     while !server.is_shutting_down() {
         let now = Instant::now();
         if now < next_tick {
@@ -111,10 +112,12 @@ fn run(server: SharedServer, state: Arc<TickState>) {
             Ordering::Relaxed,
         );
         server.tick_clock();
+        let work_started = Instant::now();
         if let Err(error) = blocks.tick(&server) {
             eprintln!("[bcore] gameplay dirty save failed: {error}");
             break;
         }
+        longest_work = longest_work.max(work_started.elapsed());
         next_tick += TICK_INTERVAL;
         if next_tick < Instant::now() {
             next_tick = Instant::now() + TICK_INTERVAL;
@@ -122,8 +125,14 @@ fn run(server: SharedServer, state: Arc<TickState>) {
         if last_report.elapsed() >= Duration::from_secs(5) {
             let seconds = last_report.elapsed().as_secs_f64();
             let tps = ticks_since_report as f64 / seconds;
-            println!("[bcore] TPS: {:.1} ({} ticks)", tps, ticks_since_report);
+            println!(
+                "[bcore] TPS: {:.1} ({} ticks), max gameplay work {:.2} ms",
+                tps,
+                ticks_since_report,
+                longest_work.as_secs_f64() * 1000.0
+            );
             ticks_since_report = 0;
+            longest_work = Duration::ZERO;
             last_report = Instant::now();
         }
     }

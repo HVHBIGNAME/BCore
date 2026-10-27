@@ -302,6 +302,47 @@ fn write_light_arrays(out: &mut Vec<u8>, arrays: &[Vec<u8>]) {
     }
 }
 
+/// Encode only stored native light, without cloning terrain or rebuilding biomes.
+pub(crate) fn encode_native_light_payload(light: &ChunkLight) -> Vec<u8> {
+    let mut out = Vec::new();
+    write_native_light_payload(light, &mut out);
+    out
+}
+
+fn write_native_light_payload(light: &ChunkLight, out: &mut Vec<u8>) {
+    let (mut sky_bits, mut block_bits, mut empty_sky, mut empty_block) =
+        (Vec::new(), Vec::new(), Vec::new(), Vec::new());
+    let (mut sky, mut block) = (Vec::new(), Vec::new());
+    for (index, section) in light.sections.iter().enumerate() {
+        if let Some(bytes) = &section.sky {
+            if section.sky_empty {
+                empty_sky.push(index);
+            } else {
+                sky_bits.push(index);
+                sky.push(bytes);
+            }
+        }
+        if let Some(bytes) = &section.block {
+            if section.block_empty {
+                empty_block.push(index);
+            } else {
+                block_bits.push(index);
+                block.push(bytes);
+            }
+        }
+    }
+    for bits in [&sky_bits, &block_bits, &empty_sky, &empty_block] {
+        write_long_array(out, &light_bitset(bits));
+    }
+    for arrays in [sky, block] {
+        encode_varint(arrays.len() as i32, out);
+        for bytes in arrays {
+            encode_varint(bytes.len() as i32, out);
+            out.extend_from_slice(bytes);
+        }
+    }
+}
+
 /// A full 16 x [`WORLD_HEIGHT`] x 16 column of block states plus biomes.
 ///
 /// Block states are indexed `[(y - MIN_Y) * 256 + z * 16 + x]`, matching the
@@ -969,32 +1010,7 @@ impl ChunkColumn {
 
     fn write_light_payload(&self, out: &mut Vec<u8>) {
         if let Some(light) = &self.light {
-            let (mut sky_bits, mut block_bits, mut empty_sky, mut empty_block) =
-                (Vec::new(), Vec::new(), Vec::new(), Vec::new());
-            let (mut sky, mut block) = (Vec::new(), Vec::new());
-            for (index, section) in light.sections.iter().enumerate() {
-                if let Some(bytes) = &section.sky {
-                    if section.sky_empty {
-                        empty_sky.push(index);
-                    } else {
-                        sky_bits.push(index);
-                        sky.push(bytes.clone());
-                    }
-                }
-                if let Some(bytes) = &section.block {
-                    if section.block_empty {
-                        empty_block.push(index);
-                    } else {
-                        block_bits.push(index);
-                        block.push(bytes.clone());
-                    }
-                }
-            }
-            for bits in [&sky_bits, &block_bits, &empty_sky, &empty_block] {
-                write_long_array(out, &light_bitset(bits));
-            }
-            write_light_arrays(out, &sky);
-            write_light_arrays(out, &block);
+            write_native_light_payload(light, out);
             return;
         }
         let surfaces = self.surfaces();

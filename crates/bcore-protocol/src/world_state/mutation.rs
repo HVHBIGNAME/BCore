@@ -1,20 +1,51 @@
 //! World-scoped block ownership, payload invalidation and inert BCC dirty saves.
 use std::marker::PhantomData;
 use std::rc::Rc;
-use std::sync::{Arc, RwLockReadGuard};
+use std::sync::{Arc, RwLockReadGuard, RwLockWriteGuard, TryLockError};
 use std::thread::{self, ThreadId};
 
 use bcore_core::{BlockPos, ChunkPos};
-use bcore_worldgen::generation::{ChunkAccessKind, ChunkStatus, LevelBlockEdit};
+#[cfg(test)]
+use bcore_worldgen::generation::{ChunkAccessKind, ChunkStatus};
+use bcore_worldgen::generation::{LevelAccess, LevelBlockEdit};
 
-use super::{payload_shard, World, WorldError};
-use crate::chunk::ChunkColumn;
+use super::{payload_shard, Ordering, World, WorldError};
 
 #[derive(Debug)]
 pub(crate) struct WorldMutationOwner {
     world: World,
     thread: ThreadId,
     _local: PhantomData<Rc<()>>,
+}
+
+pub(crate) struct WorldUpdates<'a> {
+    pub(super) world: &'a World,
+    pub(super) access: LevelAccess<'a>,
+    _publication: RwLockWriteGuard<'a, ()>,
+}
+
+impl WorldUpdates<'_> {
+    pub(crate) fn loaded_block(&self, pos: BlockPos) -> Option<u32> {
+        self.access.block(pos)
+    }
+
+    pub(crate) fn edit_block(
+        &mut self,
+        pos: BlockPos,
+        expected: u32,
+        after: u32,
+    ) -> Result<Option<LevelBlockEdit>, WorldError> {
+        let edited = self.access.edit_block(pos, expected, after)?;
+        if let Some(edit) = &edited {
+            self.world.record_edit(edit);
+        }
+        Ok(edited)
+    }
+
+    pub(crate) fn light_payload(&self, pos: ChunkPos) -> Option<Vec<u8>> {
+        self.access
+            .read_light(pos, crate::chunk::encode_native_light_payload)
+    }
 }
 
 impl Drop for WorldMutationOwner {
@@ -50,7 +81,10 @@ impl World {
         })
     }
 
-    fn check_mutation_owner(&self, owner: &WorldMutationOwner) -> Result<(), WorldError> {
+    pub(super) fn check_mutation_owner(
+        &self,
+        owner: &WorldMutationOwner,
+    ) -> Result<(), WorldError> {
         if !Arc::ptr_eq(&self.inner, &owner.world.inner) || thread::current().id() != owner.thread {
             return Err(WorldError::Mutation(
                 "foreign world or wrong mutation thread",
@@ -66,6 +100,29 @@ impl World {
             .expect("world publication lock")
     }
 
+    pub(crate) fn try_updates(
+        &self,
+        owner: &WorldMutationOwner,
+    ) -> Result<Option<WorldUpdates<'_>>, WorldError> {
+        self.check_mutation_owner(owner)?;
+        let publication = match self.inner.publication.try_write() {
+            Ok(guard) => guard,
+            Err(TryLockError::WouldBlock) => return Ok(None),
+            Err(TryLockError::Poisoned(_)) => {
+                return Err(WorldError::Mutation("world publication lock poisoned"))
+            }
+        };
+        let Some(access) = self.inner.generation.try_level_access()? else {
+            return Ok(None);
+        };
+        Ok(Some(WorldUpdates {
+            world: self,
+            access,
+            _publication: publication,
+        }))
+    }
+
+    #[cfg(test)]
     pub(crate) fn loaded_block(&self, pos: BlockPos) -> Result<Option<u32>, WorldError> {
         if !(crate::chunk::MIN_Y..=crate::chunk::MAX_Y).contains(&pos.y) {
             return Ok(None);
@@ -86,6 +143,7 @@ impl World {
         })?)
     }
 
+    #[cfg(test)]
     pub(crate) fn edit_loaded_block(
         &self,
         owner: &WorldMutationOwner,
@@ -104,69 +162,22 @@ impl World {
             .generation
             .edit_level_block(pos, expected, state)?;
         if let Some(edit) = &edited {
-            let mut dirty = self.inner.dirty_chunks.lock().expect("dirty chunk lock");
-            for pos in &edit.changed_chunks {
-                self.inner.payloads[payload_shard(pos.x, pos.z)]
-                    .write()
-                    .expect("payload shard lock")
-                    .remove(&(pos.x, pos.z));
-                dirty.insert(*pos);
-            }
+            self.record_edit(edit);
         }
         Ok(edited)
     }
 
-    /// Preserve raw pending/live BE membership and ordered ticks; saving does not
-    /// perform an unrelated BE lookup or unpack a level tick queue.
-    pub(crate) fn flush_dirty_chunks(
-        &self,
-        owner: &WorldMutationOwner,
-    ) -> Result<usize, WorldError> {
-        self.check_mutation_owner(owner)?;
-        let _publication = self
-            .inner
-            .publication
-            .write()
-            .expect("world publication lock");
-        let positions: Vec<ChunkPos> = self
-            .inner
-            .dirty_chunks
-            .lock()
-            .expect("dirty chunk lock")
-            .iter()
-            .copied()
-            .collect();
-        let mut saved = 0;
-        for pos in positions {
-            let access = self
-                .inner
-                .generation
-                .chunk_access(pos, ChunkStatus::Full)?
-                .ok_or(WorldError::Mutation("dirty Level storage disappeared"))?;
-            if let Some(store) = self.store() {
-                let column = ChunkColumn::from_generated(&access.snapshot()?);
-                store.save(pos.x, pos.z, &column)?;
-            }
-            self.inner
-                .dirty_chunks
-                .lock()
-                .expect("dirty chunk lock")
-                .remove(&pos);
-            saved += 1;
+    fn record_edit(&self, edit: &LevelBlockEdit) {
+        let revision = self.inner.mutation_revision.fetch_add(1, Ordering::Relaxed);
+        assert_ne!(revision, u64::MAX, "world mutation revision exhausted");
+        let mut dirty = self.inner.dirty_chunks.lock().expect("dirty chunk lock");
+        for pos in &edit.changed_chunks {
+            self.inner.payloads[payload_shard(pos.x, pos.z)]
+                .write()
+                .expect("payload shard lock")
+                .remove(&(pos.x, pos.z));
+            dirty.insert(*pos, revision);
         }
-        Ok(saved)
-    }
-
-    pub(crate) fn loaded_light_payload(
-        &self,
-        pos: ChunkPos,
-    ) -> Result<Option<Vec<u8>>, WorldError> {
-        let Some(access) = self.inner.generation.chunk_access(pos, ChunkStatus::Full)? else {
-            return Ok(None);
-        };
-        Ok(Some(
-            ChunkColumn::from_generated(&access.snapshot()?).encode_light_payload(),
-        ))
     }
 }
 
@@ -178,7 +189,7 @@ mod tests {
     use std::sync::mpsc;
 
     use super::*;
-    use crate::chunk::block_state;
+    use crate::chunk::{block_state, ChunkColumn};
     use crate::chunk_store::{encode_chunk, ChunkStore};
     use crate::shared::ServerState;
     use crate::world::PlayerView;
@@ -206,6 +217,90 @@ mod tests {
             .admit_saved_chunks(vec![column.clone().into_saved_data(ChunkPos::new(0, 0))])
             .unwrap();
         (world, column)
+    }
+
+    #[test]
+    fn clean_tick_never_waits_for_a_chunk_publication_reader() {
+        let world = World::in_memory(0);
+        let publication = world.read_publication();
+        let running = world.clone();
+        let (tx, rx) = mpsc::channel();
+        let worker = thread::spawn(move || {
+            let owner = running.bind_mutations().unwrap();
+            tx.send(running.flush_dirty_chunks(&owner).unwrap())
+                .unwrap();
+        });
+        let completed = rx.recv_timeout(std::time::Duration::from_secs(1));
+        drop(publication);
+        worker.join().unwrap();
+        assert_eq!(
+            completed.unwrap(),
+            0,
+            "clean tick must not acquire publication lock"
+        );
+    }
+
+    #[test]
+    fn busy_generation_defers_updates_instead_of_waiting_on_the_tick_thread() {
+        let world = World::in_memory(0);
+        let busy = world.inner.generation.level_access().unwrap();
+        let running = world.clone();
+        let (tx, rx) = mpsc::channel();
+        let worker = thread::spawn(move || {
+            let owner = running.bind_mutations().unwrap();
+            tx.send(running.try_updates(&owner).unwrap().is_none())
+                .unwrap();
+        });
+        let deferred = rx.recv_timeout(std::time::Duration::from_secs(1));
+        drop(busy);
+        worker.join().unwrap();
+        assert!(deferred.unwrap());
+        let owner = world.bind_mutations().unwrap();
+        assert!(world.try_updates(&owner).unwrap().is_some());
+    }
+
+    #[test]
+    fn completing_an_older_save_preserves_newer_dirty_data_and_inert_pending_tags() {
+        let directory = Directory::new();
+        let store = ChunkStore::at(&directory.0);
+        store.prepare_world(0).unwrap();
+        let original = column();
+        store.save(0, 0, &original).unwrap();
+        let world = World::open(0, store.clone()).unwrap();
+        world.try_chunk(0, 0).unwrap();
+        let owner = world.bind_mutations().unwrap();
+        let pos = BlockPos::new(0, 64, 0);
+        world
+            .edit_loaded_block(&owner, pos, block_state::STONE, block_state::DIRT)
+            .unwrap();
+        let old = world
+            .try_updates(&owner)
+            .unwrap()
+            .unwrap()
+            .dirty_snapshot()
+            .unwrap();
+        world
+            .edit_loaded_block(&owner, pos, block_state::DIRT, block_state::DIAMOND_BLOCK)
+            .unwrap();
+        old.write(Some(&store)).unwrap();
+        world.complete_dirty_save(&owner, &old).unwrap();
+        assert_eq!(
+            store.load(0, 0).unwrap().unwrap().get(0, 64, 0),
+            Some(block_state::DIRT)
+        );
+        assert_eq!(
+            world.loaded_block(pos).unwrap(),
+            Some(block_state::DIAMOND_BLOCK)
+        );
+        assert_eq!(world.inner.dirty_chunks.lock().unwrap().len(), 1);
+        assert_eq!(world.flush_dirty_chunks(&owner).unwrap(), 1);
+        let saved = store.load(0, 0).unwrap().unwrap();
+        assert_eq!(saved.get(0, 64, 0), Some(block_state::DIAMOND_BLOCK));
+        assert_eq!(
+            saved.pending_block_entities(),
+            original.pending_block_entities()
+        );
+        assert!(world.inner.dirty_chunks.lock().unwrap().is_empty());
     }
 
     struct Directory(PathBuf);

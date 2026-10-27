@@ -1,0 +1,379 @@
+{
+  "schema": "bcore.runtime-latency-checkpoint.v1",
+  "date": "2026-10-27",
+  "status": "pass",
+  "issue": 6,
+  "minecraft": "26.2",
+  "protocol": 776,
+  "data_version": 4903,
+  "baseline_commit": "75f21eca255e07d61bb9f521255e85a338ceabc7",
+  "scope": "BCore before/after runtime responsiveness; bounded creative gameplay and chunk streaming",
+  "workspace": {
+    "raw": {
+      "path": "target/runtime-workspace-20261026-02/validation.json",
+      "sha256": "f8e759e77cc79d0a1bed4e534b0b23176b23a2f4bd464db25a2d820f25031262"
+    },
+    "totals": { "passed": 939, "failed": 0, "ignored": 4, "filtered_out": 0 },
+    "suite_count": 72,
+    "source_files": 868,
+    "source_manifest_sha256": "1eb21f46c655aba49255e212a377895616af42c32999d0a8aa9a1f67b4eda4ea",
+    "source_unchanged": true,
+    "protected_files": 4592,
+    "private_unchanged": true,
+    "checks": [
+      {
+        "name": "format",
+        "command": "cargo fmt --all --check",
+        "exit_code": 0,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "build",
+        "command": "cargo build --workspace --release --locked -j 1",
+        "exit_code": 0,
+        "log_sha256": "ef4bc2a7ce7d677b90d203a17fe5ac36d73987a343ad3fac10136b34cee6ea20"
+      },
+      {
+        "name": "workspace-tests",
+        "command": "cargo test --workspace --release --locked --no-fail-fast -j 1 -- --test-threads=2 -Z unstable-options --format=json --report-time",
+        "exit_code": 0,
+        "log_sha256": "9afea31dddedd092a333df4c28784ec40678c3b02490c706c99dace08ccd14b4"
+      },
+      {
+        "name": "standalone",
+        "command": "cargo build --manifest-path scripts/native-generation-reference/Cargo.toml --release --locked -j 1 --bins",
+        "exit_code": 0,
+        "log_sha256": "08f374aa1caa9a8c019f6c8e3b26ffaad4c7f53118bd49f6d386c56fcd5875d6"
+      },
+      {
+        "name": "export",
+        "command": "python -B -m unittest discover -s scripts -p test_export*.py",
+        "exit_code": 0,
+        "log_sha256": "11457e0fd00ee299609dde774a70df5c94bf58073a7cc23c398928f669999642",
+        "tests_passed": 29
+      },
+      {
+        "name": "timing",
+        "command": "python -B -m unittest discover -s scripts -p test_test_timings.py",
+        "exit_code": 0,
+        "log_sha256": "ac6da122ee68e864b5c1ee1b221337f9cd417311cc52044f21551cbe8fafc85e",
+        "tests_passed": 3
+      },
+      {
+        "name": "renderer",
+        "command": "python -B -m unittest discover -s scripts -p test_render_readme.py",
+        "exit_code": 0,
+        "log_sha256": "8463858bcb63302ba1081ed78e5ef62cc8d44cb4aeb1a55e7e01e57f2738f07b",
+        "tests_passed": 4
+      },
+      {
+        "name": "queue",
+        "command": "python -B -m unittest discover -s scripts -p test_run_generation_check.py",
+        "exit_code": 0,
+        "log_sha256": "630ba967e96b45f685543fd7bc94b6e8f1514e6c401bf77948afabd0998257db",
+        "tests_passed": 8
+      },
+      {
+        "name": "benchmark",
+        "command": "python -B -m unittest discover -s scripts/benchmarks -p test_*.py",
+        "exit_code": 0,
+        "log_sha256": "81803673f59fece43d74af22e0bf045da9c47589067d60afc732919b84adb35c",
+        "tests_passed": 21
+      },
+      {
+        "name": "replay",
+        "command": "python -B -m unittest discover -s scripts/native-generation-reference -p test_*.py",
+        "exit_code": 0,
+        "log_sha256": "c1ced39451467edd10c09a58af05fe6f0c6377ac0b1f63912f2f2182736346e2",
+        "tests_passed": 43
+      },
+      {
+        "name": "migration",
+        "command": "python -B -m unittest discover -s scripts/migration-26.2 -p test_*.py",
+        "exit_code": 0,
+        "log_sha256": "55134f7dd57e705202e0e64b687d4ad7a09abd6c5cc2cf3e7c53308cb2937e90",
+        "tests_passed": 116
+      },
+      {
+        "name": "charts",
+        "command": "python -B scripts/render_readme.py --check",
+        "exit_code": 0,
+        "log_sha256": "5d6a04c8f2b850fa08b18d463147ec6a4ec2cce2aa42aef6a4cc1ce55fe4f748"
+      }
+    ],
+    "new_regressions_executed": [
+      "rapid_creative_break_burst_is_ordered_published_and_durable",
+      "creative_can_break_grass_surface_and_place_a_supported_block_on_it",
+      "fragmented_block_action_survives_socket_timeouts_and_preserves_the_next_frame",
+      "queued_actions_are_bounded_and_owner_cancellation_resolves_every_reply",
+      "partial_headers_and_bodies_survive_timeouts_at_every_byte_boundary",
+      "invalid_lengths_and_unfinished_frames_fail_without_unbounded_allocation",
+      "packet_flood_and_missing_ack_do_not_multiply_chunk_batches",
+      "fractional_credit_is_respected_and_unsolicited_ack_cannot_inflate_it",
+      "clean_tick_never_waits_for_a_chunk_publication_reader",
+      "busy_generation_defers_updates_instead_of_waiting_on_the_tick_thread",
+      "completing_an_older_save_preserves_newer_dirty_data_and_inert_pending_tags",
+      "blocked_disk_keeps_completion_pending_without_blocking_the_tick_poll"
+    ]
+  },
+  "artifacts": {
+    "before_executable": {
+      "path": "target/runtime-baseline-20261026-01/bcore-before.exe",
+      "sha256": "e28263860364f8961ea9eeaa6229e8093c1fad706bb8ef3524f3ae325fbf3ab5"
+    },
+    "after_executable": {
+      "path": "target/runtime-candidate-20261026-02/bcore.exe",
+      "sha256": "710a540f48bc2cb155a24ec61d09c140ab6502e93f770582b618f1836b1f48c0"
+    },
+    "after_build": {
+      "path": "target/runtime-candidate-20261026-02/build.json",
+      "sha256": "b35d56dda0ed2e14486ee3d09c7c551478783d837ffe1b60078d4f59eb796fa8"
+    },
+    "retained_sources_and_drivers": {
+      "path": "target/runtime-artifacts-20261027-01/artifacts.json",
+      "sha256": "a286b2b11f694bed505c08d8f83efb25e120041516cc6ce2ebebb2bd02278863"
+    },
+    "source_archive_sha256": "3d19b28e4dc1420fce6737fa76b0914a0c9e12cdeea7332a1c0e3dab304d6c83",
+    "driver_sha256": {
+      "check_runtime_baseline.py": "b2d91894e1f83b08669143a55a118c2b450c8633c3629ae430fc406883c77ca4",
+      "check_runtime_candidate.py": "84ada866608343c9d30371f661be0f949c10dbda1701e7019ad5ca916c478843",
+      "check_runtime_focus.py": "5832f28f27effc594b49491c18bf71ff96dff563708789a4810538ed19add03e",
+      "freeze_runtime_candidate.py": "9c78f90aa91403b06137463a289a701c3cd45e2fdf7f7a26f2675ccc61dfa480",
+      "probe_runtime_edits.py": "81825e21ad01bbc3fb3aab1dcd09c53f781f3992419d6b98746f9f0497922bc1",
+      "probe_runtime_streaming.py": "f071986984d1105cd9f36900fbda4e2e455541eb21c30221f181bc1f3572f339",
+      "summarize_runtime_evidence.py": "c90ddadef7cca2d78f5a29c502123455f065ec4bee85782bf8be884305874935"
+    }
+  },
+  "burst": {
+    "contract": "32 real TCP creative breaks on the release integration-test server; actor ack, viewer updates and saved readback",
+    "timer": "Instant; from sending actions through durability acknowledgements; saved readback verified separately",
+    "processes_per_revision": 3,
+    "production_executable_benchmark": false,
+    "baseline_raw": {
+      "path": "target/runtime-baseline-20261026-01/results.json",
+      "sha256": "a7f6e8efd9f807a581f7d65affd143008d9590a333111ba451840a5ea55a0188"
+    },
+    "candidate_raw": {
+      "path": "target/runtime-focus-20261026-04/results.json",
+      "sha256": "8fad7031204c3e09bc8d669dd0487119907d5c381f858a3372422f65a67479ff"
+    },
+    "before": [
+      {
+        "acknowledged_and_saved_ms": 1881.0399,
+        "actions": 32,
+        "actor_ack_packets": 32,
+        "actor_light_packets": 94,
+        "saved_states_match": true,
+        "viewer_updates": 32,
+        "log": {
+          "path": "target/runtime-baseline-20261026-01/check-0.log",
+          "sha256": "48c6410221ecfdf6e99424a1db2b60b862eb17225b14f0726734c07cf273ccf0"
+        }
+      },
+      {
+        "acknowledged_and_saved_ms": 1712.2568999999999,
+        "actions": 32,
+        "actor_ack_packets": 32,
+        "actor_light_packets": 94,
+        "saved_states_match": true,
+        "viewer_updates": 32,
+        "log": {
+          "path": "target/runtime-baseline-20261026-01/check-1.log",
+          "sha256": "731c2a65414ef6b8060b1e200ca4c0d0677efb42ab86fb3610eb0294bd134000"
+        }
+      },
+      {
+        "acknowledged_and_saved_ms": 2041.1792000000003,
+        "actions": 32,
+        "actor_ack_packets": 32,
+        "actor_light_packets": 94,
+        "saved_states_match": true,
+        "viewer_updates": 32,
+        "log": {
+          "path": "target/runtime-baseline-20261026-01/check-2.log",
+          "sha256": "1d5f1c12fec78f3ce3f7928ff5c8f1cbf7e9224285a4ac48788c20d43016216a"
+        }
+      }
+    ],
+    "after": [
+      {
+        "acknowledged_and_saved_ms": 243.7857,
+        "actions": 32,
+        "actor_ack_packets": 3,
+        "actor_light_packets": 20,
+        "saved_states_match": true,
+        "viewer_updates": 32,
+        "log": {
+          "path": "target/runtime-focus-20261026-04/burst-0.log",
+          "sha256": "e1287219743ef99aaff1c901b21fa375a15c33130bbf590306f3362d5792601d"
+        }
+      },
+      {
+        "acknowledged_and_saved_ms": 494.2263,
+        "actions": 32,
+        "actor_ack_packets": 4,
+        "actor_light_packets": 20,
+        "saved_states_match": true,
+        "viewer_updates": 32,
+        "log": {
+          "path": "target/runtime-focus-20261026-04/burst-1.log",
+          "sha256": "b3d3906da75551e32535ac9baf25c77e676085da9192936144ced411dbff4e5e"
+        }
+      },
+      {
+        "acknowledged_and_saved_ms": 182.2635,
+        "actions": 32,
+        "actor_ack_packets": 3,
+        "actor_light_packets": 17,
+        "saved_states_match": true,
+        "viewer_updates": 32,
+        "log": {
+          "path": "target/runtime-focus-20261026-04/burst-2.log",
+          "sha256": "16c851943e8a67fd15f51665cfcdc7a6bfb501eaf705e3908ddbb64d7d3e637c"
+        }
+      }
+    ],
+    "median_before_ms": 1881.0399,
+    "median_after_ms": 243.7857,
+    "median_speedup": 7.7159566783449565
+  },
+  "streaming": {
+    "contract": "30 seconds from first terrain; copied 3x3 saved columns, remaining terrain generated, unchanged-block ABORT/correction and ping every 200ms",
+    "seed": "846692123413862008",
+    "client_desired_chunks_per_tick": 1.0,
+    "clock": "time.monotonic; zero samples are below the observed timer resolution",
+    "run_order": ["before-20261026-02", "after-20261026-02", "after-20261026-03", "before-20261026-03"],
+    "runs": [
+      {
+        "run": "before-20261026-02",
+        "raw": {
+          "path": "target/runtime-stream-before-20261026-02/results.json",
+          "sha256": "b1ff46365bf0597a4ca641b5fe860e160dba7291542cd52a78bf3c4d0bc656cf"
+        },
+        "binary_sha256": "e28263860364f8961ea9eeaa6229e8093c1fad706bb8ef3524f3ae325fbf3ab5",
+        "first_chunk_seconds": 1.9839999999967404,
+        "tps_windows": [4.9, 11.8, 13.7, 15.2, 17.5],
+        "actions": { "count": 143, "median_ms": 93.0000000007567, "p95_ms": 1718.0000000007567, "max_ms": 2328.000000001339 },
+        "pings": { "count": 143, "median_ms": 93.0000000007567, "p95_ms": 1718.0000000007567, "max_ms": 2328.000000001339 },
+        "delivered_chunks": 320,
+        "maximum_batch": 8,
+        "source_manifest_sha256": "7168cf3e85678860967238b3d7e843fa3517ecebbe951a3daead63e1e04fb786",
+        "server_log_sha256": "2ddc38bb6e467f90854a5e1f10d20d3246960e61c94c2d864bbe77ea3c304c2d"
+      },
+      {
+        "run": "after-20261026-02",
+        "raw": {
+          "path": "target/runtime-stream-after-20261026-02/results.json",
+          "sha256": "4376404f35979da4db4aedb775f2d008ed2bbee40611901feff33f4e6ec4798b"
+        },
+        "binary_sha256": "710a540f48bc2cb155a24ec61d09c140ab6502e93f770582b618f1836b1f48c0",
+        "first_chunk_seconds": 2.688000000001921,
+        "tps_windows": [20.0, 20.0, 20.0, 20.0, 20.0, 20.0],
+        "actions": { "count": 140, "median_ms": 125.0, "p95_ms": 141.00000000325963, "max_ms": 405.9999999954016 },
+        "pings": { "count": 140, "median_ms": 0.0, "p95_ms": 0.0, "max_ms": 0.0 },
+        "delivered_chunks": 245,
+        "maximum_batch": 4,
+        "source_manifest_sha256": "7168cf3e85678860967238b3d7e843fa3517ecebbe951a3daead63e1e04fb786",
+        "server_log_sha256": "e55dd26079f110ebb581a34dccf9907513dfed40584dc34b9747d0e51b22d8b3"
+      },
+      {
+        "run": "after-20261026-03",
+        "raw": {
+          "path": "target/runtime-stream-after-20261026-03/results.json",
+          "sha256": "319b66d5ec5ab76882d038fc9e00e18d3e590f2842967a3e481ef3fab4faae56"
+        },
+        "binary_sha256": "710a540f48bc2cb155a24ec61d09c140ab6502e93f770582b618f1836b1f48c0",
+        "first_chunk_seconds": 1.625,
+        "tps_windows": [20.0, 20.0, 20.0, 20.0, 20.0],
+        "actions": { "count": 140, "median_ms": 125.0, "p95_ms": 186.99999999807915, "max_ms": 389.9999999994179 },
+        "pings": { "count": 140, "median_ms": 0.0, "p95_ms": 0.0, "max_ms": 313.00000000192085 },
+        "delivered_chunks": 238,
+        "maximum_batch": 4,
+        "source_manifest_sha256": "7168cf3e85678860967238b3d7e843fa3517ecebbe951a3daead63e1e04fb786",
+        "server_log_sha256": "5259b6e7e5038044106ca7f3d8087ef36be1d8d555b3f91a92b921e4c796e203"
+      },
+      {
+        "run": "before-20261026-03",
+        "raw": {
+          "path": "target/runtime-stream-before-20261026-03/results.json",
+          "sha256": "ed51a1e6d20a8ef484e71ad40348e7284039637f8e1818a6374219fc743ce7d7"
+        },
+        "binary_sha256": "e28263860364f8961ea9eeaa6229e8093c1fad706bb8ef3524f3ae325fbf3ab5",
+        "first_chunk_seconds": 1.7969999999986612,
+        "tps_windows": [4.9, 11.5, 15.7, 15.3, 17.1],
+        "actions": { "count": 142, "median_ms": 93.0000000007567, "p95_ms": 1781.0000000026776, "max_ms": 2390.9999999959837 },
+        "pings": { "count": 142, "median_ms": 93.0000000007567, "p95_ms": 1781.0000000026776, "max_ms": 2390.9999999959837 },
+        "delivered_chunks": 318,
+        "maximum_batch": 8,
+        "source_manifest_sha256": "7168cf3e85678860967238b3d7e843fa3517ecebbe951a3daead63e1e04fb786",
+        "server_log_sha256": "5fe134f1610faf008e7fbe4fccabb9a420cd9bbd4ffa761e2f5e54ac01568b35"
+      }
+    ],
+    "paired_terrain_payloads": [
+      { "pair": 2, "common_columns": 245, "payload_mismatches": 0 },
+      { "pair": 3, "common_columns": 238, "payload_mismatches": 0 }
+    ]
+  },
+  "sustained_edits": {
+    "raw": {
+      "path": "target/runtime-edits-after-20261026-01/results.json",
+      "sha256": "73b95baa8d678e6371869a2c51023e8f762d55d8b901ec6d259b00a4860c8e6f"
+    },
+    "duration_seconds": 30,
+    "nominal_interval_ms": 50,
+    "clock": "time.perf_counter",
+    "actions": 488,
+    "places": 244,
+    "breaks": 244,
+    "chunks": 171,
+    "latency": { "count": 488, "median_ms": 124.31225000182167, "p95_ms": 187.50059999729274, "max_ms": 614.1808999964269 },
+    "tps_windows": [20.0, 20.0, 20.0, 20.0, 20.0, 20.0],
+    "max_gameplay_work_ms": [24.86, 1.98, 0.98, 1.63, 2.32, 1.46],
+    "ordered_updates_match": true,
+    "all_acknowledged": true,
+    "final_saved_state": 0,
+    "source_unchanged": true,
+    "server_log_sha256": "305bed3548ccf0880cc5c1eb53650cdd7ce0b3b6d133920db89f254b81dff511"
+  },
+  "retained_native_authority": {
+    "pillar_provenance": {
+      "path": "crates/bcore-protocol/data/pillar_placement_provenance_26_2.json",
+      "sha256": "099248195403b39ca4d1af8d643940a06140550a05e3f8d586bcea906f956af2"
+    },
+    "fixture_sha256": "163e7acf1275fe1a7431f7f1f080152d13a2f2aa7e5d32ac9995b0880ed1f698",
+    "helper_sha256": {
+      "scripts/NativeWorldgenRegistries.java": "8c7baf226eb3fd20976d59f261bda13095e014327dff617a5e98ad5044a91e35",
+      "scripts/TreeReference.java": "47f021860550c9d1006c050fa48345ab3f2c09ec472c8a172a79d509ae74b670",
+      "scripts/migration-26.2/BlockActionReference.java": "7ff229200c1ce8d9d173fc6b8a73f2d469289970b8b595204c68e455a1e658f7",
+      "scripts/migration-26.2/PillarPlacementReference.java": "84ba0444ed57f2ef68ce87f3f888153901536752c60b7172477c620a8875c1fd",
+      "scripts/migration-26.2/ProtocolSchema.java": "cca18681364e2e9dad45e074f864b8eda08a66f5f363e69234beebdb055b9f56"
+    },
+    "new_native_capture": false
+  },
+  "failed_or_incomplete_attempts": [
+    {
+      "kind": "expected baseline grass regression",
+      "log": {
+        "path": "target/runtime-baseline-20261026-01/check-3.log",
+        "sha256": "b0aeed85296bc379436a3d1af9a92f3e13f33f5ad77c966d4c8e1a5049c72279"
+      },
+      "exit_code": 101
+    },
+    {
+      "kind": "interrupted earlier workspace attempt; excluded from successful validation",
+      "receipt": {
+        "path": "target/generation-checks/runtime-workspace-20261026-01-1792996725796293200.json",
+        "sha256": "176a923f0fcc4493f21f3ea83366cdf81b77dcfdcbff1a6fed2832e621a0cd9d"
+      },
+      "exit_code": 1073807364
+    }
+  ],
+  "limitations": [
+    "Unisolated Windows 11 / Ryzen 7 5700X host; sequential queue, Rayon budget 2, default release profile.",
+    "The streaming median correction latency rose from 93ms to 125ms; fewer chunks were delivered under the requested flow budget.",
+    "The 10ms tick batch budget is checked between actions; one action or snapshot can exceed it.",
+    "BCore before/after only: no fresh Java comparison, full GUI rendering proof, complete survival/physics/FULL parity or new native capture.",
+    "Raw worlds, binaries, logs and the 868-input source archive are retained locally; publication docs follow the measured snapshot.",
+    "Aislop executable unavailable; full scan and score not obtained."
+  ]
+}
