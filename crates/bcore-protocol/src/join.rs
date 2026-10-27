@@ -200,8 +200,9 @@ pub fn run_login_and_join(
     let handle = server.join(&name, uuid);
     let result = send_join_state(stream, &view, server, &handle).and_then(|_| {
         announce_join(server, &handle);
-        let sent = stream_initial_chunks(stream, &mut view, server, &handle)?;
-        play_loop(stream, &mut view, server, &handle, sent)
+        let requests = server.world().payload_stream();
+        let sent = stream_initial_chunks(stream, &mut view, server, &handle, &requests)?;
+        play_loop(stream, &mut view, server, &handle, sent, &requests)
     });
     server.leave(handle.id);
     announce_leave(server, &handle);
@@ -414,6 +415,7 @@ fn stream_initial_chunks(
     view: &mut PlayerView,
     server: &SharedServer,
     handle: &PlayerHandle,
+    requests: &crate::world_state::PayloadStream,
 ) -> Result<usize, PacketError> {
     let world = server.world();
     // Spawn on the nearest solid land near the live spawn (the captured
@@ -429,8 +431,8 @@ fn stream_initial_chunks(
     }
 
     // Stream the remaining view through subsequent bounded batches.
-    view.set_chunk_batch_size(4);
-    let sent = stream_world_chunks(stream, view, server, handle)?;
+    requests.update(view.generation_chunks());
+    let sent = stream_world_chunks(stream, view, server, handle, 4)?;
     let (cx, cz) = view.chunk();
     println!(
         "[BCore] streamed {sent} chunks around ({cx}, {cz}); spawn y={:.1} (seed {})",
@@ -445,14 +447,19 @@ fn stream_world_chunks(
     view: &mut PlayerView,
     server: &SharedServer,
     handle: &PlayerHandle,
+    budget: usize,
 ) -> Result<usize, PacketError> {
     let world = server.world();
-    for (x, z) in view.missing_chunks().into_iter().take(8) {
+    for (x, z) in view
+        .generation_chunks()
+        .into_iter()
+        .take(crate::world_state::VIEW_LOOKAHEAD)
+    {
         if let Some(error) = world.payload_error(x, z) {
             return Err(std::io::Error::other(error).into());
         }
     }
-    view.stream_chunks_from_with(stream, world, |view, delivered| {
+    view.stream_ready_chunks_from_with(stream, world, budget, |view, delivered| {
         handle.update_view(view, Some(delivered))
     })
 }
@@ -468,6 +475,7 @@ fn play_loop(
     server: &SharedServer,
     handle: &PlayerHandle,
     initial_chunks: usize,
+    requests: &crate::world_state::PayloadStream,
 ) -> Result<(), PacketError> {
     stream
         .set_read_timeout(Some(Duration::from_millis(50)))
@@ -502,6 +510,7 @@ fn play_loop(
         }
 
         actions.poll()?;
+        stream.set_read_timeout(Some(flow.time_until_poll(Instant::now())))?;
         match reader.read(stream) {
             Ok((pid, data)) => {
                 if pid == PLAY_TELEPORT_CONFIRM_ID {
@@ -573,12 +582,13 @@ fn play_loop(
             break;
         }
 
-        if !view.teleport_pending() {
-            if let Some(allowance) = flow.allowance(Instant::now()) {
-                view.set_chunk_batch_size(allowance);
-                let sent = stream_world_chunks(stream, view, server, handle)?;
-                flow.sent(sent);
-            }
+        let allowance = flow.poll(Instant::now());
+        if view.teleport_pending() {
+            requests.update(std::iter::empty());
+        } else if let Some(allowance) = allowance {
+            requests.update(view.generation_chunks());
+            let sent = stream_world_chunks(stream, view, server, handle, allowance)?;
+            flow.sent(sent);
         }
 
         if last_keepalive.elapsed() >= Duration::from_secs(10) {

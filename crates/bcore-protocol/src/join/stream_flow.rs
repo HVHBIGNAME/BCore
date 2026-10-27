@@ -43,6 +43,16 @@ impl ChunkFlow {
         (!self.in_flight && self.credit >= 1.0).then_some(self.credit.floor() as usize)
     }
 
+    pub(super) fn poll(&mut self, now: Instant) -> Option<usize> {
+        (now >= self.next).then(|| self.allowance(now).unwrap_or(0))
+    }
+
+    pub(super) fn time_until_poll(&self, now: Instant) -> Duration {
+        self.next
+            .saturating_duration_since(now)
+            .clamp(Duration::from_millis(1), INTERVAL)
+    }
+
     pub(super) fn sent(&mut self, count: usize) {
         if count != 0 {
             self.credit = (self.credit - count as f64).max(0.0);
@@ -83,5 +93,23 @@ mod tests {
         assert_eq!(flow.allowance(now + INTERVAL * 4), None);
         flow.acknowledge(10000.0);
         assert_eq!(flow.allowance(now + INTERVAL * 5), Some(64));
+    }
+
+    #[test]
+    fn outstanding_batches_do_not_stop_demand_refresh_or_add_a_second_read_delay() {
+        let now = Instant::now();
+        let mut flow = ChunkFlow::new(now, 4);
+        assert_eq!(
+            flow.time_until_poll(now + Duration::from_millis(40)),
+            Duration::from_millis(10)
+        );
+        assert_eq!(flow.poll(now + INTERVAL), Some(0));
+        assert_eq!(flow.poll(now + INTERVAL), None);
+        assert_eq!(
+            flow.time_until_poll(now + INTERVAL * 3),
+            Duration::from_millis(1)
+        );
+        flow.acknowledge(16.0);
+        assert_eq!(flow.poll(now + INTERVAL * 3), Some(16));
     }
 }

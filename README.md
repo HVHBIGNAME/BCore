@@ -36,11 +36,20 @@ That workspace checkpoint is **927 passed / 0 failed / 4 ignored**, 72 suites.
 
 [Runtime responsiveness](docs/runtime-latency-2026-10-27.md) adds nonblocking action
 ingestion, revisioned asynchronous saving, partial-frame recovery and client-paced
-chunk delivery. The latest checkpoint is **939 passed / 0 failed / 4 ignored**.
+chunk delivery. That checkpoint is **939 passed / 0 failed / 4 ignored**.
 The 32-break TCP regression improves from **1881 to 244 ms median**; repeated
 production probes report **20 TPS** during generation, including **488 actual
 place/break actions** with saved readback. The report retains latency tails,
 delivery-rate tradeoffs and the exact before/after BCore workload.
+
+[Creative-flight chunk delivery](docs/creative-flight-2026-10-27.md) adds refreshable
+view demand and movement-ahead admission. The latest checkpoint is **945 passed /
+0 failed / 4 ignored**. Across eight frozen TCP trajectories, **2522 samples** have
+the current and nearest 3×3 chunks loaded. Fresh-flight median forward margin is
+**88 blocks**, versus **16/24/24** before; the 60-second check stays at least **80
+blocks ahead**. All new session windows report 20 TPS, and 490 actual block edits
+retain ordered updates and saved readback. Full-view GUI and Java comparisons
+remain separate checks.
 
 [Development status, cleanup and open requirements — updated 2026-10-27](docs/development-status-2026-10-24.md).
 
@@ -95,6 +104,11 @@ are tracked with FULL conversion and other omissions in the
   block-entity data.
 
 ## Performance comparison
+
+The [creative-flight report](docs/creative-flight-2026-10-27.md) measures delivered
+terrain ahead of a 21.78-block/s trajectory: fresh-run minimum margins rise from
+**0/8/8 to 72/72/80 blocks**, including alternating frozen confirmations. It retains
+all run distributions, the movement-priority tradeoff and the separate CPU profile.
 
 The [runtime before/after report](docs/runtime-latency-2026-10-27.md) measures
 generation-time correction p95 **1718/1781 → 141/187 ms** against the previous BCore
@@ -163,7 +177,7 @@ and timings; they contribute no production speedup.
 | Shared cross-chunk generation; native light storage and updates | Ticket-driven FULL conversion, remaining terrain families and broader seed samples | Worldgen-heightmap retirement, saved-holder hydration, Nether/End |
 | Fossils; villages, ancient cities, trail/trial jigsaws; treasure, huts, jungle, desert pyramids and **desert wells** | Preserve real native behavior across combined request histories | Remaining structure families, persistent generation graph |
 | Shared 26.2 registries; BCC v6 admission; world-local clocks; native-decoded reconnect/restart; matched 26.2 NOISE baseline and fresh CPU profile | FULL boundaries and source-owned runtime effects | Isolated interpolation/noise optimization with exact-output and paired-run gates |
-| Tick-owned creative stateless and axis-only full-cube gameplay; client-paced streaming; revisioned async dirty saves; viewer/restart tests | Remaining stateful blocks, neighbour callbacks and player/inventory boundaries | Physics, survival, menus and persisted playerdata |
+| Tick-owned creative stateless and axis-only full-cube gameplay; movement-ahead streaming; revisioned async dirty saves; viewer/restart tests | Remaining stateful blocks, neighbour callbacks and player/inventory boundaries | Physics, survival, menus and persisted playerdata |
 
 Project updates and evidence are published together in the
 [tracker](https://HVHBIGNAME.github.io/BCore/), [parity report](docs/parity-report.md)

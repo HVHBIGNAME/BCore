@@ -17,6 +17,7 @@
     "gameplay_issue": "https://github.com/HVHBIGNAME/BCore/issues/3",
     "pillar_issue": "https://github.com/HVHBIGNAME/BCore/issues/5",
     "runtime_issue": "https://github.com/HVHBIGNAME/BCore/issues/6",
+    "flight_issue": "https://github.com/HVHBIGNAME/BCore/issues/7",
     "performance_issue": "https://github.com/HVHBIGNAME/BCore/issues/2"
   },
   "migration": {
@@ -76,6 +77,30 @@
     "data": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/metrics/creative-pillar-gameplay-validation-2026-10-26.json",
     "issue": "https://github.com/HVHBIGNAME/BCore/issues/5",
     "scope": "Tick-owned axis-only creative full-cube placement/break, all six native faces, current viewers, negative/chunk-border coordinates, retained holders and dirty BCC save/restart. Native state selection/codecs; full useOn, neighbour callbacks, physics, menus, survival and GUI remain open."
+  },
+  "flight": {
+    "tests_passed": 945,
+    "tests_failed": 0,
+    "tests_ignored": 4,
+    "suite_count": 72,
+    "source_files": 871,
+    "protected_files": 5070,
+    "accepted_samples": 2522,
+    "current_missing": 0,
+    "accepted_runs": 8,
+    "min_lead_blocks": 72,
+    "nearby_min": 9,
+    "fresh_before_median_blocks": [16, 24, 24],
+    "fresh_after_median_blocks": [88, 88, 88],
+    "long_seconds": 60,
+    "long_min_lead_blocks": 80,
+    "sustained_actions": 490,
+    "sustained_chunks": 170,
+    "observed_tps": 20,
+    "report": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/creative-flight-2026-10-27.md",
+    "data": "https://github.com/HVHBIGNAME/BCore/blob/main/docs/metrics/creative-flight-validation-2026-10-27.json",
+    "issue": "https://github.com/HVHBIGNAME/BCore/issues/7",
+    "scope": "Synthetic TCP flight on frozen BCore revisions: motion-directed admission improves delivered terrain ahead, with a slightly higher ping p95. Lead is sampled in 8-block steps and capped at 136; uniform view readiness, GUI smoothness and matched Java flight remain open. Generation and registry source bytes are unchanged."
   },
   "runtime": {
     "tests_passed": 939,
@@ -185,6 +210,8 @@
         { "name": "Chunk sending", "status": "done" },
         { "name": "View distance (configurable)", "status": "done" },
         { "name": "Per-world asynchronous generation queue and bounded lookahead", "status": "done" },
+        { "name": "Refreshable per-view demand, disconnect cancellation and ready-chunk selection", "status": "done" },
+        { "name": "Motion-directed prefetch within view; fresh/saved/turn/60-second TCP probes", "status": "done" },
         { "name": "Client-acknowledged, clock-paced chunk delivery", "status": "done" },
         { "name": "Revisioned asynchronous dirty saves and durability acknowledgements", "status": "done" },
         { "name": "Chunk unloading", "status": "done" },

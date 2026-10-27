@@ -31,8 +31,10 @@ use std::sync::{mpsc, Arc, Mutex, OnceLock, RwLock};
 use std::thread;
 
 mod mutation;
+mod requests;
 mod saving;
 pub(crate) use mutation::{WorldMutationOwner, WorldUpdates};
+pub(crate) use requests::{PayloadStream, VIEW_LOOKAHEAD};
 pub(crate) use saving::DirtyBatch;
 
 const PAYLOAD_SHARDS: usize = 32;
@@ -50,15 +52,32 @@ struct GenerationJob {
     position: (i32, i32),
 }
 
+enum GenerationWork {
+    Chunk(GenerationJob),
+    View(Arc<requests::StreamRequests>),
+}
+
+impl GenerationWork {
+    fn context(&self) -> (i64, Option<(i32, i32)>) {
+        match self {
+            Self::Chunk(job) => (job.world.seed(), Some(job.position)),
+            Self::View(stream) => (stream.seed(), None),
+        }
+    }
+
+    fn run(self) {
+        match self {
+            Self::Chunk(job) => job.run(),
+            Self::View(stream) => stream.run(),
+        }
+    }
+}
+
 impl GenerationJob {
-    fn send(self, queue: &mpsc::Sender<Self>) {
-        if let Err(error) = queue.send(self) {
-            let job = &error.0;
-            eprintln!(
-                "[bcore] cannot queue chunk {:?} for world seed {}: {error}",
-                job.position,
-                job.world.seed()
-            );
+    fn send(self, queue: &mpsc::Sender<GenerationWork>) {
+        if let Err(error) = queue.send(GenerationWork::Chunk(self)) {
+            let (seed, position) = error.0.context();
+            eprintln!("[bcore] cannot queue chunk {position:?} for world seed {seed}: {error}");
         }
     }
 
@@ -82,23 +101,22 @@ impl Drop for GenerationJob {
     }
 }
 
-static GENERATION_QUEUE: OnceLock<mpsc::Sender<GenerationJob>> = OnceLock::new();
+static GENERATION_QUEUE: OnceLock<mpsc::Sender<GenerationWork>> = OnceLock::new();
 
-fn run_generation_queue(queue: mpsc::Receiver<GenerationJob>) {
+fn run_generation_queue(queue: mpsc::Receiver<GenerationWork>) {
     for job in queue {
-        let position = job.position;
-        let seed = job.world.seed();
+        let (seed, position) = job.context();
         if std::panic::catch_unwind(|| job.run()).is_err() {
             eprintln!("[bcore] queued chunk {position:?} failed for world seed {seed}");
         }
     }
 }
 
-fn generation_queue() -> &'static mpsc::Sender<GenerationJob> {
+fn generation_queue() -> &'static mpsc::Sender<GenerationWork> {
     GENERATION_QUEUE.get_or_init(|| {
-        let (tx, rx) = mpsc::channel::<GenerationJob>();
-        // A chunk already uses the Rayon pool. One dispatcher keeps nearest-first
-        // jobs from competing with seven other whole-chunk parallel generations.
+        let (tx, rx) = mpsc::channel::<GenerationWork>();
+        // Admit whole targets in order. A view refresh changes unstarted work,
+        // never the source stages of a target already being generated.
         thread::spawn(move || run_generation_queue(rx));
         tx
     })
@@ -530,6 +548,10 @@ impl World {
         if let Some(job) = self.reserve_generation(x, z) {
             job.send(generation_queue());
         }
+    }
+
+    pub(crate) fn payload_stream(&self) -> PayloadStream {
+        PayloadStream::new(self.clone(), generation_queue().clone())
     }
 
     fn reserve_generation(&self, x: i32, z: i32) -> Option<GenerationJob> {

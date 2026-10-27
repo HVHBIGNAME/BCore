@@ -142,6 +142,7 @@ pub struct PlayerView {
     view_distance: i32,
     /// Maximum number of map_chunk packets emitted in one batch.
     chunk_batch_size: usize,
+    generation_direction: (f64, f64),
     /// Next teleport id handed to a clientbound `position` packet.
     next_teleport_id: i32,
     pending_teleport: Option<i32>,
@@ -166,6 +167,7 @@ impl PlayerView {
             retired_chunks: BTreeSet::new(),
             view_distance: default_view_distance(),
             chunk_batch_size: usize::MAX,
+            generation_direction: (0.0, 0.0),
             next_teleport_id: FIRST_TELEPORT_ID,
             pending_teleport: None,
             player_loaded: false,
@@ -331,6 +333,7 @@ impl PlayerView {
         {
             return false;
         }
+        self.generation_direction = (x - self.x, z - self.z);
         self.x = x;
         self.y = y;
         self.z = z;
@@ -344,6 +347,34 @@ impl PlayerView {
             .into_iter()
             .filter(|pos| !self.loaded.contains(pos))
             .collect()
+    }
+
+    /// Fill the immediate 3x3 first, then a bounded corridor along actual motion.
+    /// The remaining view keeps its normal nearest-first order. Only admission
+    /// priority changes: no chunks outside the configured view are requested.
+    pub(crate) fn generation_chunks(&self) -> Vec<(i32, i32)> {
+        let mut chunks = self.missing_chunks();
+        let (mx, mz) = self.generation_direction;
+        let distance = mx.hypot(mz);
+        if distance < 0.05 {
+            return chunks;
+        }
+        let (cx, cz) = self.chunk();
+        let (nx, nz) = (mx / distance, mz / distance);
+        chunks.sort_by_cached_key(|&(x, z)| {
+            let (dx, dz) = (f64::from(x) - f64::from(cx), f64::from(z) - f64::from(cz));
+            if dx.abs().max(dz.abs()) <= 1.0 {
+                return 0;
+            }
+            let forward = dx * nx + dz * nz;
+            let sideways = (dx * nz - dz * nx).abs();
+            if forward > 0.0 && forward <= 6.0 && sideways <= 1.5 {
+                1
+            } else {
+                2
+            }
+        });
+        chunks
     }
 
     /// Chunks the client holds that have left the view distance.
@@ -367,6 +398,7 @@ impl PlayerView {
     /// flags u32` — the deltas are velocity, zero for a plain teleport, and the
     /// flags bitset is 0 so every field is absolute.
     pub fn teleport(&mut self, x: f64, y: f64, z: f64) -> Vec<u8> {
+        self.generation_direction = (0.0, 0.0);
         self.x = x;
         self.y = y;
         self.z = z;
@@ -418,6 +450,28 @@ impl PlayerView {
         &mut self,
         out: &mut W,
         world: &World,
+        publish_delivery: impl FnMut(&Self, &BTreeSet<(i32, i32)>),
+    ) -> Result<usize, PacketError> {
+        let missing = self.missing_chunks();
+        if world.store().is_none() {
+            for &(x, z) in missing.iter().take(self.chunk_batch_size) {
+                if world.cached_chunk(x, z).is_none() {
+                    let _ = world.chunk_payload(x, z);
+                }
+            }
+        } else {
+            world.request_payloads(missing.iter().take(8).copied());
+        }
+        self.stream_ready_chunks_from_with(out, world, self.chunk_batch_size, publish_delivery)
+    }
+
+    /// Live connections maintain their own cancellable demand independently of
+    /// send credit. A zero budget still publishes view changes and retirements.
+    pub(crate) fn stream_ready_chunks_from_with<W: Write>(
+        &mut self,
+        out: &mut W,
+        world: &World,
+        budget: usize,
         mut publish_delivery: impl FnMut(&Self, &BTreeSet<(i32, i32)>),
     ) -> Result<usize, PacketError> {
         let missing = self.missing_chunks();
@@ -441,24 +495,11 @@ impl PlayerView {
             self.append_chunk_unload(&mut buf, pos);
         }
 
-        // Tests use in-memory worlds and expect deterministic synchronous output;
-        // the shared production world uses the worker pool.
-        if world.store().is_none() {
-            for &(x, z) in missing.iter().take(self.chunk_batch_size) {
-                if world.cached_chunk(x, z).is_none() {
-                    let _ = world.chunk_payload(x, z);
-                }
-            }
-        } else {
-            // Bounded lookahead avoids queuing an entire 41×41 view, including
-            // thousands of obsolete chunks when the player teleports again.
-            world.request_payloads(missing.iter().take(8).copied());
-        }
         let publication = world.read_publication();
         let batch: Vec<((i32, i32), CachedChunk)> = missing
             .iter()
-            .take(self.chunk_batch_size)
             .filter_map(|&(x, z)| world.cached_chunk(x, z).map(|chunk| ((x, z), chunk)))
+            .take(budget)
             .collect();
 
         if !batch.is_empty() {
@@ -535,6 +576,55 @@ mod entity_tests;
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn move_to(view: &mut PlayerView, x: f64, z: f64) {
+        let mut payload: Vec<_> = [x, view.y, z]
+            .into_iter()
+            .flat_map(f64::to_be_bytes)
+            .collect();
+        payload.push(0);
+        assert!(view.apply_movement(SB_POSITION, &payload));
+    }
+
+    #[test]
+    fn moving_views_keep_nearby_chunks_first_and_prefetch_within_the_actual_view() {
+        let mut view = PlayerView::new(8.0, 100.0, 8.0).with_view_distance(8);
+        move_to(&mut view, 9.0, 8.0);
+        let chunks = view.generation_chunks();
+        assert!(chunks[..9].iter().all(|&(x, z)| x.abs().max(z.abs()) <= 1));
+        assert_eq!(
+            chunks.iter().copied().collect::<BTreeSet<_>>(),
+            view.missing_chunks().into_iter().collect()
+        );
+        let index = |pos| chunks.iter().position(|p| *p == pos).unwrap();
+        assert!(index((2, 0)) < index((6, 0)));
+        assert!(index((6, 0)) < index((-2, 0)));
+
+        move_to(&mut view, 8.0, 7.0);
+        let diagonal = view.generation_chunks();
+        let index = |pos| diagonal.iter().position(|p| *p == pos).unwrap();
+        assert!(index((-4, -4)) < index((2, 2)));
+        move_to(&mut view, f64::NAN, 7.0);
+        assert_eq!(
+            view.generation_chunks(),
+            diagonal,
+            "invalid movement must not steer admission"
+        );
+    }
+
+    #[test]
+    fn turning_reprioritizes_unstarted_chunks_and_teleporting_clears_motion() {
+        let mut view = PlayerView::new(8.0, 100.0, 8.0).with_view_distance(8);
+        move_to(&mut view, 9.0, 8.0);
+        let forward = view.generation_chunks();
+        move_to(&mut view, 8.0, 8.0);
+        let reversed = view.generation_chunks();
+        assert_ne!(forward, reversed);
+        let index = |pos| reversed.iter().position(|p| *p == pos).unwrap();
+        assert!(index((-6, 0)) < index((2, 0)));
+        view.teleport(-1024.5, 100.0, -512.5);
+        assert_eq!(view.generation_chunks(), view.missing_chunks());
+    }
 
     /// Preload real encoded flat chunks to test selection independently of worldgen.
     /// What these tests assert is chunk *selection*, not the blocks inside.

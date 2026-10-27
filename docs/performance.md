@@ -1,11 +1,34 @@
 # BCore / Vanilla performance measurements
 
-The Java comparisons measure **NOISE terrain material filling**. The new runtime
-checkpoint measures BCore before/after under production generation and creative
-actions. In the kernel comparisons, both implementations
+The Java comparisons measure **NOISE terrain material filling**. The runtime and
+creative-flight checkpoints measure BCore before/after under production generation,
+movement and creative actions. In the kernel comparisons, both implementations
 produce the same complete block-state arrays, ordered per-section fluid
 postprocessing marks **and both worldgen heightmaps** for every measured and
 warmup batch.
+
+## Creative-flight chunk delivery — 2026-10-27
+
+The [flight report](creative-flight-2026-10-27.md) verifies refreshable per-view
+demand, ready-chunk selection and motion-directed admission. **945 workspace tests
+passed** with 0 failures and 4 ignored; 396 worldgen/registry files retain baseline
+bytes. The route moves at 21.78 blocks/s with two Rayon workers and default release.
+
+- Three fresh-flight minimum margins: **0/8/8 → 72/72/80 blocks**; medians
+  **16/24/24 → 88/88/88**, including alternating frozen confirmations.
+- Eight accepted fresh/saved/turn/long sessions: **2522 samples**, zero missing-current
+  chunks, all nearest 3×3 chunks delivered at every sample. The **60-second** route
+  keeps a minimum **80-block** sampled forward margin; all new reporting windows show 20 TPS.
+- Two comparisons of common initially saved columns: **2277 payload pairs / 0 differences**.
+  A separate **490-action / 170-chunk** edit session verifies ordered updates and final saved AIR.
+- Queue-only demand refresh was insufficient: 22/280 missing-current fresh samples.
+  Motion priority is part of the selected solution. Ping p95 increases slightly;
+  the complete baseline and candidate distributions are retained.
+
+Lead is sampled along the movement ray every 8 blocks, capped at 136. Full-view
+readiness, GUI smoothness and matched Java flight remain unmeasured. A separate
+10,065-leaf-sample CPU diagnostic is excluded from the default-release comparisons.
+[Coverage, identities and all runs](metrics/creative-flight-validation-2026-10-27.json).
 
 ## Runtime responsiveness — 2026-10-27
 

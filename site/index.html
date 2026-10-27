@@ -146,6 +146,23 @@
 
     const container = document.getElementById('categories');
     container.innerHTML = '';
+    if (data.flight) {
+      const f = data.flight;
+      const section = document.createElement('section');
+      section.className = 'category parity';
+      section.innerHTML = `<h2>Creative-flight chunk delivery</h2>` +
+        `<div class="checkpoint-grid">` +
+        `<div class="checkpoint-stat"><strong>${f.tests_passed}</strong><span>release tests · ${f.tests_failed} failed · ${f.tests_ignored} ignored</span></div>` +
+        `<div class="checkpoint-stat"><strong>${f.min_lead_blocks} blocks</strong><span>minimum sampled forward margin across ${f.accepted_runs} flight sessions</span></div>` +
+        `<div class="checkpoint-stat"><strong>${f.accepted_samples}</strong><span>samples · ${f.current_missing} missing-current chunks · nearest ${f.nearby_min}/9 always loaded</span></div></div>` +
+        `<p>Fresh-flight median margin: ${f.fresh_before_median_blocks.join(' / ')} → ${f.fresh_after_median_blocks.join(' / ')} blocks. ` +
+        `The ${f.long_seconds}-second flight keeps at least ${f.long_min_lead_blocks} blocks ahead; new session windows report ${f.observed_tps} TPS.</p>` +
+        `<p>${f.sustained_actions} actual edits with ${f.sustained_chunks} chunks delivered; ordered updates and final saved AIR verified. ` +
+        `${f.suite_count} workspace suites, ${f.source_files} source inputs and ${f.protected_files} protected files unchanged during validation.</p>` +
+        `<p class="caveat">${escapeHtml(f.scope)}</p>` +
+        `<p><a href="${escapeHtml(f.report)}">Flight workload and results</a> · <a href="${escapeHtml(f.data)}">Coverage and frozen identities</a> · <a href="${escapeHtml(f.issue)}">Flight acceptance</a></p>`;
+      container.appendChild(section);
+    }
     if (data.runtime) {
       const r = data.runtime;
       const section = document.createElement('section');
@@ -239,6 +256,9 @@
       }
       if (m.runtime_issue) {
         section.innerHTML += `<p><a href="${escapeHtml(m.runtime_issue)}">Runtime responsiveness acceptance</a></p>`;
+      }
+      if (m.flight_issue) {
+        section.innerHTML += `<p><a href="${escapeHtml(m.flight_issue)}">Creative-flight chunk delivery acceptance</a></p>`;
       }
       container.appendChild(section);
     }

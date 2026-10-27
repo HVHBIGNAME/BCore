@@ -7,6 +7,13 @@
 
 ## Выполнено и проверено
 
+- Creative flight: **945 passed / 0 failed / 4 ignored**, 72 suites, 871 source inputs
+  и **5070** world/operator files сохранены. Refreshable demand, ready-chunk selection
+  и приоритет движения: восемь frozen TCP-сессий, **2522 samples / 0 missing-current**,
+  ближайшие 3×3 загружены всегда; fresh minimum **0/8/8 → 72/72/80 блоков**.
+  Минутный полёт держит минимум 80 блоков впереди. Все новые flight windows — 20 TPS;
+  490 actual edits с durability/readback также прошли. Полный view/GUI и Java остаются
+  отдельными проверками. [Отчёт полёта](creative-flight-2026-10-27.md).
 - Runtime responsiveness: **939 passed / 0 failed / 4 ignored**, 72 suites,
   868 unchanged inputs и 4592 unchanged world/operator files. Nonblocking action queue,
   generation handoff, incremental framing, client-paced chunks и revisioned async
@@ -67,6 +74,7 @@
 |---|---|
 | Полный Overworld и ticket-driven FULL | Partial; нужны сохранение/восстановление canonical holders и полные межчанковые истории |
 | Saved-column admission | Выполнен data-admission slice: canonical Level/Imposter data, futures/cache, saved neighbours, stored light и restart проверены; generation history/registration остаются Partial |
+| Полёт и выдача чанков | Проверены refreshable demand, приоритет движения и 30/60-second TCP trajectories; 2522 samples без пропусков ближайших 3×3. Равномерная готовность всего view и GUI rendering требуют дальнейших проверок |
 | Ломка/установка блоков | Creative stateless + axis-only full-cube slices: 253 items, grass/podzol/mycelium supports и break, bounded nonblocking requests, tick-owner mutation, durable ack/correction/viewers, async save/restart; прочие stateful blocks/neighbour callbacks/survival открыты |
 | Физика и инвентарь | Standing overlap и creative unpatched hotbar 0..8 для 253 full-cube items проверены; полные poses/collision/gravity, menus/click transactions и persisted playerdata открыты |
 | Игрок, mobs, redstone и жидкости | Открыты соответствующие фазы дорожной карты |

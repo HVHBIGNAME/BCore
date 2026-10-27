@@ -4,6 +4,16 @@ The README and project site use versioned JSON evidence from this directory.
 Charts are rendered locally with `python scripts/render_readme.py`; `--check`
 verifies that the committed SVGs still match the data.
 
+- `creative-flight-validation-2026-10-27.json`: **945 / 0 / 4**, 72 suites,
+  871 unchanged source inputs, 5070 protected world/operator files, 233 focused tests.
+  Eight accepted TCP flight sessions: **2522 samples / 0 missing-current**, nearest
+  3×3 always loaded; fresh minimum margin **0/8/8 → 72/72/80 blocks**. The 60-second
+  route retains 80 blocks minimum lead. Includes rejected queue-only observations,
+  alternating fresh/saved repeats, a reversal, 2277 matching saved-payload pairs and
+  490 actual edits with durability/readback. Preserves all 16 default-release flight
+  runs and a separate 10,065-sample CPU diagnostic, excluded from throughput.
+  Native/generation byte identities and Java/GUI limits are retained.
+  [Report](../creative-flight-2026-10-27.md).
 - `runtime-latency-validation-2026-10-27.json`: **939 / 0 / 4**, 72 suites,
   868 unchanged source inputs, 4592 protected world/operator files; 12 new regressions.
   Three 32-action TCP bursts per revision: **1881.04 → 243.79 ms median**. Two alternating
