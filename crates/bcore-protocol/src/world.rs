@@ -349,9 +349,10 @@ impl PlayerView {
             .collect()
     }
 
-    /// Fill the immediate 3x3 first, then a bounded corridor along actual motion.
-    /// The remaining view keeps its normal nearest-first order. Only admission
-    /// priority changes: no chunks outside the configured view are requested.
+    /// Admit one complete square ring at a time, leading towards actual motion
+    /// within each ring. A finished ring means the whole area around the player is
+    /// present instead of a narrow strip in front of it. Only admission priority
+    /// changes: nothing outside the configured view is requested.
     pub(crate) fn generation_chunks(&self) -> Vec<(i32, i32)> {
         let mut chunks = self.missing_chunks();
         let (mx, mz) = self.generation_direction;
@@ -361,18 +362,15 @@ impl PlayerView {
         }
         let (cx, cz) = self.chunk();
         let (nx, nz) = (mx / distance, mz / distance);
+        // Integer keys keep the comparison total, so equal distances never depend
+        // on float ties. Ring dominates: ring N is fully admitted before ring N+1.
         chunks.sort_by_cached_key(|&(x, z)| {
-            let (dx, dz) = (f64::from(x) - f64::from(cx), f64::from(z) - f64::from(cz));
-            if dx.abs().max(dz.abs()) <= 1.0 {
-                return 0;
-            }
-            let forward = dx * nx + dz * nz;
-            let sideways = (dx * nz - dz * nx).abs();
-            if forward > 0.0 && forward <= 6.0 && sideways <= 1.5 {
-                1
-            } else {
-                2
-            }
+            let dx = i64::from(x) - i64::from(cx);
+            let dz = i64::from(z) - i64::from(cz);
+            let ring = dx.abs().max(dz.abs());
+            let forward = (dx as f64) * nx + (dz as f64) * nz;
+            let lead = -((forward * 1024.0) as i64);
+            (ring, lead, dx.abs() + dz.abs(), dx, dz)
         });
         chunks
     }
@@ -591,19 +589,27 @@ mod tests {
         let mut view = PlayerView::new(8.0, 100.0, 8.0).with_view_distance(8);
         move_to(&mut view, 9.0, 8.0);
         let chunks = view.generation_chunks();
+        let ring = |(x, z): (i32, i32)| x.abs().max(z.abs());
+        assert!(
+            chunks.windows(2).all(|pair| ring(pair[0]) <= ring(pair[1])),
+            "a whole square ring must be admitted before the next one starts"
+        );
         assert!(chunks[..9].iter().all(|&(x, z)| x.abs().max(z.abs()) <= 1));
         assert_eq!(
             chunks.iter().copied().collect::<BTreeSet<_>>(),
             view.missing_chunks().into_iter().collect()
         );
         let index = |pos| chunks.iter().position(|p| *p == pos).unwrap();
-        assert!(index((2, 0)) < index((6, 0)));
-        assert!(index((6, 0)) < index((-2, 0)));
+        // Ring 2 is completed sideways and behind before ring 3, so the client
+        // never receives a narrow strip with empty terrain beside it.
+        assert!(index((2, 0)) < index((0, 2)));
+        assert!(index((0, 2)) < index((-2, 0)));
+        assert!(index((-2, 0)) < index((3, 0)));
 
         move_to(&mut view, 8.0, 7.0);
         let diagonal = view.generation_chunks();
         let index = |pos| diagonal.iter().position(|p| *p == pos).unwrap();
-        assert!(index((-4, -4)) < index((2, 2)));
+        assert!(index((0, -2)) < index((2, 2)));
         move_to(&mut view, f64::NAN, 7.0);
         assert_eq!(
             view.generation_chunks(),
@@ -617,11 +623,19 @@ mod tests {
         let mut view = PlayerView::new(8.0, 100.0, 8.0).with_view_distance(8);
         move_to(&mut view, 9.0, 8.0);
         let forward = view.generation_chunks();
+        let index = |chunks: &[(i32, i32)], pos| chunks.iter().position(|p| *p == pos).unwrap();
+        assert!(index(&forward, (2, 0)) < index(&forward, (-2, 0)));
         move_to(&mut view, 8.0, 8.0);
         let reversed = view.generation_chunks();
         assert_ne!(forward, reversed);
-        let index = |pos| reversed.iter().position(|p| *p == pos).unwrap();
-        assert!(index((-6, 0)) < index((2, 0)));
+        assert!(index(&reversed, (-2, 0)) < index(&reversed, (2, 0)));
+        let ring = |(x, z): (i32, i32)| x.abs().max(z.abs());
+        assert!(
+            reversed
+                .windows(2)
+                .all(|pair| ring(pair[0]) <= ring(pair[1])),
+            "turning must change lead order, not ring completeness"
+        );
         view.teleport(-1024.5, 100.0, -512.5);
         assert_eq!(view.generation_chunks(), view.missing_chunks());
     }
